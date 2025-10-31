@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User-related models
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String        @unique
+  emailVerified DateTime?
+  password      String? // not for OAuth Users
+  image         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  accounts      Account[]
+  UserInfo      UserInfo[]
+  UserSettings  UserSettings?
+
+
+  @@index([email])
+
+  // Project-related
+  projectMembers  ProjectMember[] // Link to projects
+  createdProjects Project[]       @relation("ProjectCreator")
+
+  // Task-related
+  createdTasks  Task[] @relation("TaskCreator")
+  assignedTasks Task[] @relation("TaskAssignee")
+
+  // Chat and comments
+  chatMessages ChatMessage[]
+
+  // File-related
+  uploadedFiles File[] @relation("FileUploader")
+
+  sentMessages     DirectMessage[] @relation("MessageSender")
+  receivedMessages DirectMessage[] @relation("MessageReceiver")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model UserInfo {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  bio        String?
+  skills     String?
+  jobTitle   String?
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Collaboration Preferences
+  autoAcceptTaskAssignments   Boolean @default(true)
+  taskReminderNotifications   Boolean @default(true)
+  showDueDatesInLocalTimezone Boolean @default(true)
+
+  // Email Notifications
+  emailProjectInvitations   Boolean @default(true)
+  emailTaskAssignments      Boolean @default(true)
+  emailTaskDueDateReminders Boolean @default(true)
+  emailComments             Boolean @default(true)
+
+  // In-App Notifications
+  inAppProjectUpdates Boolean @default(true)
+  inAppRoleChanges    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id        String
+  email     String
+  code      String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([id, code])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model DeleteAccountToken {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// Project-related models
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  creatorId   String
+  status      ProjectStatus @default(IN_PROGRESS)
+  dueDate     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([creatorId])
+
+  // Relations
+  creator      User                @relation("ProjectCreator", fields: [creatorId], references: [id])
+  members      ProjectMember[]
+  tasks        Task[]
+  projectFiles File[]              @relation("ProjectFiles")
+  invitations  ProjectInvitation[]
+  chatMessages ChatMessage[]
+}
+
+enum ProjectStatus {
+  IN_PROGRESS
+  AT_RISK
+  COMPLETED
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(MEMBER)
+  joinedAt  DateTime    @default(now())
+
+  @@index([userId])
+  @@index([projectId, role])
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+enum ProjectRole {
+  ADMIN
+  EDITOR
+  MEMBER
+}
+
+model ProjectInvitation {
+  id        String      @id @default(cuid())
+  projectId String
+  email     String
+  role      ProjectRole @default(MEMBER)
+  token     String      @unique
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, email])
+}
+
+// Task-related models
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?
+  projectId      String
+  creatorId      String
+  assigneeId     String?
+  status         TaskStatus   @default(TODO)
+  dueDate        DateTime?
+  priority       TaskPriority @default(MEDIUM)
+  completionNote String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([projectId]) 
+  @@index([assigneeId])
+  @@index([status])
+  @@index([dueDate])
+
+  // Relations
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator      User          @relation("TaskCreator", fields: [creatorId], references: [id])
+  assignee     User?         @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  taskFiles    File[]        @relation("TaskFiles")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Chat system
+model ChatMessage {
+  id           String   @id @default(cuid())
+  content      String
+  projectId    String
+  userId       String
+  mentionsJson String? // JSON string of mentions (users, projects, tasks)
+  createdAt    DateTime @default(now())
+
+  @@index([projectId])
+  @@index([userId])
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// File management
+model File {
+  id                String   @id @default(cuid())
+  name              String
+  url               String
+  size              Int // in bytes
+  type              String // MIME type
+  uploaderId        String
+  taskId            String? // Optional: if file is associated with a task
+  projectId         String // All files belong to a project
+  isTaskDeliverable Boolean  @default(false) // Whether this is a deliverable for task completion
+  createdAt         DateTime @default(now())
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([uploaderId])
+
+  // Relations
+  project  Project @relation("ProjectFiles", fields: [projectId], references: [id], onDelete: Cascade)
+  task     Task?   @relation("TaskFiles", fields: [taskId], references: [id], onDelete: SetNull)
+  uploader User    @relation("FileUploader", fields: [uploaderId], references: [id], onDelete: Cascade)
+}
+
+// Direct messaging
+model DirectMessage {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  receiverId String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([senderId])
+  @@index([receiverId])
+
+  // Relations
+  sender    User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
