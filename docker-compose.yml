@@ -1,0 +1,65 @@
+# version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend-service
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://backend-service:5000
+    depends_on:
+      - backend
+    command: npm run dev
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend-service
+    ports:
+      - "5000:5000"
+      - "5555:5555"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/project_collab_db
+      - CORS_ORIGIN=http://frontend-service:4000,http://localhost:4000,*
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: postgres:17
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: project_collab_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:
+
+networks:
+  app-network:
+    driver: bridge
