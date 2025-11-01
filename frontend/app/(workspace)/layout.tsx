@@ -11,6 +11,7 @@ import WorkspaceSidebar from "@/components/workspace/WorkspaceSidebar";
 import { Loader2 } from "lucide-react";
 import { UnifiedBreadcrumb } from "@/components/workspace/UnifiedBreadcrumb";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SubscriptionProvider } from "@/components/context/SubscriptionContext";
 
 export default function WorkspaceLayout({
   children,
@@ -39,6 +40,7 @@ export default function WorkspaceLayout({
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <SubscriptionProvider>
         <SidebarProvider>
           <div className="flex h-screen overflow-hidden bg-background w-full">
             <WorkspaceSidebar />
@@ -65,6 +67,7 @@ export default function WorkspaceLayout({
             </main>
           </div>
         </SidebarProvider>
+      </SubscriptionProvider>
     </ThemeProvider>
   );
 }

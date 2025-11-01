@@ -17,7 +17,7 @@ export async function GET(
     const { projectId } = resolvedParams;
 
     const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://backend-service:5000";
+      process.env.NEXT_PUBLIC_API_URL || "http://backend-service:4000";
 
     const response = await fetch(
       `${apiUrl}/api/team-messages/project/${projectId}`,

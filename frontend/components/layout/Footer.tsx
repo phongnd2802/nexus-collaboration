@@ -116,7 +116,7 @@ export default function Footer() {
                 </svg>
               </motion.div>
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-500 dark:to-purple-400">
-                Nexus
+                Nudge
               </span>
             </Link>
             <p className="text-muted-foreground max-w-md">
@@ -186,7 +186,7 @@ export default function Footer() {
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <Link
-                  href={`${(srv) ? "mailto:Nexus@pritam.studio" : "mailto:pritam@student.agh.edu.pl"}`}
+                  href={`${(srv) ? "mailto:nudge@pritam.studio" : "mailto:pritam@student.agh.edu.pl"}`}
                   className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors p-2 rounded-full"
                 >
                   <Mail className="h-5 w-5" />
@@ -311,7 +311,7 @@ export default function Footer() {
         </div>
         <div className="mt-12 border-t border-border pt-6">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Nexus. All rights reserved.
+            © {new Date().getFullYear()} Nudge. All rights reserved.
           </p>
         </div>
       </div>
