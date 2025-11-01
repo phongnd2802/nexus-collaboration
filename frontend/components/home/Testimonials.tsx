@@ -25,40 +25,40 @@ const Testimonials = React.forwardRef<HTMLDivElement, TestimonialsProps>(
         handle: "@sarahjdev",
         avatar: "/female-icon.jpg?height=48&width=48",
         content:
-          "I'm using @Nexus_App for our team projects and the role-based permissions are a game-changer. No more access confusion!",
-        highlight: "@Nexus_App",
+          "I'm using @Nudge_App for our team projects and the role-based permissions are a game-changer. No more access confusion!",
+        highlight: "@Nudge_App",
       },
       {
         name: "Michael Chen",
         handle: "@mchen_tech",
         avatar: "/placeholder.jpg?height=48&width=48",
         content:
-          "Switched from Dyla to @Nexus_App and our team productivity increased by 40%. The Kanban board view is incredibly intuitive.",
-        highlight: "@Nexus_App",
+          "Switched from Dyla to @Nudge_App and our team productivity increased by 40%. The Kanban board view is incredibly intuitive.",
+        highlight: "@Nudge_App",
       },
       {
         name: "Emily Rodriguez",
         handle: "@emilyr_design",
         avatar: "/female-icon.jpg?height=48&width=48",
         content:
-          "The real-time chat in @Nexus_App eliminated our need for chat_App. One platform for everything = less context switching!",
-        highlight: "@Nexus_App",
+          "The real-time chat in @Nudge_App eliminated our need for chat_App. One platform for everything = less context switching!",
+        highlight: "@Nudge_App",
       },
       {
         name: "David Kim",
         handle: "@davidkim_dev",
         avatar: "/placeholder.jpg?height=48&width=48",
         content:
-          "Our remote team relies on @Nexus_App for everything. The file management system has been crucial for our design handoffs.",
-        highlight: "@Nexus_App",
+          "Our remote team relies on @Nudge_App for everything. The file management system has been crucial for our design handoffs.",
+        highlight: "@Nudge_App",
       },
       {
         name: "Jessica Taylor",
         handle: "@jtaylor_pm",
         avatar: "/female-icon.jpg?height=48&width=48",
         content:
-          "Just migrated our entire project tracking to @Nexus_App and it's been a game changer. The dashboard gives me the perfect overview.",
-        highlight: "@Nexus_App",
+          "Just migrated our entire project tracking to @Nudge_App and it's been a game changer. The dashboard gives me the perfect overview.",
+        highlight: "@Nudge_App",
       },
     ];
 
@@ -69,40 +69,40 @@ const Testimonials = React.forwardRef<HTMLDivElement, TestimonialsProps>(
         handle: "@alexw_cto",
         avatar: "/placeholder.jpg?height=48&width=48",
         content:
-          "As a CTO, I appreciate how @Nexus_App handles permissions. The three-tier system (Admin, Editor, Member) is exactly what we needed.",
-        highlight: "@Nexus_App",
+          "As a CTO, I appreciate how @Nudge_App handles permissions. The three-tier system (Admin, Editor, Member) is exactly what we needed.",
+        highlight: "@Nudge_App",
       },
       {
         name: "Sophia Martinez",
         handle: "@sophiam_ux",
         avatar: "/female-icon.jpg?height=48&width=48",
         content:
-          "The UI of @Nexus_App is so clean and intuitive. As a UX designer, I'm impressed by how they've simplified complex workflows.",
-        highlight: "@Nexus_App",
+          "The UI of @Nudge_App is so clean and intuitive. As a UX designer, I'm impressed by how they've simplified complex workflows.",
+        highlight: "@Nudge_App",
       },
       {
         name: "James Thompson",
         handle: "@jamest_agile",
         avatar: "/placeholder.jpg?height=48&width=48",
         content:
-          "We've been using @Nexus_App for our sprints since March, and it's been an absolute joy. The task tracking and calendar features are perfect.",
-        highlight: "@Nexus_App",
+          "We've been using @Nudge_App for our sprints since March, and it's been an absolute joy. The task tracking and calendar features are perfect.",
+        highlight: "@Nudge_App",
       },
       {
         name: "Olivia Parker",
         handle: "@oliviap_content",
         avatar: "/female-icon.jpg?height=48&width=48",
         content:
-          "@Nexus_App has the best email notification system. Never miss an update, but also not overwhelmed with alerts. Perfect balance!",
-        highlight: "@Nexus_App",
+          "@Nudge_App has the best email notification system. Never miss an update, but also not overwhelmed with alerts. Perfect balance!",
+        highlight: "@Nudge_App",
       },
       {
         name: "Daniel Lee",
         handle: "@danlee_dev",
         avatar: "/placeholder.jpg?height=48&width=48",
         content:
-          "Moving from Apex to @Nexus_App was the best decision we made this year. Better UI, faster performance, and the Socket.IO integration is brilliant.",
-        highlight: "@Nexus_App",
+          "Moving from Apex to @Nudge_App was the best decision we made this year. Better UI, faster performance, and the Socket.IO integration is brilliant.",
+        highlight: "@Nudge_App",
       },
     ];
 
@@ -191,7 +191,7 @@ const Testimonials = React.forwardRef<HTMLDivElement, TestimonialsProps>(
               Loved by teams worldwide
             </h2>
             <p className="mt-3 sm:mt-4 max-w-2xl text-base sm:text-lg text-gray-600 dark:text-zinc-400 mx-auto px-2">
-              See what users have to say about how Nexus has transformed their
+              See what users have to say about how Nudge has transformed their
               workflow.
             </p>
           </div>

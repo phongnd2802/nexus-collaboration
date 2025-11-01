@@ -25,10 +25,12 @@ import {
   Paperclip,
 } from "lucide-react";
 import ProjectFileUpload from "@/components/projects/ProjectFileUpload";
+import { useSubscription } from "@/components/context/SubscriptionContext";
 
 export default function NewProjectPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { canCreateProject } = useSubscription();
 
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
@@ -51,6 +53,12 @@ export default function NewProjectPage() {
       return;
     }
 
+    // Check subscription limits before submitting
+    if (!canCreateProject) {
+      router.push('/subscription?upgrade=projects');
+      return;
+    }
+
     setIsSubmitting(true);
     setFormError("");
 
@@ -70,6 +78,13 @@ export default function NewProjectPage() {
 
       if (!response.ok) {
         const data = await response.json();
+        
+        // Handle subscription limit exceeded error
+        if (data.error === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
+          router.push('/subscription?upgrade=projects');
+          return;
+        }
+        
         throw new Error(data.message || "Failed to create project");
       }
 

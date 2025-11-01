@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
  */
 export async function GET(request: NextRequest) {
   const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://backend-service:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://backend-service:4000";
   const socketUrl = `${apiUrl}/socket.io/`;
 
   const searchParams = request.nextUrl.searchParams;
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://backend-service:5000";
+    process.env.NEXT_PUBLIC_API_URL || "http://backend-service:4000";
   const socketUrl = `${apiUrl}/socket.io/`;
 
   const searchParams = request.nextUrl.searchParams;

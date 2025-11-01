@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Email Verified | Nexus",
+  title: "Email Verified | Nudge",
   description: "Your email has been successfully verified",
 };
 
@@ -62,4 +62,3 @@ export default function VerificationSuccessPage() {
     </div>
   );
 }
-

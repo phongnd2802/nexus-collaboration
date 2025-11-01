@@ -21,7 +21,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function getStoredTheme(): string | null {
   if (!isClient) return null;
-  return localStorage.getItem("Nexus-theme");
+  return localStorage.getItem("nudge-theme");
 }
 
 /**
@@ -29,7 +29,7 @@ export function getStoredTheme(): string | null {
  */
 export function setStoredTheme(theme: string): void {
   if (!isClient) return;
-  localStorage.setItem("Nexus-theme", theme);
+  localStorage.setItem("nudge-theme", theme);
 }
 
 /**
