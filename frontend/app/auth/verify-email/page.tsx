@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import VerifyEmail from "@/components/auth/VerifyEmailForm";
 
 export const metadata: Metadata = {
-  title: "Verify Email | Nudge",
-  description: "Verify your email address for your Nudge account",
+  title: "Verify Email | Nexus",
+  description: "Verify your email address for your Nexus account",
 };
 
 export default function VerifyEmailPage() {
