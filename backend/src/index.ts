@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express from "express";
+import express, { ErrorRequestHandler, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import http from "http";
 import { PrismaClient } from "@prisma/client";
@@ -41,6 +41,7 @@ import { setupSocketHandlers } from "./socket/socketHandler";
 
 // debug utilities
 import { debugLog } from "./utils/debug";
+import { isAppError } from "./utils/errors";
 
 const app = express();
 const server = http.createServer(app);
@@ -78,37 +79,6 @@ app.post("/api/subscriptions/webhook", express.raw({ type: 'application/json' })
       res.status(500).json({ message: 'Webhook secret not configured' });
       return;
     }
-
-    let event;
-
-    // try {
-    //   event = stripe.webhooks.constructEvent(req.body, sig as string, webhookSecret);
-    // } catch (err: any) {
-    //   console.error('Webhook signature verification failed:', err.message);
-    //   res.status(400).json({ message: 'Invalid signature' });
-    //   return;
-    // }
-
-    // try {
-    //   switch (event.type) {
-    //     case 'customer.subscription.created':
-    //       await handleSubscriptionCreated(event.data.object);
-    //       break;
-    //     case 'customer.subscription.updated':
-    //       await handleSubscriptionUpdated(event.data.object);
-    //       break;
-    //     case 'customer.subscription.deleted':
-    //       await handleSubscriptionDeleted(event.data.object);
-    //       break;
-    //     default:
-    //       console.log(`Unhandled event type: ${event.type}`);
-    //   }
-
-    //   res.status(200).json({ received: true });
-    // } catch (error) {
-    //   debugError("Error handling webhook:", error);
-    //   res.status(500).json({ message: "Webhook handling failed" });
-    // }
   })();
 });
 
@@ -136,7 +106,25 @@ app.use("/api/calendar", calendarRouter);
 app.use("/api/collaborators", collaboratorsRouter);
 app.use("/api/messages", messageRateLimit, messagesRouter);
 app.use("/api/team-messages", messageRateLimit, teamMessagesRouter);
-// app.use("/api/subscriptions", subscriptionRouter);
+
+// Centralized error handler
+const errorHandler = (
+  err: any,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
+  if (isAppError(err)) {
+    res.status(err.status).json({ code: err.code, message: err.message });
+    return;
+  }
+  debugError("Unhandled error:", err);
+  res
+    .status(500)
+    .json({ code: "INTERNAL_ERROR", message: "Internal server error" });
+};
+
+app.use(errorHandler);
 
 // Start server
 const PORT = parseInt(process.env.PORT || "4000", 10);
