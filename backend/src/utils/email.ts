@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const BASE_URL = process.env.FRONTEND_URL || "http://localhost:4000";
+const BASE_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 let transporter: nodemailer.Transporter | null = null;
 
