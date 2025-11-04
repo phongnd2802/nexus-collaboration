@@ -1,5 +1,5 @@
 import { Request, Response, RequestHandler } from "express";
-import { getCalendarEvents, getDeadlines } from "../services/calenderService.js";
+import { getCalendarEvents, getDeadlines } from "../services/calenderService";
 
 export const getCalendarEventsController: RequestHandler = async (
   req: Request,
