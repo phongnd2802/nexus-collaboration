@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express, { ErrorRequestHandler, Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import http from "http";
 import { PrismaClient } from "@prisma/client";
@@ -17,13 +17,6 @@ import calendarRouter from "./routes/calendar";
 import collaboratorsRouter from "./routes/collaborators";
 import messagesRouter from "./routes/messages";
 import teamMessagesRouter from "./routes/teamMessages";
-// import subscriptionRouter from "./routes/subscriptions";
-// import { 
-//   handleSubscriptionCreated, 
-//   handleSubscriptionUpdated, 
-//   handleSubscriptionDeleted,
-//   stripe
-// } from "./utils/subscription";
 import { debugError } from "./utils/debug";
 
 // middleware
