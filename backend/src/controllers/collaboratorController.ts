@@ -1,55 +1,55 @@
-import { Request, Response } from "express";
+import { Request, Response, RequestHandler, NextFunction } from "express";
 import {
   getTeamCollaboratorsService,
   searchCollaborators,
   getSharedProjects,
 } from "../services/collaboratorService";
 
-export async function getTeamCollaboratorsController(
+export const getTeamCollaboratorsController: RequestHandler = async (
   req: Request,
-  res: Response
-) {
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const userId = (req.headers["x-user-id"] as string) || (req.query.userId as string);
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
     const { collaborators } = await getTeamCollaboratorsService(userId);
 
     res.status(200).json({ collaborators });
-  } catch (error: any) {
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to fetch collaborators",
-    });
+  } catch (error) {
+    next(error);
   }
-}
+};
 
-export async function searchCollaboratorsController(
+export const searchCollaboratorsController: RequestHandler = async (
   req: Request,
-  res: Response
-) {
-    try {
-    const userId = (req.headers["x-user-id"] as string) || (req.query.userId as string);
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
     const query = req.query.q as string;
     const { collaborators } = await searchCollaborators(userId, query);
 
     res.status(200).json({ collaborators });
-    } catch (error: any) {
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to search collaborators",
-    });
+  } catch (error) {
+    next(error);
   }
-}
+};
 
-export async function getSharedProjectsController(
+export const getSharedProjectsController: RequestHandler = async (
   req: Request,
-  res: Response
-) {
-    try {
-    const userId = (req.headers["x-user-id"] as string) || (req.query.userId as string);
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
     const targetUserId = req.params.targetUserId;
     const { projects, count } = await getSharedProjects(userId, targetUserId);
     res.status(200).json({ projects, count });
-    } catch (error: any) {
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to fetch shared projects",
-    });
+  } catch (error) {
+    next(error);
   }
-}
+};
