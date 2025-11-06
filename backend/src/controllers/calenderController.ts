@@ -1,5 +1,6 @@
 import { Request, Response, RequestHandler } from "express";
 import { getCalendarEvents, getDeadlines } from "../services/calenderService";
+import { sendError } from "../utils/errors";
 
 export const getCalendarEventsController: RequestHandler = async (
   req: Request,
@@ -15,7 +16,7 @@ export const getCalendarEventsController: RequestHandler = async (
     const data = await getCalendarEvents(userId, startDate, endDate);
     res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch calendar data" });
+    sendError(res, err);
   }
 };
 
@@ -32,6 +33,6 @@ export const getDeadlinesController: RequestHandler = async (
     const data = await getDeadlines(userId, daysAhead);
     res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch deadline data" });
+    sendError(res, err);
   }
 };
