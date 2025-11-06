@@ -3,6 +3,7 @@ import {
   getDashboardProjects,
   getDashboardActivity,
 } from "../services/dashboardService";
+import { sendError } from "../utils/errors";
 
 export async function getDashboardProjectsController(
   req: Request,
@@ -15,7 +16,7 @@ export async function getDashboardProjectsController(
     const projects = await getDashboardProjects(userId, limit);
     res.status(200).json(projects);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch projects" });
+    sendError(res, error);
   }
 }
 
@@ -28,7 +29,7 @@ export async function getDashboardActivityController(
       (req.headers["x-user-id"] as string) || (req.query.userId as string);
     const activity = await getDashboardActivity(userId);
     res.status(200).json(activity);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+  } catch (error) {
+    sendError(res, error);
   }
 }
