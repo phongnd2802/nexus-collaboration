@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as projectService from "../services/projectService";
 import { debugError, debugLog } from "../utils/debug";
+import { sendError } from "../utils/errors";
 
 export async function createProjectController(req: Request, res: Response) {
   try {
@@ -15,11 +16,9 @@ export async function createProjectController(req: Request, res: Response) {
     );
 
     res.status(201).json(project);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error creating project:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to create project",
-    });
+    sendError(res, error);
   }
 }
 
@@ -32,11 +31,9 @@ export async function getProjectByIdController(req: Request, res: Response) {
     const project = await projectService.getProjectById(id, userId);
 
     res.status(200).json(project);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error fetching project:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to fetch project",
-    });
+    sendError(res, error);
   }
 }
 
@@ -54,11 +51,9 @@ export async function updateProjectController(req: Request, res: Response) {
     });
 
     res.status(200).json(updatedProject);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error updating project:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to update project",
-    });
+    sendError(res, error);
   }
 }
 
@@ -70,11 +65,9 @@ export async function deleteProjectController(req: Request, res: Response) {
     const deletedProject = await projectService.deleteProject(id, userId);
 
     res.status(200).json(deletedProject);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error deleting project:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to delete project",
-    });
+    sendError(res, error);
   }
 }
 
@@ -95,11 +88,9 @@ export async function inviteUserController(req: Request, res: Response) {
     );
 
     res.status(result.autoAccepted ? 200 : 201).json(result);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error sending project invitation:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to send invitation",
-    });
+    sendError(res, error);
   }
 }
 
@@ -111,11 +102,9 @@ export async function getInvitationsController(req: Request, res: Response) {
     const invitations = await projectService.getProjectInvitations(id, userId);
 
     res.status(200).json(invitations);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error fetching project invitations:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to fetch invitations",
-    });
+    sendError(res, error);
   }
 }
 
@@ -131,11 +120,9 @@ export async function cancelInvitationController(req: Request, res: Response) {
     );
 
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error cancelling invitation:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to cancel invitation",
-    });
+    sendError(res, error);
   }
 }
 
@@ -148,11 +135,9 @@ export async function getProjectFilesController(req: Request, res: Response) {
     const projectFiles = await projectService.getProjectFiles(id, userId);
 
     res.status(200).json({ projectFiles });
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error fetching project files:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to fetch project files",
-    });
+    sendError(res, error);
   }
 }
 
@@ -164,11 +149,9 @@ export async function addFilesController(req: Request, res: Response) {
     const result = await projectService.addFilesToProject(id, files, userId);
 
     res.status(201).json(result);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error adding files to project:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to add files to project",
-    });
+    sendError(res, error);
   }
 }
 
@@ -184,11 +167,9 @@ export async function deleteFileController(req: Request, res: Response) {
     );
 
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error deleting project file:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to delete file",
-    });
+    sendError(res, error);
   }
 }
 
@@ -208,11 +189,9 @@ export async function updateMemberRoleController(req: Request, res: Response) {
     );
 
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error updating member role:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to update member role",
-    });
+    sendError(res, error);
   }
 }
 
@@ -230,10 +209,8 @@ export async function removeMemberController(req: Request, res: Response) {
     );
 
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error) {
     debugError("Error removing project member:", error);
-    res.status(error.statusCode || 500).json({
-      message: error.message || "Failed to remove member",
-    });
+    sendError(res, error);
   }
 }

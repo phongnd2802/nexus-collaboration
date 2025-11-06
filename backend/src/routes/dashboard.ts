@@ -1,5 +1,8 @@
 import express, { Router } from "express";
-import { getDashboardActivityController, getDashboardProjectsController } from "../controllers/dashboardController";
+import {
+  getDashboardActivityController,
+  getDashboardProjectsController,
+} from "../controllers/dashboardController";
 
 const dashboardRouter: Router = express.Router();
 
