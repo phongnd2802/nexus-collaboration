@@ -4,7 +4,7 @@ import {
   acceptInvitationController,
   declineInvitationController,
   getInvitationByTokenController,
-} from "../controllers/invitationController.js";
+} from "../controllers/invitationController";
 
 const invitationsRouter: Router = express.Router();
 

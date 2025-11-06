@@ -1,14 +1,14 @@
-import { Request, Response, RequestHandler, NextFunction } from "express";
+import { Request, Response, RequestHandler } from "express";
 import {
   getTeamCollaboratorsService,
   searchCollaborators,
   getSharedProjects,
 } from "../services/collaboratorService";
+import { sendError } from "../utils/errors";
 
 export const getTeamCollaboratorsController: RequestHandler = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
   try {
     const userId =
@@ -17,14 +17,13 @@ export const getTeamCollaboratorsController: RequestHandler = async (
 
     res.status(200).json({ collaborators });
   } catch (error) {
-    next(error);
+    sendError(res, error);
   }
 };
 
 export const searchCollaboratorsController: RequestHandler = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
   try {
     const userId =
@@ -34,14 +33,13 @@ export const searchCollaboratorsController: RequestHandler = async (
 
     res.status(200).json({ collaborators });
   } catch (error) {
-    next(error);
+    sendError(res, error);
   }
 };
 
 export const getSharedProjectsController: RequestHandler = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
   try {
     const userId =
@@ -50,6 +48,6 @@ export const getSharedProjectsController: RequestHandler = async (
     const { projects, count } = await getSharedProjects(userId, targetUserId);
     res.status(200).json({ projects, count });
   } catch (error) {
-    next(error);
+    sendError(res, error);
   }
 };

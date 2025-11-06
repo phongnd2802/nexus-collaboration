@@ -4,7 +4,8 @@ import {
   acceptInvitation,
   declineInvitation,
   getInvitationByToken,
-} from "../services/invitationService.js";
+} from "../services/invitationService";
+import { sendError } from "../utils/errors";
 
 export async function getPendingInvitationsController(
   req: Request,
@@ -15,7 +16,7 @@ export async function getPendingInvitationsController(
     const invitations = await getPendingInvitations(email);
     res.status(200).json(invitations);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch pending invitations" });
+    sendError(res, error);
   }
 }
 
@@ -25,7 +26,7 @@ export async function acceptInvitationController(req: Request, res: Response) {
     const result = await acceptInvitation(token, userId);
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Failed to accept invitation" });
+    sendError(res, error);
   }
 }
 
@@ -35,7 +36,7 @@ export async function declineInvitationController(req: Request, res: Response) {
     const result = await declineInvitation(token, userId);
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Failed to decline invitation" });
+    sendError(res, error);
   }
 }
 
@@ -48,6 +49,6 @@ export async function getInvitationByTokenController(
     const invitation = await getInvitationByToken(token);
     res.status(200).json(invitation);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch invitation" });
+    sendError(res, error);
   }
 }
