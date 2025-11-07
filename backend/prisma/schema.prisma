@@ -288,3 +288,17 @@ model DirectMessage {
   receiver  User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
+// Reminder tracking
+model ReminderLog {
+  id          String   @id @default(cuid())
+  entityType  String   // "task" hoặc "project"
+  entityId    String   // ID của task hoặc project
+  reminderType String  // "24h", "3h", "1h", "urgent"
+  sentAt      DateTime @default(now())
+  expiresAt   DateTime // Tự động = sentAt + 25h
+
+  @@index([entityType, entityId, reminderType])
+  @@index([expiresAt])
+  @@unique([entityType, entityId, reminderType])
+}
+

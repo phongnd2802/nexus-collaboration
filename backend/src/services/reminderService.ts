@@ -6,21 +6,48 @@ import {
 
 const prisma = new PrismaClient();
 
-// Map để lưu cache các reminder đã gửi
-// Key: "task_123_24h" hoặc "project_456_3h"
-// Value: timestamp khi gửi
-const sentReminders = new Map<string, number>();
+/**
+ * Kiểm tra xem reminder đã được gửi chưa (từ database)
+ */
+async function hasReminderBeenSent(
+  entityType: "task" | "project",
+  entityId: string,
+  reminderType: string
+): Promise<boolean> {
+  const existing = await prisma.reminderLog.findUnique({
+    where: {
+      entityType_entityId_reminderType: {
+        entityType,
+        entityId,
+        reminderType,
+      },
+    },
+  });
 
-function getReminderKey(type: "task" | "project", id: string | number): string {
-  return `${type}_${id}`;
+  return existing !== null;
 }
 
-function hasReminderBeenSent(key: string, hours: number): boolean {
-  return sentReminders.has(`${key}_${hours}h`);
-}
+/**
+ * Lưu log reminder đã gửi vào database
+ * expiresAt = sentAt + 25 giờ (để tự động cleanup)
+ */
+async function markReminderAsSent(
+  entityType: "task" | "project",
+  entityId: string,
+  reminderType: string
+): Promise<void> {
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 25 * 60 * 60 * 1000); // +25 giờ
 
-function markReminderAsSent(key: string, hours: number): void {
-  sentReminders.set(`${key}_${hours}h`, Date.now());
+  await prisma.reminderLog.create({
+    data: {
+      entityType,
+      entityId,
+      reminderType,
+      sentAt: now,
+      expiresAt,
+    },
+  });
 }
 
 export async function checkAndSendTaskReminders(): Promise<void> {
@@ -59,8 +86,6 @@ export async function checkAndSendTaskReminders(): Promise<void> {
       const minutesUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60);
       const hoursUntilDue = minutesUntilDue / 60;
 
-      const key = getReminderKey("task", task.id);
-
       // Kiểm tra các mốc thời gian chính xác
       const tolerance = 1 / 60; // ±1 phút
 
@@ -69,7 +94,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
         continue;
       } else if (Math.abs(hoursUntilDue - 24) <= tolerance) {
         // due = 24h ± 1p: gửi reminder 24h
-        if (!hasReminderBeenSent(key, 24)) {
+        if (!(await hasReminderBeenSent("task", task.id, "24h"))) {
           try {
             await sendTaskDueReminderEmail(
               task.assignee.email,
@@ -80,7 +105,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
               24
             );
 
-            markReminderAsSent(key, 24);
+            await markReminderAsSent("task", task.id, "24h");
             console.log(
               `✅ Sent 24h reminder for task: ${task.title} to ${task.assignee.email}`
             );
@@ -93,7 +118,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
         }
       } else if (Math.abs(hoursUntilDue - 3) <= tolerance) {
         // due = 3h ± 1p: gửi reminder 3h
-        if (!hasReminderBeenSent(key, 3)) {
+        if (!(await hasReminderBeenSent("task", task.id, "3h"))) {
           try {
             await sendTaskDueReminderEmail(
               task.assignee.email,
@@ -104,7 +129,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
               3
             );
 
-            markReminderAsSent(key, 3);
+            await markReminderAsSent("task", task.id, "3h");
             console.log(
               `✅ Sent 3h reminder for task: ${task.title} to ${task.assignee.email}`
             );
@@ -117,7 +142,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
         }
       } else if (Math.abs(hoursUntilDue - 1) <= tolerance) {
         // due = 1h ± 1p: gửi reminder 1h
-        if (!hasReminderBeenSent(key, 1)) {
+        if (!(await hasReminderBeenSent("task", task.id, "1h"))) {
           try {
             await sendTaskDueReminderEmail(
               task.assignee.email,
@@ -128,7 +153,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
               1
             );
 
-            markReminderAsSent(key, 1);
+            await markReminderAsSent("task", task.id, "1h");
             console.log(
               `✅ Sent 1h reminder for task: ${task.title} to ${task.assignee.email}`
             );
@@ -141,7 +166,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
         }
       } else if (hoursUntilDue > 0 && hoursUntilDue < 1 - tolerance) {
         // 0 < due < 1h: gửi reminder urgent
-        if (!hasReminderBeenSent(key, 0)) {
+        if (!(await hasReminderBeenSent("task", task.id, "urgent"))) {
           try {
             await sendTaskDueReminderEmail(
               task.assignee.email,
@@ -152,7 +177,7 @@ export async function checkAndSendTaskReminders(): Promise<void> {
               0 // Gửi với hours = 0 để đánh dấu là urgent
             );
 
-            markReminderAsSent(key, 0);
+            await markReminderAsSent("task", task.id, "urgent");
             console.log(
               `✅ Sent urgent reminder for task: ${task.title} to ${task.assignee.email} (${Math.round(minutesUntilDue)} minutes left)`
             );
@@ -205,8 +230,6 @@ export async function checkAndSendProjectReminders(): Promise<void> {
       const minutesUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60);
       const hoursUntilDue = minutesUntilDue / 60;
 
-      const key = getReminderKey("project", project.id);
-
       // Kiểm tra các mốc thời gian chính xác
       const tolerance = 1 / 60; // ±1 phút
 
@@ -215,7 +238,7 @@ export async function checkAndSendProjectReminders(): Promise<void> {
         continue;
       } else if (Math.abs(hoursUntilDue - 24) <= tolerance) {
         // due = 24h ± 1p: gửi reminder 24h
-        if (!hasReminderBeenSent(key, 24)) {
+        if (!(await hasReminderBeenSent("project", project.id, "24h"))) {
           const emailPromises = project.members.map(async (member) => {
             if (!member.user.email) return;
 
@@ -239,11 +262,11 @@ export async function checkAndSendProjectReminders(): Promise<void> {
           });
 
           await Promise.allSettled(emailPromises);
-          markReminderAsSent(key, 24);
+          await markReminderAsSent("project", project.id, "24h");
         }
       } else if (Math.abs(hoursUntilDue - 3) <= tolerance) {
         // due = 3h ± 1p: gửi reminder 3h
-        if (!hasReminderBeenSent(key, 3)) {
+        if (!(await hasReminderBeenSent("project", project.id, "3h"))) {
           const emailPromises = project.members.map(async (member) => {
             if (!member.user.email) return;
 
@@ -267,11 +290,11 @@ export async function checkAndSendProjectReminders(): Promise<void> {
           });
 
           await Promise.allSettled(emailPromises);
-          markReminderAsSent(key, 3);
+          await markReminderAsSent("project", project.id, "3h");
         }
       } else if (Math.abs(hoursUntilDue - 1) <= tolerance) {
         // due = 1h ± 1p: gửi reminder 1h
-        if (!hasReminderBeenSent(key, 1)) {
+        if (!(await hasReminderBeenSent("project", project.id, "1h"))) {
           const emailPromises = project.members.map(async (member) => {
             if (!member.user.email) return;
 
@@ -295,11 +318,11 @@ export async function checkAndSendProjectReminders(): Promise<void> {
           });
 
           await Promise.allSettled(emailPromises);
-          markReminderAsSent(key, 1);
+          await markReminderAsSent("project", project.id, "1h");
         }
       } else if (hoursUntilDue > 0 && hoursUntilDue < 1 - tolerance) {
         // 0 < due < 1h: gửi reminder urgent
-        if (!hasReminderBeenSent(key, 0)) {
+        if (!(await hasReminderBeenSent("project", project.id, "urgent"))) {
           const emailPromises = project.members.map(async (member) => {
             if (!member.user.email) return;
 
@@ -323,7 +346,7 @@ export async function checkAndSendProjectReminders(): Promise<void> {
           });
 
           await Promise.allSettled(emailPromises);
-          markReminderAsSent(key, 0);
+          await markReminderAsSent("project", project.id, "urgent");
         }
       }
     }
@@ -339,15 +362,27 @@ export async function runAllReminders(): Promise<void> {
   console.log("✅ Reminder checks completed");
 }
 
-// Cleanup cache mỗi ngày để tránh memory leak
-export function cleanupReminderCache(): void {
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+/**
+ * Tự động xóa các reminder logs đã hết hạn (expiresAt < now)
+ * Chạy mỗi ngày để giữ database sạch sẽ
+ */
+export async function cleanupReminderCache(): Promise<void> {
+  try {
+    const now = new Date();
 
-  for (const [key, timestamp] of sentReminders.entries()) {
-    if (timestamp < oneDayAgo) {
-      sentReminders.delete(key);
-    }
+    // Xóa tất cả reminder logs đã hết hạn (> 25 giờ)
+    const result = await prisma.reminderLog.deleteMany({
+      where: {
+        expiresAt: {
+          lt: now,
+        },
+      },
+    });
+
+    console.log(
+      `🧹 Reminder cache cleaned up - deleted ${result.count} expired logs`
+    );
+  } catch (error) {
+    console.error("❌ Error cleaning up reminder cache:", error);
   }
-
-  console.log("🧹 Reminder cache cleaned up");
 }
