@@ -5,13 +5,14 @@ import { sendError } from "../utils/errors";
 
 export async function createProjectController(req: Request, res: Response) {
   try {
-    const { name, creatorId, description, dueDate, files } = req.body;
+    const { name, creatorId, description, dueDate, dueTime, files } = req.body;
 
     const project = await projectService.createProject(
       name,
       creatorId,
       description,
       dueDate,
+      dueTime,
       files
     );
 
@@ -40,7 +41,7 @@ export async function getProjectByIdController(req: Request, res: Response) {
 export async function updateProjectController(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, status, dueDate } = req.body;
+    const { name, description, status, dueDate, dueTime } = req.body;
     const userId = (req.headers["x-user-id"] as string) || req.body.userId;
 
     const updatedProject = await projectService.updateProject(id, userId, {
@@ -48,6 +49,7 @@ export async function updateProjectController(req: Request, res: Response) {
       description,
       status,
       dueDate,
+      dueTime,
     });
 
     res.status(200).json(updatedProject);
