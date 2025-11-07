@@ -1,4 +1,5 @@
 import { PrismaClient, TaskPriority, TaskStatus } from "@prisma/client";
+import { DateTime } from "luxon";
 import {
   canManageTask,
   canUpdateTaskStatus,
@@ -13,6 +14,28 @@ import {
 import { AppError } from "../utils/errors";
 
 const prisma = new PrismaClient();
+
+// Helper function to parse date/time from frontend
+function parseDueDateTime(
+  dueDate?: string,
+  dueTime?: string | null
+): Date | null {
+  if (!dueDate) return null;
+
+  // Combine date and time
+  const timeStr = dueTime || "23:59";
+  const combined = `${dueDate}T${timeStr}`;
+
+  // Parse as local time (no timezone conversion)
+  const parsed = DateTime.fromISO(combined, { zone: "local" });
+
+  if (!parsed.isValid) {
+    throw new AppError(400, "INVALID_DUE", "Invalid due date/time");
+  }
+
+  // Return as JS Date without timezone conversion
+  return parsed.toJSDate();
+}
 
 export async function getAllTasks(userId: string, limit?: number | string) {
   const tasks = await prisma.task.findMany({
@@ -98,7 +121,6 @@ export async function getAllTasksByProjectId(
     );
   }
 
-  // Get tasks for this project
   const tasks = await prisma.task.findMany({
     where: { projectId },
     include: {
@@ -121,7 +143,8 @@ export async function createTask(
     title: string;
     description?: string;
     assigneeId?: string;
-    dueDate?: Date;
+    dueDate?: string;
+    dueTime?: string;
     priority?: TaskPriority;
     creatorId: string;
     files?: any[];
@@ -132,10 +155,12 @@ export async function createTask(
     description,
     assigneeId,
     dueDate,
+    dueTime,
     priority,
     creatorId,
     files,
   } = body;
+
   if (!title || title.length < 3 || title.length > 100) {
     throw new AppError(
       400,
@@ -155,7 +180,6 @@ export async function createTask(
     throw new AppError(400, "CREATOR_ID_REQUIRED", "Creator ID is required");
   }
 
-  // permission check
   if (!(await canCreateTasks(projectId, creatorId))) {
     throw new AppError(
       403,
@@ -188,6 +212,8 @@ export async function createTask(
   }
 
   const result = await prisma.$transaction(async (tx) => {
+    const dueAt = parseDueDateTime(dueDate, dueTime);
+
     const newTask = await tx.task.create({
       data: {
         title,
@@ -195,7 +221,7 @@ export async function createTask(
         projectId,
         creatorId,
         assigneeId: assigneeId || null,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: dueAt,
         priority: priority ?? TaskPriority.MEDIUM,
         status: "TODO",
       },
@@ -216,7 +242,7 @@ export async function createTask(
             uploaderId: creatorId,
             projectId,
             taskId: newTask.id,
-            isTaskDeliverable: false, // context file, not a deliverable
+            isTaskDeliverable: false,
           },
         })
       );
@@ -233,23 +259,31 @@ export async function createTask(
 export async function updateTask(
   taskId: string,
   body: {
-    title: string;
+    title?: string;
     description?: string;
     assigneeId?: string;
-    dueDate?: Date;
+    dueDate?: string | null;
+    dueTime?: string | null;
     priority?: TaskPriority;
     status?: TaskStatus;
     userId: string;
   }
 ) {
-  const { title, description, assigneeId, dueDate, priority, status, userId } =
-    body;
+  const {
+    title,
+    description,
+    assigneeId,
+    dueDate,
+    dueTime,
+    priority,
+    status,
+    userId,
+  } = body;
 
   if (!userId) {
     throw new AppError(400, "USER_ID_REQUIRED", "User ID is required");
   }
 
-  // Check if task exists
   const task = await prisma.task.findUnique({
     where: { id: taskId },
     include: {
@@ -263,7 +297,6 @@ export async function updateTask(
 
   // Status-only update
   if (Object.keys(body).length === 2 && status !== undefined) {
-    // permission check
     if (!(await canUpdateTaskStatus(taskId, userId))) {
       throw new AppError(
         403,
@@ -284,7 +317,6 @@ export async function updateTask(
     return updated;
   }
 
-  // permission check
   if (!(await canManageTask(taskId, userId))) {
     throw new AppError(
       403,
@@ -293,7 +325,6 @@ export async function updateTask(
     );
   }
 
-  // Validate inputs
   if (title !== undefined) {
     if (!title.trim() || title.length < 3 || title.length > 100) {
       throw new AppError(
@@ -326,18 +357,22 @@ export async function updateTask(
     }
   }
 
+  let computedDue: Date | null | undefined = undefined;
+  if (dueDate !== undefined) {
+    if (dueDate === null || dueDate === "") {
+      computedDue = null;
+    } else {
+      computedDue = parseDueDateTime(dueDate, dueTime);
+    }
+  }
+
   const updatedTask = await prisma.task.update({
     where: { id: taskId },
     data: {
       title: title ?? undefined,
       description: description ?? undefined,
       assigneeId: assigneeId ?? undefined,
-      dueDate:
-        dueDate !== undefined
-          ? dueDate
-            ? new Date(dueDate)
-            : null
-          : undefined,
+      dueDate: computedDue,
       priority: priority ?? undefined,
       status: status ?? undefined,
     },
@@ -355,7 +390,6 @@ export async function deleteTask(taskId: string, userId: string) {
     throw new AppError(400, "USER_ID_REQUIRED", "User ID is required");
   }
 
-  // permission check
   if (!(await canManageTask(taskId, userId))) {
     throw new AppError(
       403,
@@ -428,14 +462,12 @@ export async function completeTask(
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    // completion note
     const updatedTask = await tx.task.update({
       where: { id: taskId },
       data: { completionNote },
       include: { taskFiles: true },
     });
 
-    // deliverables
     if (Array.isArray(deliverables) && deliverables.length > 0) {
       const existingFiles = await tx.file.findMany({
         where: {
@@ -511,7 +543,6 @@ export async function deleteTaskFiles(fileId: string, userId: string) {
     throw new AppError(400, "USER_ID_REQUIRED", "User ID is required");
   }
 
-  // permission check
   if (!(await canManageFile(fileId, userId))) {
     throw new AppError(
       403,

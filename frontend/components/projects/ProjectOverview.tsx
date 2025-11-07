@@ -69,7 +69,18 @@ export default function ProjectOverview({
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Not set";
-    return format(new Date(dateString), "MMMM d, yyyy");
+    return format(new Date(dateString), "MMM d, yyyy");
+  };
+
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return "Not set";
+    const date = new Date(dateString);
+    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+
+    if (hasTime) {
+      return format(date, "MMM d, yyyy 'at' HH:mm");
+    }
+    return format(date, "MMM d, yyyy");
   };
 
   const handleMembersUpdated = () => {
@@ -239,17 +250,17 @@ export default function ProjectOverview({
 
               <div>
                 <p className="text-sm text-muted-foreground">Created On</p>
-                <p className="font-medium">{formatDate(project.createdAt)}</p>
+                <p>{formatDate(project.createdAt)}</p>
               </div>
 
               <div>
                 <p className="text-sm text-muted-foreground">Due Date</p>
-                <p className="font-medium">{formatDate(project.dueDate)}</p>
+                <p>{formatDateTime(project.dueDate)}</p>
               </div>
 
               <div>
                 <p className="text-sm text-muted-foreground">Last Updated</p>
-                <p className="font-medium">{formatDate(project.updatedAt)}</p>
+                <p>{formatDate(project.updatedAt)}</p>
               </div>
             </div>
           </CardContent>

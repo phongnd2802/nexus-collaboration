@@ -82,6 +82,14 @@ export default function TaskDetailsPage() {
     Record<string, string>
   >({});
 
+  const getLocalHHmm = (isoString?: string) => {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   useEffect(() => {
     if (status === "authenticated" && taskId) {
       fetchProjectAndTaskDetails();
@@ -95,6 +103,7 @@ export default function TaskDetailsPage() {
         description: task.description || "",
         assigneeId: task.assigneeId || "",
         dueDate: task.dueDate ? task.dueDate.substring(0, 10) : "",
+        dueTime: getLocalHHmm(task.dueDate || undefined),
         priority: task.priority || "MEDIUM",
         status: task.status || "TODO",
       });
@@ -296,6 +305,7 @@ export default function TaskDetailsPage() {
           description: editedTask.description,
           assigneeId: editedTask.assigneeId || null,
           dueDate: editedTask.dueDate || null,
+          dueTime: editedTask.dueTime || null,
           priority: editedTask.priority,
           status: editedTask.status,
         }),
@@ -330,6 +340,7 @@ export default function TaskDetailsPage() {
         description: task.description || "",
         assigneeId: task.assigneeId || "",
         dueDate: task.dueDate ? task.dueDate.substring(0, 10) : "",
+        dueTime: getLocalHHmm(task.dueDate || undefined),
         priority: task.priority || "MEDIUM",
         status: task.status || "TODO",
       });
@@ -394,7 +405,13 @@ export default function TaskDetailsPage() {
   const formatDueDate = (dateString: string | null) => {
     if (!dateString) return "No due date";
 
-    return format(new Date(dateString), "MMMM d, yyyy");
+    const date = new Date(dateString);
+    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+
+    if (hasTime) {
+      return format(date, "MMM d, yyyy 'at' HH:mm");
+    }
+    return format(date, "MMM d, yyyy");
   };
 
   const getStatusIcon = (status: string) => {
@@ -791,20 +808,28 @@ export default function TaskDetailsPage() {
                     Due Date
                   </h3>
                   {isEditing ? (
-                    <Input
-                      type="date"
-                      value={editedTask.dueDate}
-                      onChange={(e) =>
-                        handleEditField("dueDate", e.target.value)
-                      }
-                      className="h-9 mt-1"
-                      min={new Date().toISOString().split("T")[0]}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                      <Input
+                        type="date"
+                        value={editedTask.dueDate}
+                        onChange={(e) =>
+                          handleEditField("dueDate", e.target.value)
+                        }
+                        className="h-9"
+                        min={new Date().toISOString().split("T")[0]}
+                      />
+                      <Input
+                        type="time"
+                        value={editedTask.dueTime || ""}
+                        onChange={(e) =>
+                          handleEditField("dueTime", e.target.value)
+                        }
+                        className="h-9 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-clock-picker-indicator]:hidden"
+                        disabled={!editedTask.dueDate}
+                      />
+                    </div>
                   ) : (
-                    <p className="flex items-center mt-1">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {formatDueDate(task.dueDate)}
-                    </p>
+                    <p className="mt-1">{formatDueDate(task.dueDate)}</p>
                   )}
                 </div>
 

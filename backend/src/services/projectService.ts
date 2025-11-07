@@ -1,4 +1,5 @@
 import { PrismaClient, ProjectStatus, ProjectRole } from "@prisma/client";
+import { DateTime } from "luxon";
 import { AppError } from "../utils/errors";
 import crypto from "crypto";
 import { sendProjectInvitationEmail } from "../utils/email";
@@ -23,6 +24,26 @@ function toProjectRole(role: string): ProjectRole {
 function toProjectStatus(status?: string): ProjectStatus | undefined {
   if (!status) return undefined;
   return status.toUpperCase() as ProjectStatus;
+}
+
+// Helper function to parse date/time from frontend
+function parseDueDateTime(dueDate?: string, dueTime?: string | null): Date | null {
+  if (!dueDate) return null;
+  
+  // Combine date and time
+  const timeStr = dueTime || "23:59";
+  const combined = `${dueDate}T${timeStr}`;
+  
+  // Parse as local time (no timezone conversion)
+  // Frontend should send date in user's local timezone
+  const parsed = DateTime.fromISO(combined, { zone: "local" });
+  
+  if (!parsed.isValid) {
+    throw new AppError(400, "INVALID_DUE", "Invalid due date/time");
+  }
+  
+  // Return as JS Date without timezone conversion
+  return parsed.toJSDate();
 }
 
 const prisma = new PrismaClient();
@@ -55,6 +76,7 @@ export async function createProject(
   creatorId: string,
   description?: string | null,
   dueDate?: string,
+  dueTime?: string,
   files?: Array<{ name: string; url: string; size: number; type: string }>
 ) {
   if (!name) {
@@ -69,11 +91,13 @@ export async function createProject(
   }
 
   const result = await prisma.$transaction(async (tx) => {
+    const dueAt = parseDueDateTime(dueDate, dueTime);
+
     const newProject = await tx.project.create({
       data: {
         name,
         description,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: dueAt,
         creatorId,
         status: "IN_PROGRESS",
         members: {
@@ -147,6 +171,7 @@ export async function updateProject(
     description?: string;
     status?: string;
     dueDate?: string;
+    dueTime?: string | null;
   }
 ) {
   if (!id) {
@@ -164,6 +189,15 @@ export async function updateProject(
     );
   }
 
+  let dueAt: Date | null | undefined;
+  if (data.dueDate !== undefined) {
+    if (data.dueDate === null || data.dueDate === "") {
+      dueAt = null;
+    } else {
+      dueAt = parseDueDateTime(data.dueDate, data.dueTime);
+    }
+  }
+
   const updatedProject = await prisma.project.update({
     where: { id },
     data: {
@@ -171,7 +205,7 @@ export async function updateProject(
       description:
         data.description !== undefined ? data.description : undefined,
       status: toProjectStatus(data.status),
-      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      dueDate: data.dueDate !== undefined ? dueAt : undefined,
     },
     include: PROJECT_INCLUDE,
   });
@@ -581,7 +615,11 @@ export async function updateMemberRole(
   );
 
   if (!permissionCheck.allowed) {
-    throw new AppError(403, "ACCESS_DENIED", permissionCheck.reason ?? "Access denied");
+    throw new AppError(
+      403,
+      "ACCESS_DENIED",
+      permissionCheck.reason ?? "Access denied"
+    );
   }
 
   const updatedMember = await prisma.projectMember.update({
@@ -627,7 +665,11 @@ export async function removeMember(
   );
 
   if (!permissionCheck.allowed) {
-    throw new AppError(403, "ACCESS_DENIED", permissionCheck.reason ?? "Access denied");
+    throw new AppError(
+      403,
+      "ACCESS_DENIED",
+      permissionCheck.reason ?? "Access denied"
+    );
   }
 
   await prisma.projectMember.delete({

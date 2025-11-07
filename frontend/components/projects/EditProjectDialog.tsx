@@ -34,11 +34,20 @@ export default function EditProjectDialog({
   const [isUpdating, setIsUpdating] = useState(false);
   const [showStatusOptions, setShowStatusOptions] = useState(false);
 
+  const getLocalHHmm = (isoString?: string) => {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const [formData, setFormData] = useState({
     name: project.name || "",
     description: project.description || "",
     status: project.status || "IN_PROGRESS",
     dueDate: project.dueDate ? project.dueDate.substring(0, 10) : "",
+    dueTime: getLocalHHmm(project.dueDate || undefined),
   });
 
   const handleInputChange = (
@@ -192,15 +201,26 @@ export default function EditProjectDialog({
 
             <div className="space-y-2">
               <label htmlFor="dueDate" className="text-sm font-medium">
-                Due Date
+                Due Date & Time
               </label>
-              <Input
-                id="dueDate"
-                name="dueDate"
-                type="date"
-                value={formData.dueDate}
-                onChange={handleInputChange}
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  id="dueDate"
+                  name="dueDate"
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={handleInputChange}
+                />
+                <Input
+                  id="dueTime"
+                  name="dueTime"
+                  type="time"
+                  value={formData.dueTime}
+                  onChange={handleInputChange}
+                  className="[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-clock-picker-indicator]:hidden"
+                  disabled={!formData.dueDate}
+                />
+              </div>
             </div>
           </div>
         </div>

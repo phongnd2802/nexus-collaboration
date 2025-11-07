@@ -17,13 +17,6 @@ import calendarRouter from "./routes/calendar";
 import collaboratorsRouter from "./routes/collaborators";
 import messagesRouter from "./routes/messages";
 import teamMessagesRouter from "./routes/teamMessages";
-// import subscriptionRouter from "./routes/subscriptions";
-// import { 
-//   handleSubscriptionCreated, 
-//   handleSubscriptionUpdated, 
-//   handleSubscriptionDeleted,
-//   stripe
-// } from "./utils/subscription";
 import { debugError } from "./utils/debug";
 
 // middleware
@@ -38,6 +31,12 @@ import { sanitizeHtml } from "./middleware/validation";
 // Socket.io configuration and handlers
 import { createSocketServer } from "./socket/socketConfig";
 import { setupSocketHandlers } from "./socket/socketHandler";
+
+// Reminder scheduler
+import {
+  startReminderScheduler,
+  stopReminderScheduler,
+} from "./utils/scheduler";
 
 // debug utilities
 import { debugLog } from "./utils/debug";
@@ -69,18 +68,22 @@ app.use(
 );
 
 // Stripe webhook route (must be before JSON parsing middleware)
-app.post("/api/subscriptions/webhook", express.raw({ type: 'application/json' }), function (req: any, res: any) {
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+app.post(
+  "/api/subscriptions/webhook",
+  express.raw({ type: "application/json" }),
+  function (req: any, res: any) {
+    const sig = req.headers["stripe-signature"];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  (async () => {
-    if (!webhookSecret) {
-      console.error('Missing Stripe webhook secret');
-      res.status(500).json({ message: 'Webhook secret not configured' });
-      return;
-    }
-  })();
-});
+    (async () => {
+      if (!webhookSecret) {
+        console.error("Missing Stripe webhook secret");
+        res.status(500).json({ message: "Webhook secret not configured" });
+        return;
+      }
+    })();
+  }
+);
 
 // Body parsing with limits
 app.use(express.json({ limit: "10mb" }));
@@ -132,4 +135,26 @@ const PORT = parseInt(process.env.PORT || "4000", 10);
 server.listen(PORT, "0.0.0.0", () => {
   debugLog(`Server running on port ${PORT}`);
   debugLog(`Socket.io server configured and ready`);
+
+  // Khởi động reminder scheduler
+  startReminderScheduler();
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  debugLog("SIGTERM received, shutting down gracefully...");
+  stopReminderScheduler();
+  server.close(() => {
+    debugLog("Server closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGINT", () => {
+  debugLog("SIGINT received, shutting down gracefully...");
+  stopReminderScheduler();
+  server.close(() => {
+    debugLog("Server closed");
+    process.exit(0);
+  });
 });

@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, dueDate, files } = body;
+    const { name, description, dueDate, dueTime, files } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
           name,
           description,
           dueDate,
+          dueTime,
           creatorId: session.user.id,
           files: fileData,
         }),
