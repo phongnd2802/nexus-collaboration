@@ -185,13 +185,32 @@ export default function ProjectTasks({
     const dueDate = new Date(dateString);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    dueDate.setHours(0, 0, 0, 0);
+    const dueDateCopy = new Date(dueDate);
+    dueDateCopy.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (dueDate.getTime() === today.getTime()) return "Today";
-    if (dueDate.getTime() === tomorrow.getTime()) return "Tomorrow";
-    return format(dueDate, "MMM d, yyyy");
+    // Check if time is significant (not default 23:59 or midnight)
+    const hasSignificantTime =
+      dueDate.getHours() !== 23 ||
+      (dueDate.getHours() === 23 && dueDate.getMinutes() !== 59);
+
+    let dateStr = "";
+    if (dueDateCopy.getTime() === today.getTime()) {
+      dateStr = "Today";
+    } else if (dueDateCopy.getTime() === tomorrow.getTime()) {
+      dateStr = "Tomorrow";
+    } else {
+      dateStr = format(dueDate, "MMM d, yyyy");
+    }
+
+    // Add time if it's significant
+    if (hasSignificantTime) {
+      const timeStr = format(dueDate, "HH:mm");
+      return `${dateStr} at ${timeStr}`;
+    }
+
+    return dateStr;
   };
 
   const getStatusIcon = (status: string) => {

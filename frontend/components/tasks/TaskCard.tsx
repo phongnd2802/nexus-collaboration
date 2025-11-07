@@ -66,17 +66,35 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    today.setHours(0, 0, 0, 0);
-    dueDate.setHours(0, 0, 0, 0);
-    tomorrow.setHours(0, 0, 0, 0);
+    // Check if time is significant (not default 23:59 or midnight)
+    const hasSignificantTime =
+      dueDate.getHours() !== 23 ||
+      (dueDate.getHours() === 23 && dueDate.getMinutes() !== 59);
 
-    if (dueDate.getTime() === today.getTime()) {
-      return "Today";
-    } else if (dueDate.getTime() === tomorrow.getTime()) {
-      return "Tomorrow";
+    const todayCopy = new Date(today);
+    const dueDateCopy = new Date(dueDate);
+    const tomorrowCopy = new Date(tomorrow);
+
+    todayCopy.setHours(0, 0, 0, 0);
+    dueDateCopy.setHours(0, 0, 0, 0);
+    tomorrowCopy.setHours(0, 0, 0, 0);
+
+    let dateStr = "";
+    if (dueDateCopy.getTime() === todayCopy.getTime()) {
+      dateStr = "Today";
+    } else if (dueDateCopy.getTime() === tomorrowCopy.getTime()) {
+      dateStr = "Tomorrow";
+    } else {
+      dateStr = format(dueDate, "MMM d, yyyy");
     }
 
-    return format(dueDate, "MMM d, yyyy");
+    // Add time if it's significant
+    if (hasSignificantTime) {
+      const timeStr = format(dueDate, "HH:mm");
+      return `${dateStr} at ${timeStr}`;
+    }
+
+    return dateStr;
   };
 
   const isOverdue = (dateString: string | null, status: string) => {
