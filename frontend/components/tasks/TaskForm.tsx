@@ -92,6 +92,14 @@ export default function TaskForm({
 }: TaskFormProps) {
   const router = useRouter();
 
+  const getLocalHHmm = (isoString?: string) => {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   const [availableMembers, setAvailableMembers] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -104,6 +112,7 @@ export default function TaskForm({
     projectId: initialTask?.projectId || initialProjectId || "",
     assigneeId: initialTask?.assigneeId || "",
     dueDate: initialTask?.dueDate ? initialTask.dueDate.substring(0, 10) : "",
+    dueTime: getLocalHHmm(initialTask?.dueDate),
     priority: initialTask?.priority || "MEDIUM",
     status: initialTask?.status || "TODO",
   });
@@ -134,6 +143,7 @@ export default function TaskForm({
         dueDate: initialTask.dueDate
           ? initialTask.dueDate.substring(0, 10)
           : "",
+        dueTime: getLocalHHmm(initialTask.dueDate || undefined),
         priority: initialTask.priority || "MEDIUM",
         status: initialTask.status || "TODO",
       });
@@ -228,6 +238,7 @@ export default function TaskForm({
             description: formData.description,
             assigneeId: formData.assigneeId || null,
             dueDate: formData.dueDate || null,
+            dueTime: formData.dueTime || null,
             priority: formData.priority,
             status: formData.status,
             files: fileData,
@@ -246,6 +257,7 @@ export default function TaskForm({
             description: formData.description,
             assigneeId: formData.assigneeId || null,
             dueDate: formData.dueDate || null,
+            dueTime: formData.dueTime || null,
             priority: formData.priority,
             status: formData.status,
           }),
@@ -559,25 +571,40 @@ export default function TaskForm({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label
                   htmlFor="dueDate"
                   className="text-base font-medium flex items-center"
                 >
                   <Clock className="h-4 w-4 mr-2 text-violet-600" />
-                  Due Date
+                  Due Date & Time (Optional)
                 </Label>
-                <Input
-                  id="dueDate"
-                  name="dueDate"
-                  type="date"
-                  value={formData.dueDate}
-                  onChange={handleInputChange}
-                  className="h-11"
-                  min={new Date().toISOString().split("T")[0]}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="relative">
+                    <Input
+                      id="dueDate"
+                      name="dueDate"
+                      type="date"
+                      value={formData.dueDate}
+                      onChange={handleInputChange}
+                      className="h-11"
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="dueTime"
+                      name="dueTime"
+                      type="time"
+                      value={formData.dueTime}
+                      onChange={handleInputChange}
+                      className="h-11"
+                      disabled={!formData.dueDate}
+                    />
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  When should this task be completed by?
+                  Select a date, then optionally set a specific time.
                 </p>
               </div>
 
@@ -777,6 +804,7 @@ export default function TaskForm({
                   >
                     <Calendar className="h-3 w-3 mr-1" />
                     Due {new Date(formData.dueDate).toLocaleDateString()}
+                    {formData.dueTime ? ` at ${formData.dueTime}` : ""}
                   </Badge>
                 )}
               </div>

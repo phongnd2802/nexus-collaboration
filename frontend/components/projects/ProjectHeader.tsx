@@ -41,9 +41,18 @@ export default function ProjectHeader({
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const formattedDueDate = project.dueDate
-    ? format(new Date(project.dueDate), "MMM d, yyyy")
-    : "No due date";
+  const formatDueDate = (dateString: string | null) => {
+    if (!dateString) return "No due date";
+    const date = new Date(dateString);
+    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+
+    if (hasTime) {
+      return format(date, "MMM d, yyyy 'at' HH:mm");
+    }
+    return format(date, "MMM d, yyyy");
+  };
+
+  const formattedDueDate = formatDueDate(project.dueDate);
 
   const handleEditClick = () => {
     setIsEditDialogOpen(true);
