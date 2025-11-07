@@ -1,0 +1,35 @@
+import { Request, Response } from "express";
+import {
+  getDashboardProjects,
+  getDashboardActivity,
+} from "../services/dashboardService";
+import { sendError } from "../utils/errors";
+
+export async function getDashboardProjectsController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
+    const limit = req.query.limit as string;
+    const projects = await getDashboardProjects(userId, limit);
+    res.status(200).json(projects);
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+export async function getDashboardActivityController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
+    const activity = await getDashboardActivity(userId);
+    res.status(200).json(activity);
+  } catch (error) {
+    sendError(res, error);
+  }
+}

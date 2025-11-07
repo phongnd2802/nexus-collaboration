@@ -60,7 +60,9 @@ export default function ProjectCard({
       <Card className="h-full transition-all hover:shadow-md hover:bg-muted/30 dark:hover:bg-muted/20">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <CardTitle className="">{name}</CardTitle>
+            <CardTitle className="!font-medium text-foreground text-lg">
+              {name}
+            </CardTitle>
             {getStatusBadge(status)}
           </div>
           <CardDescription>{truncateDescription(description)}</CardDescription>
@@ -112,7 +114,7 @@ export default function ProjectCard({
 
         <CardFooter className="pt-0 mt-auto">
           <div className="space-y-1 w-full">
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>Progress</span>
               <span>{completionPercentage}%</span>
             </div>
