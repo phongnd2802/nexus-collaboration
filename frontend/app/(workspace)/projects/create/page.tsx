@@ -35,6 +35,7 @@ export default function NewProjectPage() {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [projectFiles, setProjectFiles] = useState<any[]>([]);
@@ -55,7 +56,7 @@ export default function NewProjectPage() {
 
     // Check subscription limits before submitting
     if (!canCreateProject) {
-      router.push('/subscription?upgrade=projects');
+      router.push("/subscription?upgrade=projects");
       return;
     }
 
@@ -72,19 +73,20 @@ export default function NewProjectPage() {
           name: projectName,
           description: projectDescription,
           dueDate: dueDate || null,
+          dueTime: dueTime || null,
           files: projectFiles,
         }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        
+
         // Handle subscription limit exceeded error
-        if (data.error === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
-          router.push('/subscription?upgrade=projects');
+        if (data.error === "SUBSCRIPTION_LIMIT_EXCEEDED") {
+          router.push("/subscription?upgrade=projects");
           return;
         }
-        
+
         throw new Error(data.message || "Failed to create project");
       }
 
@@ -198,18 +200,28 @@ export default function NewProjectPage() {
                   className="text-base font-medium flex items-center"
                 >
                   <Clock className="h-4 w-4 mr-2 text-violet-600" />
-                  Due Date (Optional)
+                  Due Date & Time (Optional)
                 </Label>
-                <Input
-                  id="due-date"
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="h-11"
-                  min={new Date().toISOString().split("T")[0]}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    id="due-date"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="h-11"
+                    min={new Date().toISOString().split("T")[0]}
+                  />
+                  <Input
+                    id="due-time"
+                    type="time"
+                    value={dueTime}
+                    onChange={(e) => setDueTime(e.target.value)}
+                    className="h-11"
+                    disabled={!dueDate}
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  When should this project be completed?
+                  Select a date, then optionally set a specific time.
                 </p>
               </div>
 
@@ -283,7 +295,7 @@ export default function NewProjectPage() {
                 {dueDate && (
                   <div>
                     <h3 className="font-medium text-sm text-muted-foreground mb-1.5">
-                      Due Date
+                      Due Date{dueTime ? " & Time" : ""}
                     </h3>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-2 text-violet-600" />
@@ -293,6 +305,7 @@ export default function NewProjectPage() {
                           month: "long",
                           day: "numeric",
                         })}
+                        {dueTime ? ` at ${dueTime}` : ""}
                       </span>
                     </div>
                   </div>
@@ -360,7 +373,6 @@ export default function NewProjectPage() {
           </Card>
         </div>
       </div>
-
     </div>
   );
 }

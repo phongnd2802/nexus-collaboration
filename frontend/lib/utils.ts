@@ -45,9 +45,24 @@ export const formatTime = (dateString: string) => {
 
 export const formatDate = (dateString: string | null) => {
   if (!dateString) return "No due date";
-  return new Date(dateString).toLocaleDateString("en-US", {
+  const date = new Date(dateString);
+
+  // Check if time is significant (not default 23:59 or midnight)
+  const hasSignificantTime =
+    date.getHours() !== 23 ||
+    (date.getHours() === 23 && date.getMinutes() !== 59);
+
+  const dateStr = date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+
+  // Add time if it's significant
+  if (hasSignificantTime) {
+    const timeStr = format(date, "HH:mm");
+    return `${dateStr} at ${timeStr}`;
+  }
+
+  return dateStr;
 };

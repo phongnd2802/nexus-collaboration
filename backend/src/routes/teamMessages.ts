@@ -1,4 +1,8 @@
 import express, { Router, Request, Response } from "express";
+import {
+  getProjectsByUserController,
+  getMessagesByProjectController,
+} from "../controllers/teamMessageController";
 import { PrismaClient } from "@prisma/client";
 import { debugError } from "../utils/debug";
 
@@ -8,131 +12,10 @@ const teamMessagesRouter: Router = express.Router();
 export default teamMessagesRouter;
 
 // GET /api/team-messages/projects/:userId - Get all projects the user is a member of
-teamMessagesRouter.get(
-  "/projects/:userId",
-  async (req: Request, res: Response) => {
-    const { userId } = req.params;
-
-    try {
-      const projects = await prisma.project.findMany({
-        where: {
-          OR: [{ creatorId: userId }, { members: { some: { userId } } }],
-        },
-        include: {
-          creator: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-          members: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  image: true,
-                },
-              },
-            },
-          },
-
-          chatMessages: {
-            orderBy: {
-              createdAt: "desc",
-            },
-            take: 1,
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-      });
-
-      const teamConversations = projects.map((project: any) => {
-        const lastMessage = project.chatMessages[0];
-
-        return {
-          projectId: project.id,
-          isTeamChat: true,
-          name: project.name,
-          description: project.description,
-          creator: project.creator.name,
-          image: null,
-          memberCount: project.members.length,
-          lastMessageAt: lastMessage
-            ? lastMessage.createdAt
-            : project.updatedAt,
-          lastMessageContent: lastMessage
-            ? lastMessage.content
-            : "No messages yet",
-          lastMessageSender: lastMessage ? lastMessage.user : null,
-          unreadCount: 0,
-        };
-      });
-
-      res.status(200).json(teamConversations);
-    } catch (error) {
-      debugError("Error fetching team conversations:", error);
-      res.status(500).json({ message: "Failed to fetch team conversations" });
-    }
-  }
-);
+teamMessagesRouter.get("/projects/:userId", getProjectsByUserController);
 
 // GET /api/team-messages/project/:projectId - Get all messages for a project
-teamMessagesRouter.get(
-  "/project/:projectId",
-  function (req: Request, res: Response) {
-    const { projectId } = req.params;
-    (async () => {
-      try {
-        const project = await prisma.project.findUnique({
-          where: { id: projectId },
-        });
-
-        if (!project) {
-          return res.status(404).json({ message: "Project not found" });
-        }
-
-        // Get all messages for this project
-        const messages = await prisma.chatMessage.findMany({
-          where: {
-            projectId,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
-        });
-
-        res.status(200).json(messages);
-      } catch (error) {
-        debugError("Error fetching project messages:", error);
-        res.status(500).json({ message: "Failed to fetch project messages" });
-      }
-    })();
-  }
-);
+teamMessagesRouter.get("/project/:projectId", getMessagesByProjectController);
 
 // POST /api/team-messages/send - Send a message to a project team
 teamMessagesRouter.post("/send", function (req: Request, res: Response) {
