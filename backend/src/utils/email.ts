@@ -72,7 +72,6 @@ export async function sendPasswordResetEmail(
           <p>You requested a password reset. Click the button below:</p>
           <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#4f46e5;color:white;text-decoration:none;border-radius:5px;">Reset Password</a>
           <p>This link will expire in 1 hour.</p>
-          <p>If the button doesn't work, copy and paste this link: ${resetUrl}</p>
         </div>
       `,
     });
@@ -130,7 +129,6 @@ export async function sendEmailVerificationEmail(
           <p>Please verify your email address:</p>
           <a href="${verificationUrl}" style="display:inline-block;padding:10px 20px;background:#4f46e5;color:white;text-decoration:none;border-radius:5px;">Verify Email</a>
           <p>This link will expire in 24 hours.</p>
-          <p>If the button doesn't work, copy and paste this link: ${verificationUrl}</p>
         </div>
       `,
     });
@@ -162,7 +160,6 @@ export async function sendProjectInvitationEmail(
           <p><strong>${inviterName}</strong> has invited you to join the project <strong>"${projectName}"</strong> on Nexus.</p>
           <a href="${invitationUrl}" style="display:inline-block;padding:10px 20px;background:#4f46e5;color:white;text-decoration:none;border-radius:5px;">Accept Invitation</a>
           <p>This invitation will expire in 24 hours.</p>
-          <p>If the button doesn't work, use this link: ${invitationUrl}</p>
         </div>
       `,
     });
@@ -189,7 +186,6 @@ export async function sendSubsEmail(email: string): Promise<void> {
           <p>Thank you for subscribing to Nexus! We're excited to have you on board.</p>
           <p>You can start using Nexus by clicking the button below:</p>
           <a href="${NexusUrl}" style="display:inline-block;padding:10px 20px;background:#4f46e5;color:white;text-decoration:none;border-radius:5px;">Nexus Home</a>
-          <p>If the button doesn't work, copy and paste this link: ${NexusUrl}</p>
         </div>
       `,
     });
