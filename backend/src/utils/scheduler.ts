@@ -20,7 +20,7 @@ export function startReminderScheduler(): void {
 
   // Chạy reminder check + cleanup mỗi 30 phút
   // Cron format: */30 * * * * = every 30 minutes
-  reminderTask = cron.schedule("*/30 * * * * *", async () => {
+  reminderTask = cron.schedule("*/30 * * * *", async () => {
     console.log("⏰ [CRON] Running scheduled tasks...");
     try {
       // 1. Gửi reminder emails
