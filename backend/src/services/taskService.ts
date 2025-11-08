@@ -1,5 +1,6 @@
 import { PrismaClient, TaskPriority, TaskStatus } from "@prisma/client";
 import { DateTime } from "luxon";
+import { deleteReminders, upsertTaskReminders } from "./reminderScheduler";
 import {
   canManageTask,
   canUpdateTaskStatus,
@@ -253,6 +254,18 @@ export async function createTask(
     return { newTask };
   });
 
+  // Schedule reminders nếu có dueDate
+  if (result.newTask.dueDate) {
+    await upsertTaskReminders(result.newTask.id, result.newTask.dueDate).catch(
+      (err) => {
+        console.error(
+          `Failed to schedule reminders for task ${result.newTask.id}:`,
+          err
+        );
+      }
+    );
+  }
+
   return result.newTask;
 }
 
@@ -381,6 +394,24 @@ export async function updateTask(
       assignee: { select: { id: true, name: true, image: true } },
     },
   });
+
+  // Update reminders nếu dueDate thay đổi
+  if (computedDue) {
+    await upsertTaskReminders(updatedTask.id, computedDue).catch((err) => {
+      console.error(
+        `Failed to update reminders for task ${updatedTask.id}:`,
+        err
+      );
+    });
+  } else if (task.dueDate && !computedDue) {
+    // Nếu xóa dueDate => xóa reminders
+    await deleteReminders("task", updatedTask.id).catch((err) => {
+      console.error(
+        `Failed to delete reminders for task ${updatedTask.id}:`,
+        err
+      );
+    });
+  }
 
   return updatedTask;
 }
