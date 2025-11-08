@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { AppError } from "../utils/errors";
 import crypto from "crypto";
 import { sendProjectInvitationEmail } from "../utils/email";
+import { deleteReminders, upsertProjectReminders } from "./reminderScheduler";
 import {
   canManageProject,
   canInviteProjectMembers,
@@ -27,21 +28,24 @@ function toProjectStatus(status?: string): ProjectStatus | undefined {
 }
 
 // Helper function to parse date/time from frontend
-function parseDueDateTime(dueDate?: string, dueTime?: string | null): Date | null {
+function parseDueDateTime(
+  dueDate?: string,
+  dueTime?: string | null
+): Date | null {
   if (!dueDate) return null;
-  
+
   // Combine date and time
   const timeStr = dueTime || "23:59";
   const combined = `${dueDate}T${timeStr}`;
-  
+
   // Parse as local time (no timezone conversion)
   // Frontend should send date in user's local timezone
   const parsed = DateTime.fromISO(combined, { zone: "local" });
-  
+
   if (!parsed.isValid) {
     throw new AppError(400, "INVALID_DUE", "Invalid due date/time");
   }
-  
+
   // Return as JS Date without timezone conversion
   return parsed.toJSDate();
 }
@@ -132,6 +136,16 @@ export async function createProject(
     return newProject;
   });
 
+  // Tạo reminders nếu có dueDate
+  if (result.dueDate) {
+    await upsertProjectReminders(result.id, result.dueDate).catch((err) => {
+      console.error(
+        `Failed to create reminders for project ${result.id}:`,
+        err
+      );
+    });
+  }
+
   return result;
 }
 
@@ -189,6 +203,12 @@ export async function updateProject(
     );
   }
 
+  // Lấy project cũ để so sánh dueDate
+  const oldProject = await prisma.project.findUnique({
+    where: { id },
+    select: { dueDate: true },
+  });
+
   let dueAt: Date | null | undefined;
   if (data.dueDate !== undefined) {
     if (data.dueDate === null || data.dueDate === "") {
@@ -209,6 +229,27 @@ export async function updateProject(
     },
     include: PROJECT_INCLUDE,
   });
+
+  // Update reminders nếu dueDate thay đổi
+  if (updatedProject.dueDate) {
+    await upsertProjectReminders(
+      updatedProject.id,
+      updatedProject.dueDate
+    ).catch((err) => {
+      console.error(
+        `Failed to update reminders for project ${updatedProject.id}:`,
+        err
+      );
+    });
+  } else if (oldProject?.dueDate && !updatedProject.dueDate) {
+    // Nếu xóa dueDate => xóa reminders
+    await deleteReminders("project", updatedProject.id).catch((err) => {
+      console.error(
+        `Failed to delete reminders for project ${updatedProject.id}:`,
+        err
+      );
+    });
+  }
 
   return updatedProject;
 }

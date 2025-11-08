@@ -288,17 +288,21 @@ model DirectMessage {
   receiver  User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
-// Reminder tracking
+// Reminder tracking với Queue System
 model ReminderLog {
-  id          String   @id @default(cuid())
-  entityType  String   // "task" hoặc "project"
-  entityId    String   // ID của task hoặc project
-  reminderType String  // "24h", "3h", "1h", "urgent"
-  sentAt      DateTime @default(now())
-  expiresAt   DateTime // Tự động = sentAt + 25h
+  id           String    @id @default(cuid())
+  entityType   String    // "task" hoặc "project"
+  entityId     String    // ID của task hoặc project
+  threshold    Int       // Thời gian trước deadline (phút): 1440=24h, 180=3h, 60=1h
+  fireAt       DateTime  // Thời điểm cần gửi reminder
+  sentAt       DateTime? // NULL = chưa gửi, NOT NULL = đã gửi
+  jobId        String?   // BullMQ job ID để hủy job nếu cần
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  @@index([entityType, entityId, reminderType])
-  @@index([expiresAt])
-  @@unique([entityType, entityId, reminderType])
+  @@index([entityType, entityId, threshold])
+  @@index([fireAt, sentAt]) // Cho backfill query
+  @@index([jobId])
+  @@unique([entityType, entityId, threshold]) // Mỗi entity chỉ có 1 reminder cho mỗi threshold
 }
 

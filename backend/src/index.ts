@@ -17,6 +17,7 @@ import calendarRouter from "./routes/calendar";
 import collaboratorsRouter from "./routes/collaborators";
 import messagesRouter from "./routes/messages";
 import teamMessagesRouter from "./routes/teamMessages";
+import testRouter from "./routes/test"; // Test endpoints
 import { debugError } from "./utils/debug";
 
 // middleware
@@ -32,11 +33,13 @@ import { sanitizeHtml } from "./middleware/validation";
 import { createSocketServer } from "./socket/socketConfig";
 import { setupSocketHandlers } from "./socket/socketHandler";
 
-// Reminder scheduler
+// Reminder system với BullMQ
+import { reminderWorker } from "./workers/reminderWorker";
 import {
-  startReminderScheduler,
-  stopReminderScheduler,
-} from "./utils/scheduler";
+  startBackfillCron,
+  stopBackfillCron,
+} from "./services/reminderBackfill";
+import { redisConnection } from "./config/redis";
 
 // debug utilities
 import { debugLog } from "./utils/debug";
@@ -132,27 +135,32 @@ app.use(errorHandler);
 // Start server
 const PORT = parseInt(process.env.PORT || "4000", 10);
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", async () => {
   debugLog(`Server running on port ${PORT}`);
   debugLog(`Socket.io server configured and ready`);
 
-  // Khởi động reminder scheduler
-  startReminderScheduler();
+  // Khởi động reminder worker và backfill cron
+  debugLog("✅ Reminder worker started");
+  await startBackfillCron();
 });
 
 // Graceful shutdown
-process.on("SIGTERM", () => {
+process.on("SIGTERM", async () => {
   debugLog("SIGTERM received, shutting down gracefully...");
-  stopReminderScheduler();
+  stopBackfillCron();
+  await reminderWorker.close();
+  await redisConnection.quit();
   server.close(() => {
     debugLog("Server closed");
     process.exit(0);
   });
 });
 
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
   debugLog("SIGINT received, shutting down gracefully...");
-  stopReminderScheduler();
+  stopBackfillCron();
+  await reminderWorker.close();
+  await redisConnection.quit();
   server.close(() => {
     debugLog("Server closed");
     process.exit(0);
