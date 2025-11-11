@@ -140,8 +140,8 @@ export default function Header() {
                 </svg>
               </motion.div>
 
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-700 to-purple-600">
-                Nexus
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-violet-700 to-purple-600">
+                Nexus Collabration
               </span>
             </Link>
             <nav className="hidden sm:ml-8 sm:flex sm:space-x-1">
@@ -187,30 +187,6 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                variant="ghost"
-                className="text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400"
-                onClick={() => scrollToSection("pricing")}
-              >
-                Pricing
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400"
-                onClick={() => scrollToSection("testimonials")}
-              >
-                Testimonials
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400"
-                onClick={() => scrollToSection("cta")}
-              >
-                FAQ
-              </Button>
-
               {isAuthenticated && (
                 <Button
                   variant="ghost"
@@ -242,7 +218,7 @@ export default function Header() {
                           alt={userName}
                           className="object-cover"
                         />
-                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white text-sm">
+                        <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-sm">
                           {getInitials(userName)}
                         </AvatarFallback>
                       </Avatar>
@@ -345,24 +321,7 @@ export default function Header() {
               >
                 Features
               </button>
-              <button
-                className="block w-full text-left py-2 px-3 text-base font-medium text-foreground/70 hover:bg-violet-50 hover:text-violet-900 rounded-md"
-                onClick={() => scrollToSection("pricing")}
-              >
-                Pricing
-              </button>
-              <button
-                className="block w-full text-left py-2 px-3 text-base font-medium text-foreground/70 hover:bg-violet-50 hover:text-violet-900 rounded-md"
-                onClick={() => scrollToSection("testimonials")}
-              >
-                Testimonials
-              </button>
-              <button
-                className="block w-full text-left py-2 px-3 text-base font-medium text-foreground/70 hover:bg-violet-50 hover:text-violet-900 rounded-md"
-                onClick={() => scrollToSection("cta")}
-              >
-                FAQ
-              </button>
+              
               {isAuthenticated && (
                 <Link
                   href="/dashboard"
