@@ -22,8 +22,8 @@ export async function getPendingInvitationsController(
 
 export async function acceptInvitationController(req: Request, res: Response) {
   try {
-    const { token, userId } = req.body;
-    const result = await acceptInvitation(token, userId);
+    const { invitationId, userId } = req.body;
+    const result = await acceptInvitation(invitationId, userId);
     res.status(200).json(result);
   } catch (error) {
     sendError(res, error);
@@ -32,8 +32,8 @@ export async function acceptInvitationController(req: Request, res: Response) {
 
 export async function declineInvitationController(req: Request, res: Response) {
   try {
-    const { token, userId } = req.body;
-    const result = await declineInvitation(token, userId);
+    const { invitationId, userId } = req.body;
+    const result = await declineInvitation(invitationId, userId);
     res.status(200).json(result);
   } catch (error) {
     sendError(res, error);
