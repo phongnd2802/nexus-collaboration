@@ -1,9 +1,9 @@
+import { SignIn } from "@/components/auth/sign-in";
 import type { Metadata } from "next";
-import SignIn from "@/components/auth/SignInForm";
 
 export const metadata: Metadata = {
-  title: "Sign In | ProjectCollab",
-  description: "Sign in to your ProjectCollab account",
+  title: "Sign In | Nexus Collaboration",
+  description: "Sign in to your Nexus Collaboration account",
 };
 
 export default function SignInPage() {
