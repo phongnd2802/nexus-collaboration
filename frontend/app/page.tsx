@@ -64,7 +64,7 @@ function Home() {
         <SearchParamsHandler />
       </Suspense>
 
-      <main className="flex-grow">
+      <main className="grow">
         {/* Hero Section */}
         <div id="hero">
           <Hero ref={heroRef} heroInView={heroInView} />

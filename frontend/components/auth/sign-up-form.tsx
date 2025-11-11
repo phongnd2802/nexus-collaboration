@@ -1,47 +1,32 @@
 "use client";
 
-import type React from "react";
-
-import { Suspense, useState } from "react";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  Github,
-  ArrowLeft,
-  KeyRound,
-  AlertCircle,
-  Mail,
-  Lock,
-  UserIcon,
-  Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardFooter,
-  CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import Link from "next/link";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Github,
+  KeyRound,
+  Lock,
+  Mail,
+  UserIcon,
+} from "lucide-react";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 import { motion } from "framer-motion";
+import { signIn } from "next-auth/react";
 
-function LoadingForm() {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
-        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function SignUpForm() {
+export const SignUpForm = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -73,7 +58,7 @@ function SignUpForm() {
         throw new Error(data.message || "Registration failed");
       }
 
-      // Registration successful, but now we need to verify email before logging in
+      // Đăng ký -> Chuyển sang verify email
       setRegistrationSuccess(true);
       setRegisteredEmail(email);
     } catch (error) {
@@ -129,7 +114,7 @@ function SignUpForm() {
               animate={{ opacity: 1, height: "auto" }}
               className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400 mb-6 flex items-start"
             >
-              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
               <span>{error}</span>
             </motion.div>
           )}
@@ -353,7 +338,7 @@ function SignUpForm() {
             >
               <Link
                 href="/auth/signin"
-                className="flex items-center inline-flex"
+                className="items-center inline-flex"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Already have an account? Sign in
@@ -364,13 +349,4 @@ function SignUpForm() {
       </Card>
     </motion.div>
   );
-}
-
-// Suspense boundary
-export default function SignUp() {
-  return (
-    <Suspense fallback={<LoadingForm />}>
-      <SignUpForm />
-    </Suspense>
-  );
-}
+};
