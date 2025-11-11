@@ -1,40 +1,15 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  CheckCircle,
-  AlertCircle,
-  ArrowLeft,
-  Mail,
-  Loader2,
-  KeyRound,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import Link from "next/link";
+import { AlertCircle, ArrowLeft, CheckCircle, KeyRound, Loader2, Mail } from "lucide-react";
+import { Button } from "../ui/button";
 
-function LoadingForm() {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
-        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
-        </div>
-      </main>
-    </div>
-  );
-}
 
-function VerifyEmailForm() {
+export const VerifyEmailForm = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -347,14 +322,5 @@ function VerifyEmailForm() {
         </CardFooter>
       </Card>
     </motion.div>
-  );
-}
-
-// Suspense boundary
-export default function VerifyEmail() {
-  return (
-    <Suspense fallback={<LoadingForm />}>
-      <VerifyEmailForm />
-    </Suspense>
   );
 }

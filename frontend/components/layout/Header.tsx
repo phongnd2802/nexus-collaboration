@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import UserAuthStatus from "@/components/auth/UserAuthStatus";
+import UserAuthStatus from "@/components/auth/user-auth-status";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Header() {
