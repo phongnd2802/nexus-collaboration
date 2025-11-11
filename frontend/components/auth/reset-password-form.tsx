@@ -1,43 +1,15 @@
-"use client";
-
-import type React from "react";
-import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import {
-  CheckCircle,
-  AlertCircle,
-  ArrowLeft,
-  KeyRound,
-  ShieldCheck,
-  Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { checkPassword } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import Link from "next/link";
+import { AlertCircle, ArrowLeft, CheckCircle, KeyRound, ShieldCheck } from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
-function LoadingForm() {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
-        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
-        </div>
-      </main>
-    </div>
-  );
-}
 
-function ResetPasswordForm() {
+export const ResetPasswordForm = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -260,7 +232,7 @@ function ResetPasswordForm() {
                   animate={{ opacity: 1, height: "auto" }}
                   className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400 mb-6 flex items-start"
                 >
-                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </motion.div>
               )}
@@ -372,14 +344,5 @@ function ResetPasswordForm() {
         </CardFooter>
       </Card>
     </motion.div>
-  );
-}
-
-// Suspense boundary
-export default function ResetPassword() {
-  return (
-    <Suspense fallback={<LoadingForm />}>
-      <ResetPasswordForm />
-    </Suspense>
   );
 }

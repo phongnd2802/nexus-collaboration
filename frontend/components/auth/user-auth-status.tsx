@@ -92,7 +92,7 @@ export default function UserAuthStatus({
   const AvatarComponent = () => (
     <Avatar className="h-10 w-10">
       <AvatarImage src={userImage} alt={userName} className="object-cover" />
-      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white text-sm">
+      <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-sm">
         {getInitials(userName)}
       </AvatarFallback>
     </Avatar>
@@ -115,7 +115,7 @@ export default function UserAuthStatus({
     return (
       <>
         <div className="flex items-center px-4">
-          <div className="flex-shrink-0 mr-2">{ClickableAvatar}</div>
+          <div className="shrink-0 mr-2">{ClickableAvatar}</div>
           {!avatarOnly && (
             <div className="flex flex-col">
               {clickable ? (

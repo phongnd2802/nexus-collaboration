@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Verify Email | Nexus Collaboration",
-  description: "Verify your email address for your Nexus account",
+  description: "Verify your email address for your Nexus Collaboration account",
 };
 
 export default function VerifyEmailPage() {
