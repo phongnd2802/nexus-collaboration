@@ -1,9 +1,9 @@
+import { ResetPassword } from "@/components/auth/reset-password";
 import type { Metadata } from "next";
-import ResetPassword from "@/components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Reset Password | ProjectCollab",
-  description: "Set a new password for your ProjectCollab account",
+  title: "Reset Password | Nexus Collaboration",
+  description: "Set a new password for your Nexus Collaboration account",
 };
 
 export default function ResetPasswordPage() {
