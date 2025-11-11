@@ -366,7 +366,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
 
     return (
       <div
-        className="bg-gradient-to-br from-violet-50 via-background to-purple-50 dark:from-violet-950/30 dark:via-background dark:to-purple-950/20"
+        className="bg-linear-to-br from-violet-50 via-background to-purple-50 dark:from-violet-950/30 dark:via-background dark:to-purple-950/20"
         ref={ref}
       >
         <div
@@ -388,7 +388,8 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
                 <span className="text-violet-900 dark:text-violet-300 text-sm font-medium flex items-center">
-                  <Zap className="h-4 w-4 mr-1.5" /> Introducing Nudge
+                  <Zap className="h-4 w-4 mr-1.5" /> Introducing Nexus
+                  Collabration
                 </span>
               </motion.div>
               <motion.h1
@@ -399,7 +400,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
               >
                 <span className="block">Collaborate</span>
                 <span className="block">Seamlessly on</span>
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-700 to-purple-600 dark:from-violet-500 dark:to-purple-400">
+                <span className="bg-clip-text text-transparent bg-linear-to-br from-violet-700 to-purple-600 dark:from-violet-500 dark:to-purple-400">
                   Projects
                 </span>
               </motion.h1>
@@ -461,18 +462,6 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                   </>
                 )}
               </motion.div>
-              <motion.div
-                className="mt-8 flex items-center text-muted-foreground text-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-              >
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                No credit card required
-                <span className="mx-2">•</span>
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                Free 14-day trial
-              </motion.div>
             </motion.div>
             <motion.div
               className="flex items-center justify-center lg:justify-end"
@@ -482,7 +471,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
             >
               <div className="relative w-full max-w-lg">
                 <motion.div
-                  className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-violet-700 to-purple-600 opacity-30 blur-xl dark:from-violet-700/20 dark:to-purple-600/20"
+                  className="absolute -inset-0.5 rounded-2xl bg-linear-to-br from-violet-700 to-purple-600 opacity-30 blur-xl dark:from-violet-700/20 dark:to-purple-600/20"
                   animate={{
                     scale: [1, 1.02, 1],
                     opacity: [0.2, 0.3, 0.2],

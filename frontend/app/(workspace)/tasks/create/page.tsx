@@ -66,7 +66,7 @@ function TaskPage() {
   if (status === "loading" || isLoading) {
     return (
       <div className="flex flex-col min-h-[80vh]">
-        <div className="flex-grow flex items-center justify-center">
+        <div className="grow flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
           </div>
@@ -115,7 +115,7 @@ function TaskPage() {
 function LoadingTaskCreate() {
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
+      <main className="grow">
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
           <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
         </div>

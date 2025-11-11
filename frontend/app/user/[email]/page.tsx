@@ -94,7 +94,7 @@ function UserProfileContent() {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow flex items-center justify-center">
+        <main className="grow flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
         </main>
         <Footer />
@@ -106,7 +106,7 @@ function UserProfileContent() {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow flex items-center justify-center">
+        <main className="grow flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">
               {error === "User not found" ? "User Not Found" : "Error"}
@@ -126,7 +126,7 @@ function UserProfileContent() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow py-20">
+      <main className="grow py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Profile Header */}
           <div className="mb-8">
@@ -137,7 +137,7 @@ function UserProfileContent() {
                   alt={userProfile.name || "User"}
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white text-2xl">
+                <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-2xl">
                   {getInitials(userProfile.name)}
                 </AvatarFallback>
               </Avatar>
@@ -310,7 +310,7 @@ export default function UserProfilePage() {
       fallback={
         <div className="flex flex-col min-h-screen">
           <Header />
-          <main className="flex-grow flex items-center justify-center py-20">
+          <main className="grow flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
           </main>
           <Footer />
