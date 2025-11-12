@@ -53,6 +53,8 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import TaskAttachments from "@/components/tasks/TaskAttachments";
 import TaskCompletion from "@/components/tasks/TaskCompletion";
+import SubtaskSection from "@/components/tasks/SubtaskSection";
+import LinkedTaskSection from "@/components/tasks/LinkedTaskSection";
 import { getInitials } from "@/lib/utils";
 
 export default function TaskDetailsPage() {
@@ -73,6 +75,8 @@ export default function TaskDetailsPage() {
   const [taskFiles, setTaskFiles] = useState<any[]>([]);
   const [taskDeliverables, setTaskDeliverables] = useState<any[]>([]);
   const [isAssignee, setIsAssignee] = useState(false);
+  const [subtasks, setSubtasks] = useState<any[]>([]);
+  const [linkedTasks, setLinkedTasks] = useState<any[]>([]);
 
   const taskId = params?.taskId as string;
 
@@ -138,6 +142,10 @@ export default function TaskDetailsPage() {
 
       const taskData = await taskResponse.json();
       setTask(taskData);
+
+      // Set subtasks and linked tasks from API response
+      setSubtasks(taskData.subtasks || []);
+      setLinkedTasks(taskData.linkedTasks || []);
 
       if (taskData.taskFiles && taskData.taskFiles.length > 0) {
         const attachments = taskData.taskFiles.filter(
@@ -278,7 +286,7 @@ export default function TaskDetailsPage() {
     setEditedTask((prev: any) => ({ ...prev, [field]: value }));
 
     if (validationErrors[field]) {
-      setValidationErrors((prev) => {
+      setValidationErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -483,7 +491,7 @@ export default function TaskDetailsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
+    <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
         <div className="flex gap-4">
           {task.status === "DONE" && (
@@ -494,7 +502,7 @@ export default function TaskDetailsPage() {
               <div className="w-full max-w-md">
                 <Input
                   value={editedTask.title}
-                  onChange={(e) => handleEditField("title", e.target.value)}
+                  onChange={e => handleEditField("title", e.target.value)}
                   className={cn(
                     "text-xl font-bold border-violet-400 focus-visible:ring-violet-400",
                     validationErrors.title && "border-red-500"
@@ -611,8 +619,8 @@ export default function TaskDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -625,7 +633,7 @@ export default function TaskDetailsPage() {
                 <div className="space-y-2">
                   <Textarea
                     value={editedTask.description}
-                    onChange={(e) =>
+                    onChange={e =>
                       handleEditField("description", e.target.value)
                     }
                     placeholder="Add a description..."
@@ -740,6 +748,27 @@ export default function TaskDetailsPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Subtask Section */}
+          <SubtaskSection
+            taskId={taskId}
+            subtasks={subtasks}
+            projectMembers={availableMembers}
+            onSubtaskAdded={() => fetchProjectAndTaskDetails()}
+            onSubtaskUpdated={() => fetchProjectAndTaskDetails()}
+            canEdit={permissionLevel === "admin" || permissionLevel === "edit"}
+          />
+
+          {/* Linked Task Section */}
+          <LinkedTaskSection
+            taskId={taskId}
+            projectId={task?.project?.id || ""}
+            linkedTasks={linkedTasks}
+            projectMembers={availableMembers}
+            onLinkedTaskAdded={() => fetchProjectAndTaskDetails()}
+            onLinkedTaskUpdated={() => fetchProjectAndTaskDetails()}
+            canEdit={permissionLevel === "admin" || permissionLevel === "edit"}
+          />
         </div>
 
         <div className="space-y-6">
@@ -765,7 +794,7 @@ export default function TaskDetailsPage() {
                   {isEditing ? (
                     <Select
                       value={editedTask.priority}
-                      onValueChange={(value) =>
+                      onValueChange={value =>
                         handleEditField("priority", value)
                       }
                     >
@@ -811,7 +840,7 @@ export default function TaskDetailsPage() {
                       <Input
                         type="date"
                         value={editedTask.dueDate}
-                        onChange={(e) =>
+                        onChange={e =>
                           handleEditField("dueDate", e.target.value)
                         }
                         className="h-9"
@@ -820,7 +849,7 @@ export default function TaskDetailsPage() {
                       <Input
                         type="time"
                         value={editedTask.dueTime || ""}
-                        onChange={(e) =>
+                        onChange={e =>
                           handleEditField("dueTime", e.target.value)
                         }
                         className="h-9 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-clock-picker-indicator]:hidden"
@@ -848,7 +877,7 @@ export default function TaskDetailsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {availableMembers.map((member) => (
+                        {availableMembers.map(member => (
                           <SelectItem key={member.id} value={member.id}>
                             <div className="flex items-center">
                               <Avatar className="h-5 w-5 mr-2">
