@@ -2,23 +2,27 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calendar, Clock, PlusCircle, Crown, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  Clock,
+  PlusCircle,
+  Crown,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 
-export function WelcomeBanner({
-  userName,
-  tasksDue,
-  projectsDue,
-  subscription,
-}: {
+interface WelcomeBannerProps {
   userName: string;
   tasksDue: number;
   projectsDue: number;
-  subscription?: {
-    plan: 'STARTER' | 'PRO' | 'ENTERPRISE';
-    status: 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'UNPAID';
-  } | null;
-}) {
+}
+
+export const WelcomeBanner = ({
+  userName,
+  tasksDue,
+  projectsDue,
+}: WelcomeBannerProps) => {
   const hours = new Date().getHours();
   let greeting = "Good morning";
 
@@ -58,7 +62,7 @@ export function WelcomeBanner({
 
   return (
     <motion.div
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-violet-800 p-8 text-white shadow-lg"
+      className="relative overflow-hidden rounded-2xl bg-linear-to-r from-violet-600 to-violet-800 p-8 text-white shadow-lg"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -76,23 +80,6 @@ export function WelcomeBanner({
               <Clock className="mr-2 h-3 w-3" />
               <span>{dateString}</span>
             </div>
-            {subscription && (
-              <Link href="/subscription">
-                <div className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm backdrop-blur-sm hover:bg-white/30 transition-colors cursor-pointer">
-                  {subscription.plan === 'PRO' ? (
-                    <Crown className="mr-2 h-3 w-3" />
-                  ) : subscription.plan === 'ENTERPRISE' ? (
-                    <Crown className="mr-2 h-3 w-3" />
-                  ) : (
-                    <Zap className="mr-2 h-3 w-3" />
-                  )}
-                  <span className="font-medium">
-                    {subscription.plan} Plan
-                    {subscription.status === 'TRIAL' && ' (Trial)'}
-                  </span>
-                </div>
-              </Link>
-            )}
           </motion.div>
           <motion.h1 variants={itemVariants} className="text-3xl font-bold">
             {greeting}, {userName}!
@@ -132,4 +119,4 @@ export function WelcomeBanner({
       </div>
     </motion.div>
   );
-}
+};

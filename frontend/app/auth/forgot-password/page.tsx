@@ -1,6 +1,5 @@
+import { ForgotPasswordForm } from "@/components/auth/forgot-passsword";
 import type { Metadata } from "next";
-import Link from "next/link";
-import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
 export const metadata: Metadata = {
   title: "Forgot Password | ProjectCollab",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import AuthProvider from "../components/auth/AuthProvider";
+import AuthProvider from "../components/auth/auth-provider";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
@@ -12,7 +12,7 @@ import { SocketProvider } from "@/components/context/SocketContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nexus Collab",
+  title: "Nexus Collaboration",
   description: "A platform for project collaboration",
 };
 

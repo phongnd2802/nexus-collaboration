@@ -1,9 +1,9 @@
+import { SignUp } from "@/components/auth/sign-up";
 import type { Metadata } from "next";
-import SignUp from "@/components/auth/SignUpForm";
 
 export const metadata: Metadata = {
-  title: "Sign Up | ProjectCollab",
-  description: "Create a new ProjectCollab account",
+  title: "Sign Up | Nexus Collaboration",
+  description: "Create a new Nexus Collaboration account",
 };
 
 export default function SignUpPage() {

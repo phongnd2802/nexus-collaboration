@@ -4,18 +4,22 @@ import type React from "react";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Github, Twitter, Linkedin, Mail, ArrowRight, Instagram } from "lucide-react";
+import {
+  Github,
+  Twitter,
+  Linkedin,
+  Mail,
+  ArrowRight,
+  Instagram,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
-  const [srv, setSrv] = useState(false);
-  const [locationLoaded, setLocationLoaded] = useState(false);
-
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,51 +49,6 @@ export default function Footer() {
     }
   };
 
-  useEffect(() => {
-    const detectLocation = async () => {
-      try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        
-        if (data.country_code === 'IN') {
-          setSrv(true);
-        }
-      } catch (error) {
-        console.log('IP geolocation failed, trying browser geolocation');
-        
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              try {
-                const response = await fetch(
-                  `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`
-                );
-                const data = await response.json();
-                
-                if (data.countryCode === 'IN') {
-                  setSrv(true);
-                }
-              } catch (error) {
-                console.log('Reverse geocoding failed');
-              } finally {
-                setLocationLoaded(true);
-              }
-            },
-            () => {
-              setLocationLoaded(true);
-            }
-          );
-        } else {
-          setLocationLoaded(true);
-        }
-      } finally {
-        setLocationLoaded(true);
-      }
-    };
-
-    detectLocation();
-  }, []);
-
   return (
     <footer className="border-t border-border bg-background">
       <div className="container px-4 py-12 md:px-6 md:py-16 max-w-7xl mx-auto">
@@ -115,8 +74,8 @@ export default function Footer() {
                   />
                 </svg>
               </motion.div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-500 dark:to-purple-400">
-                Nudge
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-violet-600 to-purple-600 dark:from-violet-500 dark:to-purple-400">
+                Nexus Collabration
               </span>
             </Link>
             <p className="text-muted-foreground max-w-md">
@@ -151,62 +110,6 @@ export default function Footer() {
                   )}
                 </Button>
               </form>
-            </div>
-            <div className="flex gap-4">
-              {!srv && locationLoaded && (
-                <motion.div
-                  whileHover={{ y: -1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <Link
-                    href="https://github.com/atpritam"
-                    className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors p-2 rounded-full"
-                  >
-                    <Github className="h-5 w-5" />
-                    <span className="sr-only">GitHub</span>
-                  </Link>
-                </motion.div>
-              )}
-              {!srv && locationLoaded && (
-                <motion.div
-                  whileHover={{ y: -1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <Link
-                    href="https://www.linkedin.com/in/atpritam/"
-                    className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors p-2 rounded-full"
-                  >
-                    <Linkedin className="h-5 w-5" />
-                    <span className="sr-only">LinkedIn</span>
-                  </Link>
-                </motion.div>
-              )}
-              <motion.div
-                whileHover={{ y: -1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <Link
-                  href={`${(srv) ? "mailto:nudge@pritam.studio" : "mailto:pritam@student.agh.edu.pl"}`}
-                  className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors p-2 rounded-full"
-                >
-                  <Mail className="h-5 w-5" />
-                  <span className="sr-only">Email</span>
-                </Link>
-              </motion.div>
-              {srv && (
-                <motion.div
-                  whileHover={{ y: -1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <Link
-                    href="https://www.instagram.com/itssodope_/"
-                    className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors p-2 rounded-full"
-                  >
-                    <Instagram className="h-5 w-5" />
-                    <span className="sr-only">Instagram</span>
-                  </Link>
-                </motion.div>
-              )}
             </div>
           </div>
           <div className="flex flex-col gap-4">
@@ -308,11 +211,6 @@ export default function Footer() {
               </Link>
             </div>
           </div>
-        </div>
-        <div className="mt-12 border-t border-border pt-6">
-          <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Nudge. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

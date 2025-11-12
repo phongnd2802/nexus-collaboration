@@ -94,7 +94,7 @@ export default function ProjectDetailPage() {
   if (status === "loading") {
     return (
       <div className="flex flex-col min-h-screen">
-        <div className="flex-grow flex items-center justify-center">
+        <div className="grow flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function ProjectDetailPage() {
   if (isProjectLoading) {
     return (
       <div className="flex flex-col min-h-screen">
-        <div className="flex-grow flex items-center justify-center">
+        <div className="grow flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="flex flex-col min-h-screen">
-        <div className="flex-grow flex items-center justify-center flex-col p-8">
+        <div className="grow flex items-center justify-center flex-col p-8">
           <h2 className="text-2xl font-bold mb-4">Project not found</h2>
           <p className="text-muted-foreground">
             The project you're looking for doesn't exist or you don't have
@@ -128,7 +128,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
+      <main className="grow">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="flex-1">
