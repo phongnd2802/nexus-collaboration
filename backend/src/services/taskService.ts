@@ -1,6 +1,8 @@
 import { PrismaClient, TaskPriority, TaskStatus } from "@prisma/client";
 import { DateTime } from "luxon";
 import { deleteReminders, upsertTaskReminders } from "./reminderScheduler";
+import { subtaskService } from "./subtaskService";
+import { taskLinkService } from "./taskLinkService";
 import {
   canManageTask,
   canUpdateTaskStatus,
@@ -212,7 +214,7 @@ export async function createTask(
     }
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async tx => {
     const dueAt = parseDueDateTime(dueDate, dueTime);
 
     const newTask = await tx.task.create({
@@ -233,7 +235,7 @@ export async function createTask(
     });
 
     if (files && Array.isArray(files) && files.length > 0) {
-      const filePromises = files.map((file) =>
+      const filePromises = files.map(file =>
         tx.file.create({
           data: {
             name: file.name,
@@ -257,7 +259,7 @@ export async function createTask(
   // Schedule reminders nếu có dueDate
   if (result.newTask.dueDate) {
     await upsertTaskReminders(result.newTask.id, result.newTask.dueDate).catch(
-      (err) => {
+      err => {
         console.error(
           `Failed to schedule reminders for task ${result.newTask.id}:`,
           err
@@ -318,6 +320,17 @@ export async function updateTask(
       );
     }
 
+    // Check if task is blocked by other tasks
+    if (status !== TaskStatus.TODO) {
+      const blockCheck = await taskLinkService.canTaskChangeStatus(
+        taskId,
+        status
+      );
+      if (!blockCheck.allowed) {
+        throw new AppError(403, "TASK_BLOCKED", blockCheck.reason as string);
+      }
+    }
+
     const updated = await prisma.task.update({
       where: { id: taskId },
       data: { status },
@@ -326,6 +339,11 @@ export async function updateTask(
         assignee: { select: { id: true, name: true, image: true } },
       },
     });
+
+    // If task is moved to DONE, set all subtasks to DONE
+    if (status === TaskStatus.DONE) {
+      await subtaskService.setAllSubtasksToDone(taskId);
+    }
 
     return updated;
   }
@@ -379,6 +397,17 @@ export async function updateTask(
     }
   }
 
+  // Check if task is blocked when updating status
+  if (status !== undefined && status !== TaskStatus.TODO) {
+    const blockCheck = await taskLinkService.canTaskChangeStatus(
+      taskId,
+      status
+    );
+    if (!blockCheck.allowed) {
+      throw new AppError(403, "TASK_BLOCKED", blockCheck.reason as string);
+    }
+  }
+
   const updatedTask = await prisma.task.update({
     where: { id: taskId },
     data: {
@@ -395,9 +424,14 @@ export async function updateTask(
     },
   });
 
+  // If task is moved to DONE, set all subtasks to DONE
+  if (status === TaskStatus.DONE) {
+    await subtaskService.setAllSubtasksToDone(taskId);
+  }
+
   // Update reminders nếu dueDate thay đổi
   if (computedDue) {
-    await upsertTaskReminders(updatedTask.id, computedDue).catch((err) => {
+    await upsertTaskReminders(updatedTask.id, computedDue).catch(err => {
       console.error(
         `Failed to update reminders for task ${updatedTask.id}:`,
         err
@@ -405,7 +439,7 @@ export async function updateTask(
     });
   } else if (task.dueDate && !computedDue) {
     // Nếu xóa dueDate => xóa reminders
-    await deleteReminders("task", updatedTask.id).catch((err) => {
+    await deleteReminders("task", updatedTask.id).catch(err => {
       console.error(
         `Failed to delete reminders for task ${updatedTask.id}:`,
         err
@@ -455,6 +489,19 @@ export async function getTask(taskId: string, userId: string) {
       creator: { select: { id: true, name: true, image: true } },
       assignee: { select: { id: true, name: true, image: true } },
       taskFiles: true,
+      subtasks: {
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -462,7 +509,13 @@ export async function getTask(taskId: string, userId: string) {
     throw new AppError(404, "TASK_NOT_FOUND", "Task not found");
   }
 
-  return task;
+  // Get linked tasks
+  const linkedTasks = await taskLinkService.getTaskLinksByTaskId(taskId);
+
+  return {
+    ...task,
+    linkedTasks,
+  };
 }
 
 export async function completeTask(
@@ -492,7 +545,7 @@ export async function completeTask(
     throw new AppError(404, "TASK_NOT_FOUND", "Task not found");
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async tx => {
     const updatedTask = await tx.task.update({
       where: { id: taskId },
       data: { completionNote },
@@ -511,7 +564,7 @@ export async function completeTask(
       const existingUrls = new Set(existingFiles.map((f: any) => f.url));
 
       const newDeliverables = deliverables.filter(
-        (f) => !existingUrls.has(f.url)
+        f => !existingUrls.has(f.url)
       );
 
       if (newDeliverables.length > 0) {

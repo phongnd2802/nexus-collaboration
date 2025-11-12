@@ -31,6 +31,7 @@ model User {
   // Task-related
   createdTasks  Task[] @relation("TaskCreator")
   assignedTasks Task[] @relation("TaskAssignee")
+  assignedSubtasks Subtask[]
 
   // Chat and comments
   chatMessages ChatMessage[]
@@ -216,6 +217,44 @@ model Task {
   creator      User          @relation("TaskCreator", fields: [creatorId], references: [id])
   assignee     User?         @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   taskFiles    File[]        @relation("TaskFiles")
+  subtasks     Subtask[]
+  sourceLinks  TaskLink[]    @relation("SourceTask")
+  targetLinks  TaskLink[]    @relation("TargetTask")
+}
+
+model Subtask {
+  id         String       @id @default(cuid())
+  taskId     String
+  name       String
+  status     TaskStatus   @default(TODO)
+  priority   TaskPriority @default(MEDIUM)
+  assigneeId String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([taskId])
+  @@index([assigneeId])
+
+  // Relations
+  task     Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  assignee User? @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+}
+
+model TaskLink {
+  id           String           @id @default(cuid())
+  sourceTaskId String
+  targetTaskId String
+  relationship TaskRelationship
+  createdAt    DateTime         @default(now())
+
+  @@index([sourceTaskId])
+  @@index([targetTaskId])
+
+  // Relations
+  sourceTask Task @relation("SourceTask", fields: [sourceTaskId], references: [id], onDelete: Cascade)
+  targetTask Task @relation("TargetTask", fields: [targetTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceTaskId, targetTaskId, relationship])
 }
 
 enum TaskStatus {
@@ -228,6 +267,11 @@ enum TaskPriority {
   LOW
   MEDIUM
   HIGH
+}
+
+enum TaskRelationship {
+  BLOCKS
+  BLOCKED_BY
 }
 
 // Chat system

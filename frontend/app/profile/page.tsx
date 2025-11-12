@@ -25,7 +25,7 @@ function LoadingProfile() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow">
+      <main className="grow">
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
           <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
         </div>
@@ -271,7 +271,7 @@ function ProfileContent() {
     <div className="flex flex-col min-h-screen ">
       <Header />
 
-      <main className="flex-grow py-10">
+      <main className="grow py-10">
         <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
           <ProfileHeader isSaving={isSaving} onSave={handleSubmit} />
 

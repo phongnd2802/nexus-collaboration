@@ -1,5 +1,3 @@
-// Create this file at: app/auth/verification-success/page.tsx
-
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, ArrowRight } from "lucide-react";
@@ -13,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Email Verified | Nexus",
+  title: "Email Verified | Nexus Collaboration",
   description: "Your email has been successfully verified",
 };
 

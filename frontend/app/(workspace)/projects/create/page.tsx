@@ -25,12 +25,10 @@ import {
   Paperclip,
 } from "lucide-react";
 import ProjectFileUpload from "@/components/projects/ProjectFileUpload";
-import { useSubscription } from "@/components/context/SubscriptionContext";
 
 export default function NewProjectPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { canCreateProject } = useSubscription();
 
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
@@ -51,12 +49,6 @@ export default function NewProjectPage() {
 
     if (!projectName.trim()) {
       setFormError("Project name is required");
-      return;
-    }
-
-    // Check subscription limits before submitting
-    if (!canCreateProject) {
-      router.push("/subscription?upgrade=projects");
       return;
     }
 
@@ -83,7 +75,8 @@ export default function NewProjectPage() {
 
         // Handle subscription limit exceeded error
         if (data.error === "SUBSCRIPTION_LIMIT_EXCEEDED") {
-          router.push("/subscription?upgrade=projects");
+          // Subscription limit exceeded — show a friendly message instead of redirecting
+          setFormError("You have reached your project limit. Please contact support to upgrade your plan.");
           return;
         }
 
@@ -104,7 +97,7 @@ export default function NewProjectPage() {
   if (status === "loading") {
     return (
       <div className="flex flex-col min-h-[80vh]">
-        <div className="flex-grow flex items-center justify-center">
+        <div className="grow flex items-center justify-center">
           <div className="text-center space-y-4">
             <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
             <p className="text-muted-foreground">Loading your account...</p>
@@ -144,7 +137,7 @@ export default function NewProjectPage() {
           <CardContent>
             {formError && (
               <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400 text-sm mb-6 flex items-start">
-                <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}

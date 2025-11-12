@@ -1,9 +1,9 @@
+import { VerifyEmail } from "@/components/auth/verify-email";
 import type { Metadata } from "next";
-import VerifyEmail from "@/components/auth/VerifyEmailForm";
 
 export const metadata: Metadata = {
-  title: "Verify Email | Nexus",
-  description: "Verify your email address for your Nexus account",
+  title: "Verify Email | Nexus Collaboration",
+  description: "Verify your email address for your Nexus Collaboration account",
 };
 
 export default function VerifyEmailPage() {

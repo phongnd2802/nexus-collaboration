@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
-export default function ForgotPasswordForm() {
+export const ForgotPasswordForm = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -85,7 +85,7 @@ export default function ForgotPasswordForm() {
               animate={{ opacity: 1, height: "auto" }}
               className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400 mb-6 flex items-start"
             >
-              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
               <span>{error}</span>
             </motion.div>
           )}
@@ -177,4 +177,4 @@ export default function ForgotPasswordForm() {
       </Card>
     </motion.div>
   );
-}
+};
