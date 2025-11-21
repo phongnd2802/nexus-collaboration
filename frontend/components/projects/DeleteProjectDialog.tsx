@@ -88,7 +88,7 @@ export default function DeleteProjectDialog({
             </span>
 
             <span className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md text-amber-800 dark:text-amber-300 text-sm flex items-start mt-2">
-              <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
               <span>
                 To confirm, please type{" "}
                 <span className="font-bold">{project.name}</span> below
