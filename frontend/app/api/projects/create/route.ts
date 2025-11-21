@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
+import { FileAttachment } from "@/types/index";
+
+interface CreateProjectBody {
+  name: string;
+  description?: string;
+  dueDate?: string;
+  dueTime?: string;
+  files?: FileAttachment[];
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body: CreateProjectBody = await request.json();
     const { name, description, dueDate, dueTime, files } = body;
 
     if (!name) {
@@ -22,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const fileData =
       files && files.length > 0
-        ? files.map((file: any) => ({
+        ? files.map((file) => ({
             name: file.name,
             url: file.url,
             size: file.size,

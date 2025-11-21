@@ -16,21 +16,21 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatDate, getInitials } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getPriorityBadge } from "@/lib/badge-utils";
+import { Project, Task } from "@/types/index";
 
 interface ProjectTasksProps {
   id: string;
-  project: any;
-  tasks: any[];
+  project: Project;
+  tasks: Task[];
   isAdmin: boolean;
   isEditor?: boolean;
-  onTasksUpdated: (tasks: any[]) => void;
+  onTasksUpdated: (tasks: Task[]) => void;
 }
 
 export default function ProjectTasks({
@@ -122,7 +122,7 @@ export default function ProjectTasks({
       if (!response.ok) throw new Error("Failed to update task status");
 
       const updatedTasks = tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
+        task.id === taskId ? { ...task, status: newStatus as any } : task
       );
       onTasksUpdated(updatedTasks);
 
@@ -169,48 +169,6 @@ export default function ProjectTasks({
 
     await handleStatusChange(taskBeingDragged, newStatus, task.status);
     setTaskBeingDragged(null);
-  };
-
-  const getInitials = (name: string | null) =>
-    name
-      ? name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-      : "";
-
-  const formatDueDate = (dateString: string | null) => {
-    if (!dateString) return null;
-    const dueDate = new Date(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDateCopy = new Date(dueDate);
-    dueDateCopy.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Check if time is significant (not default 23:59 or midnight)
-    const hasSignificantTime =
-      dueDate.getHours() !== 23 ||
-      (dueDate.getHours() === 23 && dueDate.getMinutes() !== 59);
-
-    let dateStr = "";
-    if (dueDateCopy.getTime() === today.getTime()) {
-      dateStr = "Today";
-    } else if (dueDateCopy.getTime() === tomorrow.getTime()) {
-      dateStr = "Tomorrow";
-    } else {
-      dateStr = format(dueDate, "MMM d, yyyy");
-    }
-
-    // Add time if it's significant
-    if (hasSignificantTime) {
-      const timeStr = format(dueDate, "HH:mm");
-      return `${dateStr} at ${timeStr}`;
-    }
-
-    return dateStr;
   };
 
   const getStatusIcon = (status: string) => {
@@ -277,10 +235,10 @@ export default function ProjectTasks({
               <AvatarFallback>{getInitials(task.assignee.name)}</AvatarFallback>
             </Avatar>
           )}
-          {formatDueDate(task.dueDate) && (
+          {task.dueDate && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {formatDueDate(task.dueDate)}
+              {formatDate(task.dueDate, { relative: true, includeTime: true })}
             </div>
           )}
           {getPriorityBadge(task.priority)}

@@ -37,9 +37,9 @@ interface LinkedTask {
 
 interface Member {
   id: string;
-  name: string;
-  email: string;
-  image?: string;
+  name: string | null;
+  email?: string;
+  image?: string | null;
 }
 
 interface LinkedTaskSectionProps {
@@ -89,7 +89,7 @@ export default function LinkedTaskSection({
       } else {
         // For other fields (priority, assignee, status), update the actual task
         // We need to get the actual task ID from linkedTask object
-        const linkedTask = linkedTasks.find(lt => lt.id === linkedTaskId);
+        const linkedTask = linkedTasks.find((lt) => lt.id === linkedTaskId);
         if (!linkedTask) return;
 
         const response = await fetch(
@@ -207,7 +207,7 @@ export default function LinkedTaskSection({
             </div>
 
             {/* Rows */}
-            {linkedTasks.map(linkedTask => (
+            {linkedTasks.map((linkedTask) => (
               <div
                 key={linkedTask.id}
                 className="grid grid-cols-[minmax(130px,200px)_minmax(60px,70px)_minmax(100px,150px)_minmax(80px,90px)_minmax(80px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left"
@@ -227,7 +227,7 @@ export default function LinkedTaskSection({
                 <div className="flex items-center justify-start">
                   <Select
                     value={linkedTask.priority}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateLinkedTask(linkedTask.id, "priority", value)
                     }
@@ -256,7 +256,7 @@ export default function LinkedTaskSection({
                 <div className="min-w-0 flex items-center justify-start">
                   <Select
                     value={linkedTask.assigneeId}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateLinkedTask(linkedTask.id, "assigneeId", value)
                     }
@@ -278,16 +278,16 @@ export default function LinkedTaskSection({
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {projectMembers.map(member => (
+                      {projectMembers.map((member) => (
                         <SelectItem key={member.id} value={member.id}>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-5 w-5">
-                              <AvatarImage src={member.image} />
+                              <AvatarImage src={member.image || undefined} />
                               <AvatarFallback className="text-xs">
-                                {getInitials(member.name)}
+                                {getInitials(member.name || "Unknown")}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{member.name}</span>
+                            <span>{member.name || "Unknown"}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -299,7 +299,7 @@ export default function LinkedTaskSection({
                 <div className="flex items-center justify-start">
                   <Select
                     value={linkedTask.status}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateLinkedTask(linkedTask.id, "status", value)
                     }
@@ -352,7 +352,7 @@ export default function LinkedTaskSection({
                 <div className="flex items-center justify-start">
                   <Select
                     value={linkedTask.relationship}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateLinkedTask(
                         linkedTask.id,

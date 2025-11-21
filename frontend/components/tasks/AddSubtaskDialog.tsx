@@ -25,9 +25,9 @@ import { Loader2 } from "lucide-react";
 
 interface Member {
   id: string;
-  name: string;
-  email: string;
-  image?: string;
+  name: string | null;
+  email?: string;
+  image?: string | null;
 }
 
 interface AddSubtaskDialogProps {
@@ -111,7 +111,9 @@ export default function AddSubtaskDialog({
               id="name"
               placeholder="Enter subtask name"
               value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               disabled={isSubmitting}
               required
             />
@@ -121,7 +123,7 @@ export default function AddSubtaskDialog({
             <Label htmlFor="priority">Priority</Label>
             <Select
               value={formData.priority}
-              onValueChange={value =>
+              onValueChange={(value) =>
                 setFormData({ ...formData, priority: value })
               }
               disabled={isSubmitting}
@@ -158,7 +160,7 @@ export default function AddSubtaskDialog({
             </Label>
             <Select
               value={formData.assigneeId}
-              onValueChange={value =>
+              onValueChange={(value) =>
                 setFormData({ ...formData, assigneeId: value })
               }
               disabled={isSubmitting}
@@ -167,16 +169,16 @@ export default function AddSubtaskDialog({
                 <SelectValue placeholder="Select assignee" />
               </SelectTrigger>
               <SelectContent>
-                {projectMembers.map(member => (
+                {projectMembers.map((member) => (
                   <SelectItem key={member.id} value={member.id}>
                     <div className="flex items-center gap-2">
                       <Avatar className="h-5 w-5">
-                        <AvatarImage src={member.image} />
+                        <AvatarImage src={member.image || undefined} />
                         <AvatarFallback className="text-xs">
-                          {getInitials(member.name)}
+                          {getInitials(member.name || "Unknown")}
                         </AvatarFallback>
                       </Avatar>
-                      <span>{member.name}</span>
+                      <span>{member.name || "Unknown"}</span>
                     </div>
                   </SelectItem>
                 ))}

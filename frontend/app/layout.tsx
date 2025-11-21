@@ -6,8 +6,8 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { SocketProvider } from "@/components/context/SocketContext";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { SocketProvider } from "@/components/context/socket-context";
 
 const inter = Inter({ subsets: ["latin"] });
 

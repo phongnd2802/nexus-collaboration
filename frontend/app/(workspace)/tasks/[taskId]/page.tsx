@@ -57,18 +57,20 @@ import SubtaskSection from "@/components/tasks/SubtaskSection";
 import LinkedTaskSection from "@/components/tasks/LinkedTaskSection";
 import { getInitials } from "@/lib/utils";
 
+import { Task, Project, User } from "@/types/index";
+
 export default function TaskDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
-  const [project, setProject] = useState<any>(null);
-  const [task, setTask] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [availableMembers, setAvailableMembers] = useState<any[]>([]);
+  const [availableMembers, setAvailableMembers] = useState<User[]>([]);
   const [permissionLevel, setPermissionLevel] = useState<
     "none" | "view" | "edit" | "admin"
   >("none");
@@ -174,7 +176,9 @@ export default function TaskDetailsPage() {
       setProject(projectData);
 
       if (projectData.members) {
-        setAvailableMembers(projectData.members.map((m: any) => m.user));
+        setAvailableMembers(
+          projectData.members.map((m: { user: User }) => m.user)
+        );
       }
 
       // user permissions
@@ -187,12 +191,14 @@ export default function TaskDetailsPage() {
       const isAdmin =
         projectData.creatorId === userId ||
         projectData.members.some(
-          (m: any) => m.userId === userId && m.role === "ADMIN"
+          (m: { userId: string; role: string }) =>
+            m.userId === userId && m.role === "ADMIN"
         );
 
       // Editor can edit all tasks
       const isEditor = projectData.members.some(
-        (m: any) => m.userId === userId && m.role === "EDITOR"
+        (m: { userId: string; role: string }) =>
+          m.userId === userId && m.role === "EDITOR"
       );
 
       // Task creator can edit their own tasks
@@ -203,7 +209,7 @@ export default function TaskDetailsPage() {
 
       // Member of the project can view tasks
       const isMember = projectData.members.some(
-        (m: any) => m.userId === userId
+        (m: { userId: string }) => m.userId === userId
       );
 
       if (isAdmin || isEditor || isTaskCreator) {
@@ -267,7 +273,9 @@ export default function TaskDetailsPage() {
         throw new Error(data.message || "Failed to update task status");
       }
 
-      setTask((prev: any) => ({ ...prev, status: newStatus }));
+      setTask((prev: Task | null) =>
+        prev ? { ...prev, status: newStatus as any } : null
+      );
 
       if (isEditing) {
         setEditedTask((prev: any) => ({ ...prev, status: newStatus }));
@@ -286,7 +294,7 @@ export default function TaskDetailsPage() {
     setEditedTask((prev: any) => ({ ...prev, [field]: value }));
 
     if (validationErrors[field]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -401,10 +409,14 @@ export default function TaskDetailsPage() {
   };
 
   const handleCompletionNoteUpdate = async (note: string) => {
-    setTask((prev: any) => ({
-      ...prev,
-      completionNote: note,
-    }));
+    setTask((prev: Task | null) =>
+      prev
+        ? {
+            ...prev,
+            completionNote: note,
+          }
+        : null
+    );
 
     fetchProjectAndTaskDetails();
   };
@@ -470,7 +482,7 @@ export default function TaskDetailsPage() {
           </CardHeader>
           <CardContent>
             <div className="bg-destructive/10 p-4 rounded-md text-destructive flex items-start">
-              <Ban className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <Ban className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">Access Restricted</p>
                 <p className="text-sm mt-1">
@@ -502,7 +514,7 @@ export default function TaskDetailsPage() {
               <div className="w-full max-w-md">
                 <Input
                   value={editedTask.title}
-                  onChange={e => handleEditField("title", e.target.value)}
+                  onChange={(e) => handleEditField("title", e.target.value)}
                   className={cn(
                     "text-xl font-bold border-violet-400 focus-visible:ring-violet-400",
                     validationErrors.title && "border-red-500"
@@ -525,7 +537,7 @@ export default function TaskDetailsPage() {
                 {project.name}
               </Link>
               <span>•</span>
-              <span>Created by {task.creator.name}</span>
+              <span>Created by {task.creator?.name || "Unknown"}</span>
             </div>
           </div>
         </div>
@@ -633,7 +645,7 @@ export default function TaskDetailsPage() {
                 <div className="space-y-2">
                   <Textarea
                     value={editedTask.description}
-                    onChange={e =>
+                    onChange={(e) =>
                       handleEditField("description", e.target.value)
                     }
                     placeholder="Add a description..."
@@ -688,7 +700,7 @@ export default function TaskDetailsPage() {
                   <TaskCompletion
                     taskId={taskId}
                     isAssignee={isAssignee}
-                    existingNote={task.completionNote}
+                    existingNote={task.completionNote ?? undefined}
                     onNoteUpdated={handleCompletionNoteUpdate}
                     deliverables={taskDeliverables}
                   />
@@ -794,7 +806,7 @@ export default function TaskDetailsPage() {
                   {isEditing ? (
                     <Select
                       value={editedTask.priority}
-                      onValueChange={value =>
+                      onValueChange={(value) =>
                         handleEditField("priority", value)
                       }
                     >
@@ -840,7 +852,7 @@ export default function TaskDetailsPage() {
                       <Input
                         type="date"
                         value={editedTask.dueDate}
-                        onChange={e =>
+                        onChange={(e) =>
                           handleEditField("dueDate", e.target.value)
                         }
                         className="h-9"
@@ -849,7 +861,7 @@ export default function TaskDetailsPage() {
                       <Input
                         type="time"
                         value={editedTask.dueTime || ""}
-                        onChange={e =>
+                        onChange={(e) =>
                           handleEditField("dueTime", e.target.value)
                         }
                         className="h-9 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-clock-picker-indicator]:hidden"
@@ -877,14 +889,14 @@ export default function TaskDetailsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {availableMembers.map(member => (
+                        {availableMembers.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
                             <div className="flex items-center">
                               <Avatar className="h-5 w-5 mr-2">
                                 {member.image ? (
                                   <AvatarImage
                                     src={member.image}
-                                    alt={member.name}
+                                    alt={member.name ?? ""}
                                   />
                                 ) : (
                                   <AvatarFallback className="text-xs">
@@ -904,8 +916,8 @@ export default function TaskDetailsPage() {
                         <div className="flex items-center mt-1">
                           <Avatar className="h-6 w-6 mr-2">
                             <AvatarImage
-                              src={task.assignee.image || ""}
-                              alt={task.assignee.name}
+                              src={task.assignee.image ?? ""}
+                              alt={task.assignee.name ?? ""}
                             />
                             <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
                               {getInitials(task.assignee.name)}
@@ -928,18 +940,22 @@ export default function TaskDetailsPage() {
                   <h3 className="text-sm font-medium text-muted-foreground">
                     Creator
                   </h3>
-                  <div className="flex items-center mt-1">
-                    <Avatar className="h-6 w-6 mr-2">
-                      <AvatarImage
-                        src={task.creator.image || ""}
-                        alt={task.creator.name}
-                      />
-                      <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
-                        {getInitials(task.creator.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>{task.creator.name}</span>
-                  </div>
+                  {task.creator ? (
+                    <div className="flex items-center mt-1">
+                      <Avatar className="h-6 w-6 mr-2">
+                        <AvatarImage
+                          src={task.creator.image || ""}
+                          alt={task.creator.name || "Unknown"}
+                        />
+                        <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
+                          {getInitials(task.creator.name || "Unknown")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>{task.creator.name || "Unknown"}</span>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground mt-1 italic">Unknown</p>
+                  )}
                 </div>
               </div>
             </CardContent>

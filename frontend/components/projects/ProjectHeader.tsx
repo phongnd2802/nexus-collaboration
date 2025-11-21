@@ -11,7 +11,6 @@ import {
   Menu,
   Trash2,
 } from "lucide-react";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { getStatusBadge } from "@/lib/badge-utils";
 import {
@@ -23,9 +22,11 @@ import {
 import EditProjectDialog from "./EditProjectDialog";
 import DeleteProjectDialog from "./DeleteProjectDialog";
 import InviteDialog from "./InviteDialog";
+import { Project } from "@/types/index";
+import { formatDate } from "@/lib/utils";
 
 interface ProjectHeaderProps {
-  project: any;
+  project: Project;
   isAdmin: boolean;
   isEditor?: boolean;
   onProjectUpdated: () => void;
@@ -41,18 +42,7 @@ export default function ProjectHeader({
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const formatDueDate = (dateString: string | null) => {
-    if (!dateString) return "No due date";
-    const date = new Date(dateString);
-    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
-
-    if (hasTime) {
-      return format(date, "MMM d, yyyy 'at' HH:mm");
-    }
-    return format(date, "MMM d, yyyy");
-  };
-
-  const formattedDueDate = formatDueDate(project.dueDate);
+  const formattedDueDate = formatDate(project.dueDate, { includeTime: true });
 
   const handleEditClick = () => {
     setIsEditDialogOpen(true);
@@ -70,7 +60,7 @@ export default function ProjectHeader({
     <div className="w-full px-2 sm:px-4">
       <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
         <div className="max-w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 break-words">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 wrap-break-word">
             {project.name}
           </h1>
           <div
@@ -79,7 +69,7 @@ export default function ProjectHeader({
           >
             {getStatusBadge(project.status)}
             <span className="flex items-center">
-              <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
+              <Calendar className="h-4 w-4 mr-1 shrink-0" />
               {formattedDueDate}
             </span>
           </div>
@@ -193,7 +183,7 @@ export default function ProjectHeader({
 
       {project.description && (
         <div className="mt-4 max-w-full">
-          <p className="text-sm sm:text-base text-foreground/80 break-words">
+          <p className="text-sm sm:text-base text-foreground/80 wrap-break-word">
             {project.description}
           </p>
         </div>

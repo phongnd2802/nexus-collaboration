@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../context/socket-context";
 import { getInitials } from "@/lib/utils";
 
 interface Conversation {

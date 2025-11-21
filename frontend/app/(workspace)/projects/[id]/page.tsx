@@ -10,14 +10,15 @@ import ProjectHeader from "@/components/projects/ProjectHeader";
 import ProjectFiles from "@/components/projects/ProjectFiles";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { ProjectWithDetails, Task } from "@/types/index";
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const { data: session, status } = useSession();
 
-  const [project, setProject] = useState<any>(null);
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [project, setProject] = useState<ProjectWithDetails | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isProjectLoading, setIsProjectLoading] = useState(true);
   const [isTasksLoading, setIsTasksLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -46,14 +47,15 @@ export default function ProjectDetailPage() {
 
       // user role and admin check
       const userId = session?.user?.id;
-      const isCreator = projectData.creatorId === userId;
+      const isCreator =
+        projectData.ownerId === userId || projectData.creatorId === userId; // Handle both potential property names
 
       if (isCreator) {
         setUserRole("ADMIN");
         setIsAdmin(true);
-      } else {
+      } else if (projectData.members) {
         const userMember = projectData.members.find(
-          (m: any) => m.userId === userId
+          (m: any) => m.userId === userId || m.user?.id === userId
         );
         if (userMember) {
           setUserRole(userMember.role);
@@ -86,7 +88,7 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const handleTasksUpdated = (updatedTasks: any[]) => {
+  const handleTasksUpdated = (updatedTasks: Task[]) => {
     setTasks(updatedTasks);
   };
 

@@ -105,7 +105,10 @@ export default function TeamPage() {
       if (response.ok) {
         const data = await response.json();
         setProjects(
-          data.projects.map((p: any) => ({ id: p.id, name: p.name })) || []
+          data.projects.map((p: { id: string; name: string }) => ({
+            id: p.id,
+            name: p.name,
+          })) || []
         );
       }
     } catch (error) {
@@ -294,7 +297,7 @@ export default function TeamPage() {
             </div>
           ) : (
             <div>
-              {filteredCollaborators.map((collaborator: any) => (
+              {filteredCollaborators.map((collaborator) => (
                 <div
                   key={collaborator.id}
                   className={
@@ -309,7 +312,7 @@ export default function TeamPage() {
                         src={collaborator.image || ""}
                         alt={collaborator.name || ""}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-violet-600 to-violet-800 text-white">
+                      <AvatarFallback className="bg-linear-to-br from-violet-600 to-violet-800 text-white">
                         {getInitials(collaborator.name)}
                       </AvatarFallback>
                     </Avatar>

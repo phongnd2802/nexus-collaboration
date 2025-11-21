@@ -5,7 +5,7 @@ import MessageAdapter from "./MessageAdapter";
 import ChatInput from "./ChatInput";
 import EmptyState from "./EmptyState";
 import { Loader2 } from "lucide-react";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../context/socket-context";
 
 interface TeamChatMessage {
   id: string;

@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
+import { FileAttachment } from "@/types/index";
+
+interface CreateTaskBody {
+  title: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  dueDate?: string;
+  assigneeId?: string;
+  files?: FileAttachment[];
+}
 
 // POST /api/tasks/create/[projectId] - Create a new task in a project
 export async function POST(
@@ -16,7 +27,7 @@ export async function POST(
 
     const params = await context.params;
     const projectId = params.projectId;
-    const body = await request.json();
+    const body: CreateTaskBody = await request.json();
 
     const { files, ...taskData } = body;
 
@@ -37,24 +48,15 @@ export async function POST(
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json();
-        return NextResponse.json(
-          { message: errorData.message || "Failed to create task" },
-          { status: response.status }
-        );
-      } else {
-        const errorText = await response.text();
-        return NextResponse.json(
-          { message: "Failed to create task" },
-          { status: response.status }
-        );
-      }
+      return NextResponse.json(
+        { message: data.message || "Failed to create task" },
+        { status: response.status }
+      );
     }
 
-    const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Task creation error:", error);
