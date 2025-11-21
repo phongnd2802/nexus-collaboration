@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { useUserSettings } from "@/components/context/UserSettingsContext";
-import { CustomToggle } from "@/components/ui/CustomToggle";
+import { useUserSettings } from "@/components/context/user-settings-context";
+import { CustomToggle } from "@/components/ui/custom-toggle";
 
 export function NotificationPreferences() {
   const { settings, updateSetting, isLoading } = useUserSettings();

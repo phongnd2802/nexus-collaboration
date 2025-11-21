@@ -5,12 +5,8 @@ import type React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Github,
-  Twitter,
-  Linkedin,
-  Mail,
+
   ArrowRight,
-  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

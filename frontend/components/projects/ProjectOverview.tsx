@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Clock, CalendarDays, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,13 +19,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import ProjectMembers from "./ProjectMembers";
-import { getProfileUrl } from "@/lib/profileUtils";
+import { getProfileUrl } from "@/lib/profile-utils";
 import Link from "next/link";
-import { getInitials } from "@/lib/utils";
+import { getInitials, formatDate } from "@/lib/utils";
+import { ProjectWithDetails, Task } from "@/types/index";
 
 interface ProjectOverviewProps {
-  project: any;
-  tasks: any[];
+  project: ProjectWithDetails;
+  tasks: Task[];
   isAdmin: boolean;
   onProjectUpdated?: () => void;
 }
@@ -66,22 +66,6 @@ export default function ProjectOverview({
       setShowStatusPrompt(false);
     }
   }, [completionPercentage, totalTasks, project.status, isAdmin]);
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Not set";
-    return format(new Date(dateString), "MMM d, yyyy");
-  };
-
-  const formatDateTime = (dateString: string | null) => {
-    if (!dateString) return "Not set";
-    const date = new Date(dateString);
-    const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
-
-    if (hasTime) {
-      return format(date, "MMM d, yyyy 'at' HH:mm");
-    }
-    return format(date, "MMM d, yyyy");
-  };
 
   const handleMembersUpdated = () => {
     if (onProjectUpdated) {
@@ -131,31 +115,24 @@ export default function ProjectOverview({
           <div className="space-y-4">
             {showStatusPrompt && (
               <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg mb-4 flex items-start">
-                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-3 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-3 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-amber-800 dark:text-amber-300 font-medium">
                     All tasks are completed!
                   </p>
                   <p className="text-sm text-amber-700 dark:text-amber-400">
-                    Would you like to mark this project as completed?
+                    The project is ready to be marked as completed.
                   </p>
-                  <div className="mt-2 flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-white dark:bg-background cursor-pointer"
-                      onClick={() => setShowStatusPrompt(false)}
-                    >
-                      Dismiss
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
-                      onClick={() => setIsCompletionDialogOpen(true)}
-                    >
-                      Mark as Completed
-                    </Button>
-                  </div>
+                </div>
+                <div className="ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+                    onClick={() => setIsCompletionDialogOpen(true)}
+                  >
+                    Mark as Completed
+                  </Button>
                 </div>
               </div>
             )}
@@ -227,8 +204,8 @@ export default function ProjectOverview({
                 <div className="flex items-center mt-1">
                   <Link
                     href={getProfileUrl(
-                      project.creator?.email,
-                      session?.user?.email
+                      project.creator?.email || "",
+                      session?.user?.email || ""
                     )}
                   >
                     <Avatar className="h-8 w-8 mr-2">
@@ -238,7 +215,7 @@ export default function ProjectOverview({
                         className="object-cover cursor-pointer"
                       />
                       <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
-                        {getInitials(project.creator?.name)}
+                        {getInitials(project.creator?.name ?? null)}
                       </AvatarFallback>
                     </Avatar>
                   </Link>
@@ -250,17 +227,17 @@ export default function ProjectOverview({
 
               <div>
                 <p className="text-sm text-muted-foreground">Created On</p>
-                <p>{formatDate(project.createdAt)}</p>
+                <p>{formatDate(project.createdAt ?? null)}</p>
               </div>
 
               <div>
                 <p className="text-sm text-muted-foreground">Due Date</p>
-                <p>{formatDateTime(project.dueDate)}</p>
+                <p>{formatDate(project.dueDate, { includeTime: true })}</p>
               </div>
 
               <div>
                 <p className="text-sm text-muted-foreground">Last Updated</p>
-                <p>{formatDate(project.updatedAt)}</p>
+                <p>{formatDate(project.updatedAt ?? null)}</p>
               </div>
             </div>
           </CardContent>

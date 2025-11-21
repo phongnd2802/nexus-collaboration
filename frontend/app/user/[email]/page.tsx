@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import Footer from "@/components/layout/footer";
 import Link from "next/link";
 import { getInitials } from "@/lib/utils";
 import { getStatusBadge, getRoleBadge } from "@/lib/badge-utils";

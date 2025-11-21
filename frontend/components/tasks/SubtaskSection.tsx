@@ -34,9 +34,9 @@ interface Subtask {
 
 interface Member {
   id: string;
-  name: string;
-  email: string;
-  image?: string;
+  name: string | null;
+  email?: string;
+  image?: string | null;
 }
 
 interface SubtaskSectionProps {
@@ -97,7 +97,7 @@ export default function SubtaskSection({
   const handleNameSave = async (subtaskId: string) => {
     if (
       editingName.trim() &&
-      editingName !== subtasks.find(s => s.id === subtaskId)?.name
+      editingName !== subtasks.find((s) => s.id === subtaskId)?.name
     ) {
       await handleUpdateSubtask(subtaskId, "name", editingName.trim());
     }
@@ -187,7 +187,7 @@ export default function SubtaskSection({
               <div>Status</div>
               <div></div>
             </div>
-            {subtasks.map(subtask => (
+            {subtasks.map((subtask) => (
               <div
                 key={subtask.id}
                 className="grid grid-cols-[minmax(150px,250px)_minmax(90px,100px)_minmax(140px,180px)_minmax(90px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left"
@@ -198,8 +198,8 @@ export default function SubtaskSection({
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <Input
                         value={editingName}
-                        onChange={e => setEditingName(e.target.value)}
-                        onKeyDown={e => {
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             handleNameSave(subtask.id);
                           } else if (e.key === "Escape") {
@@ -241,7 +241,7 @@ export default function SubtaskSection({
                 <div className="flex justify-start">
                   <Select
                     value={subtask.priority}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateSubtask(subtask.id, "priority", value)
                     }
@@ -270,7 +270,7 @@ export default function SubtaskSection({
                 <div className="min-w-0 flex justify-start">
                   <Select
                     value={subtask.assigneeId}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateSubtask(subtask.id, "assigneeId", value)
                     }
@@ -293,13 +293,13 @@ export default function SubtaskSection({
                     </SelectTrigger>
 
                     <SelectContent>
-                      {projectMembers.map(member => (
+                      {projectMembers.map((member) => (
                         <SelectItem key={member.id} value={member.id}>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-5 w-5">
-                              <AvatarImage src={member.image} />
+                              <AvatarImage src={member.image || undefined} />
                               <AvatarFallback className="text-xs">
-                                {getInitials(member.name)}
+                                {getInitials(member.name || "Unknown")}
                               </AvatarFallback>
                             </Avatar>
                             <span>{member.name}</span>
@@ -314,7 +314,7 @@ export default function SubtaskSection({
                 <div className="flex justify-start">
                   <Select
                     value={subtask.status}
-                    onValueChange={value =>
+                    onValueChange={(value) =>
                       canEdit &&
                       handleUpdateSubtask(subtask.id, "status", value)
                     }

@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, MoreVertical, UserCog, UserMinus } from "lucide-react";
 import Link from "next/link";
-import { getProfileUrl } from "@/lib/profileUtils";
+import { getProfileUrl } from "@/lib/profile-utils";
 import { getInitials } from "@/lib/utils";
 import { getRoleBadge } from "@/lib/badge-utils";
 

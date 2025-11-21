@@ -5,7 +5,7 @@ import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import EmptyState from "./EmptyState";
 import { Loader2, Info } from "lucide-react";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../context/socket-context";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface User {

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../context/socket-context";
 import { Skeleton } from "@/components/ui/skeleton";
 const ConversationList = lazy(() => import("./ConversationList"));
 const Chat = lazy(() => import("./Chat"));

@@ -179,7 +179,7 @@ const Features = React.forwardRef<HTMLDivElement, FeaturesProps>(
                 >
                   <div
                     className={cn(
-                      "absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br transition-opacity duration-500",
+                      "absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br transition-opacity duration-500",
                       accentColors.gradient
                     )}
                   />
@@ -252,7 +252,7 @@ const Features = React.forwardRef<HTMLDivElement, FeaturesProps>(
                   </div>
 
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-white/10 dark:bg-black/10 z-[1]"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-white/10 dark:bg-black/10 z-1"
                     style={{
                       backdropFilter: "blur(8px)",
                       WebkitBackdropFilter: "blur(8px)",
@@ -280,7 +280,7 @@ const Features = React.forwardRef<HTMLDivElement, FeaturesProps>(
                       {feature.title}
                     </h3>
 
-                    <p className="text-sm text-muted-foreground flex-grow">
+                    <p className="text-sm text-muted-foreground grow">
                       {feature.description}
                     </p>
                   </div>

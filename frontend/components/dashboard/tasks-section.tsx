@@ -3,30 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronRight } from "lucide-react";
 import TaskCard from "@/components/tasks/TaskCard";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  dueDate: string | null;
-  priority: "LOW" | "MEDIUM" | "HIGH";
-  projectId: string;
-  project: {
-    id: string;
-    name: string;
-  };
-  assignee: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  } | null;
-  creator: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  };
-}
+import { Task } from "@/types/index";
 
 interface TasksSectionProps {
   tasks: Task[];

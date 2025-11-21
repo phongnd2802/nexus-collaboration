@@ -3,27 +3,10 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ProjectCard from "@/components/projects/ProjectCard";
-
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  status: "IN_PROGRESS" | "AT_RISK" | "COMPLETED";
-  dueDate: string | null;
-  memberCount: number;
-  completionPercentage: number;
-  members: {
-    user: {
-      Id: string;
-      name: string | null;
-      image: string | null;
-      email: string;
-    };
-  }[];
-}
+import { ProjectWithDetails } from "@/types/index";
 
 interface ProjectsSectionProps {
-  projects: Project[];
+  projects: ProjectWithDetails[];
 }
 
 export default function ProjectsSection({ projects }: ProjectsSectionProps) {
@@ -66,13 +49,9 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
           {projects.map((project) => (
             <ProjectCard
               key={project.id}
-              id={project.id}
-              name={project.name}
-              description={project.description}
-              status={project.status}
-              dueDate={project.dueDate}
-              memberCount={project.memberCount}
-              completionPercentage={project.completionPercentage}
+              project={project}
+              memberCount={project.memberCount ?? 0}
+              completionPercentage={project.completionPercentage ?? 0}
               members={project.members}
             />
           ))}
