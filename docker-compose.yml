@@ -15,7 +15,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - app-network
+      - nexus-network
 
   redis:
     image: redis:7-alpine
@@ -24,10 +24,32 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - app-network
+      - nexus-network
+
+  minio:
+    container_name: minio-container
+    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    volumes:
+      - minio-data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - nexus-network
+
 volumes:
   postgres-data:
+  minio-data:
 
 networks:
-  app-network:
+  nexus-network:
     driver: bridge
