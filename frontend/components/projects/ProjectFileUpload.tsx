@@ -85,7 +85,7 @@ export default function ProjectFileUpload({
     <div className="space-y-4">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md text-red-600 dark:text-red-400 text-sm flex items-start">
-          <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
