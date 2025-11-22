@@ -1,66 +1,62 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { useSocket } from "@/components/context/socket-context";
-import { User, Message } from "@/types/index";
 
-interface UseChatProps {
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  receiverId: string;
+  createdAt: string;
+  sender: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+}
+
+interface UseDirectChatProps {
   selectedUser: User | null;
   currentUserId: string;
 }
 
-export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
+export function useDirectChat({ selectedUser, currentUserId }: UseDirectChatProps) {
   const { socket, isConnected } = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [useFallback, setUseFallback] = useState(false);
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
-
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const loadingRef = useRef<boolean>(false);
   const selectedUserRef = useRef<string | null>(null);
   const processedMessagesRef = useRef<Set<string>>(new Set());
   const pendingOptimisticMessagesRef = useRef<Map<string, string>>(new Map());
 
-  // Check connection status for fallback mode
+  // Fallback mode detection
   useEffect(() => {
     if (!isConnected) {
       const timer = setTimeout(() => {
         setUseFallback(true);
       }, 5000);
-
       return () => clearTimeout(timer);
     } else {
       setUseFallback(false);
     }
   }, [isConnected]);
 
-  const markAsRead = useCallback(async () => {
-    if (!selectedUser) return;
-
-    try {
-      await fetch(`/api/messages/mark-read`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-other-user-id": selectedUser.id,
-        },
-      });
-
-      if (socket && isConnected) {
-        socket.emit("mark_read", {
-          userId: currentUserId,
-          otherUserId: selectedUser.id,
-        });
-      }
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
-    }
-  }, [selectedUser, socket, isConnected, currentUserId]);
-
+  // Fetch messages
   const fetchMessages = useCallback(
     async (showLoading = true, force = false) => {
       if (!selectedUser) return;
@@ -114,19 +110,47 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
           setIsLoading(false);
         }
         loadingRef.current = false;
+
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 100);
       }
     },
     [selectedUser]
   );
 
-  // Initial fetch and cleanup on user change
+  // Mark messages as read
+  const markMessagesAsRead = useCallback(async () => {
+    if (!selectedUser) return;
+
+    try {
+      await fetch(`/api/messages/mark-read`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-other-user-id": selectedUser.id,
+        },
+      });
+
+      if (socket && isConnected) {
+        socket.emit("mark_read", {
+          userId: currentUserId,
+          otherUserId: selectedUser.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  }, [selectedUser, socket, isConnected, currentUserId]);
+
+  // Initial fetch when selectedUser changes
   useEffect(() => {
     if (selectedUser && selectedUser.id !== selectedUserRef.current) {
       setMessages([]);
       processedMessagesRef.current = new Set();
       pendingOptimisticMessagesRef.current.clear();
       fetchMessages(true, true);
-      markAsRead();
+      markMessagesAsRead();
     }
 
     return () => {
@@ -135,14 +159,14 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
         setPollInterval(null);
       }
     };
-  }, [selectedUser, fetchMessages, markAsRead, pollInterval]);
+  }, [selectedUser, fetchMessages, markMessagesAsRead, pollInterval]);
 
-  // Polling fallback
+  // Polling for fallback mode
   useEffect(() => {
     if (selectedUser && useFallback && !pollInterval) {
       const interval = setInterval(() => {
         fetchMessages(false);
-      }, 3000); // Poll every 3 seconds
+      }, 3000);
 
       setPollInterval(interval);
       return () => clearInterval(interval);
@@ -156,7 +180,12 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
     };
   }, [selectedUser, useFallback, fetchMessages, pollInterval]);
 
-  // Socket event listeners
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  // Socket.IO event listeners
   useEffect(() => {
     if (!socket || !selectedUser || !isConnected) return;
 
@@ -168,7 +197,6 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
           message.receiverId === currentUserId)
       ) {
         setMessages((prevMessages) => {
-          // Check if we've already processed this message ID
           if (processedMessagesRef.current.has(message.id)) {
             console.log(`Skipping duplicate message: ${message.id}`);
             return prevMessages;
@@ -191,7 +219,7 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
         });
 
         if (message.senderId === selectedUser.id) {
-          markAsRead();
+          markMessagesAsRead();
         }
       }
     };
@@ -207,14 +235,19 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
 
     socket.on("new_message", handleNewMessage);
     socket.on("user_typing", handleTypingStatus);
+    socket.on("welcome", (data) => {
+      console.log("Received welcome message:", data);
+    });
 
     return () => {
       socket.off("new_message", handleNewMessage);
       socket.off("user_typing", handleTypingStatus);
+      socket.off("welcome");
     };
-  }, [socket, selectedUser, currentUserId, isConnected, markAsRead]);
+  }, [socket, selectedUser, currentUserId, isConnected, markMessagesAsRead]);
 
-  const sendMessage = async (content: string) => {
+  // Send message handler
+  const handleSendMessage = async (content: string) => {
     if (!selectedUser || !content.trim()) return;
 
     setIsSending(true);
@@ -222,9 +255,8 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
     try {
       const tempId = `temp-${Date.now()}`;
 
-      // Using Socket.io for instant message delivery if connected
       if (socket && isConnected && !useFallback) {
-        const optimisticMessage: Message = {
+        const optimisticMessage = {
           id: tempId,
           content,
           senderId: currentUserId,
@@ -284,10 +316,15 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
           isTyping: false,
         });
       }
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
     }
   };
 
-  const sendTyping = (isCurrentlyTyping: boolean) => {
+  // Typing indicator handler
+  const handleTyping = (isCurrentlyTyping: boolean) => {
     if (!socket || !selectedUser || !isConnected || useFallback) return;
 
     if (typingTimeout) {
@@ -322,8 +359,9 @@ export const useChat = ({ selectedUser, currentUserId }: UseChatProps) => {
     isSending,
     isTyping,
     useFallback,
-    sendMessage,
-    sendTyping,
-    markAsRead,
+    handleSendMessage,
+    handleTyping,
+    messagesEndRef,
+    inputRef,
   };
-};
+}
