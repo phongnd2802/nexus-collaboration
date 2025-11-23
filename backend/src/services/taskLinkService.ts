@@ -39,17 +39,18 @@ export const taskLinkService = {
       throw new AppError(400, "INVALID_INPUT", "Cannot link a task to itself");
     }
 
-    // Check if link already exists
+    // Check if link already exists (in either direction)
     const existingLink = await prisma.taskLink.findFirst({
       where: {
-        sourceTaskId,
-        targetTaskId,
-        relationship,
+        OR: [
+          { sourceTaskId: sourceTaskId, targetTaskId: targetTaskId },
+          { sourceTaskId: targetTaskId, targetTaskId: sourceTaskId },
+        ],
       },
     });
 
     if (existingLink) {
-      throw new AppError(400, "LINK_EXISTS", "Task link already exists");
+      throw new AppError(400, "LINK_EXISTS", "Tasks are already linked");
     }
 
     const taskLink = await prisma.taskLink.create({

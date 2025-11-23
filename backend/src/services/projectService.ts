@@ -342,18 +342,6 @@ export async function inviteUserToProject(
     );
   }
 
-  // Auto accept for specific user
-  if (invitedUser.email === "pritam.amit26@gmail.com") {
-    await prisma.projectMember.create({
-      data: {
-        userId: invitedUser.id,
-        projectId: project.id,
-        role: toProjectRole(role),
-      },
-    });
-    return { message: "Member added successfully", autoAccepted: true };
-  }
-
   if (await hasExistingInvitation(projectId, email)) {
     throw new AppError(
       400,
@@ -384,6 +372,7 @@ export async function inviteUserToProject(
 
   return {
     message: "Invitation sent successfully",
+    autoAccepted: false,
     invitation: {
       id: invitation.id,
       email: invitation.email,
