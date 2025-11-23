@@ -7,6 +7,7 @@ import { ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession, signOut } from "next-auth/react";
 import DashboardPreview from "./dashboard-preview";
+import { useTranslations } from "next-intl";
 
 interface HeroProps {
   heroInView?: boolean;
@@ -14,6 +15,7 @@ interface HeroProps {
 
 const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
   ({ heroInView = true }, ref) => {
+    const t = useTranslations("HomePage.hero");
     const { status } = useSession();
     const isAuthenticated = status === "authenticated";
     const [scrolled, setScrolled] = useState(false);
@@ -30,7 +32,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
     const fadeInUp = {
       initial: { opacity: 0, y: 20 },
       animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.6 }
+      transition: { duration: 0.6 },
     };
 
     return (
@@ -38,9 +40,12 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
         className="bg-linear-to-br from-violet-50 via-background to-purple-50 dark:from-violet-950/30 dark:via-background dark:to-purple-950/20"
         ref={ref}
       >
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${scrolled ? "pt-10" : "pt-30"} pb-10`}>
+        <div
+          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
+            scrolled ? "pt-10" : "pt-30"
+          } pb-10`}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
             {/* Left Content Section */}
             <motion.div
               className="text-left"
@@ -54,7 +59,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                 transition={{ delay: 0.1 }}
               >
                 <span className="text-violet-900 dark:text-violet-300 text-sm font-medium flex items-center">
-                  <Zap className="h-4 w-4 mr-1.5" /> Introducing Nexus Collaboration
+                  <Zap className="h-4 w-4 mr-1.5" /> {t("badge")}
                 </span>
               </motion.div>
 
@@ -63,10 +68,10 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                 variants={fadeInUp}
                 transition={{ delay: 0.2 }}
               >
-                <span className="block">Collaborate</span>
-                <span className="block">Seamlessly on</span>
+                <span className="block">{t("title1")}</span>
+                <span className="block">{t("title2")}</span>
                 <span className="bg-clip-text text-transparent bg-linear-to-br from-violet-700 to-purple-600 dark:from-violet-500 dark:to-purple-400">
-                  Projects
+                  {t("titleHighlight")}
                 </span>
               </motion.h1>
 
@@ -75,7 +80,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                 variants={fadeInUp}
                 transition={{ delay: 0.3 }}
               >
-                Streamline your team's workflow with our intuitive project management platform. Create projects, manage tasks, and collaborate effectively.
+                {t("description")}
               </motion.p>
 
               <motion.div
@@ -85,24 +90,43 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
               >
                 {isAuthenticated ? (
                   <>
-                    <Button asChild size="lg" className="bg-violet-700 hover:bg-violet-900 text-white px-8 py-6 rounded-lg shadow-lg hover:scale-105 transition-all">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="bg-violet-700 hover:bg-violet-900 text-white px-8 py-6 rounded-lg shadow-lg hover:scale-105 transition-all"
+                    >
                       <Link href="/dashboard">
-                        Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                        {t("dashboard")} <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                     </Button>
-                    <Button variant="outline" size="lg" onClick={handleSignOut} className="px-8 py-6 rounded-lg">
-                      Sign Out
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleSignOut}
+                      className="px-8 py-6 rounded-lg"
+                    >
+                      {t("signOut")}
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button asChild size="lg" className="bg-violet-700 hover:bg-violet-900 text-white px-8 py-6 rounded-lg shadow-lg hover:scale-105 transition-all">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="bg-violet-700 hover:bg-violet-900 text-white px-8 py-6 rounded-lg shadow-lg hover:scale-105 transition-all"
+                    >
                       <Link href="/auth/signup">
-                        Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                        {t("getStarted")}{" "}
+                        <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" size="lg" className="px-8 py-6 rounded-lg">
-                      <Link href="/auth/signin">Sign In</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="px-8 py-6 rounded-lg"
+                    >
+                      <Link href="/auth/signin">{t("signIn")}</Link>
                     </Button>
                   </>
                 )}
@@ -118,7 +142,6 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
             >
               <DashboardPreview inView={heroInView} />
             </motion.div>
-            
           </div>
         </div>
       </div>
