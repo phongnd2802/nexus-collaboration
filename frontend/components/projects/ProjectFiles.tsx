@@ -86,7 +86,7 @@ export default function ProjectFiles({
                 const taskFilesData = await taskFilesResponse.json();
                 return {
                   ...task,
-                  files: taskFilesData.files || [],
+                  files: Array.isArray(taskFilesData) ? taskFilesData : [],
                 };
               }
 

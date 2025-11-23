@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { format } from "date-fns";
 import { Calendar, FolderKanban } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,35 +12,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProfileUrl } from "@/lib/profileUtils";
-import { getInitials } from "@/lib/utils";
-
+import { getProfileUrl } from "@/lib/profile-utils";
+import { getInitials, formatDate, isOverdue } from "@/lib/utils";
+import { Task } from "@/types/index";
 interface TaskCardProps {
-  task: {
-    id: string;
-    title: string;
-    description: string | null;
-    status: "TODO" | "IN_PROGRESS" | "DONE";
-    dueDate: string | null;
-    priority: "LOW" | "MEDIUM" | "HIGH";
-    projectId: string;
-    project: {
-      id: string;
-      name: string;
-    };
-    assignee: {
-      id: string;
-      name: string | null;
-      image: string | null;
-      email?: string;
-    } | null;
-    creator: {
-      id: string;
-      name: string | null;
-      image: string | null;
-      email?: string;
-    };
-  };
+  task: Task;
   currentUserId?: string;
 }
 
@@ -55,55 +30,9 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
 
   const handleProjectClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push(`/projects/${task.projectId}`);
-  };
-
-  const formatDueDate = (dateString: string | null) => {
-    if (!dateString) return "No due date";
-
-    const dueDate = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Check if time is significant (not default 23:59 or midnight)
-    const hasSignificantTime =
-      dueDate.getHours() !== 23 ||
-      (dueDate.getHours() === 23 && dueDate.getMinutes() !== 59);
-
-    const todayCopy = new Date(today);
-    const dueDateCopy = new Date(dueDate);
-    const tomorrowCopy = new Date(tomorrow);
-
-    todayCopy.setHours(0, 0, 0, 0);
-    dueDateCopy.setHours(0, 0, 0, 0);
-    tomorrowCopy.setHours(0, 0, 0, 0);
-
-    let dateStr = "";
-    if (dueDateCopy.getTime() === todayCopy.getTime()) {
-      dateStr = "Today";
-    } else if (dueDateCopy.getTime() === tomorrowCopy.getTime()) {
-      dateStr = "Tomorrow";
-    } else {
-      dateStr = format(dueDate, "MMM d, yyyy");
+    if (task.projectId) {
+      router.push(`/projects/${task.projectId}`);
     }
-
-    // Add time if it's significant
-    if (hasSignificantTime) {
-      const timeStr = format(dueDate, "HH:mm");
-      return `${dateStr} at ${timeStr}`;
-    }
-
-    return dateStr;
-  };
-
-  const isOverdue = (dateString: string | null, status: string) => {
-    if (!dateString || status === "DONE") return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(dateString);
-    dueDate.setHours(0, 0, 0, 0);
-    return dueDate < today;
   };
 
   return (
@@ -111,15 +40,17 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
       className="transition-all cursor-pointer h-full flex flex-col dark:hover:bg-muted/20 hover:shadow-md hover:bg-muted/30"
       onClick={handleTaskClick}
     >
-      <CardContent className="p-4 pt-0 flex-grow">
+      <CardContent className="p-4 pt-0 grow">
         <div className="flex items-start justify-between pb-2">
-          <button
-            onClick={handleProjectClick}
-            className="text-md text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center bg-transparent border-0 p-0 cursor-pointer"
-          >
-            <FolderKanban className="h-4 w-4 mr-1" />
-            {task.project.name}
-          </button>
+          {task.project && (
+            <button
+              onClick={handleProjectClick}
+              className="text-md text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center bg-transparent border-0 p-0 cursor-pointer"
+            >
+              <FolderKanban className="h-4 w-4 mr-1" />
+              {task.project.name}
+            </button>
+          )}
           <div className="flex items-center space-x-2">
             {getStatusBadge(task.status)}
             {getPriorityBadge(task.priority)}
@@ -144,7 +75,7 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
             <Calendar className="h-3.5 w-3.5 mr-1" />
             <span>
               {isOverdue(task.dueDate, task.status) ? "Overdue: " : ""}
-              {formatDueDate(task.dueDate)}
+              {formatDate(task.dueDate, { relative: true, includeTime: true })}
             </span>
           </div>
         </div>

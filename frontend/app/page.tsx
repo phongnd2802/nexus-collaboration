@@ -4,10 +4,10 @@ import React, { useRef, useEffect, Suspense } from "react";
 import { useInView } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import Hero from "@/components/home/Hero";
-import Features from "@/components/home/Features";
+import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
+import Hero from "@/components/home/hero";
+import Features from "@/components/home/features";
 import { Loader2 } from "lucide-react";
 
 function SearchParamsHandler() {
@@ -62,8 +62,6 @@ function Home() {
         <div id="features">
           <Features ref={featuresRef} featuresInView={featuresInView} />
         </div>
-
-
       </main>
 
       <Footer />

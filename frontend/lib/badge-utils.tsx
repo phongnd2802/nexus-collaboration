@@ -40,7 +40,7 @@ export const getPriorityBadge = (priority: string) => {
       return (
         <Badge
           variant="destructive"
-          className="text-xs font-medium flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm"
+          className="text-xs font-medium flex items-center gap-1 px-2 py-1 bg-linear-to-r from-red-500 to-red-600 text-white shadow-sm"
         >
           <AlertTriangle className="h-3 w-3" />
           High
@@ -48,13 +48,13 @@ export const getPriorityBadge = (priority: string) => {
       );
     case "MEDIUM":
       return (
-        <Badge className="text-xs font-medium bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm px-2 py-1">
+        <Badge className="text-xs font-medium bg-linear-to-r from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm px-2 py-1">
           Medium
         </Badge>
       );
     case "LOW":
       return (
-        <Badge className="text-xs font-medium bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-sm px-2 py-1">
+        <Badge className="text-xs font-medium bg-linear-to-r from-blue-400 to-blue-500 text-white shadow-sm px-2 py-1">
           Low
         </Badge>
       );

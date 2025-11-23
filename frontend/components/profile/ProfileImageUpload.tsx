@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Camera, Loader2, Check, X, Trash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UploadButton } from "@/lib/uploadthing";
+import S3Upload from "@/components/S3Upload";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -71,7 +71,7 @@ export default function ProfileImageUpload({
   // Function to delete file from UploadThing
   const deleteFileFromUploadThing = async (fileKey: string) => {
     try {
-      const response = await fetch("/api/uploadthing/delete", {
+      const response = await fetch("/api/files/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileKey }),
@@ -209,7 +209,7 @@ export default function ProfileImageUpload({
             className="object-cover"
           />
           <AvatarFallback
-            className={`${fallbackTextSize} bg-gradient-to-br from-violet-500 to-indigo-700 text-white`}
+            className={`${fallbackTextSize} bg-linear-to-br from-violet-500 to-indigo-700 text-white`}
           >
             {getInitials(userData?.name || "")}
           </AvatarFallback>
@@ -365,11 +365,11 @@ export default function ProfileImageUpload({
                   <ProfileAvatar size="medium" />
                 </div>
                 <div className="w-full max-w-xs">
-                  <UploadButton
+                  <S3Upload
                     endpoint="profileImage"
-                    onClientUploadComplete={(res) => {
+                    onUploadComplete={(res) => {
                       if (res && res.length > 0) {
-                        const uploadUrl = res[0].ufsUrl;
+                        const uploadUrl = res[0].url;
                         // file key for deletion
                         const fileKey = res[0].key;
 
@@ -408,11 +408,7 @@ export default function ProfileImageUpload({
                     onUploadProgress={(progress) => {
                       setUploadProgress(progress);
                     }}
-                    appearance={{
-                      button:
-                        "bg-violet-600 hover:bg-violet-700 text-white py-2 px-4 rounded-md font-medium w-full",
-                      allowedContent: "hidden",
-                    }}
+                    className="w-full"
                   />
                   <p className="text-xs text-gray-400 mt-2 text-center">
                     JPEG, PNG, or GIF (max. 1MB)

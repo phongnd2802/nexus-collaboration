@@ -7,8 +7,8 @@ import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileSidebar } from "@/components/profile/profile-sidebar";
@@ -17,7 +17,7 @@ import { CollaborationPreferences } from "@/components/profile/collaboration-pre
 import { SecuritySettings } from "@/components/profile/security-settings";
 import { NotificationPreferences } from "@/components/profile/notification-preferences";
 import { AccountActions } from "@/components/profile/account-actions";
-import { useUserSettings } from "@/components/context/UserSettingsContext";
+import { useUserSettings } from "@/components/context/user-settings-context";
 import { checkPassword } from "@/lib/utils";
 
 // Loading fallback component

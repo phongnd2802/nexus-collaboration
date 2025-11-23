@@ -12,8 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Bell, Clock } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useUserSettings } from "@/components/context/UserSettingsContext";
-import { CustomToggle } from "@/components/ui/CustomToggle";
+import { useUserSettings } from "@/components/context/user-settings-context";
+import { CustomToggle } from "@/components/ui/custom-toggle";
 
 export function CollaborationPreferences() {
   const { settings, updateSetting, isLoading } = useUserSettings();

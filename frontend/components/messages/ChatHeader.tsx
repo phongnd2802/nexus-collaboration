@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getProfileUrl } from "@/lib/profileUtils";
+import { getProfileUrl } from "@/lib/profile-utils";
 import { getInitials } from "@/lib/utils";
 
 interface ChatHeaderProps {

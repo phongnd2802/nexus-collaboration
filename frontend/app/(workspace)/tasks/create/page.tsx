@@ -7,18 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Clipboard } from "lucide-react";
 import TaskForm from "@/components/tasks/TaskForm";
 
-interface Project {
-  id: string;
-  name: string;
-  members: {
-    userId: string;
-    user: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-  }[];
-}
+import { ProjectWithDetails } from "@/types/index";
 
 function TaskPage() {
   const { data: session, status } = useSession();
@@ -26,7 +15,7 @@ function TaskPage() {
   const searchParams = useSearchParams();
   const projectIdParam = searchParams?.get("projectId");
 
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch user's projects when authenticated
