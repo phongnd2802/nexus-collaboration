@@ -209,7 +209,7 @@ export default function ProfileImageUpload({
             className="object-cover"
           />
           <AvatarFallback
-            className={`${fallbackTextSize} bg-gradient-to-br from-violet-500 to-indigo-700 text-white`}
+            className={`${fallbackTextSize} bg-linear-to-br from-violet-500 to-indigo-700 text-white`}
           >
             {getInitials(userData?.name || "")}
           </AvatarFallback>
