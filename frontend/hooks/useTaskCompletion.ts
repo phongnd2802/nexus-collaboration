@@ -43,8 +43,8 @@ export function useTaskCompletion({
   const handleRemoveFile = async (fileUrl: string) => {
     const fileKey = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
     try {
-      // delete from uploadthing
-      const uploadThingResponse = await fetch("/api/uploadthing/delete", {
+      // delete from uploadthing (now S3)
+      const uploadThingResponse = await fetch("/api/files/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileKey }),
