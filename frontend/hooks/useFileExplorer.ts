@@ -243,8 +243,8 @@ export function useFileExplorer({
         throw new Error(data.message || "Failed to delete file");
       }
 
-      // delete from uploadthing
-      await fetch("/api/uploadthing/delete", {
+      // delete from uploadthing (now S3)
+      await fetch("/api/files/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileKey: fileKey }),
@@ -359,7 +359,7 @@ export function useFileExplorer({
     if (filesToUpload.length > 0) {
       filesToUpload.forEach(async (file) => {
         try {
-          await fetch("/api/uploadthing/delete", {
+          await fetch("/api/files/delete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ fileKey: file.key }),

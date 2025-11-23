@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
-import { UploadButton } from "@/lib/uploadthing";
+import S3Upload from "@/components/S3Upload";
 import { toast } from "sonner";
 import TaskAttachments from "@/components/tasks/TaskAttachments";
 
@@ -20,7 +20,7 @@ export default function ProjectFileUpload({
   const handleRemoveFile = useCallback(
     async (fileUrl: string, fileKey: string) => {
       try {
-        const response = await fetch("/api/uploadthing/delete", {
+        const response = await fetch("/api/files/delete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileKey }),
@@ -48,7 +48,7 @@ export default function ProjectFileUpload({
 
         res.forEach(async (file: any) => {
           try {
-            await fetch("/api/uploadthing/delete", {
+            await fetch("/api/files/delete", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ fileKey: file.key }),
@@ -96,15 +96,10 @@ export default function ProjectFileUpload({
 
       {files.length < maxFiles && (
         <div className="">
-          <UploadButton
-            endpoint="projectFile"
-            onClientUploadComplete={handleUploadComplete}
+          <S3Upload
+            onUploadComplete={handleUploadComplete}
             onUploadError={handleUploadError}
-            appearance={{
-              button:
-                "text-white py-2 px-4 rounded-md font-medium w-full border border-muted-foreground/80 bg-black/85 hover:bg-black/80 dark:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30",
-              allowedContent: "hidden",
-            }}
+            maxFiles={maxFiles - files.length}
           />
         </div>
       )}
