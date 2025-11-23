@@ -11,37 +11,20 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getProfileUrl } from "@/lib/profileUtils";
-import { getInitials } from "@/lib/utils";
-import { formatDate } from "@/lib/utils";
+import { getProfileUrl } from "@/lib/profile-utils";
+import { getInitials, formatDate } from "@/lib/utils";
 import { getStatusBadge } from "@/lib/badge-utils";
-
-interface ProjectMember {
-  user: {
-    Id: string;
-    name: string | null;
-    image: string | null;
-    email: string;
-  };
-}
+import { Project, ProjectMember } from "@/types/index";
 
 interface ProjectCardProps {
-  id: string;
-  name: string;
-  description: string | null;
-  status: "IN_PROGRESS" | "AT_RISK" | "COMPLETED";
-  dueDate: string | null;
+  project: Project;
   memberCount: number;
   completionPercentage: number;
   members: ProjectMember[];
 }
 
 export default function ProjectCard({
-  id,
-  name,
-  description,
-  status,
-  dueDate,
+  project,
   memberCount,
   completionPercentage,
   members,
@@ -56,16 +39,18 @@ export default function ProjectCard({
   };
 
   return (
-    <Link href={`/projects/${id}`} className="block group">
+    <Link href={`/projects/${project.id}`} className="block group">
       <Card className="h-full transition-all hover:shadow-md hover:bg-muted/30 dark:hover:bg-muted/20">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <CardTitle className="!font-medium text-foreground text-lg">
-              {name}
+            <CardTitle className="font-medium! text-foreground text-lg">
+              {project.name}
             </CardTitle>
-            {getStatusBadge(status)}
+            {getStatusBadge(project.status)}
           </div>
-          <CardDescription>{truncateDescription(description)}</CardDescription>
+          <CardDescription>
+            {truncateDescription(project.description)}
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -77,19 +62,20 @@ export default function ProjectCard({
             </span>
             <span className="mx-2">•</span>
             <Calendar className="h-3.5 w-3.5 mr-1" />
-            <span>{formatDate(dueDate)}</span>
+            <span>{formatDate(project.dueDate)}</span>
           </div>
 
           <div className="flex items-center justify-between pt-2">
             <div className="flex -space-x-2">
               {members.slice(0, 3).map((member) => (
                 <Avatar
-                  key={member.user.Id + member.user.name}
+                  key={member.user.id + member.user.name}
                   className="h-8 w-8 border-2 border-background hover:z-10 transition-transform hover:scale-105"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent link navigation
                     window.location.href = getProfileUrl(
-                      member.user.email,
-                      session?.user?.email
+                      member.user.email || "",
+                      session?.user?.email || ""
                     );
                   }}
                 >
@@ -98,7 +84,7 @@ export default function ProjectCard({
                     alt={member?.user?.name!}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-600 to-violet-800 text-white">
+                  <AvatarFallback className="bg-linear-to-br from-violet-600 to-violet-800 text-white">
                     {getInitials(member.user.name)}
                   </AvatarFallback>
                 </Avatar>

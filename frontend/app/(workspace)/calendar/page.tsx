@@ -13,12 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import CalendarView from "@/components/calendar/CalendarView";
-import DeadlinesList from "@/components/calendar/DeadlinesList";
+import CalendarView from "@/components/calendar/calendar-view";
+import DeadlinesList from "@/components/calendar/deadlines-list";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import { CalendarEvent, Deadline } from "@/types/index";
 
 function CalendarPage() {
   const { data: session, status } = useSession();
@@ -32,8 +34,10 @@ function CalendarPage() {
     defaultTab
   );
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [calendarData, setCalendarData] = useState<any>(null);
-  const [deadlinesData, setDeadlinesData] = useState<any[]>([]);
+  const [calendarData, setCalendarData] = useState<{
+    calendar: CalendarEvent[];
+  } | null>(null);
+  const [deadlinesData, setDeadlinesData] = useState<Deadline[]>([]);
 
   useEffect(() => {
     setIsInitialRender(false);
@@ -257,7 +261,7 @@ function CalendarPage() {
 function LoadingState() {
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-grow">
+      <main className="grow">
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
           <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
         </div>

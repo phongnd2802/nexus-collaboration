@@ -1,7 +1,8 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { getInitials } from "@/lib/utils";
+import { formatTime } from "@/lib/message-utils";
 
 interface TeamChatMessage {
   id: string;
@@ -28,20 +29,6 @@ const MessageAdapter: React.FC<MessageAdapterProps> = ({
   isTeamChat = false,
 }) => {
   const isCurrentUser = message.userId === currentUserId;
-
-  const getInitials = (name: string | null) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  const formatTime = (dateString: string) => {
-    return format(new Date(dateString), "h:mm a");
-  };
 
   return (
     <div

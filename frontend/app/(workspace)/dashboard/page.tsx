@@ -4,54 +4,24 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import ProjectsSection from "@/components/dashboard/ProjectsSection";
-import TasksSection from "@/components/dashboard/TasksSection";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
-import DashboardStats from "@/components/dashboard/DashboardStats";
+import ProjectsSection from "@/components/dashboard/projects-section";
+import TasksSection from "@/components/dashboard/tasks-section";
+import ActivityFeed from "@/components/dashboard/activity-feed";
+import DashboardStats from "@/components/dashboard/dashboard-stats";
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
-import PendingInvitationsSection from "@/components/dashboard/PendingInvitationsSection";
+import PendingInvitationsSection from "@/components/dashboard/pending-invitations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Activity {
-  id: string;
-  type:
-    | "PROJECT_CREATED"
-    | "PROJECT_UPDATED"
-    | "TASK_CREATED"
-    | "TASK_UPDATED"
-    | "TASK_COMPLETED"
-    | "MEMBER_ADDED";
-  projectId: string;
-  projectName: string;
-  userId: string;
-  userName: string | null;
-  userImage: string | null;
-  userEmail: string;
-  createdAt: string;
-  entityId?: string | null;
-  entityTitle?: string | null;
-  targetUser?: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  } | null;
-  details?: {
-    status?: string;
-    oldStatus?: string;
-    newStatus?: string;
-    role?: string;
-  } | null;
-}
+import { ProjectWithDetails, Task, Activity } from "@/types/index";
 
 export default function DashboardPage() {
   const isMobile = useIsMobile();
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialRender, setIsInitialRender] = useState(true);
-  const [projects, setProjects] = useState([]);
-  const [displayTasks, setDisplayTasks] = useState<any[]>([]);
-  const [allTasks, setAllTasks] = useState([]);
+  const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
+  const [displayTasks, setDisplayTasks] = useState<Task[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [showInvitations, setShowInvitations] = useState(false);
   const [stats, setStats] = useState({
@@ -95,22 +65,20 @@ export default function DashboardPage() {
       }
 
       if (allTasksRes.ok) {
-        const allTasksData = await allTasksRes.json();
+        const allTasksData: Task[] = await allTasksRes.json();
         setAllTasks(allTasksData);
 
         const currentUserId = session?.user?.id;
         const assignedTasks = allTasksData.filter(
-          (task: any) => task.assignee && task.assignee.id === currentUserId
+          (task) => task.assignee && task.assignee.id === currentUserId
         );
 
         const completed = assignedTasks.filter(
-          (t: any) => t.status === "DONE"
+          (t) => t.status === "DONE"
         ).length;
-        const pending = assignedTasks.filter(
-          (t: any) => t.status !== "DONE"
-        ).length;
+        const pending = assignedTasks.filter((t) => t.status !== "DONE").length;
 
-        const upcoming = allTasksData.filter((t: any) => {
+        const upcoming = allTasksData.filter((t) => {
           if (!t.dueDate || t.status === "DONE") return false;
           const dueDate = new Date(t.dueDate);
           const today = new Date();
@@ -216,7 +184,6 @@ export default function DashboardPage() {
             onInvitationAction={handleInvitationAction}
           />
         ))}
-
 
       {!isMobile &&
         (isLoading ? (

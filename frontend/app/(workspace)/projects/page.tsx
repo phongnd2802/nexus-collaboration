@@ -31,30 +31,21 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProjectCard from "@/components/projects/ProjectCard";
+import { Project, ProjectMember } from "@/types/index";
 
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  status: "IN_PROGRESS" | "AT_RISK" | "COMPLETED";
-  dueDate: string | null;
+interface ProjectWithDetails extends Project {
   memberCount: number;
   completionPercentage: number;
-  members: {
-    user: {
-      Id: string;
-      name: string | null;
-      image: string | null;
-      email: string;
-    };
-  }[];
+  members: ProjectMember[];
 }
 
 export default function ProjectsPage() {
   const isMobile = useIsMobile();
   const { data: session, status } = useSession();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<
+    ProjectWithDetails[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialRender, setIsInitialRender] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -664,11 +655,7 @@ export default function ProjectsPage() {
           {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
-              id={project.id}
-              name={project.name}
-              description={project.description}
-              status={project.status}
-              dueDate={project.dueDate}
+              project={project}
               memberCount={project.memberCount}
               completionPercentage={project.completionPercentage}
               members={project.members}

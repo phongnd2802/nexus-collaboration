@@ -30,23 +30,15 @@ export async function GET(
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json();
-        return NextResponse.json(
-          { message: errorData.message || "Failed to fetch task" },
-          { status: response.status }
-        );
-      } else {
-        return NextResponse.json(
-          { message: "Failed to fetch task" },
-          { status: response.status }
-        );
-      }
+      return NextResponse.json(
+        { message: data.message || "Failed to fetch task" },
+        { status: response.status }
+      );
     }
 
-    const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Task fetch error:", error);

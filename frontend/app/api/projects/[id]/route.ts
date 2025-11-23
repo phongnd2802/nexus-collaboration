@@ -22,31 +22,22 @@ export async function GET(
       `${process.env.NEXT_PUBLIC_API_URL}/api/projects/${id}`,
       {
         method: "GET",
-        headers: new Headers({
+        headers: {
           "Content-Type": "application/json",
           "x-user-id": userId,
-        }),
+        },
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json();
-        return NextResponse.json(
-          { message: errorData.message || "Failed to fetch project" },
-          { status: response.status }
-        );
-      } else {
-        const errorText = await response.text();
-        return NextResponse.json(
-          { message: "Failed to fetch project" },
-          { status: response.status }
-        );
-      }
+      return NextResponse.json(
+        { message: data.message || "Failed to fetch project" },
+        { status: response.status }
+      );
     }
 
-    const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Project fetch error:", error);
@@ -85,24 +76,15 @@ export async function PATCH(
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json();
-        return NextResponse.json(
-          { message: errorData.message || "Failed to update project" },
-          { status: response.status }
-        );
-      } else {
-        const errorText = await response.text();
-        return NextResponse.json(
-          { message: "Failed to update project" },
-          { status: response.status }
-        );
-      }
+      return NextResponse.json(
+        { message: data.message || "Failed to update project" },
+        { status: response.status }
+      );
     }
 
-    const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error("Project update error:", error);
@@ -141,20 +123,19 @@ export async function DELETE(
     );
 
     if (!response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      // Try to parse error message if available
+      let errorMessage = "Failed to delete project";
+      try {
         const errorData = await response.json();
-        return NextResponse.json(
-          { message: errorData.message || "Failed to delete project" },
-          { status: response.status }
-        );
-      } else {
-        const errorText = await response.text();
-        return NextResponse.json(
-          { message: "Failed to delete project" },
-          { status: response.status }
-        );
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // Ignore JSON parse error
       }
+
+      return NextResponse.json(
+        { message: errorMessage },
+        { status: response.status }
+      );
     }
 
     return NextResponse.json({ message: "Project deleted successfully" });

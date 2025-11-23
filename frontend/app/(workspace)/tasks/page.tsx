@@ -37,30 +37,7 @@ import TaskCard from "@/components/tasks/TaskCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TaskStatsAccordion from "@/components/tasks/TaskStatsAccordion";
 import TaskStats from "@/components/tasks/TaskStats";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  dueDate: string | null;
-  priority: "LOW" | "MEDIUM" | "HIGH";
-  projectId: string;
-  project: {
-    id: string;
-    name: string;
-  };
-  assignee: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  } | null;
-  creator: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  };
-}
+import { Task } from "@/types/index";
 
 export default function TasksPage() {
   const { data: session, status } = useSession();
@@ -92,7 +69,7 @@ export default function TasksPage() {
         (task) => task.assignee && task.assignee.id === session?.user?.id
       );
     } else {
-      result = result.filter((task) => task.creator.id === session?.user?.id);
+      result = result.filter((task) => task.creator?.id === session?.user?.id);
     }
 
     if (searchQuery) {
@@ -102,7 +79,7 @@ export default function TasksPage() {
           task.title.toLowerCase().includes(query) ||
           (task.description &&
             task.description.toLowerCase().includes(query)) ||
-          task.project.name.toLowerCase().includes(query)
+          task.project?.name.toLowerCase().includes(query)
       );
     }
 
@@ -237,7 +214,7 @@ export default function TasksPage() {
       const isCorrectType =
         type === "assigned"
           ? task.assignee && task.assignee.id === session?.user?.id
-          : task.creator.id === session?.user?.id;
+          : task.creator?.id === session?.user?.id;
 
       return status ? isCorrectType && task.status === status : isCorrectType;
     });
