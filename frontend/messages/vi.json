@@ -1,0 +1,43 @@
+{
+  "Theme": {
+    "light": "Sáng",
+    "dark": "Tối"
+  },
+  "HomePage": {
+    "title": "Nexus Collaboration",
+    "subtitle": "Hợp lý hóa quy trình làm việc của bạn với nền tảng cộng tác tất cả trong một của chúng tôi.",
+    "hero": {
+      "badge": "Giới thiệu Nexus Collaboration",
+      "title1": "Cộng tác",
+      "title2": "Liền mạch trên",
+      "titleHighlight": "Các dự án",
+      "description": "Hợp lý hóa quy trình làm việc của nhóm bạn với nền tảng quản lý dự án trực quan của chúng tôi. Tạo dự án, quản lý tác vụ và cộng tác hiệu quả.",
+      "dashboard": "Bảng điều khiển",
+      "signOut": "Đăng xuất",
+      "getStarted": "Bắt đầu ngay",
+      "signIn": "Đăng nhập",
+      "signUp": "Đăng ký"
+    }
+  },
+  "AuthPage": {
+    "signIn": {
+      "home": "Trang chủ",
+      "title": "Chào mừng trở lại",
+      "description": "Đăng nhập tài khoản của bạn để tiếp tục",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "signIn": "Đăng nhập",
+      "signUp": "Đăng ký",
+      "forgotPassword": "Quên mật khẩu?",
+      "or": "Hoặc",
+      "needAccount": "Bạn cần tài khoản?",
+      "google": "Đăng nhập với Google",
+      "github": "Đăng nhập với GitHub"
+    }
+  },
+  "LanguageSwitcher": {
+    "label": "Ngôn ngữ",
+    "en": "Tiếng Anh",
+    "vi": "Tiếng Việt"
+  }
+}

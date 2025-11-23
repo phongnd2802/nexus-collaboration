@@ -1,0 +1,22 @@
+{
+  "HomePage": {
+    "title": "Nexus Collaboration",
+    "subtitle": "Streamline your workflow with our all-in-one collaboration platform.",
+    "hero": {
+      "badge": "Introducing Nexus Collaboration",
+      "title1": "Collaborate",
+      "title2": "Seamlessly on",
+      "titleHighlight": "Projects",
+      "description": "Streamline your team's workflow with our intuitive project management platform. Create projects, manage tasks, and collaborate effectively.",
+      "dashboard": "Dashboard",
+      "signOut": "Sign Out",
+      "getStarted": "Get Started",
+      "signIn": "Sign In"
+    }
+  },
+  "LanguageSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "vi": "Vietnamese"
+  }
+}
