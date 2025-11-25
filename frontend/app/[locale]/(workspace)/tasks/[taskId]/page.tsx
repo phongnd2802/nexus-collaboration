@@ -408,7 +408,7 @@ export default function TaskDetailsPage() {
     }
   };
 
-  const handleCompletionNoteUpdate = async (note: string) => {
+  const handleCompletionNoteUpdate = async (note: string, deliverables: any[]) => {
     setTask((prev: Task | null) =>
       prev
         ? {
@@ -417,8 +417,8 @@ export default function TaskDetailsPage() {
           }
         : null
     );
-
-    fetchProjectAndTaskDetails();
+    
+    setTaskDeliverables(deliverables);
   };
 
   const formatDueDate = (dateString: string | null) => {
@@ -631,8 +631,8 @@ export default function TaskDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -694,12 +694,14 @@ export default function TaskDetailsPage() {
           {task.status === "DONE" &&
             (task.completionNote ||
               taskDeliverables.length > 0 ||
-              isAssignee) && (
+              isAssignee ||
+              permissionLevel === "admin") && (
               <Card>
                 <CardContent>
                   <TaskCompletion
                     taskId={taskId}
                     isAssignee={isAssignee}
+                    isAdmin={permissionLevel === "admin"}
                     existingNote={task.completionNote ?? undefined}
                     onNoteUpdated={handleCompletionNoteUpdate}
                     deliverables={taskDeliverables}
@@ -769,6 +771,7 @@ export default function TaskDetailsPage() {
             onSubtaskAdded={() => fetchProjectAndTaskDetails()}
             onSubtaskUpdated={() => fetchProjectAndTaskDetails()}
             canEdit={permissionLevel === "admin" || permissionLevel === "edit"}
+            taskStatus={task?.status}
           />
 
           {/* Linked Task Section */}
@@ -780,6 +783,7 @@ export default function TaskDetailsPage() {
             onLinkedTaskAdded={() => fetchProjectAndTaskDetails()}
             onLinkedTaskUpdated={() => fetchProjectAndTaskDetails()}
             canEdit={permissionLevel === "admin" || permissionLevel === "edit"}
+            taskStatus={task?.status}
           />
         </div>
 

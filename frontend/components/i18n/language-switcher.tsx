@@ -22,10 +22,10 @@ export function LanguageSwitcher() {
 
   return (
     <Select value={locale} onValueChange={handleValueChange}>
-      <SelectTrigger className="w-[140px]">
+      <SelectTrigger className="w-[70px]">
         <SelectValue placeholder={t("label")} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="min-w-[70px]">
         <SelectItem value="en">{t("en")}</SelectItem>
         <SelectItem value="vi">{t("vi")}</SelectItem>
       </SelectContent>

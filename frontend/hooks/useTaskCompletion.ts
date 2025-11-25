@@ -3,15 +3,15 @@ import { toast } from "sonner";
 
 interface UseTaskCompletionProps {
   taskId: string;
-  isAssignee: boolean;
+  canEdit: boolean;
   existingNote?: string;
-  onNoteUpdated: (note: string) => void;
+  onNoteUpdated: (note: string, deliverables: any[]) => void;
   deliverables?: any[];
 }
 
 export function useTaskCompletion({
   taskId,
-  isAssignee,
+  canEdit,
   existingNote,
   onNoteUpdated,
   deliverables = [],
@@ -20,13 +20,17 @@ export function useTaskCompletion({
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [deliverableFiles, setDeliverableFiles] = useState<any[]>([]);
+  const [hasSavedCompletion, setHasSavedCompletion] = useState(false);
 
   useEffect(() => {
-    const hasExistingData = !!(
-      existingNote ||
-      (deliverables && deliverables.length > 0)
-    );
-    setIsEditing(isAssignee && !hasExistingData);
+    // Check if completion has been saved before (existingNote is not null/undefined)
+    // Empty string "" means it was saved with empty note
+    const hasBeenSaved = existingNote !== null && existingNote !== undefined;
+    const hasFiles = deliverables && deliverables.length > 0;
+    const hasExistingData = hasBeenSaved || hasFiles;
+    
+    setHasSavedCompletion(hasExistingData);
+    setIsEditing(canEdit && !hasExistingData);
     setCompletionNote(existingNote || "");
 
     if (deliverables && deliverables.length > 0) {
@@ -34,7 +38,7 @@ export function useTaskCompletion({
     } else {
       setDeliverableFiles([]);
     }
-  }, [isAssignee, existingNote, deliverables]);
+  }, [canEdit, existingNote, deliverables]);
 
   const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCompletionNote(e.target.value);
@@ -88,7 +92,7 @@ export function useTaskCompletion({
   };
 
   const handleSubmit = async () => {
-    if (!isAssignee) return;
+    if (!canEdit) return;
 
     setIsSaving(true);
 
@@ -125,9 +129,20 @@ export function useTaskCompletion({
         throw new Error(data.message || "Failed to update completion details");
       }
 
+      const updatedTask = await response.json();
+      
+      // Update state with the latest data from server
+      const updatedDeliverables = updatedTask.taskFiles?.filter(
+        (file: any) => file.isTaskDeliverable
+      ) || [];
+      
+      setCompletionNote(updatedTask.completionNote || "");
+      setDeliverableFiles(updatedDeliverables);
+      
       toast.success("Task completion details updated successfully");
-      onNoteUpdated(completionNote);
+      onNoteUpdated(updatedTask.completionNote ?? "", updatedDeliverables);
 
+      setHasSavedCompletion(true);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating completion details:", error);
@@ -143,20 +158,21 @@ export function useTaskCompletion({
 
   const handleEnterEditMode = () => {
     setIsEditing(true);
-    setCompletionNote(existingNote || "");
-    setDeliverableFiles(deliverables || []);
+    setCompletionNote(existingNote ?? "");
+    setDeliverableFiles(deliverables ?? []);
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setCompletionNote(existingNote || "");
-    setDeliverableFiles(deliverables || []);
+    setCompletionNote(existingNote ?? "");
+    setDeliverableFiles(deliverables ?? []);
   };
 
   return {
     completionNote,
     isSaving,
     isEditing,
+    hasSavedCompletion,
     deliverableFiles,
     setDeliverableFiles,
     handleNoteChange,

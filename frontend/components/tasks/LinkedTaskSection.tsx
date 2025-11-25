@@ -39,6 +39,7 @@ interface LinkedTaskSectionProps {
   onLinkedTaskAdded: () => void;
   onLinkedTaskUpdated: () => void;
   canEdit: boolean;
+  taskStatus?: "TODO" | "IN_PROGRESS" | "DONE";
 }
 
 export default function LinkedTaskSection({
@@ -49,6 +50,7 @@ export default function LinkedTaskSection({
   onLinkedTaskAdded,
   onLinkedTaskUpdated,
   canEdit,
+  taskStatus,
 }: LinkedTaskSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { handleUpdateLinkedTask, handleDeleteLinkedTask } = useLinkedTasks({
@@ -62,7 +64,7 @@ export default function LinkedTaskSection({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Linked task</CardTitle>
-          {canEdit && (
+          {canEdit && taskStatus !== "DONE" && (
             <Button
               variant="outline"
               size="sm"
@@ -83,7 +85,7 @@ export default function LinkedTaskSection({
         ) : (
           <div className="space-y-2">
             {/* Header */}
-            <div className="grid grid-cols-[minmax(140px,220px)_minmax(70px,100px)_minmax(100px,130px)_minmax(60px,100px)_minmax(120px,120px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
+            <div className="grid grid-cols-[minmax(110px,200px)_minmax(60px,90px)_minmax(104px,130px)_minmax(81px,110px)_minmax(120px,120px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
               <div>Name</div>
               <div>Priority</div>
               <div>Assignee</div>
@@ -101,6 +103,7 @@ export default function LinkedTaskSection({
                 canEdit={canEdit}
                 onUpdate={handleUpdateLinkedTask}
                 onDelete={handleDeleteLinkedTask}
+                taskStatus={taskStatus}
               />
             ))}
           </div>
