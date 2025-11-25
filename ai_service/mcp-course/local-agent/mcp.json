@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "weather": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "C:\\Users\\philip\\workspace\\university\\nexus-collaboration\\ai_service\\mcp-course\\local-agent",
+        "weather.py"
+      ]
+    },
+    "math_server": {
+        "command": "uv",
+        "args": [
+            "run",
+            "--directory",
+            "C:\\Users\\philip\\workspace\\university\\nexus-collaboration\\ai_service\\mcp-course\\local-agent",
+            "math_server.py"
+        ]
+    }
+  }
+}
