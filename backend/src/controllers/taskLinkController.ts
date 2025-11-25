@@ -15,8 +15,6 @@ export async function createTaskLink(
     const { taskId } = req.params;
     const { linkedTaskId, relationship } = req.body;
 
-    // For BLOCKS: current task blocks the linked task
-    // For BLOCKED_BY: current task is blocked by the linked task
     const sourceTaskId = relationship === "BLOCKS" ? taskId : linkedTaskId;
     const targetTaskId = relationship === "BLOCKS" ? linkedTaskId : taskId;
     const linkRelationship =
@@ -29,10 +27,9 @@ export async function createTaskLink(
       targetTaskId,
       relationship: linkRelationship,
     });
-
     res.status(201).json(taskLink);
   } catch (error: any) {
-    console.error("Error creating task link:", error);
+    console.error("❌ Error creating task link:", error);
     sendError(res, error);
   }
 }
