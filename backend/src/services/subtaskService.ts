@@ -38,6 +38,15 @@ export const subtaskService = {
       throw new AppError(404, "NOT_FOUND", "Task not found");
     }
 
+    // Check if parent task is completed
+    if (task.status === TaskStatus.DONE) {
+      throw new AppError(
+        400,
+        "TASK_COMPLETED",
+        "Cannot add subtask to a completed task."
+      );
+    }
+
     // Verify assignee exists if provided
     if (assigneeId) {
       const assignee = await prisma.user.findUnique({
@@ -129,10 +138,22 @@ export const subtaskService = {
     // Verify subtask exists
     const existingSubtask = await prisma.subtask.findUnique({
       where: { id: subtaskId },
+      include: {
+        task: true,
+      },
     });
 
     if (!existingSubtask) {
       throw new AppError(404, "NOT_FOUND", "Subtask not found");
+    }
+
+    // Check if parent task is completed
+    if (existingSubtask.task.status === TaskStatus.DONE) {
+      throw new AppError(
+        400,
+        "TASK_COMPLETED",
+        "Cannot modify subtask of a completed task."
+      );
     }
 
     // Verify assignee exists if provided
@@ -171,10 +192,22 @@ export const subtaskService = {
     // Verify subtask exists
     const existingSubtask = await prisma.subtask.findUnique({
       where: { id: subtaskId },
+      include: {
+        task: true,
+      },
     });
 
     if (!existingSubtask) {
       throw new AppError(404, "NOT_FOUND", "Subtask not found");
+    }
+
+    // Check if parent task is completed
+    if (existingSubtask.task.status === TaskStatus.DONE) {
+      throw new AppError(
+        400,
+        "TASK_COMPLETED",
+        "Cannot delete subtask from a completed task."
+      );
     }
 
     await prisma.subtask.delete({
@@ -184,13 +217,4 @@ export const subtaskService = {
     return { success: true };
   },
 
-  /**
-   * Set all subtasks of a task to DONE
-   */
-  async setAllSubtasksToDone(taskId: string) {
-    await prisma.subtask.updateMany({
-      where: { taskId },
-      data: { status: TaskStatus.DONE },
-    });
-  },
 };

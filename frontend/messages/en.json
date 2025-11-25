@@ -1,4 +1,8 @@
 {
+  "Theme": {
+    "light": "Light",
+    "dark": "Dark"
+  },
   "HomePage": {
     "title": "Nexus Collaboration",
     "subtitle": "Streamline your workflow with our all-in-one collaboration platform.",
@@ -11,12 +15,29 @@
       "dashboard": "Dashboard",
       "signOut": "Sign Out",
       "getStarted": "Get Started",
-      "signIn": "Sign In"
+      "signIn": "Sign In",
+      "signUp": "Sign Up" 
+    }
+  },
+  "AuthPage": {
+    "signIn": {
+      "home": "Home",
+      "title": "Welcome back",
+      "description": "Login to your account to continue",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "forgotPassword": "Forgot Password?",
+      "or": "Or",
+      "needAccount": "Need an account?",
+      "google": "Sign in with Google",
+      "github": "Sign in with GitHub"
     }
   },
   "LanguageSwitcher": {
     "label": "Language",
-    "en": "English",
-    "vi": "Vietnamese"
+    "en": "EN",
+    "vi": "VI"
   }
 }

@@ -36,6 +36,7 @@ interface SubtaskSectionProps {
   onSubtaskAdded: () => void;
   onSubtaskUpdated: () => void;
   canEdit: boolean;
+  taskStatus?: "TODO" | "IN_PROGRESS" | "DONE";
 }
 
 export default function SubtaskSection({
@@ -45,6 +46,7 @@ export default function SubtaskSection({
   onSubtaskAdded,
   onSubtaskUpdated,
   canEdit,
+  taskStatus,
 }: SubtaskSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
@@ -67,7 +69,7 @@ export default function SubtaskSection({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Subtask</CardTitle>
-          {canEdit && (
+          {canEdit && taskStatus !== "DONE" && (
             <Button
               variant="outline"
               size="sm"
@@ -86,7 +88,7 @@ export default function SubtaskSection({
           </p>
         ) : (
           <div className="space-y-2">
-            <div className="grid grid-cols-[minmax(170px,270px)_minmax(120px,130px)_minmax(120px,180px)_minmax(130px,150px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
+            <div className="grid grid-cols-[minmax(142px,250px)_minmax(80px,150px)_minmax(130px,150px)_minmax(130px,150px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
               <div>Name</div>
               <div>Priority</div>
               <div>Assignee</div>
@@ -107,6 +109,7 @@ export default function SubtaskSection({
                 onNameSave={handleNameSave}
                 onDelete={handleDeleteSubtask}
                 setEditingNameId={setEditingNameId}
+                taskStatus={taskStatus}
               />
             ))}
           </div>

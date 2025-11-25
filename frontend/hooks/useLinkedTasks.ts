@@ -100,14 +100,15 @@ export function useLinkedTasks({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to delete linked task");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete linked task");
       }
 
       toast.success("Linked task removed successfully");
       onLinkedTaskUpdated();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting linked task:", error);
-      toast.error("Failed to remove linked task");
+      toast.error(error.message || "Failed to remove linked task");
     }
   };
 

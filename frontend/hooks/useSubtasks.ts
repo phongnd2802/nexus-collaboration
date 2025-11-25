@@ -47,14 +47,15 @@ export function useSubtasks({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update subtask");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update subtask");
       }
 
       toast.success("Subtask updated successfully");
       onSubtaskUpdated();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating subtask:", error);
-      toast.error("Failed to update subtask");
+      toast.error(error.message || "Failed to update subtask");
     }
   };
 
@@ -88,14 +89,15 @@ export function useSubtasks({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to delete subtask");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete subtask");
       }
 
       toast.success("Subtask deleted successfully");
       onSubtaskUpdated();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting subtask:", error);
-      toast.error("Failed to delete subtask");
+      toast.error(error.message || "Failed to delete subtask");
     }
   };
 

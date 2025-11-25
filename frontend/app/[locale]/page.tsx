@@ -7,8 +7,9 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import Hero from "@/components/home/hero";
-import Features from "@/components/home/features";
+// import Features from "@/components/home/features";
 import { Loader2 } from "lucide-react";
+import { Features } from "tailwindcss";
 
 function SearchParamsHandler() {
   const searchParams = useSearchParams();
@@ -60,7 +61,7 @@ function Home() {
 
         {/* Features Section */}
         <div id="features">
-          <Features ref={featuresRef} featuresInView={featuresInView} />
+          {/* <Features ref={featuresRef} featuresInView={featuresInView} /> */}
         </div>
       </main>
 

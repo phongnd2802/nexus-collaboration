@@ -505,6 +505,7 @@ export async function canCompleteTask(
       select: {
         assigneeId: true,
         status: true,
+        projectId: true,
       },
     });
 
@@ -512,17 +513,37 @@ export async function canCompleteTask(
       return { allowed: false, reason: "Task not found" };
     }
 
-    if (task.assigneeId !== userId) {
-      return {
-        allowed: false,
-        reason: "Only the assigned user can add completion details",
-      };
-    }
-
     if (task.status !== "DONE") {
       return {
         allowed: false,
         reason: "Task must be marked as done before adding completion details",
+      };
+    }
+
+    // Check if user is the assignee
+    const isAssignee = task.assigneeId === userId;
+
+    // Check if user is the project admin or creator
+    const project = await prisma.project.findUnique({
+      where: { id: task.projectId },
+      select: {
+        creatorId: true,
+        members: {
+          where: { userId },
+          select: { role: true },
+        },
+      },
+    });
+
+    const isProjectCreator = project?.creatorId === userId;
+    const isProjectAdmin = project?.members.some(
+      (member) => member.role === "ADMIN"
+    );
+
+    if (!isAssignee && !isProjectCreator && !isProjectAdmin) {
+      return {
+        allowed: false,
+        reason: "Only the assignee or project admin can add completion details",
       };
     }
 

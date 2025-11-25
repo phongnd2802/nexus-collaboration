@@ -42,6 +42,7 @@ interface LinkedTaskItemProps {
   canEdit: boolean;
   onUpdate: (linkedTaskId: string, field: string, value: string) => void;
   onDelete: (linkedTaskId: string) => void;
+  taskStatus?: "TODO" | "IN_PROGRESS" | "DONE";
 }
 
 const LinkedTaskItem = memo(function LinkedTaskItem({
@@ -50,6 +51,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
   canEdit,
   onUpdate,
   onDelete,
+  taskStatus,
 }: LinkedTaskItemProps) {
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -78,7 +80,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(130px,200px)_minmax(60px,70px)_minmax(100px,150px)_minmax(80px,90px)_minmax(80px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
+    <div className="grid grid-cols-[minmax(110px,180px)_minmax(60px,70px)_minmax(100px,150px)_minmax(80px,90px)_minmax(80px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
       {/* Name */}
       <div className="min-w-0">
         <Link
@@ -229,7 +231,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
 
       {/* Actions */}
       <div className="flex items-center justify-center">
-        {canEdit && (
+        {canEdit && taskStatus !== "DONE" && (
           <Button
             variant="ghost"
             size="sm"
@@ -238,6 +240,10 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+        )}
+        {/* Empty space to maintain layout when delete button is hidden */}
+        {(!canEdit || taskStatus === "DONE") && (
+          <div className="h-8 w-8" />
         )}
       </div>
     </div>
