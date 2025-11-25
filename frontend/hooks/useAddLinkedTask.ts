@@ -76,7 +76,8 @@ export function useAddLinkedTask({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create linked task");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create linked task");
       }
 
       toast.success("Linked task created successfully");
@@ -86,9 +87,9 @@ export function useAddLinkedTask({
       });
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating linked task:", error);
-      toast.error("Failed to create linked task");
+      toast.error(error.message || "Failed to create linked task");
     } finally {
       setIsSubmitting(false);
     }
