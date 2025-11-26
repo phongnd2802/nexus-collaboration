@@ -27,10 +27,10 @@ export const UserDropdown = ({ userData, getInitials }: UserDropdownProps) => {
     <div className="flex items-center space-x-4 ml-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="rounded-full h-10 w-10 p-0 overflow-hidden">
+          <Button variant="default" className="rounded-full h-10 w-10 p-0 overflow-hidden">
             <Avatar className="h-10 w-10">
               <AvatarImage src={userImage} alt={userName} className="object-cover" />
-              <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-sm">
+              <AvatarFallback className="bg-linear-to-br from-main to-main text-white text-sm">
                 {getInitials(userName)}
               </AvatarFallback>
             </Avatar>

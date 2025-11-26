@@ -30,9 +30,19 @@
       "signUp": "Đăng ký",
       "forgotPassword": "Quên mật khẩu?",
       "or": "Hoặc",
-      "needAccount": "Bạn cần tài khoản?",
-      "google": "Đăng nhập với Google",
-      "github": "Đăng nhập với GitHub"
+      "needAccount": "Bạn cần tài khoản?"
+    },
+    "signUp": {
+      "home": "Trang chủ",
+      "title": "Tạo tài khoản",
+      "description": "Tham gia cộng tác với chúng tôi",
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "creatingAccount": "Đang tạo tài khoản...",
+      "signUp": "Đăng ký",
+      "or": "Hoặc",
+      "haveAccount": "Bạn có tài khoản? Đăng nhập"
     }
   },
   "LanguageSwitcher": {
