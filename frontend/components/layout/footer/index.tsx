@@ -52,7 +52,7 @@ export default function Footer() {
           <div className="flex flex-col gap-6 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 w-fit">
               <motion.div
-                className="h-10 w-10 rounded-full bg-violet-600 dark:bg-violet-700 flex items-center justify-center"
+                className="h-10 w-10 rounded-full bg-main dark:bg-main flex items-center justify-center"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -70,7 +70,7 @@ export default function Footer() {
                   />
                 </svg>
               </motion.div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-violet-600 to-purple-600 dark:from-violet-500 dark:to-purple-400">
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-main to-main dark:from-main dark:to-main">
                 Nexus Collabration
               </span>
             </Link>
@@ -94,7 +94,7 @@ export default function Footer() {
                 />
                 <Button
                   type="submit"
-                  className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
+                  className="bg-main hover:bg-main dark:bg-main dark:hover:bg-main text-white"
                   disabled={isSubscribing || subscribed}
                 >
                   {isSubscribing ? (
@@ -113,28 +113,28 @@ export default function Footer() {
             <div className="space-y-3">
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Features</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Pricing</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Roadmap</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Documentation</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
@@ -146,28 +146,28 @@ export default function Footer() {
             <div className="space-y-3">
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>About</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Blog</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Careers</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Contact</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
@@ -179,28 +179,28 @@ export default function Footer() {
             <div className="space-y-3">
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Terms of Service</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Privacy Policy</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Cookie Policy</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center group"
+                className="text-muted-foreground hover:text-main dark:hover:text-main transition-colors flex items-center group"
               >
                 <span>Data Processing</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
