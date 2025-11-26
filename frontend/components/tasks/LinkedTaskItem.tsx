@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -53,6 +54,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
   onDelete,
   taskStatus,
 }: LinkedTaskItemProps) {
+  const t = useTranslations("DashboardPage.taskCard");
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "TODO":
@@ -102,12 +104,16 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
           disabled={!canEdit}
         >
           <SelectTrigger className="h-auto border-0 p-0 hover:bg-transparent focus:ring-0 focus:ring-offset-0 w-fit [&>svg]:hidden shadow-none">
-            <SelectValue>{getPriorityBadge(linkedTask.priority)}</SelectValue>
+            <SelectValue>
+              {getPriorityBadge(linkedTask.priority, t)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="LOW">{getPriorityBadge("LOW")}</SelectItem>
-            <SelectItem value="MEDIUM">{getPriorityBadge("MEDIUM")}</SelectItem>
-            <SelectItem value="HIGH">{getPriorityBadge("HIGH")}</SelectItem>
+            <SelectItem value="LOW">{getPriorityBadge("LOW", t)}</SelectItem>
+            <SelectItem value="MEDIUM">
+              {getPriorityBadge("MEDIUM", t)}
+            </SelectItem>
+            <SelectItem value="HIGH">{getPriorityBadge("HIGH", t)}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -233,7 +239,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
       <div className="flex items-center justify-center">
         {canEdit && taskStatus !== "DONE" && (
           <Button
-            variant="ghost"
+            variant="neutral"
             size="sm"
             className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => onDelete(linkedTask.id)}
@@ -242,9 +248,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
           </Button>
         )}
         {/* Empty space to maintain layout when delete button is hidden */}
-        {(!canEdit || taskStatus === "DONE") && (
-          <div className="h-8 w-8" />
-        )}
+        {(!canEdit || taskStatus === "DONE") && <div className="h-8 w-8" />}
       </div>
     </div>
   );

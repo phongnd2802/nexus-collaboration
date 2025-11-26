@@ -14,7 +14,7 @@ const ActivityLink = ({
 }) => (
   <Link
     href={href}
-    className="text-violet-700 hover:underline font-medium dark:text-violet-400"
+    className="text-main hover:underline font-medium dark:text-main"
   >
     {children}
   </Link>

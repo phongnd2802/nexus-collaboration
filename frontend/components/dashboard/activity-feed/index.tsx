@@ -5,19 +5,21 @@ import { Activity } from "@/types/index";
 
 import { ActivityEmptyState } from "./activity-empty-state";
 import { ActivityItem } from "./activity-item";
+import { useTranslations } from "next-intl";
 
 interface ActivityFeedProps {
   activities: Activity[];
 }
 
 export default function ActivityFeed({ activities }: ActivityFeedProps) {
+  const t = useTranslations("DashboardPage.activityFeed");
   const { data: session } = useSession();
   const currentUserEmail = session?.user?.email;
 
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (

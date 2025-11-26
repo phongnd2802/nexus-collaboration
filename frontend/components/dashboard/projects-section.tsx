@@ -4,24 +4,26 @@ import { ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ProjectCard from "@/components/projects/ProjectCard";
 import { ProjectWithDetails } from "@/types/index";
+import { useTranslations } from "next-intl";
 
 interface ProjectsSectionProps {
   projects: ProjectWithDetails[];
 }
 
 export default function ProjectsSection({ projects }: ProjectsSectionProps) {
+  const t = useTranslations("DashboardPage.projectSection");
   return (
     <div className="space-y-4">
       <div className="flex flex-row items-center justify-between">
-        <h2 className="text-xl font-semibold">Your Projects</h2>
+        <h2 className="text-xl font-semibold">{t("yourProjects")}</h2>
         <Button
           asChild
-          variant="ghost"
-          className="text-sm text-muted-foreground hover:text-violet-700 dark:hover:text-violet-400"
+          variant="neutral"
+          className="text-sm text-muted-foreground hover:text-main dark:hover:text-main"
           size="sm"
         >
           <Link href="/projects" className="flex items-center">
-            View All
+            {t("viewAll")}
             <ChevronRight className="ml-1 h-4 w-4" />
           </Link>
         </Button>
@@ -31,16 +33,16 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
         <Card className="bg-muted/30">
           <CardContent className="flex flex-col items-center justify-center py-10">
             <h3 className="text-lg font-medium text-foreground mb-2">
-              You don't have any projects yet
+              {t("noProjects")}
             </h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Create your first project to get started with collaboration
+              {t("createProject")}
             </p>
             <Button
               asChild
-              className="bg-violet-700 hover:bg-violet-800 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
+              variant="default"
             >
-              <Link href="/projects/create">Create New Project</Link>
+              <Link href="/projects/create">{t("createProject")}</Link>
             </Button>
           </CardContent>
         </Card>

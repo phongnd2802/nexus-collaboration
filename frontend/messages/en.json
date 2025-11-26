@@ -50,5 +50,17 @@
     "label": "Language",
     "en": "EN",
     "vi": "VI"
+  },
+  "date": {
+    "noDueDate": "No due date",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "withTime": "{date} at {time}"
+  },
+  "relative": {
+    "seconds": "{value} seconds ago",
+    "minutes": "{value} minutes ago",
+    "hours": "{value} hours ago",
+    "days": "{value} days ago"
   }
 }

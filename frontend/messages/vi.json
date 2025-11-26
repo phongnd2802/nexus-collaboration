@@ -65,17 +65,112 @@
       },
       "viewSchedule": "Xem lịch",
       "createProject": "Tạo dự án"
+    },
+    "projectSection": {
+      "yourProjects": "Dự án của bạn",
+      "viewAll": "Xem tất cả",
+      "noProjects": "Bạn chưa có dự án",
+      "createProject": "Tạo dự án"
+    },
+    "projectCard": {
+      "noDescription": "Không có mô tả",
+      "IN_PROGRESS": "Đang tiến hành",
+      "COMPLETED": "Hoàn thành",
+      "DONE": "Hoàn thành",
+      "TODO": "Đang chờ",
+      "AT_RISK": "Sắp tới hạn",
+      "members": "thành viên",
+      "date": {
+        "noDueDate": "Không có hạn",
+        "today": "Hôm nay",
+        "tomorrow": "Ngày mai",
+        "withTime": "{date} lúc {time}"
+      },
+      "progress": "Tình trạng",
+      "priority": {
+        "HIGH": "Cao",
+        "MEDIUM": "Trung bình",
+        "LOW": "Thấp"
+      }
+    },
+    "taskSection": {
+      "yourTasks": "Công việc của bạn",
+      "viewAll": "Xem tất cả",
+      "noTasks": "Bạn chưa có công việc",
+      "noTasksDescription": "Công việc sẽ xuất hiện ở đây khi bạn được giao",
+      "createTask": "Tạo công việc"
+    },
+    "taskCard": {
+      "IN_PROGRESS": "Đang tiến hành",
+      "COMPLETED": "Hoàn thành",
+      "DONE": "Hoàn thành",
+      "TODO": "Đang chờ",
+      "AT_RISK": "Sắp tới hạn",
+      "date": {
+        "noDueDate": "Không có hạn",
+        "today": "Hôm nay",
+        "tomorrow": "Ngày mai",
+        "withTime": "{date} lúc {time}"
+      },
+      "assignee": "Người thực hiện",
+      "unassignee": "Chưa giao",
+      "creator": "Người tạo",
+      "priority": {
+        "HIGH": "Cao",
+        "MEDIUM": "Trung bình",
+        "LOW": "Thấp"
+      }
+    },
+    "activityFeed": {
+      "title": "Hoạt động gần đây",
+      "emptyState": "Không có hoạt động gần đây",
+      "relative": {
+        "seconds": "{value} giây trước",
+        "minutes": "{value} phút trước",
+        "hours": "{value} giờ trước",
+        "days": "{value} ngày trước"
+      }
     }
   },
   "WorkspaceSidebar": {
+    "dashboard": "Tổng quan",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "calendar": "Lịch",
+    "messages": "Tin nhắn",
+    "quickActions": "Thao tác nhanh",
+    "createProject": "Tạo dự án",
+    "createTask": "Tạo công việc",
+    "deadlines": "Công việc đến hạn",
     "myAccount": "Tài khoản của tôi",
     "profile": "Thông tin cá nhân",
     "settings": "Cài đặt",
     "signOut": "Đăng xuất"
   },
+  "DashboardStats": {
+    "totalProjects": "Tổng số dự án",
+    "completedTasks": "Công việc hoàn thành",
+    "pendingTasks": "Công việc chờ",
+    "upcomingDeadlines": "Công việc sắp đến"
+  },
+  "ProjectDetails": {
+
+  },
   "LanguageSwitcher": {
     "label": "Ngôn ngữ",
     "en": "EN",
     "vi": "VI"
+  },
+  "date": {
+    "noDueDate": "Không có hạn",
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai",
+    "withTime": "{date} lúc {time}"
+  },
+  "relative": {
+    "seconds": "{value} giây trước",
+    "minutes": "{value} phút trước",
+    "hours": "{value} giờ trước",
+    "days": "{value} ngày trước"
   }
 }

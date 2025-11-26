@@ -71,7 +71,7 @@ export default function SubtaskSection({
           <CardTitle className="text-lg font-semibold">Subtask</CardTitle>
           {canEdit && taskStatus !== "DONE" && (
             <Button
-              variant="outline"
+              variant="noShadow"
               size="sm"
               onClick={() => setIsDialogOpen(true)}
             >
