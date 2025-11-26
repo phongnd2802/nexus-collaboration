@@ -32,19 +32,46 @@
       "forgotPassword": "Quên mật khẩu?",
       "or": "Hoặc",
       "needAccount": "Bạn cần tài khoản?"
-    },
-    "signUp": {
-      "home": "Trang chủ",
-      "title": "Tạo tài khoản",
-      "description": "Tham gia cộng tác với chúng tôi",
-      "fullName": "Họ và tên",
-      "email": "Email",
-      "password": "Mật khẩu",
-      "creatingAccount": "Đang tạo tài khoản...",
-      "signUp": "Đăng ký",
-      "or": "Hoặc",
-      "haveAccount": "Bạn có tài khoản? Đăng nhập"
     }
+  },
+  "DashboardPage": {
+    "welcomeBanner": {
+      "goodMorning": "Chào buổi sáng",
+      "goodAfternoon": "Chào buổi chiều",
+      "goodEvening": "Chào buổi tối",
+      "tasksDueMessage": "Bạn có {count} công việc đến hạn trong tuần này.",
+      "weekday": {
+        "Monday": "Thứ Hai",
+        "Tuesday": "Thứ Ba",
+        "Wednesday": "Thứ Tư",
+        "Thursday": "Thứ Năm",
+        "Friday": "Thứ Sáu",
+        "Saturday": "Thứ Bảy",
+        "Sunday": "Chủ Nhật"
+      },
+      "month": {
+        "January": "Tháng 1",
+        "February": "Tháng 2",
+        "March": "Tháng 3",
+        "April": "Tháng 4",
+        "May": "Tháng 5",
+        "June": "Tháng 6",
+        "July": "Tháng 7",
+        "August": "Tháng 8",
+        "September": "Tháng 9",
+        "October": "Tháng 10",
+        "November": "Tháng 11",
+        "December": "Tháng 12"
+      },
+      "viewSchedule": "Xem lịch",
+      "createProject": "Tạo dự án"
+    }
+  },
+  "WorkspaceSidebar": {
+    "myAccount": "Tài khoản của tôi",
+    "profile": "Thông tin cá nhân",
+    "settings": "Cài đặt",
+    "signOut": "Đăng xuất"
   },
   "LanguageSwitcher": {
     "label": "Ngôn ngữ",

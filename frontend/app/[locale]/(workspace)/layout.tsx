@@ -32,7 +32,7 @@ export default function WorkspaceLayout({
   if (status === "loading") {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
+        <Loader2 className="h-8 w-8 animate-spin text-main dark:text-main" />
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function WorkspaceLayout({
               {pathname !== "/messages" && (
                 <footer>
                   <div className="py-4">
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-sm text-main dark:text-main">
                       © {new Date().getFullYear()} Nexus. All rights reserved.
                     </p>
                   </div>

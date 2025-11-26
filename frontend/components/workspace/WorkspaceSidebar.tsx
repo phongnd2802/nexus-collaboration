@@ -61,8 +61,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "../i18n/language-switcher";
 
 export default function WorkspaceSidebar() {
+  const t = useTranslations("WorkspaceSidebar");
   const { data: session } = useSession();
   const pathname = usePathname();
   const [userData, setUserData] = useState<any>(null);
@@ -158,7 +161,7 @@ export default function WorkspaceSidebar() {
       <div className="flex items-center">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="mr-2">
+            <Button variant="neutral" size="icon" className="mr-2">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -170,7 +173,7 @@ export default function WorkspaceSidebar() {
                   <div className="h-8 w-8 rounded-full bg-violet-700 flex items-center justify-center">
                     <Zap className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-700 to-purple-600">
+                  <span className="text-lg font-bold bg-clip-text text-transparent bg-linear-to-br from-violet-700 to-purple-600">
                     Nexus
                   </span>
                 </Link>
@@ -185,7 +188,7 @@ export default function WorkspaceSidebar() {
                         pathname === link.href ||
                         pathname?.startsWith(`${link.href}/`)
                           ? "default"
-                          : "ghost"
+                          : "neutral"
                       }
                       className={`w-full justify-start ${
                         pathname === link.href ||
@@ -209,7 +212,7 @@ export default function WorkspaceSidebar() {
                   </div>
                   <SheetClose asChild>
                     <Button
-                      variant="ghost"
+                      variant="neutral"
                       className="w-full justify-start mt-1"
                       asChild
                     >
@@ -221,7 +224,7 @@ export default function WorkspaceSidebar() {
                   </SheetClose>
                   <SheetClose asChild>
                     <Button
-                      variant="ghost"
+                      variant="neutral"
                       className="w-full justify-start mt-1"
                       asChild
                     >
@@ -233,7 +236,7 @@ export default function WorkspaceSidebar() {
                   </SheetClose>
                   <SheetClose asChild>
                     <Button
-                      variant="ghost"
+                      variant="neutral"
                       className="w-full justify-start mt-1"
                       asChild
                     >
@@ -250,7 +253,7 @@ export default function WorkspaceSidebar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="neutral"
                       className="flex items-center gap-2 p-2 w-full justify-start"
                     >
                       <Avatar className="h-8 w-8">
@@ -259,7 +262,7 @@ export default function WorkspaceSidebar() {
                           alt={userName}
                           className="object-cover"
                         />
-                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white text-xs">
+                        <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-xs">
                           {getInitials(userName)}
                         </AvatarFallback>
                       </Avatar>
@@ -332,7 +335,7 @@ export default function WorkspaceSidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
+                variant="neutral"
                 className="flex items-center gap-2 p-2 w-full justify-start"
               >
                 <Avatar className="h-8 w-8">
@@ -341,7 +344,7 @@ export default function WorkspaceSidebar() {
                     alt={userName}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white text-xs">
+                  <AvatarFallback className="bg-linear-to-br from-main to-indigo-700 text-white text-xs">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
@@ -396,7 +399,7 @@ export default function WorkspaceSidebar() {
       >
         <Link href="/" className="flex items-center gap-2">
           <motion.div
-            className="h-8 w-8 rounded-full bg-violet-700 flex items-center justify-center"
+            className="h-8 w-8 rounded-full bg-main flex items-center justify-center"
             whileHover={{ scale: 1.05, rotate: 360 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             whileTap={{ scale: 0.95 }}
@@ -416,12 +419,12 @@ export default function WorkspaceSidebar() {
             </svg>
           </motion.div>
 
-          <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-700 to-purple-600 transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden">
+          <span className="text-lg font-bold bg-clip-text text-transparent bg-linear-to-r from-main to-main transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden">
             Nexus
           </span>
         </Link>
         <Button
-          variant="ghost"
+          variant="default"
           size="icon"
           className="h-7 w-7 rounded-full hidden md:flex cursor-pointer"
           onClick={toggleSidebar}
@@ -527,8 +530,8 @@ export default function WorkspaceSidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
-                className={`flex items-center gap-2 p-2 w-full cursor-pointer ${
+                variant="noShadow"
+                className={`flex items-center gap-2 p-2 w-full cursor-pointer bg-secondary-background text-foreground border-none hover:text-main ${
                   state === "collapsed" ? "justify-center" : "justify-start"
                 }`}
               >
@@ -538,7 +541,7 @@ export default function WorkspaceSidebar() {
                     alt={userName}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white text-xs">
+                  <AvatarFallback className="bg-linear-to-br from-main to-indigo-700 text-white text-xs">
                     {getInitials(userName)}
                   </AvatarFallback>
                 </Avatar>
@@ -555,22 +558,23 @@ export default function WorkspaceSidebar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/profile" className="cursor-pointer">
                   <User className="h-4 w-4 mr-2" />
-                  Profile
+                  {t("profile")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/profile?tab=settings" className="cursor-pointer">
                   <Settings className="h-4 w-4 mr-2" />
-                  Settings
+                  {t("settings")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="p-2">
+              <div className="p-2 flex gap-2">
+                <LanguageSwitcher />
                 <ThemeToggle />
               </div>
               <DropdownMenuSeparator />
@@ -579,7 +583,7 @@ export default function WorkspaceSidebar() {
                 className="text-red-600 focus:text-red-600 cursor-pointer"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Sign out
+                {t("signOut")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
