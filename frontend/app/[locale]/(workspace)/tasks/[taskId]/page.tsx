@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -60,6 +61,7 @@ import { getInitials } from "@/lib/utils";
 import { Task, Project, User } from "@/types/index";
 
 export default function TaskDetailsPage() {
+  const t = useTranslations("DashboardPage.projectCard");
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
@@ -408,7 +410,10 @@ export default function TaskDetailsPage() {
     }
   };
 
-  const handleCompletionNoteUpdate = async (note: string, deliverables: any[]) => {
+  const handleCompletionNoteUpdate = async (
+    note: string,
+    deliverables: any[]
+  ) => {
     setTask((prev: Task | null) =>
       prev
         ? {
@@ -417,7 +422,7 @@ export default function TaskDetailsPage() {
           }
         : null
     );
-    
+
     setTaskDeliverables(deliverables);
   };
 
@@ -546,7 +551,7 @@ export default function TaskDetailsPage() {
           {permissionLevel === "admin" && !isEditing && (
             <>
               <Button
-                variant="outline"
+                variant="noShadow"
                 size="sm"
                 className="flex items-center"
                 onClick={() => setIsEditing(true)}
@@ -558,7 +563,7 @@ export default function TaskDetailsPage() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="noShadow"
                     size="sm"
                     className="flex items-center border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
@@ -598,7 +603,7 @@ export default function TaskDetailsPage() {
           {isEditing && (
             <>
               <Button
-                variant="outline"
+                variant="noShadow"
                 size="sm"
                 className="flex items-center border-red-200 text-red-600"
                 onClick={handleCancelEdit}
@@ -721,7 +726,7 @@ export default function TaskDetailsPage() {
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
-                    variant={task.status === "TODO" ? "default" : "outline"}
+                    variant={task.status === "TODO" ? "default" : "noShadow"}
                     className={
                       task.status === "TODO"
                         ? "bg-gray-600 hover:bg-gray-700"
@@ -734,7 +739,7 @@ export default function TaskDetailsPage() {
                   </Button>
                   <Button
                     variant={
-                      task.status === "IN_PROGRESS" ? "default" : "outline"
+                      task.status === "IN_PROGRESS" ? "default" : "noShadow"
                     }
                     className={
                       task.status === "IN_PROGRESS"
@@ -747,7 +752,7 @@ export default function TaskDetailsPage() {
                     In Progress
                   </Button>
                   <Button
-                    variant={task.status === "DONE" ? "default" : "outline"}
+                    variant={task.status === "DONE" ? "default" : "noShadow"}
                     className={
                       task.status === "DONE"
                         ? "bg-green-600 hover:bg-green-700"
@@ -798,7 +803,7 @@ export default function TaskDetailsPage() {
                   <h3 className="text-sm font-medium text-muted-foreground">
                     Status
                   </h3>
-                  <div className="mt-1">{getStatusBadge(task.status)}</div>
+                  <div className="mt-1">{getStatusBadge(task.status, t)}</div>
                 </div>
 
                 <Separator />
@@ -840,7 +845,7 @@ export default function TaskDetailsPage() {
                     </Select>
                   ) : (
                     <div className="mt-1">
-                      {getPriorityBadge(task.priority)}
+                      {getPriorityBadge(task.priority, t)}
                     </div>
                   )}
                 </div>

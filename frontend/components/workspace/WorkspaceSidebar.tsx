@@ -114,31 +114,31 @@ export default function WorkspaceSidebar() {
     {
       href: "/dashboard",
       icon: <LayoutDashboard className="h-4 w-4" />,
-      label: "Dashboard",
-      isActive: isLinkActive("/dashboard"),
+      label: t("dashboard"),
+      isActive: isLinkActive(`/dashboard`),
     },
     {
       href: "/projects",
       icon: <FolderIcon className="h-4 w-4" />,
-      label: "Projects",
+      label: t("projects"),
       isActive: isLinkActive(["/projects", "/projects/create"]),
     },
     {
       href: "/tasks",
       icon: <CheckSquare className="h-4 w-4" />,
-      label: "Tasks",
+      label: t("tasks"),
       isActive: isLinkActive(["/tasks", "/tasks/create"]),
     },
     {
       href: "/calendar",
       icon: <Calendar className="h-4 w-4" />,
-      label: "Calendar",
+      label: t("calendar"),
       isActive: isLinkActive("/calendar"),
     },
     {
       href: "/messages",
       icon: <MessageSquare className="h-4 w-4" />,
-      label: "Messages",
+      label: t("messages"),
       isActive: isLinkActive("/messages"),
     },
     {
@@ -439,7 +439,6 @@ export default function WorkspaceSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationLinks.map((link) => (
@@ -476,7 +475,7 @@ export default function WorkspaceSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel className="flex justify-between items-center">
-            <span>Quick Actions</span>
+            <span>{t("quickActions")}</span>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -488,7 +487,7 @@ export default function WorkspaceSidebar() {
                 >
                   <Link href="/projects/create">
                     <ChevronRight className="h-4 w-4" />
-                    <span>Create Project</span>
+                    <span>{t("createProject")}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -500,7 +499,7 @@ export default function WorkspaceSidebar() {
                 >
                   <Link href="/tasks/create">
                     <ChevronRight className="h-4 w-4" />
-                    <span>Create Task</span>
+                    <span>{t("createTask")}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

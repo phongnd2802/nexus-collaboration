@@ -6,6 +6,7 @@ import { getProfileUrl } from "@/lib/profile-utils";
 import { getInitials, formatDate } from "@/lib/utils";
 import { ProjectWithDetails } from "@/types/index";
 import { Session } from "next-auth";
+import { useTranslations, useLocale } from "next-intl";
 
 interface ProjectDetailsProps {
   project: ProjectWithDetails;
@@ -16,6 +17,9 @@ export default function ProjectDetails({
   project,
   session,
 }: ProjectDetailsProps) {
+  const t = useTranslations("ProjectDetails");
+  const locale = useLocale();
+
   return (
     <Card className="flex md:w-sm w-full">
       <CardHeader>
@@ -54,17 +58,19 @@ export default function ProjectDetails({
 
           <div>
             <p className="text-sm text-muted-foreground">Created On</p>
-            <p>{formatDate(project.createdAt ?? null)}</p>
+            <p>{formatDate(project.createdAt ?? null, useTranslations(), locale)}</p>
           </div>
 
           <div>
             <p className="text-sm text-muted-foreground">Due Date</p>
-            <p>{formatDate(project.dueDate, { includeTime: true })}</p>
+            <p>
+              {formatDate(project.dueDate, useTranslations(), locale, { includeTime: true })}
+            </p>
           </div>
 
           <div>
             <p className="text-sm text-muted-foreground">Last Updated</p>
-            <p>{formatDate(project.updatedAt ?? null)}</p>
+            <p>{formatDate(project.updatedAt ?? null, useTranslations(), locale)}</p>
           </div>
         </div>
       </CardContent>

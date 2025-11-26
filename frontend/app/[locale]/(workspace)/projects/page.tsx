@@ -194,7 +194,6 @@ export default function ProjectsPage() {
 
         <Button
           asChild
-          className="bg-violet-700 hover:bg-violet-800 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
           disabled={isLoading}
         >
           <Link href="/projects/create">
@@ -218,7 +217,7 @@ export default function ProjectsPage() {
             />
             {searchQuery && (
               <Button
-                variant="ghost"
+                variant="neutral"
                 size="sm"
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
                 onClick={() => setSearchQuery("")}
@@ -235,7 +234,7 @@ export default function ProjectsPage() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild className="flex-1">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="neutral" className="w-full">
                     <Filter className="h-4 w-4 mr-2" />
                     Filter
                     <ChevronDown className="h-4 w-4 ml-2" />
@@ -275,7 +274,7 @@ export default function ProjectsPage() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild className="flex-1">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="neutral" className="w-full">
                     <div className="flex items-center">
                       Sort by
                       {sortBy === "name" && (
@@ -376,7 +375,7 @@ export default function ProjectsPage() {
             />
             {searchQuery && (
               <Button
-                variant="ghost"
+                variant="neutral"
                 size="sm"
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
                 onClick={() => setSearchQuery("")}
@@ -392,7 +391,7 @@ export default function ProjectsPage() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center">
+                  <Button variant="noShadow" className="flex items-center">
                     <Filter className="h-4 w-4 mr-2" />
                     Filter
                     <ChevronDown className="h-4 w-4 ml-2" />
@@ -432,7 +431,7 @@ export default function ProjectsPage() {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center">
+                  <Button variant="noShadow" className="flex items-center">
                     <div className="flex items-center">
                       Sort by
                       {sortBy === "name" && (
@@ -526,10 +525,10 @@ export default function ProjectsPage() {
         <div className="flex flex-wrap gap-2 items-center mt-4">
           <span className="text-sm text-muted-foreground">Active filters:</span>
           {searchQuery && (
-            <Badge variant="outline" className="flex items-center gap-1">
+            <Badge variant="neutral" className="flex items-center gap-1">
               <Search className="h-3 w-3 mr-1" />"{searchQuery}"
               <Button
-                variant="ghost"
+                variant="noShadow"
                 size="sm"
                 className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setSearchQuery("")}
@@ -541,7 +540,7 @@ export default function ProjectsPage() {
           {statusFilter.map((status) => (
             <Badge
               key={status}
-              variant="outline"
+              variant="neutral"
               className="flex items-center gap-1"
             >
               <span>
@@ -552,7 +551,7 @@ export default function ProjectsPage() {
                   : "Completed"}
               </span>
               <Button
-                variant="ghost"
+                variant="noShadow"
                 size="sm"
                 className="h-4 w-4 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => toggleStatusFilter(status)}
@@ -562,7 +561,7 @@ export default function ProjectsPage() {
             </Badge>
           ))}
           <Button
-            variant="ghost"
+            variant="noShadow"
             size="sm"
             className="text-xs h-6 text-muted-foreground hover:text-foreground"
             onClick={clearFilters}
@@ -623,7 +622,6 @@ export default function ProjectsPage() {
             </p>
             <Button
               asChild
-              className="bg-violet-700 hover:bg-violet-800 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
             >
               <Link href="/projects/create">
                 <PlusCircle className="h-4 w-4 mr-2" />
@@ -642,7 +640,7 @@ export default function ProjectsPage() {
               Try adjusting your search or filter criteria
             </p>
             <Button
-              variant="outline"
+              variant="noShadow"
               onClick={clearFilters}
               className="border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800"
             >

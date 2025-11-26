@@ -63,7 +63,7 @@ const NewMessageButton: React.FC<NewMessageButtonProps> = ({
           />
           {searchQuery && (
             <Button
-              variant="ghost"
+              variant="neutral"
               size="sm"
               className="absolute right-1 top-1 h-8 w-8 p-0"
               onClick={clearSearch}
@@ -85,7 +85,7 @@ const NewMessageButton: React.FC<NewMessageButtonProps> = ({
 
         <div className="mt-4 flex justify-end">
           <DialogClose asChild>
-            <Button variant="secondary">Cancel</Button>
+            <Button variant="neutral">Cancel</Button>
           </DialogClose>
         </div>
       </DialogContent>

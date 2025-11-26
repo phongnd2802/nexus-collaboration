@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useLocale, useTranslations } from "next-intl";
 import { Calendar, FolderKanban } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +22,8 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, currentUserId }: TaskCardProps) {
+  const t = useTranslations("DashboardPage.taskCard");
+  const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -41,19 +44,21 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
       onClick={handleTaskClick}
     >
       <CardContent className="p-4 pt-0 grow">
-        <div className="flex items-start justify-between pb-2">
+        <div className="flex items-start justify-between pb-2 gap-1">
           {task.project && (
             <button
               onClick={handleProjectClick}
-              className="text-md text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center bg-transparent border-0 p-0 cursor-pointer"
+              className="text-md text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center bg-transparent border-0 p-0 cursor-pointer text-left"
             >
-              <FolderKanban className="h-4 w-4 mr-1" />
-              {task.project.name}
+              <FolderKanban className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="line-clamp-2 break-words">
+                {task.project.name}
+              </span>
             </button>
           )}
           <div className="flex items-center space-x-2">
-            {getStatusBadge(task.status)}
-            {getPriorityBadge(task.priority)}
+            {getStatusBadge(task.status, t)}
+            {getPriorityBadge(task.priority, t)}
           </div>
         </div>
         <div className="flex flex-col min-h-0 pb-4">
@@ -75,7 +80,10 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
             <Calendar className="h-3.5 w-3.5 mr-1" />
             <span>
               {isOverdue(task.dueDate, task.status) ? "Overdue: " : ""}
-              {formatDate(task.dueDate, { relative: true, includeTime: true })}
+              {formatDate(task.dueDate, t, locale, {
+                relative: true,
+                includeTime: true,
+              })}
             </span>
           </div>
         </div>
@@ -85,7 +93,7 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
           {task.assignee ? (
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground mb-2">
-                Assignee
+                {t("assignee")}
               </span>
               <TooltipProvider>
                 <Tooltip>
@@ -102,7 +110,7 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
                           );
                         }}
                       />
-                      <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
+                      <AvatarFallback className="bg-violet-100 text-main text-xs">
                         {getInitials(task.assignee.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -117,13 +125,13 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
               </TooltipProvider>
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground">Unassigned</div>
+            <div className="text-xs text-muted-foreground">{t("unassigned")}</div>
           )}
 
           {task.creator && (
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground mb-2">
-                Creator
+                {t("creator")}
               </span>
               <TooltipProvider>
                 <Tooltip>

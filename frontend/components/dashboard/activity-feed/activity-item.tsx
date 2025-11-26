@@ -7,6 +7,8 @@ import { Activity } from "@/types/index";
 
 import { ACTIVITY_CONFIG } from "./constants";
 import { ActivityMessage } from "./activity-message";
+import { useLocale } from "next-intl";
+import { useTranslations } from "use-intl";
 
 interface ActivityItemProps {
   activity: Activity;
@@ -26,6 +28,8 @@ const ActivityIcon = ({ type }: { type: string }) => {
 
 export const ActivityItem = React.memo(
   ({ activity, currentUserEmail }: ActivityItemProps) => {
+    const locale = useLocale();
+    const t = useTranslations("DashboardPage.activityFeed");
     // Memoize URL profile để tránh tính toán lại
     const profileUrl = useMemo(
       () => getProfileUrl(activity.userEmail, currentUserEmail),
@@ -44,7 +48,7 @@ export const ActivityItem = React.memo(
               src={activity.userImage || ""}
               alt={activity.userName || "Unknown user"}
             />
-            <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
+            <AvatarFallback className="bg-violet-100 text-main text-xs">
               {getInitials(activity.userName)}
             </AvatarFallback>
           </Avatar>
@@ -52,15 +56,15 @@ export const ActivityItem = React.memo(
 
         {/* Content Section */}
         <div className="flex-1">
-          <div className="flex items-center">
+          <div className="flex items-center justify-around">
             <Link
               href={profileUrl}
-              className="text-sm font-medium hover:underline"
+              className="text-sm font-medium hover:underline truncate line-clamp-2 break-words"
             >
               {activity.userName}
             </Link>
             <span className="text-xs text-muted-foreground ml-2">
-              {formatRelativeTime(activity.createdAt)}
+              {formatRelativeTime(activity.createdAt, locale, t)}
             </span>
           </div>
 

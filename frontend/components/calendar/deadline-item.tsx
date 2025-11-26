@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { Deadline } from "@/types/index";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,7 @@ interface DeadlineItemProps {
  * Shows deadline title, project link (for tasks), assignee, priority badge, and action button.
  */
 export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
+  const t = useTranslations("DashboardPage.taskCard");
   const { Icon, className: iconClassName } = getDeadlineIconConfig(deadline);
   const deadlineUrl = getDeadlineUrl(deadline);
 
@@ -94,9 +97,9 @@ export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
             {isMobile && (
               <div className="flex justify-between items-center mt-2">
                 {deadline.type === "task" &&
-                  getPriorityBadge(deadline.priority!)}
+                  getPriorityBadge(deadline.priority!, t)}
                 <Button
-                  variant="ghost"
+                  variant="neutral"
                   size="sm"
                   className="h-7 px-2 text-xs text-violet-700 dark:text-violet-400 ml-auto"
                   asChild
@@ -114,9 +117,10 @@ export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
         {/* Priority badge and action button for desktop */}
         {!isMobile && (
           <div className="flex flex-col items-end gap-2">
-            {deadline.type === "task" && getPriorityBadge(deadline.priority!)}
+            {deadline.type === "task" &&
+              getPriorityBadge(deadline.priority!, t)}
             <Button
-              variant="ghost"
+              variant="neutral"
               size="sm"
               className="h-7 px-2 text-xs text-violet-700 dark:text-violet-400"
               asChild

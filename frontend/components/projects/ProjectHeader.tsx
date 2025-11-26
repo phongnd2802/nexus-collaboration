@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   Calendar,
@@ -38,11 +39,13 @@ export default function ProjectHeader({
   isEditor,
   onProjectUpdated,
 }: ProjectHeaderProps) {
+  const t = useTranslations("DashboardPage.projectCard");
+  const locale = useLocale();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const formattedDueDate = formatDate(project.dueDate, { includeTime: true });
+  const formattedDueDate = formatDate(project.dueDate, t, locale, { includeTime: true });
 
   const handleEditClick = () => {
     setIsEditDialogOpen(true);
@@ -67,7 +70,7 @@ export default function ProjectHeader({
             onClick={handleEditClick}
             className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground cursor-pointer"
           >
-            {getStatusBadge(project.status)}
+            {getStatusBadge(project.status, t)}
             <span className="flex items-center">
               <Calendar className="h-4 w-4 mr-1 shrink-0" />
               {formattedDueDate}
