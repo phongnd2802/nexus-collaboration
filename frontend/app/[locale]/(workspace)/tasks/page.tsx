@@ -302,7 +302,7 @@ export default function TasksPage() {
 
       <Tabs
         defaultValue="assigned"
-        className="flex gap-4 w-full"
+        className="flex flex-col gap-4 w-full"
         onValueChange={(value) => setActiveTab(value as "assigned" | "created")}
       >
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
