@@ -16,7 +16,7 @@
       "signOut": "Sign Out",
       "getStarted": "Get Started",
       "signIn": "Sign In",
-      "signUp": "Sign Up" 
+      "signUp": "Sign Up"
     }
   },
   "AuthPage": {
@@ -26,13 +26,24 @@
       "description": "Login to your account to continue",
       "email": "Email",
       "password": "Password",
+      "signingIn": "Signing in...",
       "signIn": "Sign In",
       "signUp": "Sign Up",
       "forgotPassword": "Forgot Password?",
       "or": "Or",
-      "needAccount": "Need an account?",
-      "google": "Sign in with Google",
-      "github": "Sign in with GitHub"
+      "needAccount": "Need an account?"
+    },
+    "signUp": {
+      "home": "Home",
+      "title": "Create an account",
+      "description": "Join our collaboration platform",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "creatingAccount": "Creating account...",
+      "signUp": "Sign Up",
+      "or": "Or",
+      "haveAccount": "Have an account? Sign in"
     }
   },
   "LanguageSwitcher": {

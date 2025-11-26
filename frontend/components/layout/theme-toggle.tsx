@@ -9,8 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 
 export function ThemeToggle() {
+  const t = useTranslations("Theme");
   const { theme, setTheme } = useTheme();
 
   const handleThemeChange = (newTheme: string) => {
@@ -33,7 +35,7 @@ export function ThemeToggle() {
           disabled={theme === "light"}
         >
           <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
+          <span>{t("light")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleThemeChange("dark")}
@@ -41,7 +43,7 @@ export function ThemeToggle() {
           disabled={theme === "dark"}
         >
           <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
+          <span>{t("dark")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

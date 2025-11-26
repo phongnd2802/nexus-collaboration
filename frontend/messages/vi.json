@@ -26,6 +26,7 @@
       "description": "Đăng nhập tài khoản của bạn để tiếp tục",
       "email": "Email",
       "password": "Mật khẩu",
+      "signingIn": "Đang đăng nhập...",
       "signIn": "Đăng nhập",
       "signUp": "Đăng ký",
       "forgotPassword": "Quên mật khẩu?",
