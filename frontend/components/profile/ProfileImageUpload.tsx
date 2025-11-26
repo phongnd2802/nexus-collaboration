@@ -90,7 +90,8 @@ export default function ProfileImageUpload({
 
   const resetState = () => {
     if (uploadedFileKey && previewImage && !fileCommitted) {
-      deleteFileFromUploadThing(uploadedFileKey);
+      // DEBUG: Commented out deletion to debug MinIO persistence
+      // deleteFileFromUploadThing(uploadedFileKey);
     }
 
     setPreviewImage(null);
@@ -156,7 +157,8 @@ export default function ProfileImageUpload({
       console.error("Error updating profile image:", err);
 
       if (uploadedFileKey && !fileCommitted) {
-        deleteFileFromUploadThing(uploadedFileKey);
+        // DEBUG: Commented out deletion to debug MinIO persistence
+        // deleteFileFromUploadThing(uploadedFileKey);
         setUploadedFileKey(null);
       }
     } finally {
@@ -177,7 +179,8 @@ export default function ProfileImageUpload({
 
   const handleCancelPreview = () => {
     if (uploadedFileKey) {
-      deleteFileFromUploadThing(uploadedFileKey);
+      // DEBUG: Commented out deletion to debug MinIO persistence
+      // deleteFileFromUploadThing(uploadedFileKey);
       setUploadedFileKey(null);
     }
     setPreviewImage(null);

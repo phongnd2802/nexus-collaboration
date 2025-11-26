@@ -9,6 +9,7 @@ import Footer from "@/components/layout/footer";
 import Hero from "@/components/home/hero";
 // import Features from "@/components/home/features";
 import { Loader2 } from "lucide-react";
+import { Features } from "tailwindcss";
 
 function SearchParamsHandler() {
   const searchParams = useSearchParams();

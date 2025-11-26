@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Edit, X } from "lucide-react";
 
 interface TaskCompletionHeaderProps {
-  isAssignee: boolean;
+  canEdit: boolean;
   isEditing: boolean;
   hasExistingData: boolean;
   onEnterEditMode: () => void;
@@ -10,7 +10,7 @@ interface TaskCompletionHeaderProps {
 }
 
 export default function TaskCompletionHeader({
-  isAssignee,
+  canEdit,
   isEditing,
   hasExistingData,
   onEnterEditMode,
@@ -23,7 +23,7 @@ export default function TaskCompletionHeader({
         <h3 className="font-medium">Task Completion</h3>
       </div>
 
-      {isAssignee && !isEditing && (
+      {canEdit && !isEditing && (
         <Button
           variant="ghost"
           size="sm"

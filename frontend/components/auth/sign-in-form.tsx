@@ -26,8 +26,10 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
+import { useTranslations } from "next-intl";
 
 export const SignInForm = () => {
+  const t  = useTranslations("AuthPage.signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -131,17 +133,17 @@ export const SignInForm = () => {
               className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">{t("home")}</span>
             </Link>
             <div className="h-12 w-12 rounded-full bg-violet-600 dark:bg-violet-700 flex items-center justify-center mx-auto">
               <KeyRound className="h-6 w-6 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Welcome back
+            {t("title")}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sign in to your account to continue
+            {t("description")}
           </CardDescription>
         </CardHeader>
 
@@ -228,13 +230,13 @@ export const SignInForm = () => {
                   className="text-sm font-medium text-foreground flex items-center"
                 >
                   <Lock className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
-                  Password
+                  {t("password")}
                 </label>
                 <Link
                   href="/auth/forgot-password"
                   className="text-sm font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 transition-colors"
                 >
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <Input
@@ -260,7 +262,7 @@ export const SignInForm = () => {
                   Signing in...
                 </>
               ) : (
-                "Sign in"
+                t("signIn")
               )}
             </Button>
           </form>
@@ -272,7 +274,7 @@ export const SignInForm = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-background text-muted-foreground">
-                  Or continue with
+                  {t("or")}
                 </span>
               </div>
             </div>
@@ -317,14 +319,14 @@ export const SignInForm = () => {
 
         <CardFooter className="flex justify-center pt-0">
           <div className="text-sm text-center">
-            <span className="text-muted-foreground">Need an account?</span>{" "}
+            <span className="text-muted-foreground">{t("needAccount")}</span>{" "}
             <Button
               asChild
               variant="link"
               className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 p-0"
             >
               <Link href="/auth/signup" className="inline-flex items-center">
-                Sign up
+                {t("signUp")}
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </Button>

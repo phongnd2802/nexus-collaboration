@@ -33,8 +33,9 @@ export function UnifiedBreadcrumb() {
   const segments = pathname.split("/").filter(Boolean);
   const projectId = params?.id as string;
   const taskId = params?.taskId as string;
+  const locale = params?.locale as string;
 
-  const showBreadcrumbs = pathname !== "/dashboard" && pathname !== "/messages";
+  const showBreadcrumbs = pathname !== `/${locale}/dashboard` && pathname !== `/${locale}/messages`;
 
   useEffect(() => {
     setProjectName(null);
@@ -132,6 +133,7 @@ export function UnifiedBreadcrumb() {
 
         {segments.map((segment, index) => {
           if (segment === "(workspace)") return null;
+          if (segment === locale) return null;
 
           if (
             segment === "id" ||

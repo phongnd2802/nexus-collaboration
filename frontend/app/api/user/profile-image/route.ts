@@ -12,6 +12,8 @@ export async function PATCH(request: NextRequest) {
 
     const userId = session.user.id;
     const body = await request.json();
+    console.log("Updating profile image for user", userId, "to", body.imageUrl);
+
 
     // request to the backend service
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/user/profile-image`;

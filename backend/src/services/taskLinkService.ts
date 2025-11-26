@@ -34,6 +34,15 @@ export const taskLinkService = {
       throw new AppError(404, "NOT_FOUND", "Target task not found");
     }
 
+    // Check if source task is completed
+    if (sourceTask.status === TaskStatus.DONE) {
+      throw new AppError(
+        400,
+        "TASK_COMPLETED",
+        "Cannot add linked task to a completed task."
+      );
+    }
+
     // Prevent self-linking
     if (sourceTaskId === targetTaskId) {
       throw new AppError(400, "INVALID_INPUT", "Cannot link a task to itself");
@@ -231,10 +240,22 @@ export const taskLinkService = {
     // Verify task link exists
     const existingLink = await prisma.taskLink.findUnique({
       where: { id: linkId },
+      include: {
+        sourceTask: true,
+      },
     });
 
     if (!existingLink) {
       throw new AppError(404, "NOT_FOUND", "Task link not found");
+    }
+
+    // Check if source task is completed
+    if (existingLink.sourceTask.status === TaskStatus.DONE) {
+      throw new AppError(
+        400,
+        "TASK_COMPLETED",
+        "Cannot modify linked task of a completed task."
+      );
     }
 
     const updatedLink = await prisma.taskLink.update({
@@ -288,10 +309,22 @@ export const taskLinkService = {
     // Verify task link exists
     const existingLink = await prisma.taskLink.findUnique({
       where: { id: linkId },
+      include: {
+        sourceTask: true,
+      },
     });
 
     if (!existingLink) {
       throw new AppError(404, "NOT_FOUND", "Task link not found");
+    }
+
+    // Check if source task is completed
+    if (existingLink.sourceTask.status === TaskStatus.DONE) {
+      throw new AppError(
+        400,
+        "TASK_COMPLETED",
+        "Cannot remove linked task from a completed task."
+      );
     }
 
     await prisma.taskLink.delete({
