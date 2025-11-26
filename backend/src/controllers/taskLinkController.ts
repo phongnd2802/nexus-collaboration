@@ -66,12 +66,28 @@ export async function updateTaskLink(
   res: Response
 ) {
   try {
-    const { linkId } = req.params;
+    const { linkId, taskId } = req.params;
     const { relationship } = req.body;
 
     const updateData: any = {};
     if (relationship !== undefined) {
-      updateData.relationship = relationship;
+      // Get the existing link to check context
+      const existingLink = await taskLinkService.getTaskLinkById(linkId);
+      
+      if (!existingLink) {
+        return res.status(404).json({ message: "Task link not found" });
+      }
+
+      // If we are updating from the target task's perspective, we need to invert the relationship
+      // because the DB stores it relative to sourceTask
+      if (existingLink.targetTask.id === taskId) {
+        updateData.relationship = 
+          relationship === "BLOCKS" 
+            ? TaskRelationship.BLOCKED_BY 
+            : TaskRelationship.BLOCKS;
+      } else {
+        updateData.relationship = relationship;
+      }
     }
 
     const updatedLink = await taskLinkService.updateTaskLink(

@@ -273,12 +273,20 @@ export default function TaskDetailsPage() {
         throw new Error(data.message || "Failed to update task status");
       }
 
-      setTask((prev: Task | null) =>
-        prev ? { ...prev, status: newStatus as any } : null
-      );
+      const data = await response.json();
 
-      if (isEditing) {
-        setEditedTask((prev: any) => ({ ...prev, status: newStatus }));
+      // Check if any dependent tasks were reset
+      if (data.affectedTaskIds && data.affectedTaskIds.length > 0) {
+        toast.info("Some dependent tasks were reset to TODO.");
+        fetchProjectAndTaskDetails();
+      } else {
+        setTask((prev: Task | null) =>
+          prev ? { ...prev, status: newStatus as any } : null
+        );
+  
+        if (isEditing) {
+          setEditedTask((prev: any) => ({ ...prev, status: newStatus }));
+        }
       }
 
       toast.success("Task status updated");
@@ -333,7 +341,13 @@ export default function TaskDetailsPage() {
 
       const updatedTask = await response.json();
 
-      setTask(updatedTask);
+      // Check if any dependent tasks were reset
+      if (updatedTask.affectedTaskIds && updatedTask.affectedTaskIds.length > 0) {
+        toast.info("Some dependent tasks were reset to TODO.");
+        fetchProjectAndTaskDetails();
+      } else {
+        setTask(updatedTask);
+      }
 
       // Exit edit mode
       setIsEditing(false);

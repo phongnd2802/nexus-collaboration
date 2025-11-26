@@ -346,6 +346,7 @@ export const taskLinkService = {
     }
 
     // Get all BLOCKED_BY relationships where this task is the source
+    // (This task says "I am blocked by Target")
     const blockedByLinks = await prisma.taskLink.findMany({
       where: {
         sourceTaskId: taskId,
@@ -362,14 +363,38 @@ export const taskLinkService = {
       },
     });
 
+    // Get all BLOCKS relationships where this task is the target
+    // (Source says "I block This Task")
+    const blocksLinks = await prisma.taskLink.findMany({
+      where: {
+        targetTaskId: taskId,
+        relationship: TaskRelationship.BLOCKS,
+      },
+      include: {
+        sourceTask: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    // Combine blockers from both types of links
+    const blockers = [
+      ...blockedByLinks.map(link => link.targetTask),
+      ...blocksLinks.map(link => link.sourceTask),
+    ];
+
     // Check if any blocking tasks are not DONE
-    const blockingTasks = blockedByLinks.filter(
-      link => link.targetTask.status !== TaskStatus.DONE
+    const incompleteBlockers = blockers.filter(
+      task => task.status !== TaskStatus.DONE
     );
 
-    if (blockingTasks.length > 0) {
-      const blockingTaskNames = blockingTasks
-        .map(link => link.targetTask.title)
+    if (incompleteBlockers.length > 0) {
+      const blockingTaskNames = incompleteBlockers
+        .map(task => task.title)
         .join(", ");
       return {
         allowed: false,
@@ -378,5 +403,90 @@ export const taskLinkService = {
     }
 
     return { allowed: true };
+  },
+
+  /**
+   * Reset dependent tasks to TODO when a blocking task is undone
+   */
+  async resetDependentTasks(taskId: string) {
+    const allAffectedTaskIds = new Set<string>();
+    const queue = [taskId];
+    const visited = new Set<string>([taskId]);
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+
+      // Find tasks directly blocked by currentId
+      // Case 1: Tasks that are BLOCKED_BY currentId (currentId is target)
+      const blockedByLinks = await prisma.taskLink.findMany({
+        where: {
+          targetTaskId: currentId,
+          relationship: TaskRelationship.BLOCKED_BY,
+        },
+        select: { sourceTaskId: true },
+      });
+
+      // Case 2: Tasks that currentId BLOCKS (currentId is source)
+      const blocksLinks = await prisma.taskLink.findMany({
+        where: {
+          sourceTaskId: currentId,
+          relationship: TaskRelationship.BLOCKS,
+        },
+        select: { targetTaskId: true },
+      });
+
+      const directDependents = [
+        ...blockedByLinks.map(l => l.sourceTaskId),
+        ...blocksLinks.map(l => l.targetTaskId),
+      ];
+
+      for (const dependentId of directDependents) {
+        if (!visited.has(dependentId)) {
+          visited.add(dependentId);
+          allAffectedTaskIds.add(dependentId);
+          queue.push(dependentId);
+        }
+      }
+    }
+
+    const taskIdsToReset = Array.from(allAffectedTaskIds);
+
+    if (taskIdsToReset.length === 0) {
+      return [];
+    }
+
+    // Update status to TODO
+    await prisma.task.updateMany({
+      where: {
+        id: { in: taskIdsToReset },
+        status: { not: TaskStatus.TODO }, // Only update if not already TODO
+      },
+      data: {
+        status: TaskStatus.TODO,
+      },
+    });
+
+    // Get project IDs of reset tasks
+    const resetTasks = await prisma.task.findMany({
+      where: { id: { in: taskIdsToReset } },
+      select: { projectId: true },
+      distinct: ['projectId'],
+    });
+
+    const projectIds = resetTasks.map(t => t.projectId);
+
+    if (projectIds.length > 0) {
+      await prisma.project.updateMany({
+        where: {
+          id: { in: projectIds },
+          status: "COMPLETED",
+        },
+        data: {
+          status: "IN_PROGRESS",
+        },
+      });
+    }
+
+    return taskIdsToReset;
   },
 };

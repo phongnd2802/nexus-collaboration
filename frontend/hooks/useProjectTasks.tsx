@@ -8,6 +8,7 @@ interface UseProjectTasksProps {
   tasks: Task[];
   projectId: string;
   onTasksUpdated: (tasks: Task[]) => void;
+  onProjectUpdated?: () => void;
   isAdmin: boolean;
   isEditor?: boolean;
 }
@@ -16,6 +17,7 @@ export const useProjectTasks = ({
   tasks,
   projectId,
   onTasksUpdated,
+  onProjectUpdated,
   isAdmin,
   isEditor,
 }: UseProjectTasksProps) => {
@@ -36,12 +38,29 @@ export const useProjectTasks = ({
           body: JSON.stringify({ status: newStatus }),
         });
 
-        if (!response.ok) throw new Error("Failed to update task status");
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || "Failed to update task status");
+        }
 
-        const updatedTasks = tasks.map((task) =>
-          task.id === taskId ? { ...task, status: newStatus as any } : task
-        );
+        const data = await response.json(); // Wait for json to get affectedTaskIds
+        const affectedTaskIds = data.affectedTaskIds || [];
+
+        const updatedTasks = tasks.map((task) => {
+          if (task.id === taskId) {
+            return { ...task, status: newStatus as any };
+          }
+          if (affectedTaskIds.includes(task.id)) {
+            return { ...task, status: "TODO" };
+          }
+          return task;
+        });
         onTasksUpdated(updatedTasks);
+        
+        // Trigger project update to check if status changed (e.g. reverted from COMPLETED)
+        if (onProjectUpdated) {
+          onProjectUpdated();
+        }
 
         toast.success(
           newStatus === "DONE" && oldStatus !== "DONE"
@@ -58,10 +77,10 @@ export const useProjectTasks = ({
         );
       } catch (error) {
         console.error("Error updating task status:", error);
-        toast.error("Failed to update task status");
+        toast.error(error instanceof Error ? error.message : "Failed to update task status");
       }
     },
-    [tasks, onTasksUpdated]
+    [tasks, onTasksUpdated, onProjectUpdated]
   );
 
   const handleDragStart = useCallback(

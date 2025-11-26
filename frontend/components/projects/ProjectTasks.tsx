@@ -1,12 +1,13 @@
-"use client";
-
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { PlusCircle, CheckCircle2, Circle, Clock } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Project, Task } from "@/types/index";
 import { useProjectTasks } from "@/hooks/useProjectTasks";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { MobileTaskView } from "./tasks/MobileTaskView";
+import ProjectCompletionAlert from "./ProjectCompletionAlert";
+import ProjectCompletionDialog from "./ProjectCompletionDialog";
+import { toast } from "sonner";
 
 interface ProjectTasksProps {
   id: string;
@@ -15,6 +16,7 @@ interface ProjectTasksProps {
   isAdmin: boolean;
   isEditor?: boolean;
   onTasksUpdated: (tasks: Task[]) => void;
+  onProjectUpdated?: () => void;
 }
 
 export default function ProjectTasks({
@@ -24,8 +26,12 @@ export default function ProjectTasks({
   isAdmin,
   isEditor,
   onTasksUpdated,
+  onProjectUpdated,
 }: ProjectTasksProps) {
   const isMobile = useIsMobile();
+  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
+  const [isUpdatingProject, setIsUpdatingProject] = useState(false);
+
   const {
     hoverColumn,
     mobileColumnIndex,
@@ -43,6 +49,7 @@ export default function ProjectTasks({
     tasks,
     projectId: id,
     onTasksUpdated,
+    onProjectUpdated,
     isAdmin,
     isEditor,
   });
@@ -51,6 +58,37 @@ export default function ProjectTasks({
     TODO: useRef<HTMLDivElement>(null),
     IN_PROGRESS: useRef<HTMLDivElement>(null),
     DONE: useRef<HTMLDivElement>(null),
+  };
+
+  const allTasksCompleted =
+    tasks.length > 0 && doneTasks.length === tasks.length;
+  const showCompletionAlert =
+    allTasksCompleted && project.status !== "COMPLETED" && (isAdmin || isEditor);
+
+  const handleCompleteProject = async () => {
+    setIsUpdatingProject(true);
+    try {
+      const response = await fetch(`/api/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "COMPLETED" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update project status");
+      }
+
+      toast.success("Project marked as completed! 🎉");
+      setIsCompletionDialogOpen(false);
+      if (onProjectUpdated) {
+        onProjectUpdated();
+      }
+    } catch (error) {
+      console.error("Error completing project:", error);
+      toast.error("Failed to complete project");
+    } finally {
+      setIsUpdatingProject(false);
+    }
   };
 
   const columns = [
@@ -90,20 +128,38 @@ export default function ProjectTasks({
 
   if (isMobile) {
     return (
-      <MobileTaskView
-        columns={columns}
-        mobileColumnIndex={mobileColumnIndex}
-        setMobileColumnIndex={setMobileColumnIndex}
-        handlePrevColumn={handlePrevColumn}
-        handleNextColumn={handleNextColumn}
-        isAdmin={isAdmin}
-        isEditor={isEditor}
-      />
+      <>
+        {showCompletionAlert && (
+          <ProjectCompletionAlert
+            onOpenDialog={() => setIsCompletionDialogOpen(true)}
+          />
+        )}
+        <MobileTaskView
+          columns={columns}
+          mobileColumnIndex={mobileColumnIndex}
+          setMobileColumnIndex={setMobileColumnIndex}
+          handlePrevColumn={handlePrevColumn}
+          handleNextColumn={handleNextColumn}
+          isAdmin={isAdmin}
+          isEditor={isEditor}
+        />
+        <ProjectCompletionDialog
+          open={isCompletionDialogOpen}
+          onOpenChange={setIsCompletionDialogOpen}
+          onConfirm={handleCompleteProject}
+          isUpdating={isUpdatingProject}
+        />
+      </>
     );
   }
 
   return (
     <div className="px-2 sm:px-4 md:px-6">
+      {showCompletionAlert && (
+        <ProjectCompletionAlert
+          onOpenDialog={() => setIsCompletionDialogOpen(true)}
+        />
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {columns.map((column) => (
           <TaskColumn
@@ -125,6 +181,12 @@ export default function ProjectTasks({
           />
         ))}
       </div>
+      <ProjectCompletionDialog
+        open={isCompletionDialogOpen}
+        onOpenChange={setIsCompletionDialogOpen}
+        onConfirm={handleCompleteProject}
+        isUpdating={isUpdatingProject}
+      />
     </div>
   );
 }

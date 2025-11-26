@@ -33,8 +33,8 @@ export default function ProjectDetailPage() {
     }
   }, [status, id]);
 
-  const fetchProjectData = async () => {
-    setIsProjectLoading(true);
+  const fetchProjectData = async (background = false) => {
+    if (!background) setIsProjectLoading(true);
     try {
       const projectRes = await fetch(`/api/projects/${id}`);
 
@@ -67,7 +67,7 @@ export default function ProjectDetailPage() {
       console.error("Error fetching project data:", error);
       toast.error("Failed to load project data");
     } finally {
-      setIsProjectLoading(false);
+      if (!background) setIsProjectLoading(false);
     }
   };
 
@@ -138,7 +138,7 @@ export default function ProjectDetailPage() {
                 project={project}
                 isAdmin={isAdmin}
                 isEditor={isEditor}
-                onProjectUpdated={fetchProjectData}
+                onProjectUpdated={() => fetchProjectData(false)}
               />
             </div>
           </div>
@@ -147,6 +147,7 @@ export default function ProjectDetailPage() {
             defaultValue="overview"
             className="mt-6"
             onValueChange={(value) => setActiveTab(value)}
+            value={activeTab}
           >
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -159,7 +160,7 @@ export default function ProjectDetailPage() {
                 project={project}
                 tasks={tasks}
                 isAdmin={isAdmin}
-                onProjectUpdated={fetchProjectData}
+                onProjectUpdated={() => fetchProjectData(false)}
               />
             </TabsContent>
 
@@ -177,6 +178,7 @@ export default function ProjectDetailPage() {
                   isAdmin={isAdmin}
                   isEditor={isEditor}
                   onTasksUpdated={handleTasksUpdated}
+                  onProjectUpdated={() => fetchProjectData(true)}
                 />
               )}
             </TabsContent>

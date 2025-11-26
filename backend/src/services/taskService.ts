@@ -200,6 +200,14 @@ export async function createTask(
     throw new AppError(404, "PROJECT_NOT_FOUND", "Project not found");
   }
 
+  // If project is completed, revert to IN_PROGRESS
+  if (project.status === "COMPLETED") {
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { status: "IN_PROGRESS" },
+    });
+  }
+
   if (assigneeId) {
     const assigneeValidation = await validateTaskAssignee(
       projectId,
@@ -320,6 +328,21 @@ export async function updateTask(
       );
     }
 
+    // If task is moved to TODO or IN_PROGRESS, check project status
+    if (status === TaskStatus.TODO || status === TaskStatus.IN_PROGRESS) {
+      const project = await prisma.project.findUnique({
+        where: { id: task.projectId },
+        select: { status: true },
+      });
+
+      if (project?.status === "COMPLETED") {
+        await prisma.project.update({
+          where: { id: task.projectId },
+          data: { status: "IN_PROGRESS" },
+        });
+      }
+    }
+
     // Check if task is blocked by other tasks
     if (status !== TaskStatus.TODO) {
       const blockCheck = await taskLinkService.canTaskChangeStatus(
@@ -328,6 +351,25 @@ export async function updateTask(
       );
       if (!blockCheck.allowed) {
         throw new AppError(403, "TASK_BLOCKED", blockCheck.reason as string);
+      }
+    }
+    
+    // If task is being moved to DONE, check if all subtasks are completed
+    if (status === TaskStatus.DONE) {
+      const subtasks = await prisma.subtask.findMany({
+        where: { taskId },
+      });
+
+      const hasIncompleteSubtasks = subtasks.some(
+        (subtask) => subtask.status !== TaskStatus.DONE
+      );
+
+      if (hasIncompleteSubtasks) {
+        throw new AppError(
+          400,
+          "INCOMPLETE_SUBTASKS",
+          "Cannot mark task as done. All subtasks must be completed first."
+        );
       }
     }
 
@@ -340,7 +382,12 @@ export async function updateTask(
       },
     });
 
-    return updated;
+    let affectedTaskIds: string[] = [];
+    if (task.status === TaskStatus.DONE && status !== TaskStatus.DONE) {
+      affectedTaskIds = await taskLinkService.resetDependentTasks(taskId);
+    }
+
+    return { ...updated, affectedTaskIds };
   }
 
   if (!(await canManageTask(taskId, userId))) {
@@ -403,6 +450,21 @@ export async function updateTask(
     }
   }
 
+  // If task is moved to TODO or IN_PROGRESS, check project status
+  if (status === TaskStatus.TODO || status === TaskStatus.IN_PROGRESS) {
+    const project = await prisma.project.findUnique({
+      where: { id: task.projectId },
+      select: { status: true },
+    });
+
+    if (project?.status === "COMPLETED") {
+      await prisma.project.update({
+        where: { id: task.projectId },
+        data: { status: "IN_PROGRESS" },
+      });
+    }
+  }
+
   // If task is being moved to DONE, check if all subtasks are completed
   if (status === TaskStatus.DONE) {
     const subtasks = await prisma.subtask.findMany({
@@ -433,10 +495,27 @@ export async function updateTask(
       status: status ?? undefined,
     },
     include: {
-      creator: { select: { id: true, name: true, image: true } },
-      assignee: { select: { id: true, name: true, image: true } },
+      creator: { 
+        select: { 
+          id: true, 
+          name: true, 
+          image: true 
+        } 
+      },
+      assignee: { 
+        select: { 
+          id: true, 
+          name: true, 
+          image: true 
+        } 
+      },
     },
   });
+
+  let affectedTaskIds: string[] = [];
+  if (status !== undefined && task.status === TaskStatus.DONE && status !== TaskStatus.DONE) {
+    affectedTaskIds = await taskLinkService.resetDependentTasks(taskId);
+  }
 
   // Update reminders nếu dueDate thay đổi
   if (computedDue) {
@@ -456,7 +535,7 @@ export async function updateTask(
     });
   }
 
-  return updatedTask;
+  return { ...updatedTask, affectedTaskIds };
 }
 
 export async function deleteTask(taskId: string, userId: string) {
