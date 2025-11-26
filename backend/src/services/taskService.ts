@@ -340,11 +340,6 @@ export async function updateTask(
       },
     });
 
-    // If task is moved to DONE, set all subtasks to DONE
-    if (status === TaskStatus.DONE) {
-      await subtaskService.setAllSubtasksToDone(taskId);
-    }
-
     return updated;
   }
 
@@ -408,6 +403,25 @@ export async function updateTask(
     }
   }
 
+  // If task is being moved to DONE, check if all subtasks are completed
+  if (status === TaskStatus.DONE) {
+    const subtasks = await prisma.subtask.findMany({
+      where: { taskId },
+    });
+
+    const hasIncompleteSubtasks = subtasks.some(
+      (subtask) => subtask.status !== TaskStatus.DONE
+    );
+
+    if (hasIncompleteSubtasks) {
+      throw new AppError(
+        400,
+        "INCOMPLETE_SUBTASKS",
+        "Cannot mark task as done. All subtasks must be completed first."
+      );
+    }
+  }
+
   const updatedTask = await prisma.task.update({
     where: { id: taskId },
     data: {
@@ -423,11 +437,6 @@ export async function updateTask(
       assignee: { select: { id: true, name: true, image: true } },
     },
   });
-
-  // If task is moved to DONE, set all subtasks to DONE
-  if (status === TaskStatus.DONE) {
-    await subtaskService.setAllSubtasksToDone(taskId);
-  }
 
   // Update reminders nếu dueDate thay đổi
   if (computedDue) {

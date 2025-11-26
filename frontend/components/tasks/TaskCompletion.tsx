@@ -6,22 +6,28 @@ import TaskCompletionForm from "./completion/TaskCompletionForm";
 interface TaskCompletionProps {
   taskId: string;
   isAssignee: boolean;
+  isAdmin?: boolean;
   existingNote?: string;
-  onNoteUpdated: (note: string) => void;
+  onNoteUpdated: (note: string, deliverables: any[]) => void;
   deliverables?: any[];
 }
 
 export default function TaskCompletion({
   taskId,
   isAssignee,
+  isAdmin = false,
   existingNote,
   onNoteUpdated,
   deliverables = [],
 }: TaskCompletionProps) {
+  // Allow edit if user is assignee or project admin
+  const canEdit = isAssignee || isAdmin;
+
   const {
     completionNote,
     isSaving,
     isEditing,
+    hasSavedCompletion,
     deliverableFiles,
     setDeliverableFiles,
     handleNoteChange,
@@ -31,31 +37,26 @@ export default function TaskCompletion({
     handleCancelEdit,
   } = useTaskCompletion({
     taskId,
-    isAssignee,
+    canEdit,
     existingNote,
     onNoteUpdated,
     deliverables,
   });
 
-  const hasExistingData = !!(
-    existingNote ||
-    (deliverables && deliverables.length > 0)
-  );
-
   return (
     <div className="space-y-4">
       <TaskCompletionHeader
-        isAssignee={isAssignee}
+        canEdit={canEdit}
         isEditing={isEditing}
-        hasExistingData={hasExistingData}
+        hasExistingData={hasSavedCompletion}
         onEnterEditMode={handleEnterEditMode}
         onCancelEdit={handleCancelEdit}
       />
 
       {!isEditing ? (
         <TaskCompletionView
-          existingNote={existingNote}
-          deliverables={deliverables}
+          existingNote={completionNote}
+          deliverables={deliverableFiles}
         />
       ) : (
         <TaskCompletionForm

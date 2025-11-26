@@ -1,0 +1,43 @@
+{
+  "Theme": {
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "HomePage": {
+    "title": "Nexus Collaboration",
+    "subtitle": "Streamline your workflow with our all-in-one collaboration platform.",
+    "hero": {
+      "badge": "Introducing Nexus Collaboration",
+      "title1": "Collaborate",
+      "title2": "Seamlessly on",
+      "titleHighlight": "Projects",
+      "description": "Streamline your team's workflow with our intuitive project management platform. Create projects, manage tasks, and collaborate effectively.",
+      "dashboard": "Dashboard",
+      "signOut": "Sign Out",
+      "getStarted": "Get Started",
+      "signIn": "Sign In",
+      "signUp": "Sign Up" 
+    }
+  },
+  "AuthPage": {
+    "signIn": {
+      "home": "Home",
+      "title": "Welcome back",
+      "description": "Login to your account to continue",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "forgotPassword": "Forgot Password?",
+      "or": "Or",
+      "needAccount": "Need an account?",
+      "google": "Sign in with Google",
+      "github": "Sign in with GitHub"
+    }
+  },
+  "LanguageSwitcher": {
+    "label": "Language",
+    "en": "EN",
+    "vi": "VI"
+  }
+}

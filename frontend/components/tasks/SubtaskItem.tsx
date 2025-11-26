@@ -46,6 +46,7 @@ interface SubtaskItemProps {
   onNameSave: (subtaskId: string) => void;
   onDelete: (subtaskId: string) => void;
   setEditingNameId: (id: string | null) => void;
+  taskStatus?: "TODO" | "IN_PROGRESS" | "DONE";
 }
 
 const SubtaskItem = memo(function SubtaskItem({
@@ -60,6 +61,7 @@ const SubtaskItem = memo(function SubtaskItem({
   onNameSave,
   onDelete,
   setEditingNameId,
+  taskStatus,
 }: SubtaskItemProps) {
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -88,7 +90,7 @@ const SubtaskItem = memo(function SubtaskItem({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(150px,250px)_minmax(90px,100px)_minmax(140px,180px)_minmax(90px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
+    <div className="grid grid-cols-[minmax(140px,240px)_minmax(80px,90px)_minmax(130px,170px)_minmax(90px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
       {/* Name - Editable on click */}
       <div className="flex items-center gap-2 min-w-0">
         {editingNameId === subtask.id ? (
@@ -250,7 +252,7 @@ const SubtaskItem = memo(function SubtaskItem({
 
       {/* Actions - Delete button */}
       <div className="flex items-center justify-center">
-        {canEdit && (
+        {canEdit && taskStatus !== "DONE" && (
           <Button
             variant="ghost"
             size="sm"
@@ -259,6 +261,10 @@ const SubtaskItem = memo(function SubtaskItem({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+        )}
+        {/* Empty space to maintain layout when delete button is hidden */}
+        {(!canEdit || taskStatus === "DONE") && (
+          <div className="h-8 w-8" />
         )}
       </div>
     </div>

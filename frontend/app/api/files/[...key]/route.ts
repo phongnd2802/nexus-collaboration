@@ -10,13 +10,16 @@ export async function GET(
   { params }: { params: Promise<{ key: string[] }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Public access allowed for file retrieval
+    // const session = await getServerSession(authOptions);
+    // if (!session || !session.user) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
 
     const resolvedParams = await params;
     const key = resolvedParams.key.join("/");
+    console.log("File retrieval request for key:", key);
+
 
     const command = new GetObjectCommand({
       Bucket: BUCKET_NAME,
