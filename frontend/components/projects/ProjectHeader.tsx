@@ -45,7 +45,9 @@ export default function ProjectHeader({
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const formattedDueDate = formatDate(project.dueDate, t, locale, { includeTime: true });
+  const formattedDueDate = formatDate(project.dueDate, t, locale, {
+    includeTime: true,
+  });
 
   const handleEditClick = () => {
     setIsEditDialogOpen(true);
@@ -60,7 +62,7 @@ export default function ProjectHeader({
   };
 
   return (
-    <div className="w-full px-2 sm:px-4">
+    <div className="w-full">
       <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
         <div className="max-w-full">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 wrap-break-word">
@@ -81,7 +83,7 @@ export default function ProjectHeader({
         {/* Desktop Actions */}
         <div className="hidden md:flex md:flex-row gap-2">
           <Button
-            variant="outline"
+            variant="neutral"
             size="sm"
             className="flex items-center"
             asChild
@@ -94,7 +96,7 @@ export default function ProjectHeader({
           {isAdmin && (
             <>
               <Button
-                variant="outline"
+                variant="neutral"
                 size="sm"
                 className="flex items-center"
                 onClick={handleEditClick}
@@ -103,7 +105,7 @@ export default function ProjectHeader({
                 Edit
               </Button>
               <Button
-                variant="outline"
+                variant="neutral"
                 size="sm"
                 className="flex items-center"
                 onClick={handleInviteClick}
@@ -116,7 +118,6 @@ export default function ProjectHeader({
           {(isAdmin || isEditor) && (
             <Button
               asChild
-              className="bg-violet-700 hover:bg-violet-800 text-white flex items-center"
               size="sm"
             >
               <Link href={`/tasks/create?projectId=${project.id}`}>
@@ -130,7 +131,7 @@ export default function ProjectHeader({
         {/* Mobile Actions */}
         <div className="flex md:hidden justify-between gap-2">
           <Button
-            variant="outline"
+            variant="neutral"
             size="sm"
             className="flex-1 flex items-center justify-center"
             asChild
@@ -144,7 +145,7 @@ export default function ProjectHeader({
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="neutral" size="sm" className="flex-1">
                   <Menu className="h-4 w-4 mr-1 sm:mr-2" />
                   <span className="sm:inline">Actions</span>
                 </Button>

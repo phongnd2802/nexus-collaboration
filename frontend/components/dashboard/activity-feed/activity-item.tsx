@@ -56,7 +56,7 @@ export const ActivityItem = React.memo(
 
         {/* Content Section */}
         <div className="flex-1">
-          <div className="flex items-center justify-around">
+          <div className="flex items-center justify-between">
             <Link
               href={profileUrl}
               className="text-sm font-medium hover:underline truncate line-clamp-2 break-words"
@@ -64,7 +64,7 @@ export const ActivityItem = React.memo(
               {activity.userName}
             </Link>
             <span className="text-xs text-muted-foreground ml-2">
-              {formatRelativeTime(activity.createdAt, locale, t)}
+              {formatRelativeTime(activity.createdAt)}
             </span>
           </div>
 
