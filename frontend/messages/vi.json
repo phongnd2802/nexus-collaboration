@@ -272,7 +272,20 @@
       "tip1": "Chia nhỏ dự án của bạn thành các nhiệm vụ nhỏ và dễ quản lý hơn.",
       "tip2": "Đặt các mốc và hạn chót rõ ràng để dễ theo dõi tiến độ.",
       "tip3": "Mời tất cả các thành viên liên quan đến dự án để dễ dàng hợp tác.",
-      "tip4": "Sử dụng mô tả nhiệm vụ để cung cấp ngữ cảnh và yêu cầu rõ ràng."
+      "tip4": "Sử dụng mô tả công việc để cung cấp ngữ cảnh và yêu cầu rõ ràng."
     }
+  },
+  "ProjectDetailPage": {
+    "projectNotFound": "Dự án không tồn tại",
+    "projectNotFoundDescription": "Dự án bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.",
+    "overview": "Tổng Quan",
+    "tasks": "Công việc",
+    "files": "File",
+    "loadingTasks": "Đang tải công việc...",
+    "progress": "Tiến độ dự án",
+    "overallCompletion": "Tổng tiến độ",
+    "completed": "Hoàn thành",
+    "inProgress": "Đang tiến hành",
+    "todo": "Đang chờ"
   }
 }

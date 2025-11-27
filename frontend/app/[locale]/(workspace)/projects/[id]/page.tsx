@@ -9,12 +9,13 @@ import ProjectTasks from "@/components/projects/ProjectTasks";
 import ProjectHeader from "@/components/projects/ProjectHeader";
 import ProjectFiles from "@/components/projects/ProjectFiles";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { ProjectWithDetails, Task } from "@/types/index";
+import { Task } from "@/types/index";
 import { useProjectData } from "@/hooks/use-project-data";
 import { LoadingState } from "@/components/ui/loading-state";
+import { useTranslations } from "next-intl";
 
 export default function ProjectDetailPage() {
+  const t = useTranslations("ProjectDetailPage");
   const params = useParams();
   const id = params.id as string;
   const { status } = useSession();
@@ -50,10 +51,9 @@ export default function ProjectDetailPage() {
     return (
       <div className="flex flex-col min-h-screen">
         <div className="grow flex items-center justify-center flex-col p-8">
-          <h2 className="text-2xl font-bold mb-4">Project not found</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("projectNotFound")}</h2>
           <p className="text-muted-foreground">
-            The project you're looking for doesn't exist or you don't have
-            permission to view it.
+            {t("projectNotFoundDescription")}
           </p>
         </div>
       </div>
@@ -81,9 +81,9 @@ export default function ProjectDetailPage() {
             onValueChange={(value) => setActiveTab(value)}
           >
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="tasks">Tasks</TabsTrigger>
-              <TabsTrigger value="files">Files</TabsTrigger>
+              <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+              <TabsTrigger value="tasks">{t("tasks")}</TabsTrigger>
+              <TabsTrigger value="files">{t("files")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6">
@@ -98,8 +98,8 @@ export default function ProjectDetailPage() {
             <TabsContent value="tasks" className="mt-6">
               {isTasksLoading ? (
                 <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-violet-700 mr-2" />
-                  <span>Loading tasks...</span>
+                  <Loader2 className="h-8 w-8 animate-spin text-main mr-2" />
+                  <span>{t("loadingTasks")}</span>
                 </div>
               ) : (
                 <ProjectTasks
