@@ -153,47 +153,6 @@
     "pendingTasks": "Công việc chờ",
     "upcomingDeadlines": "Công việc sắp đến"
   },
-  "ProjectDetails": {},
-  "LanguageSwitcher": {
-    "label": "Ngôn ngữ",
-    "en": "EN",
-    "vi": "VI"
-  },
-  "date": {
-    "noDueDate": "Không có hạn",
-    "today": "Hôm nay",
-    "tomorrow": "Ngày mai",
-    "withTime": "{date} lúc {time}"
-  },
-  "relative": {
-    "seconds": "{value} giây trước",
-    "minutes": "{value} phút trước",
-    "hours": "{value} giờ trước",
-    "days": "{value} ngày trước"
-  },
-  "UnifiedBreadcrumb": {
-    "dashboard": "Bảng điều khiển",
-    "projects": "Dự án",
-    "tasks": "Công việc",
-    "calendar": "Lịch",
-    "team": "Nhóm",
-    "profile": "Hồ sơ",
-    "settings": "Cài đặt",
-    "create": "Tạo mới",
-    "projectDetails": "Chi tiết dự án",
-    "taskDetails": "Chi tiết công việc",
-    "createProject": "Tạo dự án",
-    "createTask": "Tạo công việc"
-  },
-  "CalendarPage": {
-    "header": {
-      "title": "Lịch",
-      "description": "Quản lý các deadline và thời gian dự án của bạn",
-      "today": "Hôm nay"
-    },
-    "noCalendarData": "Không có dữ liệu lịch",
-    "calendar": "Lịch"
-  },
   "MessagesPage": {
     "title": "Tin nhắn",
     "description": "Quản lý các tin nhắn của bạn",
@@ -213,6 +172,58 @@
     "conversationSearch": {
       "placeholder": "Tìm kiếm cuộc trò chuyện..."
     }
+  },
+  "TasksPage": {
+    "header": {
+      "title": "Công việc của tôi",
+      "subtitle": "Xem và quản lý tất cả công việc của bạn trên các dự án",
+      "newTask": "Công việc mới"
+    },
+    "tabs": {
+      "assigned": "Được giao",
+      "created": "Đã tạo"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm công việc..."
+    },
+    "filter": {
+      "button": "Bộ lọc",
+      "byStatus": "Lọc theo trạng thái",
+      "byPriority": "Lọc theo mức độ ưu tiên",
+      "clearFilters": "Xóa bộ lọc",
+      "activeFilters": "Bộ lọc đang dùng:",
+      "clearAll": "Xóa tất cả"
+    },
+    "sort": {
+      "button": "Sắp xếp theo",
+      "dueDate": "Hạn chót",
+      "priority": "Mức độ ưu tiên",
+      "status": "Trạng thái"
+    },
+    "status": {
+      "TODO": "Cần làm",
+      "IN_PROGRESS": "Đang làm",
+      "DONE": "Hoàn thành"
+    },
+    "priority": {
+      "HIGH": "Cao",
+      "MEDIUM": "Trung bình",
+      "LOW": "Thấp"
+    },
+    "emptyState": {
+      "title": "Không tìm thấy công việc",
+      "description": "Thử điều chỉnh bộ lọc hoặc tạo công việc mới.",
+      "createTask": "Tạo công việc mới"
+    }
+  },
+  "CalendarPage": {
+    "header": {
+      "title": "Lịch",
+      "description": "Quản lý các deadline và thời gian dự án của bạn",
+      "today": "Hôm nay"
+    },
+    "noCalendarData": "Không có dữ liệu lịch",
+    "calendar": "Lịch"
   },
   "ProjectsPage": {
     "header": {
@@ -287,5 +298,36 @@
     "completed": "Hoàn thành",
     "inProgress": "Đang tiến hành",
     "todo": "Đang chờ"
+  },
+  "LanguageSwitcher": {
+    "label": "Ngôn ngữ",
+    "en": "EN",
+    "vi": "VI"
+  },
+  "date": {
+    "noDueDate": "Không có hạn",
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai",
+    "withTime": "{date} lúc {time}"
+  },
+  "relative": {
+    "seconds": "{value} giây trước",
+    "minutes": "{value} phút trước",
+    "hours": "{value} giờ trước",
+    "days": "{value} ngày trước"
+  },
+  "UnifiedBreadcrumb": {
+    "dashboard": "Bảng điều khiển",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "calendar": "Lịch",
+    "team": "Nhóm",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "create": "Tạo mới",
+    "projectDetails": "Chi tiết dự án",
+    "taskDetails": "Chi tiết công việc",
+    "createProject": "Tạo dự án",
+    "createTask": "Tạo công việc"
   }
 }

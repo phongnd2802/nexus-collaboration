@@ -99,7 +99,7 @@ export function TaskPreview({
             <div className="flex flex-wrap gap-3">
               {formData.priority && (
                 <Badge
-                  variant="secondary"
+                  variant="default"
                   className={`${getPriorityColor(formData.priority)}`}
                 >
                   <Flag className="h-3 w-3 mr-1" />
