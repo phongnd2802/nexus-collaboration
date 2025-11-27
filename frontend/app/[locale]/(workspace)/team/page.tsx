@@ -335,7 +335,7 @@ export default function TeamPage() {
                   {isMobile ? (
                     <div className="flex justify-between items-center w-full mt-2">
                       <Badge
-                        variant="outline"
+                        variant="neutral"
                         className="text-sm text-muted-foreground mr-2"
                       >
                         {collaborator.commonProjects.length} project
@@ -345,7 +345,7 @@ export default function TeamPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
-                            variant="ghost"
+                            variant="neutral"
                             size="icon"
                             className="h-8 w-8"
                           >
@@ -380,7 +380,7 @@ export default function TeamPage() {
                     /* Desktop view - original layout */
                     <div className="flex items-center gap-2">
                       <Badge
-                        variant="outline"
+                        variant="neutral"
                         className="text-sm text-muted-foreground mr-2"
                       >
                         {collaborator.commonProjects.length} project

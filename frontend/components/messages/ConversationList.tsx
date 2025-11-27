@@ -2,6 +2,7 @@ import React from "react";
 import ConversationSearch from "./ConversationSearch";
 import ConversationItem from "./ConversationItem";
 import { useConversationList } from "@/hooks/useConversationList";
+import { useTranslations } from "next-intl";
 
 interface User {
   id: string;
@@ -49,6 +50,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   onConversationsUpdate,
   onTeamConversationsUpdate,
 }) => {
+  const t = useTranslations("MessagesPage.conversationList");
   // Use custom hook to handle Socket.IO events
   useConversationList({
     conversations,
@@ -99,8 +101,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <p className="text-sm text-muted-foreground">
               {searchQuery
-                ? "No conversations match your search"
-                : "No conversations yet"}
+                ? t("noConversationsFound")
+                : t("noConversations")}
             </p>
           </div>
         ) : (

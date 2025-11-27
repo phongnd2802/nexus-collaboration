@@ -133,7 +133,7 @@
     }
   },
   "WorkspaceSidebar": {
-    "dashboard": "Tổng quan",
+    "dashboard": "Bảng điều khiển",
     "projects": "Dự án",
     "tasks": "Công việc",
     "calendar": "Lịch",
@@ -153,9 +153,7 @@
     "pendingTasks": "Công việc chờ",
     "upcomingDeadlines": "Công việc sắp đến"
   },
-  "ProjectDetails": {
-
-  },
+  "ProjectDetails": {},
   "LanguageSwitcher": {
     "label": "Ngôn ngữ",
     "en": "EN",
@@ -172,5 +170,109 @@
     "minutes": "{value} phút trước",
     "hours": "{value} giờ trước",
     "days": "{value} ngày trước"
+  },
+  "UnifiedBreadcrumb": {
+    "dashboard": "Bảng điều khiển",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "calendar": "Lịch",
+    "team": "Nhóm",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "create": "Tạo mới",
+    "projectDetails": "Chi tiết dự án",
+    "taskDetails": "Chi tiết công việc",
+    "createProject": "Tạo dự án",
+    "createTask": "Tạo công việc"
+  },
+  "CalendarPage": {
+    "header": {
+      "title": "Lịch",
+      "description": "Quản lý các deadline và thời gian dự án của bạn",
+      "today": "Hôm nay"
+    },
+    "noCalendarData": "Không có dữ liệu lịch",
+    "calendar": "Lịch"
+  },
+  "MessagesPage": {
+    "title": "Tin nhắn",
+    "description": "Quản lý các tin nhắn của bạn",
+    "button": {
+      "newMessage": "Tin nhắn mới",
+      "searchPlaceholder": "Tìm kiếm người dùng...",
+      "cancel": "Hủy"
+    },
+    "userSearchResults": {
+      "noUsersFound": "Không tìm thấy người dùng",
+      "startTyping": "Bắt đầu gõ để tìm kiếm người dùng"
+    },
+    "conversationList": {
+      "noConversations": "Không có cuộc trò chuyện",
+      "noConversationsFound": "Không tìm thấy cuộc trò chuyện"
+    },
+    "conversationSearch": {
+      "placeholder": "Tìm kiếm cuộc trò chuyện..."
+    }
+  },
+  "ProjectsPage": {
+    "header": {
+      "title": "Dự án",
+      "description": "Quản lý các dự án của bạn",
+      "newProject": "Tạo dự án"
+    },
+    "filter": {
+      "placeholder": "Tìm kiếm dự án...",
+      "filterByStatus": "Bộ lọc theo trạng thái",
+      "activeFilters": "Bộ lọc",
+      "inProgress": "Đang tiến hành",
+      "filter": "Bộ lọc",
+      "sortBy": "Sắp xếp theo",
+      "name": "Tên",
+      "dueDate": "Hạn chót",
+      "members": "Thành viên",
+      "progress": "Tình trạng",
+      "atRisk": "Sắp tới hạn",
+      "completed": "Hoàn thành",
+      "clearFilters": "Xóa bộ lọc"
+    },
+    "list": {
+      "noProjects": "Bạn chưa có dự án",
+      "createFirstProject": "Tạo dự án đầu tiên để bắt đầu hợp tác với nhóm của bạn",
+      "createNewProject": "Tạo dự án mới",
+      "noProjectsMatch": "Không có dự án phù hợp với bộ lọc của bạn",
+      "tryAdjustingFilters": "Thử điều chỉnh bộ lọc của bạn",
+      "clearFilters": "Xóa bộ lọc"
+    },
+    "create": {
+      "title": "Tạo dự án",
+      "description": "Thiết lập dự án mới và thêm thành viên để bắt đầu cộng tác",
+      "name": "Tên dự án",
+      "nameDescription": "Chọn một tên rõ ràng, cụ thể phản ánh mục đích dự án",
+      "namePlaceholder": "Nhập tên dự án",
+      "projectDescription": "Mô tả dự án",
+      "descriptionPlaceholder": "Mô tả mục tiêu của dự án, phạm vi, và bất kỳ thông tin bổ sung nào",
+      "descriptionDescription": "Mô tả kỹ lưỡng giúp các thành viên trong nhóm hiểu được mục đích của dự án",
+      "projectFiles": "File dự án",
+      "projectFilesDescription": "Thêm tài liệu dự án hoặc tài liệu tham khảo cho nhóm của bạn",
+      "cancel": "Hủy",
+      "creating": "Đang tạo",
+      "createProject": "Tạo dự án",
+      "dueDate": "Hạn chót & Thời gian",
+      "dueDateDescription": "Chọn một ngày, sau đó chọn thời gian cụ thể.",
+      "projectPreview": "Xem trước dự án",
+      "teamMembers": "Thành viên",
+      "youAdmin": "Bạn (Admin)",
+      "youCanInvite": "Bạn có thể mời thành viên vào dự án sau khi tạo dự án",
+      "attachedFiles": "File đính kèm",
+      "file": "file",
+      "namePlaceholderPreview": "Tên dự án của bạn sẽ xuất hiện ở đây"
+    },
+    "tips": {
+      "title": "Mẹo Quản Lý Dự Án",
+      "tip1": "Chia nhỏ dự án của bạn thành các nhiệm vụ nhỏ và dễ quản lý hơn.",
+      "tip2": "Đặt các mốc và hạn chót rõ ràng để dễ theo dõi tiến độ.",
+      "tip3": "Mời tất cả các thành viên liên quan đến dự án để dễ dàng hợp tác.",
+      "tip4": "Sử dụng mô tả nhiệm vụ để cung cấp ngữ cảnh và yêu cầu rõ ràng."
+    }
   }
 }

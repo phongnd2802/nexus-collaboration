@@ -324,7 +324,7 @@ export default function WorkspaceSidebar() {
           <div className="h-8 w-8 rounded-full bg-violet-700 flex items-center justify-center">
             <Zap className="h-4 w-4 text-white" />
           </div>
-          <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-700 to-purple-600">
+          <span className="text-lg font-bold bg-clip-text text-transparent bg-linear-to-r from-violet-700 to-purple-600">
             Nexus
           </span>
         </Link>

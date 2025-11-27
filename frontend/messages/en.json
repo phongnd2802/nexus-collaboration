@@ -62,5 +62,19 @@
     "minutes": "{value} minutes ago",
     "hours": "{value} hours ago",
     "days": "{value} days ago"
+  },
+  "UnifiedBreadcrumb": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "calendar": "Calendar",
+    "team": "Team",
+    "profile": "Profile",
+    "settings": "Settings",
+    "create": "Create",
+    "projectDetails": "Project Details",
+    "taskDetails": "Task Details",
+    "createProject": "Create Project",
+    "createTask": "Create Task"
   }
 }
