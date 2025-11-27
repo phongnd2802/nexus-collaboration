@@ -76,5 +76,48 @@
     "taskDetails": "Task Details",
     "createProject": "Create Project",
     "createTask": "Create Task"
+  },
+  "TasksPage": {
+    "header": {
+      "title": "My Tasks",
+      "subtitle": "View and manage all your tasks across projects",
+      "newTask": "New Task"
+    },
+    "tabs": {
+      "assigned": "Assigned",
+      "created": "Created"
+    },
+    "search": {
+      "placeholder": "Search tasks..."
+    },
+    "filter": {
+      "button": "Filter",
+      "byStatus": "Filter By Status",
+      "byPriority": "Filter By Priority",
+      "clearFilters": "Clear Filters",
+      "activeFilters": "Active filters:",
+      "clearAll": "Clear All"
+    },
+    "sort": {
+      "button": "Sort by",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "status": "Status"
+    },
+    "status": {
+      "TODO": "To Do",
+      "IN_PROGRESS": "In Progress",
+      "DONE": "Done"
+    },
+    "priority": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "emptyState": {
+      "title": "No tasks found",
+      "description": "Try adjusting your filters or create a new task.",
+      "createTask": "Create New Task"
+    }
   }
 }

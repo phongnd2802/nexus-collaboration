@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   Loader2,
   PlusCircle,
@@ -44,6 +45,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 export default function TasksPage() {
   const { data: session, status } = useSession();
   const isMobile = useIsMobile();
+  const t = useTranslations("TasksPage");
 
   const {
     filteredTasks,
@@ -81,15 +83,6 @@ export default function TasksPage() {
   }
 
   const renderEmptyState = (tabType: "assigned" | "created") => {
-    // We can't easily check if *all* tasks are empty from the hook without exposing 'tasks'
-    // But we can infer it if filteredTasks is empty and no filters are active.
-    // However, let's just use filteredTasks for simplicity or expose 'tasks' from hook if needed.
-    // For now, I'll simplify the empty state logic or expose 'tasks' from hook.
-    // Let's assume we want to keep the original logic, so I should expose 'tasks' from the hook.
-    // I did expose 'tasks' in the hook.
-
-    // Re-accessing tasks from hook would require destructuring it.
-    // Let's assume I destructured it above.
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -97,10 +90,10 @@ export default function TasksPage() {
             <CheckCircle2 className="h-6 w-6 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium text-foreground mb-2">
-            No tasks found
+            {t("emptyState.title")}
           </h3>
           <p className="text-muted-foreground mb-6 text-center max-w-md">
-            Try adjusting your filters or create a new task.
+            {t("emptyState.description")}
           </p>
           <Button
             asChild
@@ -108,7 +101,7 @@ export default function TasksPage() {
           >
             <Link href="/tasks/create">
               <PlusCircle className="h-4 w-4 mr-2" />
-              Create New Task
+              {t("emptyState.createTask")}
             </Link>
           </Button>
           {/* Simplified empty state for now to avoid complexity in this replacement */}
@@ -123,11 +116,9 @@ export default function TasksPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <CheckSquare className="h-7 w-7" />
-            My Tasks
+            {t("header.title")}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage all your tasks across projects
-          </p>
+          <p className="text-muted-foreground mt-1">{t("header.subtitle")}</p>
         </div>
 
         <Button
@@ -136,7 +127,7 @@ export default function TasksPage() {
         >
           <Link href="/tasks/create">
             <PlusCircle className="h-4 w-4 mr-2" />
-            New Task
+            {t("header.newTask")}
           </Link>
         </Button>
       </div>
@@ -149,10 +140,10 @@ export default function TasksPage() {
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
           <TabsList className="mb-0">
             <TabsTrigger value="assigned">
-              Assigned ({getTaskCount("assigned")})
+              {t("tabs.assigned")} ({getTaskCount("assigned")})
             </TabsTrigger>
             <TabsTrigger value="created">
-              Created ({getTaskCount("created")})
+              {t("tabs.created")} ({getTaskCount("created")})
             </TabsTrigger>
           </TabsList>
 
@@ -160,7 +151,7 @@ export default function TasksPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search tasks..."
+                placeholder={t("search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -185,63 +176,67 @@ export default function TasksPage() {
                     className="flex items-center flex-1"
                   >
                     <Filter className="h-4 w-4 mr-2" />
-                    Filter
+                    {t("filter.button")}
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Filter By Status</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("filter.byStatus")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={statusFilter.includes("TODO")}
                     onCheckedChange={() => toggleStatusFilter("TODO")}
                   >
                     <Circle className="h-3.5 w-3.5 mr-2 text-gray-500" />
-                    To Do
+                    {t("status.TODO")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={statusFilter.includes("IN_PROGRESS")}
                     onCheckedChange={() => toggleStatusFilter("IN_PROGRESS")}
                   >
                     <Clock className="h-3.5 w-3.5 mr-2 text-blue-500" />
-                    In Progress
+                    {t("status.IN_PROGRESS")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={statusFilter.includes("DONE")}
                     onCheckedChange={() => toggleStatusFilter("DONE")}
                   >
                     <CheckCircle2 className="h-3.5 w-3.5 mr-2 text-green-500" />
-                    Done
+                    {t("status.DONE")}
                   </DropdownMenuCheckboxItem>
 
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Filter By Priority</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>
+                    {t("filter.byPriority")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={priorityFilter.includes("HIGH")}
                     onCheckedChange={() => togglePriorityFilter("HIGH")}
                   >
                     <AlertTriangle className="h-3.5 w-3.5 mr-2 text-rose-500" />
-                    High
+                    {t("priority.HIGH")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={priorityFilter.includes("MEDIUM")}
                     onCheckedChange={() => togglePriorityFilter("MEDIUM")}
                   >
                     <AlertTriangle className="h-3.5 w-3.5 mr-2 text-amber-500" />
-                    Medium
+                    {t("priority.MEDIUM")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={priorityFilter.includes("LOW")}
                     onCheckedChange={() => togglePriorityFilter("LOW")}
                   >
                     <AlertTriangle className="h-3.5 w-3.5 mr-2 text-blue-500" />
-                    Low
+                    {t("priority.LOW")}
                   </DropdownMenuCheckboxItem>
 
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={clearFilters}>
-                    Clear Filters
+                    {t("filter.clearFilters")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -250,10 +245,10 @@ export default function TasksPage() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="neutral" className="flex items-center">
                     <div className="flex items-center">
-                      Sort by
+                      {t("sort.button")}
                       {sortBy === "dueDate" && (
                         <span className="ml-1 flex items-center">
-                          Due Date{" "}
+                          {t("sort.dueDate")}{" "}
                           {sortOrder === "asc" ? (
                             <ArrowUp className="ml-1 h-3 w-3" />
                           ) : (
@@ -263,7 +258,7 @@ export default function TasksPage() {
                       )}
                       {sortBy === "priority" && (
                         <span className="ml-1 flex items-center">
-                          Priority{" "}
+                          {t("sort.priority")}{" "}
                           {sortOrder === "asc" ? (
                             <ArrowUp className="ml-1 h-3 w-3" />
                           ) : (
@@ -273,7 +268,7 @@ export default function TasksPage() {
                       )}
                       {sortBy === "status" && (
                         <span className="ml-1 flex items-center">
-                          Status{" "}
+                          {t("sort.status")}{" "}
                           {sortOrder === "asc" ? (
                             <ArrowUp className="ml-1 h-3 w-3" />
                           ) : (
@@ -286,7 +281,7 @@ export default function TasksPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => toggleSort("dueDate")}>
-                    Due Date{" "}
+                    {t("sort.dueDate")}{" "}
                     {sortBy === "dueDate" &&
                       (sortOrder === "asc" ? (
                         <ArrowUp className="ml-1 h-3 w-3" />
@@ -295,7 +290,7 @@ export default function TasksPage() {
                       ))}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => toggleSort("priority")}>
-                    Priority{" "}
+                    {t("sort.priority")}{" "}
                     {sortBy === "priority" &&
                       (sortOrder === "asc" ? (
                         <ArrowUp className="ml-1 h-3 w-3" />
@@ -304,7 +299,7 @@ export default function TasksPage() {
                       ))}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => toggleSort("status")}>
-                    Status{" "}
+                    {t("sort.status")}{" "}
                     {sortBy === "status" &&
                       (sortOrder === "asc" ? (
                         <ArrowUp className="ml-1 h-3 w-3" />
@@ -323,7 +318,7 @@ export default function TasksPage() {
           searchQuery) && (
           <div className="flex flex-wrap gap-2 items-center mt-4">
             <span className="text-sm text-muted-foreground">
-              Active filters:
+              {t("filter.activeFilters")}
             </span>
             {searchQuery && (
               <Badge variant="default" className="flex items-center gap-1">
@@ -347,10 +342,10 @@ export default function TasksPage() {
                 {getStatusIcon(status)}
                 <span className="ml-1">
                   {status === "TODO"
-                    ? "To Do"
+                    ? t("status.TODO")
                     : status === "IN_PROGRESS"
-                    ? "In Progress"
-                    : "Done"}
+                    ? t("status.IN_PROGRESS")
+                    : t("status.DONE")}
                 </span>
                 <Button
                   variant="neutral"
@@ -394,7 +389,7 @@ export default function TasksPage() {
               className="text-xs h-6 text-muted-foreground hover:text-foreground"
               onClick={clearFilters}
             >
-              Clear All
+              {t("filter.clearAll")}
             </Button>
           </div>
         )}

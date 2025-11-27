@@ -21,7 +21,7 @@ export function TaskFormActions({
       <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
         <Button
           type="button"
-          variant="outline"
+          variant="neutral"
           onClick={onCancel}
           className="order-2 sm:order-1"
         >
