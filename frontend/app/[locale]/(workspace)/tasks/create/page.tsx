@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,6 +12,7 @@ import TaskForm from "@/components/tasks/TaskForm";
 import { ProjectWithDetails } from "@/types/index";
 
 function TaskPage() {
+  const t = useTranslations("TasksPage.create");
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,21 +72,8 @@ function TaskPage() {
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Create New Task
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Add a task to organize and track your team's work
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Badge
-              variant="default"
-            >
-              <Clipboard className="h-3.5 w-3.5 mr-1.5" />
-              New Task
-            </Badge>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground mt-1">{t("description")}</p>
           </div>
         </div>
       </div>
