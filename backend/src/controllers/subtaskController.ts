@@ -1,17 +1,17 @@
-import { Request, Response, NextFunction } from "express";
-import { subtaskService } from "../services/subtaskService";
+import { Request, Response } from "express";
+import { createSubtask, getSubtasksByTaskId, updateSubtask, deleteSubtask } from "../services/subtaskService";
 import { TaskStatus, TaskPriority } from "@prisma/client";
 import { sendError } from "../utils/errors";
 /**
  * Create a new subtask
  * POST /api/tasks/:taskId/subtasks
  */
-export async function createSubtask(req: Request, res: Response) {
+export async function createSubtaskController(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
     const { name, status, priority, assigneeId } = req.body;
 
-    const subtask = await subtaskService.createSubtask({
+    const subtask = await createSubtask({
       taskId,
       name: name.trim(),
       status: status as TaskStatus,
@@ -30,11 +30,11 @@ export async function createSubtask(req: Request, res: Response) {
  * Get all subtasks for a task
  * GET /api/tasks/:taskId/subtasks
  */
-export async function getSubtasks(req: Request, res: Response) {
+export async function getSubtasksController(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
 
-    const subtasks = await subtaskService.getSubtasksByTaskId(taskId);
+    const subtasks = await getSubtasksByTaskId(taskId);
 
     res.status(200).json(subtasks);
   } catch (error: any) {
@@ -47,7 +47,7 @@ export async function getSubtasks(req: Request, res: Response) {
  * Update a subtask
  * PATCH /api/tasks/:taskId/subtasks/:subtaskId
  */
-export async function updateSubtask(req: Request, res: Response) {
+export async function updateSubtaskController(req: Request, res: Response) {
   try {
     const { subtaskId } = req.params;
     const { name, status, priority, assigneeId } = req.body;
@@ -60,7 +60,7 @@ export async function updateSubtask(req: Request, res: Response) {
       updateData.assigneeId = assigneeId === "" ? null : assigneeId;
     }
 
-    const updatedSubtask = await subtaskService.updateSubtask(
+    const updatedSubtask = await updateSubtask(
       subtaskId,
       updateData
     );
@@ -76,11 +76,11 @@ export async function updateSubtask(req: Request, res: Response) {
  * Delete a subtask
  * DELETE /api/tasks/:taskId/subtasks/:subtaskId
  */
-export async function deleteSubtask(req: Request, res: Response) {
+export async function deleteSubtaskController(req: Request, res: Response) {
   try {
     const { subtaskId } = req.params;
 
-    await subtaskService.deleteSubtask(subtaskId);
+    await deleteSubtask(subtaskId);
 
     res.status(200).json({ message: "Subtask deleted successfully" });
   } catch (error: any) {

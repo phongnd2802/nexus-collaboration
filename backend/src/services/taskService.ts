@@ -1,8 +1,8 @@
 import { PrismaClient, TaskPriority, TaskStatus } from "@prisma/client";
 import { DateTime } from "luxon";
 import { deleteReminders, upsertTaskReminders } from "./reminderScheduler";
-import { subtaskService } from "./subtaskService";
-import { taskLinkService } from "./taskLinkService";
+import * as subtaskService from "./subtaskService";
+import * as taskLinkService from "./taskLinkService";
 import {
   canManageTask,
   canUpdateTaskStatus,
@@ -353,7 +353,7 @@ export async function updateTask(
         throw new AppError(403, "TASK_BLOCKED", blockCheck.reason as string);
       }
     }
-    
+
     // If task is being moved to DONE, check if all subtasks are completed
     if (status === TaskStatus.DONE) {
       const subtasks = await prisma.subtask.findMany({
@@ -361,7 +361,7 @@ export async function updateTask(
       });
 
       const hasIncompleteSubtasks = subtasks.some(
-        (subtask) => subtask.status !== TaskStatus.DONE
+        subtask => subtask.status !== TaskStatus.DONE
       );
 
       if (hasIncompleteSubtasks) {
@@ -472,7 +472,7 @@ export async function updateTask(
     });
 
     const hasIncompleteSubtasks = subtasks.some(
-      (subtask) => subtask.status !== TaskStatus.DONE
+      subtask => subtask.status !== TaskStatus.DONE
     );
 
     if (hasIncompleteSubtasks) {
@@ -495,25 +495,29 @@ export async function updateTask(
       status: status ?? undefined,
     },
     include: {
-      creator: { 
-        select: { 
-          id: true, 
-          name: true, 
-          image: true 
-        } 
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
       },
-      assignee: { 
-        select: { 
-          id: true, 
-          name: true, 
-          image: true 
-        } 
+      assignee: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
       },
     },
   });
 
   let affectedTaskIds: string[] = [];
-  if (status !== undefined && task.status === TaskStatus.DONE && status !== TaskStatus.DONE) {
+  if (
+    status !== undefined &&
+    task.status === TaskStatus.DONE &&
+    status !== TaskStatus.DONE
+  ) {
     affectedTaskIds = await taskLinkService.resetDependentTasks(taskId);
   }
 

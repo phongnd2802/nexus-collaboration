@@ -1,31 +1,27 @@
 import express, { Router } from "express";
-import * as subtaskController from "../controllers/subtaskController";
+import {
+  createSubtaskController,
+  getSubtasksController,
+  updateSubtaskController,
+  deleteSubtaskController,
+} from "../controllers/subtaskController";
 
 const subTasksRouter: Router = express.Router({ mergeParams: true });
 
-// Debug logging for subtasks router
-subTasksRouter.use((req, res, next) => {
-  console.log(`📋 Subtasks Router - ${req.method} ${req.originalUrl}`);
-  console.log(`   Path: ${req.path}`);
-  console.log(`   Params:`, req.params);
-  console.log(`   Base URL: ${req.baseUrl}`);
-  next();
-});
-
 // Create subtask
 // Route: /api/tasks/:taskId/subtasks
-subTasksRouter.post("/", subtaskController.createSubtask);
+subTasksRouter.post("/", createSubtaskController);
 
 // Get all subtasks for a task
 // Route: /api/tasks/:taskId/subtasks
-subTasksRouter.get("/", subtaskController.getSubtasks);
+subTasksRouter.get("/", getSubtasksController);
 
 // Update subtask
 // Route: /api/tasks/:taskId/subtasks/:subtaskId
-subTasksRouter.patch("/:subtaskId", subtaskController.updateSubtask);
+subTasksRouter.patch("/:subtaskId", updateSubtaskController);
 
 // Delete subtask
 // Route: /api/tasks/:taskId/subtasks/:subtaskId
-subTasksRouter.delete("/:subtaskId", subtaskController.deleteSubtask);
+subTasksRouter.delete("/:subtaskId", deleteSubtaskController);
 
 export default subTasksRouter;
