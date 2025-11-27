@@ -214,6 +214,10 @@
       "title": "Không tìm thấy công việc",
       "description": "Thử điều chỉnh bộ lọc hoặc tạo công việc mới.",
       "createTask": "Tạo công việc mới"
+    },
+    "create": {
+      "title": "Tạo công việc",
+      "description": "Thêm một công việc để tổ chức và theo dõi công việc của nhóm"
     }
   },
   "CalendarPage": {
