@@ -72,12 +72,6 @@ export const formatTime = (dateString: string): string => {
 
 type TFunc = (key: string, opts?: any) => string;
 
-/**
- * Formats a date string with options for relative dates (Today, Tomorrow) and time inclusion.
- * @param dateString - The date string to format.
- * @param options - Formatting options.
- * @returns Formatted date string.
- */
 export const formatDate = (
   dateString: string | null,
   t: TFunc,
