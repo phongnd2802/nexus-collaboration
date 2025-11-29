@@ -71,7 +71,7 @@ export default function ProjectMemberItem({
         {session?.user?.id !== member.userId && canChangeRole(member.role) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="neutral" size="icon">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

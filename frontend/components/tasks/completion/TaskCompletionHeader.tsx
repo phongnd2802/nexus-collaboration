@@ -25,7 +25,7 @@ export default function TaskCompletionHeader({
 
       {canEdit && !isEditing && (
         <Button
-          variant="ghost"
+          variant="neutral"
           size="sm"
           onClick={onEnterEditMode}
           className="flex items-center gap-1 cursor-pointer"
@@ -36,7 +36,7 @@ export default function TaskCompletionHeader({
 
       {isEditing && hasExistingData && (
         <Button
-          variant="outline"
+          variant="default"
           size="sm"
           onClick={onCancelEdit}
           className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"

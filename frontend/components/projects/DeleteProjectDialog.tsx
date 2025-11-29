@@ -105,7 +105,7 @@ export default function DeleteProjectDialog({
         </DialogHeader>
         <DialogFooter className="mt-2 sm:space-x-2">
           <Button
-            variant="outline"
+            variant="neutral"
             onClick={() => handleOpenChange(false)}
             disabled={isDeleting}
             className="mt-3 sm:mt-0"

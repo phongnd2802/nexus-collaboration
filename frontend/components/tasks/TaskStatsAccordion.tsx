@@ -19,7 +19,7 @@ const TaskStatsAccordion: React.FC<TaskStatsAccordionProps> = ({
   return (
     <div className="mt-2 md:hidden">
       <Button
-        variant="ghost"
+        variant="neutral"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full justify-between mb-2"
       >

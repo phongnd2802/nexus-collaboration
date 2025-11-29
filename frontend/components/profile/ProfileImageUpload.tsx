@@ -300,7 +300,7 @@ export default function ProfileImageUpload({
                   </p>
                   <div className="flex space-x-4 justify-center">
                     <Button
-                      variant="outline"
+                      variant="neutral"
                       onClick={() => setConfirmationView("none")}
                       size="sm"
                       className="flex items-center px-4"
@@ -331,7 +331,7 @@ export default function ProfileImageUpload({
                 </p>
                 <div className="flex space-x-4">
                   <Button
-                    variant="outline"
+                    variant="neutral"
                     onClick={handleCancelPreview}
                     size="sm"
                     className="flex items-center border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 px-4"
@@ -354,7 +354,7 @@ export default function ProfileImageUpload({
                 {hasExistingImage && (
                   <div className="w-full flex justify-end">
                     <Button
-                      variant="ghost"
+                      variant="default"
                       size="sm"
                       className="text-red-500 hover:text-red-700 hover:bg-red-50 flex items-center cursor-pointer"
                       onClick={() => setConfirmationView("delete")}

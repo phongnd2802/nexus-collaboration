@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, formatDate, getInitials } from "@/lib/utils";
 import { getPriorityBadge } from "@/lib/badge-utils";
 import { Task } from "@/types/index";
+import { useLocale, useTranslations } from "next-intl";
 
 interface TaskCardProps {
   task: Task;
@@ -90,7 +91,7 @@ export const TaskCard = React.memo(
           {task.dueDate && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {formatDate(task.dueDate, { relative: true, includeTime: true })}
+              {formatDate(task.dueDate, useTranslations(), useLocale(), { relative: true, includeTime: true })}
             </div>
           )}
           {getPriorityBadge(task.priority)}

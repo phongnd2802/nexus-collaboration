@@ -21,7 +21,7 @@ export default function ProjectCompletionAlert({
       </div>
       <div className="ml-4">
         <Button
-          variant="outline"
+          variant="neutral"
           size="sm"
           className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
           onClick={onOpenDialog}

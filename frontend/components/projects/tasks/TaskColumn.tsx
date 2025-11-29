@@ -94,7 +94,7 @@ export const TaskColumn = React.forwardRef<HTMLDivElement, TaskColumnProps>(
               </div>
               {title}
             </div>
-            <Badge variant="outline">{tasks.length}</Badge>
+            <Badge variant="default">{tasks.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">

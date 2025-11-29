@@ -109,7 +109,7 @@ export default function AddLinkedTaskDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="neutral"
               onClick={onClose}
               disabled={isSubmitting}
             >

@@ -66,7 +66,7 @@ export default function LinkedTaskSection({
           <CardTitle className="text-lg font-semibold">Linked task</CardTitle>
           {canEdit && taskStatus !== "DONE" && (
             <Button
-              variant="outline"
+              variant="neutral"
               size="sm"
               onClick={() => setIsDialogOpen(true)}
             >

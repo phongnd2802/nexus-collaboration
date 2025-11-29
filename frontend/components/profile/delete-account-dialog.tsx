@@ -336,7 +336,7 @@ export function DeleteAccountDialog({
               <Button
                 onClick={requestVerificationCode}
                 type="button"
-                variant="outline"
+                variant="neutral"
                 className="w-full border-border hover:bg-muted"
                 disabled={isRequestingCode}
               >
@@ -374,7 +374,7 @@ export function DeleteAccountDialog({
                   <Button
                     onClick={verifyCode}
                     type="button"
-                    variant="outline"
+                    variant="neutral"
                     disabled={isVerifyingCode}
                   >
                     {isVerifyingCode ? (
@@ -387,7 +387,7 @@ export function DeleteAccountDialog({
                 <Button
                   onClick={requestVerificationCode}
                   type="button"
-                  variant="link"
+                  variant="neutral"
                   className="h-auto p-0 text-xs text-muted-foreground hover:text-violet-700 dark:hover:text-violet-400"
                   disabled={isRequestingCode}
                 >
@@ -405,7 +405,7 @@ export function DeleteAccountDialog({
 
           {deleteError && (
             <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg flex items-start">
-              <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
               <span>{deleteError}</span>
             </div>
           )}
@@ -413,7 +413,7 @@ export function DeleteAccountDialog({
 
         <DialogFooter className="flex gap-2 sm:justify-between sm:gap-0">
           <Button
-            variant="outline"
+            variant="neutral"
             onClick={() => {
               onOpenChange(false);
               resetDialog();
