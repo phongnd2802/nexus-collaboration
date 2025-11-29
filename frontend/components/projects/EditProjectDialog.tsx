@@ -239,7 +239,7 @@ export default function EditProjectDialog({
             </Button>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-2 w-full sm:w-auto justify-end">
               <Button
-                variant="outline"
+                variant="neutral"
                 onClick={() => onOpenChange(false)}
                 className="w-full sm:w-auto"
               >

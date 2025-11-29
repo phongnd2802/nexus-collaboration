@@ -92,7 +92,7 @@ export default function InviteDialog({
           <DialogFooter className="mt-6 flex-col sm:flex-row gap-2 sm:gap-0">
             <Button
               type="button"
-              variant="outline"
+              variant="neutral"
               onClick={() => handleOpenChange(false)}
               className="w-full sm:w-auto"
             >

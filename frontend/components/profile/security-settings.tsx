@@ -95,7 +95,7 @@ export function SecuritySettings({
               two-factor authentication.
             </p>
             <Button
-              variant="outline"
+              variant="default"
               className="mt-4 border-border hover:bg-muted text-foreground"
               onClick={() => {
                 toast.success("Two-Factor Authentication coming soon!");

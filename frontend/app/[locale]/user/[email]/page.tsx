@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Loader2,
   Mail,
@@ -201,7 +201,7 @@ function UserProfileContent() {
                         .map((skill, index) => (
                           <Badge
                             key={index}
-                            variant="outline"
+                            variant="neutral"
                             className="text-sm"
                           >
                             {skill.trim()}
@@ -274,7 +274,11 @@ function UserProfileContent() {
                       Member Since
                     </span>
                     <span className="text-sm font-medium">
-                      {formatDate(userProfile.createdAt)}
+                      {formatDate(
+                        userProfile.createdAt,
+                        useTranslations(),
+                        useLocale()
+                      )}
                     </span>
                   </div>
                   <Separator />

@@ -144,7 +144,7 @@ export default function AddSubtaskDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="neutral"
               onClick={onClose}
               disabled={isSubmitting}
             >

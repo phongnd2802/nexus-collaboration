@@ -28,7 +28,7 @@ const TeamChatHeader: React.FC<TeamChatHeaderProps> = ({
     <div className="flex items-center gap-3 p-3 border-b">
       {isMobile && onBackClick && (
         <Button
-          variant="ghost"
+          variant="neutral"
           size="icon"
           onClick={onBackClick}
           className="mr-1"

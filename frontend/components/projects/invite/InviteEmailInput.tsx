@@ -76,7 +76,7 @@ export function InviteEmailInput({
         {email && (
           <Button
             type="button"
-            variant="ghost"
+            variant="neutral"
             size="sm"
             className="absolute right-1 top-1 h-8 w-8 p-0 z-10"
             onClick={onClear}

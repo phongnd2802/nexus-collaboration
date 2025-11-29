@@ -311,8 +311,7 @@ export const VerifyEmailForm = () => {
         <CardFooter className="flex justify-center pt-0">
           <Button
             asChild
-            variant="link"
-            className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+            variant="neutral"
           >
             <Link href="/auth/signin" className="flex items-center">
               <ArrowLeft className="h-4 w-4 mr-1" />

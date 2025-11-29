@@ -72,7 +72,7 @@ export function AccountActions({
               assigned.
             </p>
             <Button
-              variant="outline"
+              variant="neutral"
               className="mt-4 border-border hover:bg-muted text-foreground"
               onClick={() => {
                 toast.success("Export Data feature coming soon!");
@@ -93,7 +93,7 @@ export function AccountActions({
               action cannot be undone.
             </p>
             <Button
-              variant="outline"
+              variant="neutral"
               className="mt-4 text-red-600 dark:text-red-500 border-red-200 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-800/50 transition-all"
               onClick={() => handleDeleteModalChange(true)}
             >
