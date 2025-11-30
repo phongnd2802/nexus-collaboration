@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AddLinkedTaskDialog from "./AddLinkedTaskDialog";
 import LinkedTaskItem from "./LinkedTaskItem";
 import { useLinkedTasks } from "@/hooks/useLinkedTasks";
+import { useTranslations } from "next-intl";
 
 interface LinkedTask {
   id: string; // This is the link ID
@@ -52,6 +53,7 @@ export default function LinkedTaskSection({
   canEdit,
   taskStatus,
 }: LinkedTaskSectionProps) {
+  const t = useTranslations("TaskDetailPage")
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { handleUpdateLinkedTask, handleDeleteLinkedTask } = useLinkedTasks({
     taskId,
@@ -63,15 +65,15 @@ export default function LinkedTaskSection({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">Linked task</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("linkedTask")}</CardTitle>
           {canEdit && taskStatus !== "DONE" && (
             <Button
-              variant="neutral"
+              variant="default"
               size="sm"
               onClick={() => setIsDialogOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add link
+              {t("addLink")}
             </Button>
           )}
         </div>
@@ -80,17 +82,17 @@ export default function LinkedTaskSection({
       <CardContent>
         {linkedTasks.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            No linked tasks yet
+            {t("noLinkedTasks")}
           </p>
         ) : (
           <div className="space-y-2">
             {/* Header */}
             <div className="grid grid-cols-[minmax(110px,200px)_minmax(60px,90px)_minmax(104px,130px)_minmax(81px,110px)_minmax(120px,120px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
-              <div>Name</div>
-              <div>Priority</div>
-              <div>Assignee</div>
-              <div>Status</div>
-              <div>Relationship</div>
+              <div>{t("name")}</div>
+              <div>{t("priority")}</div>
+              <div>{t("assignee")}</div>
+              <div>{t("status")}</div>
+              <div>{t("relationship")}</div>
               <div></div>
             </div>
 
