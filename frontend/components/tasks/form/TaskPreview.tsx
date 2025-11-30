@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Flag } from "lucide-react";
 import { TaskFormData, TaskFormProject } from "@/hooks/useTaskForm";
+import { useTranslations } from "next-intl";
 
 interface TaskPreviewProps {
   formData: TaskFormData;
@@ -15,6 +16,7 @@ export function TaskPreview({
   projects,
   availableMembers,
 }: TaskPreviewProps) {
+  const t = useTranslations("TasksPage.form");
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "LOW":
@@ -32,32 +34,32 @@ export function TaskPreview({
     <div className="space-y-6">
       <Card>
         <CardContent>
-          <div className="text-lg pb-3">Task Preview</div>
+          <div className="text-lg pb-3">{t("preview")}</div>
           <div className="space-y-4">
             <div>
               <h3 className="font-medium text-sm text-muted-foreground mb-1.5">
-                Title
+                {t("preview_title")}
               </h3>
               <p className="font-medium">
-                {formData.title || "Your task title will appear here"}
+                {formData.title || t("preview_title_placeholder")}
               </p>
             </div>
 
             <div>
               <h3 className="font-medium text-sm text-muted-foreground mb-1.5">
-                Project
+                {t("preview_project")}
               </h3>
               <p>
                 {formData.projectId
                   ? projects.find((p) => p.id === formData.projectId)?.name
-                  : "No project selected"}
+                  : t("no_project_selected")}
               </p>
             </div>
 
             {formData.assigneeId && (
               <div>
                 <h3 className="font-medium text-sm text-muted-foreground mb-1.5">
-                  Assigned to
+                  {t("assigned_to")}
                 </h3>
                 <div className="flex items-center">
                   <Avatar className="h-6 w-6 mr-2">

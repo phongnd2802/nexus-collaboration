@@ -60,7 +60,7 @@ function TaskPage() {
       <div className="flex flex-col min-h-[80vh]">
         <div className="grow flex items-center justify-center">
           <div className="text-center space-y-4">
-            <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
+            <Loader2 className="h-12 w-12 animate-spin text-main mx-auto" />
           </div>
         </div>
       </div>
