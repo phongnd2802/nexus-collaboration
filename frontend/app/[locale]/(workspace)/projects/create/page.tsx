@@ -95,7 +95,6 @@ export default function NewProjectPage() {
                 <ProjectFileUpload
                   files={formData.files}
                   setFiles={(files) => updateField("files", files)}
-                  maxFiles={5}
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("projectFilesDescription")}

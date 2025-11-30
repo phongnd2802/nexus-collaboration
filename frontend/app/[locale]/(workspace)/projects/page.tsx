@@ -64,7 +64,7 @@ export default function ProjectsPage() {
 
       {isLoading && !isInitialRender && (
         <div className="fixed bottom-4 right-4 bg-background shadow-lg rounded-full p-2 z-50 border">
-          <Loader2 className="h-6 w-6 animate-spin text-violet-700" />
+          <Loader2 className="h-6 w-6 animate-spin text-main" />
         </div>
       )}
     </div>

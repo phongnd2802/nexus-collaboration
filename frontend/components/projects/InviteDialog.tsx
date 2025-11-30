@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useInviteDialog } from "@/hooks/useInviteDialog";
 import { InviteEmailInput } from "./invite/InviteEmailInput";
 import { InviteRoleSelector } from "./invite/InviteRoleSelector";
+import { useTranslations } from "next-intl";
 
 interface InviteDialogProps {
   project: any;
@@ -27,6 +28,7 @@ export default function InviteDialog({
   onOpenChange,
   onProjectUpdated,
 }: InviteDialogProps) {
+  const t = useTranslations("inviteDialog");
   const {
     inviteEmail,
     inviteRole,
@@ -60,9 +62,9 @@ export default function InviteDialog({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-xs sm:max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle>Invite Team Members</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Invite team members to collaborate on this project
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -89,29 +91,27 @@ export default function InviteDialog({
 
           <InviteRoleSelector role={inviteRole} onRoleChange={setInviteRole} />
 
-          <DialogFooter className="mt-6 flex-col sm:flex-row gap-2 sm:gap-0">
+          <DialogFooter className="mt-6 flex sm:flex-row gap-3">
             <Button
               type="button"
               variant="neutral"
               onClick={() => handleOpenChange(false)}
-              className="w-full sm:w-auto"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
               disabled={isInviting}
-              className="w-full sm:w-auto bg-violet-700 hover:bg-violet-800 text-white"
             >
               {isInviting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  {t("sending")}
                 </>
               ) : (
                 <>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Send Invitation
+                  {t("invite")}
                 </>
               )}
             </Button>

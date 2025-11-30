@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface MemberRemoveDialogProps {
   open: boolean;
@@ -23,18 +24,18 @@ export default function MemberRemoveDialog({
   onConfirm,
   isRemoving,
 }: MemberRemoveDialogProps) {
+  const t = useTranslations("memberRemoveDialog");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+          <AlertDialogTitle>{t("remove_team_member")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to remove this member from the project? This
-            action cannot be undone.
+            {t("description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isRemoving}>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isRemoving}
@@ -43,10 +44,10 @@ export default function MemberRemoveDialog({
             {isRemoving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Removing...
+                {t("removing")}
               </>
             ) : (
-              "Remove"
+              t("remove")
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
