@@ -7,13 +7,11 @@ import TaskAttachments from "@/components/tasks/TaskAttachments";
 interface ProjectFileUploadProps {
   files: any[];
   setFiles: (files: any[]) => void;
-  maxFiles?: number;
 }
 
 export default function ProjectFileUpload({
   files,
   setFiles,
-  maxFiles = 5,
 }: ProjectFileUploadProps) {
   const [error, setError] = useState<string | null>(null);
 
@@ -43,23 +41,6 @@ export default function ProjectFileUpload({
 
   const handleUploadComplete = useCallback(
     (res: any) => {
-      if (files.length + res.length > maxFiles) {
-        setError(`You can only attach up to ${maxFiles} files`);
-
-        res.forEach(async (file: any) => {
-          try {
-            await fetch("/api/files/delete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ fileKey: file.key }),
-            });
-          } catch (err) {
-            console.error("Failed to delete excess file:", err);
-          }
-        });
-        return;
-      }
-
       setError(null);
       const newFiles = res.map((file: any) => ({
         name: file.name,
@@ -74,7 +55,7 @@ export default function ProjectFileUpload({
         `${res.length} file${res.length > 1 ? "s" : ""} uploaded successfully`
       );
     },
-    [files, setFiles, maxFiles]
+    [files, setFiles]
   );
 
   const handleUploadError = useCallback((error: Error) => {
@@ -94,15 +75,12 @@ export default function ProjectFileUpload({
         <TaskAttachments files={files} onRemoveFile={handleRemoveFile} />
       )}
 
-      {files.length < maxFiles && (
-        <div className="">
-          <S3Upload
-            onUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-            maxFiles={maxFiles - files.length}
-          />
-        </div>
-      )}
+      <div className="">
+        <S3Upload
+          onUploadComplete={handleUploadComplete}
+          onUploadError={handleUploadError}
+        />
+      </div>
     </div>
   );
 }

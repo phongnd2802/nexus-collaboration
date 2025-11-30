@@ -29,7 +29,7 @@ export default function S3Upload({
   onUploadError,
   onUploadBegin,
   onUploadProgress,
-  maxFiles = 1,
+  maxFiles,
   accept = "*",
   className,
 }: S3UploadProps) {
@@ -40,7 +40,7 @@ export default function S3Upload({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    if (files.length > maxFiles) {
+    if (maxFiles && files.length > maxFiles) {
       toast.error(`You can only upload up to ${maxFiles} files`);
       return;
     }
@@ -120,18 +120,19 @@ export default function S3Upload({
             <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
           )}
           <p className="mb-2 text-sm text-muted-foreground">
-            <span className="font-semibold">Click to upload</span> or drag and
-            drop
+            <span className="font-semibold">Click to upload</span>
           </p>
-          <p className="text-xs text-muted-foreground">
-            Max {maxFiles} file{maxFiles > 1 ? "s" : ""}
-          </p>
+          {maxFiles && (
+            <p className="text-xs text-muted-foreground">
+              Max {maxFiles} file{maxFiles > 1 ? "s" : ""}
+            </p>
+          )}
         </div>
         <input
           ref={fileInputRef}
           type="file"
           className="hidden"
-          multiple={maxFiles > 1}
+          multiple={!maxFiles || maxFiles > 1}
           accept={accept}
           onChange={handleFileSelect}
           disabled={isUploading}
