@@ -48,10 +48,10 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
           {task.project && (
             <button
               onClick={handleProjectClick}
-              className="text-md text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center bg-transparent border-0 p-0 cursor-pointer text-left"
+              className="text-md text-main dark:text-main hover:underline inline-flex items-center bg-transparent border-0 p-0 cursor-pointer text-left"
             >
-              <FolderKanban className="h-4 w-4 mr-1 flex-shrink-0" />
-              <span className="line-clamp-2 break-words">
+              <FolderKanban className="h-4 w-4 mr-1 shrink-0" />
+              <span className="line-clamp-2 wrap-break-word">
                 {task.project.name}
               </span>
             </button>

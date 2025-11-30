@@ -64,7 +64,7 @@ const SubtaskItem = memo(function SubtaskItem({
   setEditingNameId,
   taskStatus,
 }: SubtaskItemProps) {
-  const t = useTranslations("DashboardPage.taskCard");
+  const t = useTranslations("TaskDetailPage");
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "TODO":

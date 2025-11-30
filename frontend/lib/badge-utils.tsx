@@ -48,19 +48,19 @@ export const getPriorityBadge = (
           className="text-xs font-medium flex items-center gap-1 px-2 py-1 bg-linear-to-r from-red-500 to-red-600 text-white shadow-sm"
         >
           <AlertTriangle className="h-3 w-3" />
-          {t ? t("priority.HIGH") : "High"}
+          {t ? t("HIGH") : "High"}
         </Badge>
       );
     case "MEDIUM":
       return (
         <Badge className="text-xs font-medium bg-linear-to-r from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm px-2 py-1">
-          {t ? t("priority.MEDIUM") : "Medium"}
+          {t ? t("MEDIUM") : "Medium"}
         </Badge>
       );
     case "LOW":
       return (
         <Badge className="text-xs font-medium bg-linear-to-r from-blue-400 to-blue-500 text-white shadow-sm px-2 py-1">
-          {t ? t("priority.LOW") : "Low"}
+          {t ? t("LOW") : "Low"}
         </Badge>
       );
     default:

@@ -33,7 +33,7 @@ export default function TaskCompletionForm({
         <Label htmlFor="completion-note">{t("notes")}</Label>
         <Textarea
           id="completion-note"
-          placeholder="Add details about the work done or upload deliverables"
+          placeholder={t("notes_placeholder")}
           value={completionNote}
           onChange={onNoteChange}
           className="min-h-[120px] resize-y"
