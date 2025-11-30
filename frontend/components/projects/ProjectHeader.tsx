@@ -90,7 +90,7 @@ export default function ProjectHeader({
           >
             <Link href={`/messages?projectId=${project.id}`}>
               <MessageSquare className="h-4 w-4 mr-2" />
-              Team
+              {t("team")}
             </Link>
           </Button>
           {isAdmin && (
@@ -102,7 +102,7 @@ export default function ProjectHeader({
                 onClick={handleEditClick}
               >
                 <Edit className="h-4 w-4 mr-2" />
-                Edit
+                {t("edit")}
               </Button>
               <Button
                 variant="neutral"
@@ -111,7 +111,7 @@ export default function ProjectHeader({
                 onClick={handleInviteClick}
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                Invite
+                {t("invite")}
               </Button>
             </>
           )}
@@ -122,7 +122,7 @@ export default function ProjectHeader({
             >
               <Link href={`/tasks/create?projectId=${project.id}`}>
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Create Task
+                {t("create_task")}
               </Link>
             </Button>
           )}
@@ -138,7 +138,7 @@ export default function ProjectHeader({
           >
             <Link href={`/messages?projectId=${project.id}`}>
               <MessageSquare className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="sm:inline">Team</span>
+              <span className="sm:inline">{t("team")}</span>
             </Link>
           </Button>
 
@@ -153,11 +153,11 @@ export default function ProjectHeader({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleEditClick}>
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit Project
+                  {t("edit")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleInviteClick}>
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Invite Member
+                  {t("invite")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-red-600 focus:text-red-600"
@@ -187,7 +187,7 @@ export default function ProjectHeader({
 
       {project.description && (
         <div className="mt-4 max-w-full">
-          <p className="text-sm sm:text-base text-foreground/80 wrap-break-word">
+          <p className="text-sm sm:text-base text-main-foreground wrap-break-word">
             {project.description}
           </p>
         </div>

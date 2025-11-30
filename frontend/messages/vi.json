@@ -91,7 +91,11 @@
         "HIGH": "Cao",
         "MEDIUM": "Trung bình",
         "LOW": "Thấp"
-      }
+      },
+      "team": "Tin nhắn",
+      "edit": "Chỉnh sửa",
+      "invite": "Mời",
+      "create_task": "Tạo công việc"
     },
     "taskSection": {
       "yourTasks": "Công việc của bạn",
@@ -301,7 +305,20 @@
     "overallCompletion": "Tổng tiến độ",
     "completed": "Hoàn thành",
     "inProgress": "Đang tiến hành",
-    "todo": "Đang chờ"
+    "todo": "Đang chờ",
+    "all_tasks_completed": "Tất cả các công việc đã hoàn thành!",
+    "project_ready_to_be_marked_as_completed": "Dự án đã sẵn sàng để được đánh dấu là hoàn thành.",
+    "mark_as_completed": "Đánh dấu là hoàn thành",
+    "mark_as_completed_description": "Tất cả các nhiệm vụ trong dự án này đã hoàn tất. Việc thay đổi trạng thái này sẽ thông báo cho tất cả thành viên trong nhóm rằng dự án đã được hoàn tất.",
+    "cancel": "Hủy",
+    "updating": "Đang cập nhật",
+    "team_members": "Thành viên",
+    "no_team_members_found": "Không tìm thấy thành viên",
+    "projectDetails": "Chi tiết dự án",
+    "createdBy": "Tạo bởi",
+    "createdOn": "Tạo vào",
+    "dueDate": "Hạn chót",
+    "updatedOn": "Cập nhật vào"
   },
   "LanguageSwitcher": {
     "label": "Ngôn ngữ",
@@ -333,5 +350,62 @@
     "taskDetails": "Chi tiết công việc",
     "createProject": "Tạo dự án",
     "createTask": "Tạo công việc"
+  },
+  "editProjectDialog": {
+    "title": "Chỉnh sửa dự án",
+    "description": "Cập nhật thông tin dự án",
+    "project_name": "Tên dự án",
+    "project_description": "Mô tả dự án",
+    "project_name_placeholder": "Nhập tên dự án",
+    "project_description_placeholder": "Nhập mô tả dự án",
+    "status": "Trạng thái",
+    "in_progress": "Đang tiến hành",
+    "at_risk": "Sắp tới hạn",
+    "completed": "Hoàn thành",
+    "select_status": "Chọn trạng thái",
+    "due_date": "Hạn chót & Thời gian",
+    "delete_project": "Xóa dự án",
+    "cancel": "Hủy",
+    "saving": "Đang lưu",
+    "save_changes": "Lưu thay đổi"
+  },
+  "deleteProjectDialog": {
+    "title": "Xóa dự án",
+    "description": "Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn dự án, tất cả tác vụ, tệp và xóa toàn bộ thành viên nhóm.",
+    "confirm_text": "Để xác nhận, vui lòng nhập",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa",
+    "delete": "Xóa"
+  },
+  "inviteDialog": {
+    "title": "Mời thành viên",
+    "description": "Mời thành viên vào dự án",
+    "cancel": "Hủy",
+    "inviting": "Đang mời",
+    "invite": "Mời",
+    "placeholder": "Nhập email",
+    "noUsersFound": "Không tìm thấy người dùng",
+    "input_description": "Nhập email người dùng bạn muốn mời",
+    "selectRole": "Chọn vai trò",
+    "role": "Vai trò",
+    "admin": "Kiểm soát toàn bộ dự án",
+    "editor": "Tạo và quản lý công việc",
+    "member": "Xem dự án và tham gia vào các công việc được giao."
+  },
+  "memberRoleDialog": {
+    "change_member_role": "Thay đổi vai trò thành viên",
+    "cancel": "Hủy",
+    "updating": "Đang cập nhật",
+    "are_you_sure_you_want_to_change_this_member_s_role_from": "Bạn có chắc chắn muốn thay đổi vai trò của thành viên này từ",
+    "to": "thành",
+    "confirm": "Xác nhận"
+  },
+  "memberRemoveDialog": {
+    "remove_team_member": "Xóa thành viên",
+    "description": "Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn thành viên khỏi dự án.",
+    "confirm_text": "Để xác nhận, vui lòng nhập",
+    "cancel": "Hủy",
+    "removing": "Đang xóa",
+    "remove": "Xóa"
   }
 }

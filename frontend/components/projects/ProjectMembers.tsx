@@ -6,6 +6,7 @@ import { useProjectMembers } from "@/hooks/useProjectMembers";
 import ProjectMemberItem from "./ProjectMemberItem";
 import MemberRoleDialog from "./MemberRoleDialog";
 import MemberRemoveDialog from "./MemberRemoveDialog";
+import { useTranslations } from "next-intl";
 
 interface ProjectMembersProps {
   projectId: string;
@@ -18,6 +19,7 @@ export default function ProjectMembers({
   project,
   onMembersUpdated,
 }: ProjectMembersProps) {
+  const t = useTranslations("ProjectDetailPage");
   const {
     session,
     members,
@@ -48,7 +50,7 @@ export default function ProjectMembers({
         <CardTitle className="flex items-center justify-between">
           <span className="flex">
             <UserCog className="h-5 w-5 mr-2" />
-            Team Members
+            {t("team_members")}
           </span>
           <span className="text-sm text-muted-foreground">
             {members.length}
@@ -58,7 +60,7 @@ export default function ProjectMembers({
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center items-center py-6">
-            <Loader2 className="h-6 w-6 animate-spin text-violet-700" />
+            <Loader2 className="h-6 w-6 animate-spin text-main" />
           </div>
         ) : (
           <div className="space-y-4">
@@ -77,7 +79,7 @@ export default function ProjectMembers({
 
             {members.length === 0 && (
               <div className="text-center py-6 text-muted-foreground">
-                No team members found for this project.
+                {t("no_team_members_found")}
               </div>
             )}
           </div>
