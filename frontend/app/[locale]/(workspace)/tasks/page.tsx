@@ -38,7 +38,6 @@ import TaskCard from "@/components/tasks/TaskCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TaskStatsAccordion from "@/components/tasks/TaskStatsAccordion";
 import TaskStats from "@/components/tasks/TaskStats";
-import { Task } from "@/types/index";
 import { useTasksData } from "@/hooks/use-tasks-data";
 import { LoadingState } from "@/components/ui/loading-state";
 
@@ -96,15 +95,13 @@ export default function TasksPage() {
             {t("emptyState.description")}
           </p>
           <Button
-            asChild
-            className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700 text-white"
+            variant="default"
           >
             <Link href="/tasks/create">
               <PlusCircle className="h-4 w-4 mr-2" />
               {t("emptyState.createTask")}
             </Link>
           </Button>
-          {/* Simplified empty state for now to avoid complexity in this replacement */}
         </CardContent>
       </Card>
     );
@@ -123,7 +120,7 @@ export default function TasksPage() {
 
         <Button
           asChild
-          className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-700 text-white"
+          variant="default"
         >
           <Link href="/tasks/create">
             <PlusCircle className="h-4 w-4 mr-2" />

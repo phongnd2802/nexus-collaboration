@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 
 interface TaskFormStatusSelectProps {
   status: string;
@@ -19,6 +20,7 @@ export function TaskFormStatusSelect({
   handleSelectChange,
   mode,
 }: TaskFormStatusSelectProps) {
+  const t = useTranslations("TasksPage.form");
   if (mode !== "edit") return null;
 
   return (
@@ -27,8 +29,8 @@ export function TaskFormStatusSelect({
         htmlFor="status"
         className="text-base font-medium flex items-center"
       >
-        <CheckCircle2 className="h-4 w-4 mr-2 text-violet-600" />
-        Status
+        <CheckCircle2 className="h-4 w-4 mr-2 text-main" />
+        {t("status")}
       </Label>
       <Select
         value={status}
