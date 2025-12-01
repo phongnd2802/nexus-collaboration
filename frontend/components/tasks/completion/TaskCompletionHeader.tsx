@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Edit, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface TaskCompletionHeaderProps {
   canEdit: boolean;
@@ -16,16 +17,17 @@ export default function TaskCompletionHeader({
   onEnterEditMode,
   onCancelEdit,
 }: TaskCompletionHeaderProps) {
+  const t = useTranslations("TaskDetailPage");
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
-        <h3 className="font-medium">Task Completion</h3>
+        <h3 className="font-medium">{t("taskCompletion")}</h3>
       </div>
 
       {canEdit && !isEditing && (
         <Button
-          variant="ghost"
+          variant="neutral"
           size="sm"
           onClick={onEnterEditMode}
           className="flex items-center gap-1 cursor-pointer"
@@ -36,13 +38,13 @@ export default function TaskCompletionHeader({
 
       {isEditing && hasExistingData && (
         <Button
-          variant="outline"
+          variant="default"
           size="sm"
           onClick={onCancelEdit}
           className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"
         >
           <X className="h-4 w-4" />
-          <span>Cancel</span>
+          <span>{t("cancel")}</span>
         </Button>
       )}
     </div>

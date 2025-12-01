@@ -1,6 +1,8 @@
 import { ActivityIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function ActivityEmptyState() {
+  const t = useTranslations("DashboardPage.activityFeed");
   return (
     <div className="text-center p-8">
       <div className="flex justify-center mb-4">
@@ -8,7 +10,7 @@ export function ActivityEmptyState() {
           <ActivityIcon className="h-6 w-6 text-muted-foreground" />
         </div>
       </div>
-      <p className="text-muted-foreground">No recent activity</p>
+      <p className="text-muted-foreground">{t("emptyState")}</p>
     </div>
   );
 }

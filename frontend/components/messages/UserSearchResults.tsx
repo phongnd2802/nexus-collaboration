@@ -2,6 +2,7 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface User {
   id: string;
@@ -25,10 +26,11 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
   onSelectUser,
   onClearSearch,
 }) => {
+  const t = useTranslations("MessagesPage.userSearchResults");
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-main" />
       </div>
     );
   }
@@ -37,10 +39,10 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
     return (
       <div className="py-8 text-center">
         {searchQuery.length > 1 ? (
-          <p className="text-sm text-muted-foreground">No users found</p>
+          <p className="text-sm text-muted-foreground">{t("noUsersFound")}</p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Start typing to search for users
+            {t("startTyping")}
           </p>
         )}
       </div>
@@ -52,7 +54,7 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
       {searchResults.map((user) => (
         <div
           key={user.id}
-          className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer"
+          className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer border border-border hover:bg-main"
           onClick={() => onSelectUser(user)}
         >
           <Avatar className="h-10 w-10">

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Send, FileUp } from "lucide-react";
 import TaskFileUpload from "../TaskFileUpload";
 import TaskAttachments from "../TaskAttachments";
+import { useTranslations } from "next-intl";
 
 interface TaskCompletionFormProps {
   completionNote: string;
@@ -25,15 +26,14 @@ export default function TaskCompletionForm({
   setDeliverableFiles,
   onSubmit,
 }: TaskCompletionFormProps) {
-  const maxAdditionalFiles = Math.max(0, 3 - deliverableFiles.length);
-
+  const t = useTranslations("TasksPage.form");
   return (
     <div className="space-y-4 bg-muted/30 p-4 rounded-md">
       <div className="space-y-2">
-        <Label htmlFor="completion-note">Notes</Label>
+        <Label htmlFor="completion-note">{t("notes")}</Label>
         <Textarea
           id="completion-note"
-          placeholder="Add details about the work done or upload deliverables"
+          placeholder={t("notes_placeholder")}
           value={completionNote}
           onChange={onNoteChange}
           className="min-h-[120px] resize-y"
@@ -44,16 +44,16 @@ export default function TaskCompletionForm({
 
       <div className="space-y-2">
         <Label className="flex items-center" htmlFor="deliverables">
-          <FileUp className="h-4 w-4 mr-2 text-violet-600" />
-          Deliverables
+          <FileUp className="h-4 w-4 mr-2 text-main" />
+          {t("deliverables")}
         </Label>
         <p className="text-xs text-muted-foreground">
-          Upload up to 3 files (max 2MB each) to showcase your work
+          {t("deliverables_description")}
         </p>
 
         {deliverableFiles.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium mb-2">Current Deliverables</h4>
+            <h4 className="text-sm font-medium mb-2">{t("current_deliverables")}</h4>
             <TaskAttachments
               files={deliverableFiles}
               onRemoveFile={onRemoveFile}
@@ -61,30 +61,17 @@ export default function TaskCompletionForm({
           </div>
         )}
 
-        {maxAdditionalFiles > 0 && (
-          <div>
-            <h4 className="text-sm font-medium mb-2">
-              ({deliverableFiles.length}/3)
-            </h4>
-            <TaskFileUpload
-              files={[]}
-              setFiles={(newFiles) => {
-                const filesToAdd = newFiles.slice(0, maxAdditionalFiles);
-                if (filesToAdd.length > 0) {
-                  setDeliverableFiles([...deliverableFiles, ...filesToAdd]);
-                }
-              }}
-              maxFiles={maxAdditionalFiles}
-            />
-          </div>
-        )}
-
-        {maxAdditionalFiles === 0 && (
-          <p className="text-xs text-amber-500">
-            Maximum number of deliverables (3) reached. Remove a file to add a
-            new one.
-          </p>
-        )}
+        <div>
+          <h4 className="text-sm font-medium mb-2">{t("add_deliverables")}</h4>
+          <TaskFileUpload
+            files={[]}
+            setFiles={(newFiles) => {
+              if (newFiles.length > 0) {
+                setDeliverableFiles([...deliverableFiles, ...newFiles]);
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div className="flex justify-end mt-4">
@@ -96,12 +83,12 @@ export default function TaskCompletionForm({
           {isSaving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
+              {t("saving")}
             </>
           ) : (
             <>
               <Send className="mr-2 h-4 w-4" />
-              Save
+              {t("save")}
             </>
           )}
         </Button>

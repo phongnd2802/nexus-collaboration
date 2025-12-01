@@ -25,8 +25,10 @@ import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 export const SignUpForm = () => {
+  const t = useTranslations("AuthPage.signUp");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,25 +87,25 @@ export const SignUpForm = () => {
       transition={{ duration: 0.4 }}
       className="w-full max-w-md mx-auto"
     >
-      <Card className="border-0 shadow-lg dark:shadow-md dark:shadow-violet-900/10">
+      <Card className="border border-main-200 dark:border-main-700 shadow-xl dark:shadow-main-900/20 rounded-xl backdrop-blur-sm bg-background/90 dark:bg-background/80 transition-transform transform hover:-translate-y-1 hover:shadow-2xl">
         <CardHeader className="space-y-1 text-center pb-0">
           <div className="relative w-full">
             <Link
               href="/"
-              className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+              className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-main dark:hover:text-main transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">{t("home")}</span>
             </Link>
-            <div className="h-12 w-12 rounded-full bg-violet-600 dark:bg-violet-700 flex items-center justify-center mx-auto">
+            <div className="h-12 w-12 rounded-full bg-main dark:bg-main flex items-center justify-center mx-auto">
               <KeyRound className="h-6 w-6 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Create an account
+            {t("title")}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Join our community of collaborators
+            {t("description")}
           </CardDescription>
         </CardHeader>
 
@@ -122,8 +124,8 @@ export const SignUpForm = () => {
           {registrationSuccess ? (
             <div className="text-center py-6">
               <div className="flex justify-center mb-4">
-                <div className="h-16 w-16 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center">
-                  <Mail className="h-8 w-8 text-violet-600 dark:text-violet-400" />
+                <div className="h-16 w-16 bg-main dark:bg-main rounded-full flex items-center justify-center">
+                  <Mail className="h-8 w-8 text-white" />
                 </div>
               </div>
               <div className="text-2xl font-bold text-foreground mb-2">
@@ -134,8 +136,8 @@ export const SignUpForm = () => {
                 <span className="font-medium">{registeredEmail}</span>.{" "}
                 <br></br> Click the link to activate your account.
               </p>
-              <div className="bg-violet-50 dark:bg-violet-900/20 p-4 rounded-lg text-sm mb-6">
-                <p className="text-violet-700 dark:text-violet-300">
+              <div className="bg-main dark:bg-main p-4 rounded-lg text-sm mb-6">
+                <p className="text-white">
                   <AlertCircle className="inline h-4 w-4 mr-2" />
                   Verify your email before you can sign in.
                 </p>
@@ -148,8 +150,8 @@ export const SignUpForm = () => {
                   htmlFor="name"
                   className="text-sm font-medium text-foreground flex items-center"
                 >
-                  <UserIcon className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
-                  Full name
+                  <UserIcon className="h-4 w-4 mr-1.5 text-main" />
+                  {t("fullName")}
                 </label>
                 <Input
                   id="name"
@@ -167,8 +169,8 @@ export const SignUpForm = () => {
                   htmlFor="email"
                   className="text-sm font-medium text-foreground flex items-center"
                 >
-                  <Mail className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
-                  Email address
+                  <Mail className="h-4 w-4 mr-1.5 text-main" />
+                  {t("email")}
                 </label>
                 <Input
                   id="email"
@@ -186,8 +188,8 @@ export const SignUpForm = () => {
                   htmlFor="password"
                   className="text-sm font-medium text-foreground flex items-center"
                 >
-                  <Lock className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
-                  Password
+                  <Lock className="h-4 w-4 mr-1.5 text-main" />
+                  {t("password")}
                 </label>
                 <Input
                   id="password"
@@ -262,15 +264,15 @@ export const SignUpForm = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-700 dark:hover:bg-violet-800 text-white font-medium py-2.5"
+                className="w-full font-medium py-2.5"
               >
                 {isLoading ? (
                   <>
                     <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-                    Creating account...
+                    {t("creatingAccount")}
                   </>
                 ) : (
-                  "Sign up"
+                  t("signUp")
                 )}
               </Button>
             </form>
@@ -284,7 +286,7 @@ export const SignUpForm = () => {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-background text-muted-foreground">
-                    Or continue with
+                    {t("or")}
                   </span>
                 </div>
               </div>
@@ -292,7 +294,7 @@ export const SignUpForm = () => {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <Button
                   onClick={() => handleSocialSignIn("google")}
-                  variant="outline"
+                  variant="neutral"
                   className="w-full border-border bg-background text-foreground hover:bg-muted font-medium"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -317,7 +319,7 @@ export const SignUpForm = () => {
                 </Button>
                 <Button
                   onClick={() => handleSocialSignIn("github")}
-                  variant="outline"
+                  variant="neutral"
                   className="w-full border-border bg-background text-foreground hover:bg-muted font-medium"
                 >
                   <Github className="h-5 w-5 mr-2" />
@@ -331,19 +333,13 @@ export const SignUpForm = () => {
         <CardFooter className="flex justify-center pt-0">
           <div className="text-sm text-center">
             <span className="text-muted-foreground"></span>{" "}
-            <Button
-              asChild
-              variant="link"
-              className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 p-0"
-            >
               <Link
                 href="/auth/signin"
-                className="items-center inline-flex"
+                className="items-center inline-flex hover:text-main dark:hover:text-main transition-colors"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Already have an account? Sign in
+                {t("haveAccount")}
               </Link>
-            </Button>
           </div>
         </CardFooter>
       </Card>

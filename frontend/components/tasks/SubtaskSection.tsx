@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AddSubtaskDialog from "./AddSubtaskDialog";
 import SubtaskItem from "./SubtaskItem";
 import { useSubtasks } from "@/hooks/useSubtasks";
+import { useTranslations } from "next-intl";
 
 interface Subtask {
   id: string;
@@ -48,6 +49,7 @@ export default function SubtaskSection({
   canEdit,
   taskStatus,
 }: SubtaskSectionProps) {
+  const t = useTranslations("TaskDetailPage");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
     editingNameId,
@@ -68,15 +70,15 @@ export default function SubtaskSection({
     <Card className="shadow-xs">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">Subtask</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t("subtask")}</CardTitle>
           {canEdit && taskStatus !== "DONE" && (
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={() => setIsDialogOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add subtask
+              {t("addSubtask")}
             </Button>
           )}
         </div>
@@ -84,15 +86,15 @@ export default function SubtaskSection({
       <CardContent>
         {subtasks.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            No subtasks yet
+            {t("noSubtasks")}
           </p>
         ) : (
           <div className="space-y-2">
             <div className="grid grid-cols-[minmax(142px,250px)_minmax(80px,150px)_minmax(130px,150px)_minmax(130px,150px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
-              <div>Name</div>
-              <div>Priority</div>
-              <div>Assignee</div>
-              <div>Status</div>
+              <div>{t("name")}</div>
+              <div>{t("priority")}</div>
+              <div>{t("assignee")}</div>
+              <div>{t("status")}</div>
               <div></div>
             </div>
             {subtasks.map((subtask) => (

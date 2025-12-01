@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { TaskFormData } from "@/hooks/useTaskForm";
+import { useTranslations } from "next-intl";
 
 interface TaskFormFieldsProps {
   formData: TaskFormData;
@@ -17,6 +18,7 @@ export function TaskFormFields({
   errors,
   handleInputChange,
 }: TaskFormFieldsProps) {
+  const t = useTranslations("TasksPage.form");
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -27,14 +29,14 @@ export function TaskFormFields({
             errors.title && "text-destructive"
           )}
         >
-          Task Title*
+          {t("title")}
         </Label>
         <Input
           id="title"
           name="title"
           value={formData.title}
           onChange={handleInputChange}
-          placeholder="Enter a clear, specific task title"
+          placeholder={t("title_placeholder")}
           className={cn("h-11", errors.title && "border-destructive")}
           required
         />
@@ -42,7 +44,7 @@ export function TaskFormFields({
           <p className="text-sm text-destructive">{errors.title}</p>
         ) : (
           <p className="text-xs text-muted-foreground">
-            A concise title helps team members understand the task at a glance
+            {t("title_helper")}
           </p>
         )}
       </div>
@@ -55,14 +57,14 @@ export function TaskFormFields({
             errors.description && "text-destructive"
           )}
         >
-          Description
+          {t("description")}
         </Label>
         <Textarea
           id="description"
           name="description"
           value={formData.description}
           onChange={handleInputChange}
-          placeholder="Provide details, context, and any specific requirements for this task"
+          placeholder={t("description_placeholder")}
           rows={5}
           className={cn(
             "resize-y min-h-[120px]",
@@ -74,7 +76,7 @@ export function TaskFormFields({
             <p className="text-sm text-destructive">{errors.description}</p>
           ) : (
             <span className="text-xs text-muted-foreground">
-              Provide any additional context or requirements
+              {t("description_helper")}
             </span>
           )}
           <span className="text-xs text-muted-foreground">

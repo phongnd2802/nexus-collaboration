@@ -58,7 +58,7 @@ export const MobileTaskView = ({
       {/* Column Header */}
       <div className="flex justify-between items-center">
         <Button
-          variant="ghost"
+          variant="neutral"
           size="sm"
           className="p-1.5"
           disabled={mobileColumnIndex === 0}
@@ -82,14 +82,14 @@ export const MobileTaskView = ({
           </div>
           <h3 className="text-base font-medium">
             {currentColumn.title}
-            <Badge className="ml-2" variant="outline">
+            <Badge className="ml-2" variant="default">
               {currentColumn.tasks.length}
             </Badge>
           </h3>
         </div>
 
         <Button
-          variant="ghost"
+          variant="neutral"
           size="sm"
           className="p-1.5"
           disabled={mobileColumnIndex === columns.length - 1}

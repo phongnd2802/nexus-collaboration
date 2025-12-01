@@ -275,7 +275,7 @@ function InvitationContent() {
             </p>
             <div className="flex gap-4">
               <Button
-                variant="outline"
+                variant="neutral"
                 className="flex-1"
                 onClick={() => signOut({ callbackUrl: "/" })}
               >
@@ -338,7 +338,7 @@ function InvitationContent() {
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-3">
           <Button
-            variant="outline"
+            variant="neutral"
             className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
             onClick={handleDecline}
             disabled={processing}

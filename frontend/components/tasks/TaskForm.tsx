@@ -18,6 +18,7 @@ import { TaskFormDates } from "./form/TaskFormDates";
 import { TaskFormPriority } from "./form/TaskFormPriority";
 import { TaskFormActions } from "./form/TaskFormActions";
 import { TaskPreview } from "./form/TaskPreview";
+import { useTranslations } from "next-intl";
 
 interface TaskFormProps {
   mode: "create" | "edit";
@@ -40,6 +41,7 @@ export default function TaskForm({
   onCancel,
   onSuccess,
 }: TaskFormProps) {
+  const t = useTranslations("TasksPage.form");
   const router = useRouter();
 
   const {
@@ -65,7 +67,7 @@ export default function TaskForm({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-main" />
       </div>
     );
   }
@@ -76,7 +78,7 @@ export default function TaskForm({
         <CardContent>
           {formError && (
             <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400 text-sm mb-6 flex items-start">
-              <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 shrink-0" />
               <span>{formError}</span>
             </div>
           )}
@@ -128,20 +130,19 @@ export default function TaskForm({
                 htmlFor="attachments"
                 className="text-base font-medium flex items-center"
               >
-                <Paperclip className="h-4 w-4 mr-2 text-violet-600" />
-                Attachments
+                <Paperclip className="h-4 w-4 mr-2 text-main" />
+                {t("attachments")}
               </Label>
               <TaskFileUpload
                 files={attachedFiles}
                 setFiles={setAttachedFiles}
-                maxFiles={2}
               />
             </div>
 
             <TaskFormActions
               mode={mode}
               isSubmitting={isSubmitting}
-              isValid={!!formData.projectId} // Basic check, validation happens on submit too
+              isValid={!!formData.projectId}
               onCancel={onCancel || (() => router.back())}
             />
           </form>

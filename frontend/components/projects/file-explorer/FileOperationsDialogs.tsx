@@ -87,7 +87,7 @@ export default function FileOperationsDialogs({
 
           <div className="flex justify-end gap-3 mt-4">
             <Button
-              variant="outline"
+              variant="neutral"
               className="cursor-pointer"
               onClick={handleUploadCancel}
               disabled={isUploading}

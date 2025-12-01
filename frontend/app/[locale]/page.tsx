@@ -7,9 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import Hero from "@/components/home/hero";
-// import Features from "@/components/home/features";
 import { Loader2 } from "lucide-react";
-import { Features } from "tailwindcss";
 
 function SearchParamsHandler() {
   const searchParams = useSearchParams();
@@ -33,7 +31,7 @@ function SearchParamsHandler() {
 function SearchParamsLoading() {
   return (
     <div className="flex items-center justify-center py-4">
-      <Loader2 className="h-4 w-4 animate-spin text-violet-700" />
+      <Loader2 className="h-4 w-4 animate-spin text-main" />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Loader2,
   Mail,
@@ -46,6 +47,7 @@ interface UserProfile {
 }
 
 function UserProfileContent() {
+  const t = useTranslations("DashboardPage.projectCard");
   const params = useParams();
   const { data: session } = useSession();
   const email = decodeURIComponent(params.email as string);
@@ -199,7 +201,7 @@ function UserProfileContent() {
                         .map((skill, index) => (
                           <Badge
                             key={index}
-                            variant="outline"
+                            variant="neutral"
                             className="text-sm"
                           >
                             {skill.trim()}
@@ -236,8 +238,8 @@ function UserProfileContent() {
                               </p>
                             )}
                             <div className="flex items-center gap-4 mt-2">
-                              {getStatusBadge(project.status)}
-                              {getRoleBadge(project.userRole)}
+                              {getStatusBadge(project.status, t)}
+                              {getRoleBadge(project.userRole, t)}
                               <div className="flex items-center text-sm text-muted-foreground">
                                 <Users className="h-3 w-3 mr-1" />
                                 {project.memberCount} member
@@ -272,7 +274,11 @@ function UserProfileContent() {
                       Member Since
                     </span>
                     <span className="text-sm font-medium">
-                      {formatDate(userProfile.createdAt)}
+                      {formatDate(
+                        userProfile.createdAt,
+                        useTranslations(),
+                        useLocale()
+                      )}
                     </span>
                   </div>
                   <Separator />
