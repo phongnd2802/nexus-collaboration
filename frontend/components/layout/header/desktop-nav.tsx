@@ -18,7 +18,7 @@ export const DesktopNav = ({ isAuthenticated, onScrollToSection }: DesktopNavPro
   <nav className="hidden sm:ml-8 sm:flex sm:space-x-1">
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-1 text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400">
+        <Button variant="neutral" className="flex items-center gap-1 text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400">
           Features <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -38,7 +38,7 @@ export const DesktopNav = ({ isAuthenticated, onScrollToSection }: DesktopNavPro
     </DropdownMenu>
 
     {isAuthenticated && (
-      <Button variant="ghost" asChild className="text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400">
+      <Button variant="neutral" asChild className="text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400">
         <Link href="/dashboard">Dashboard</Link>
       </Button>
     )}

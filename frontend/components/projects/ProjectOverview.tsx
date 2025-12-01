@@ -8,6 +8,7 @@ import ProjectProgress from "./ProjectProgress";
 import ProjectDetails from "./ProjectDetails";
 import ProjectCompletionAlert from "./ProjectCompletionAlert";
 import ProjectCompletionDialog from "./ProjectCompletionDialog";
+import { useTranslations } from "next-intl";
 
 interface ProjectOverviewProps {
   project: ProjectWithDetails;
@@ -22,6 +23,7 @@ export default function ProjectOverview({
   isAdmin,
   onProjectUpdated,
 }: ProjectOverviewProps) {
+  const t = useTranslations("ProjectDetailPage");
   const { data: session } = useSession();
   const {
     isCompletionDialogOpen,

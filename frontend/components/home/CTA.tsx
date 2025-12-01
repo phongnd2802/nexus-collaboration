@@ -38,7 +38,7 @@ const CTA = React.forwardRef<HTMLDivElement, CTAProps>(
                 </Button>
                 <Button
                   asChild
-                  variant="outline"
+                  variant="default"
                   size="lg"
                   className="border-border text-foreground hover:bg-muted font-medium"
                 >

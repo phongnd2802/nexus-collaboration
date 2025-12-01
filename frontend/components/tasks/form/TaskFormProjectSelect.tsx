@@ -10,6 +10,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { TaskFormProject } from "@/hooks/useTaskForm";
+import { useTranslations } from "next-intl";
 
 interface TaskFormProjectSelectProps {
   projectId: string;
@@ -26,6 +27,7 @@ export function TaskFormProjectSelect({
   handleSelectChange,
   mode,
 }: TaskFormProjectSelectProps) {
+  const t = useTranslations("TasksPage.form");
   if (mode !== "create") return null;
 
   return (
@@ -38,8 +40,8 @@ export function TaskFormProjectSelect({
             errors.projectId && "text-destructive"
           )}
         >
-          <FolderKanban className="h-4 w-4 mr-2 text-violet-600" />
-          Project*
+          <FolderKanban className="h-4 w-4 mr-2 text-main" />
+          {(t("projects"))}*
         </Label>
 
         <Select
@@ -51,7 +53,7 @@ export function TaskFormProjectSelect({
             id="project"
             className={cn("h-11", errors.projectId && "border-destructive")}
           >
-            <SelectValue placeholder="Select a project" />
+            <SelectValue placeholder={t("project_placeholder")} />
           </SelectTrigger>
           <SelectContent>
             {projects.length > 0
@@ -72,14 +74,14 @@ export function TaskFormProjectSelect({
       {projects.length === 0 && (
         <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
           <p className="text-sm text-amber-700 dark:text-amber-400 flex items-start">
-            <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
             <span>
-              You need to be a member of at least one project to create tasks.{" "}
+              {t("project_helper")}
               <Link
                 href="/projects/create"
                 className="font-medium underline underline-offset-2"
               >
-                Create a project
+                {t("create_project")}
               </Link>
             </span>
           </p>

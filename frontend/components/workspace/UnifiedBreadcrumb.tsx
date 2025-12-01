@@ -22,8 +22,10 @@ import {
   UserIcon,
   SettingsIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function UnifiedBreadcrumb() {
+  const t = useTranslations("UnifiedBreadcrumb");
   const pathname = usePathname();
   const params = useParams();
   const [projectName, setProjectName] = useState<string | null>(null);
@@ -35,7 +37,8 @@ export function UnifiedBreadcrumb() {
   const taskId = params?.taskId as string;
   const locale = params?.locale as string;
 
-  const showBreadcrumbs = pathname !== `/${locale}/dashboard` && pathname !== `/${locale}/messages`;
+  const showBreadcrumbs =
+    pathname !== `/${locale}/dashboard` && pathname !== `/${locale}/messages`;
 
   useEffect(() => {
     setProjectName(null);
@@ -110,7 +113,29 @@ export function UnifiedBreadcrumb() {
   };
 
   const formatSegmentName = (segment: string) => {
-    if (segment === "taskId") return "Task";
+    if (segment === "taskId") return t("taskDetails");
+
+    // Check if the segment is a known key in translations
+    const translationKey = segment.replace(/-/g, "") as any;
+    // We try to translate, if it returns the key (meaning no translation found) or if we want to be safe
+    // actually next-intl returns the key if not found? No, it throws or returns key depending on config.
+    // Let's assume we only translate known static segments.
+
+    // List of known static segments that we have translations for
+    const knownSegments = [
+      "dashboard",
+      "projects",
+      "tasks",
+      "calendar",
+      "team",
+      "profile",
+      "settings",
+      "create",
+    ];
+
+    if (knownSegments.includes(segment)) {
+      return t(segment);
+    }
 
     return (
       segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")
@@ -125,7 +150,7 @@ export function UnifiedBreadcrumb() {
             <Link href="/dashboard" className="flex items-center">
               <HomeIcon className="h-4 w-4 mr-1" />
               <span className="sr-only md:not-sr-only md:inline-block">
-                Dashboard
+                {t("dashboard")}
               </span>
             </Link>
           </BreadcrumbLink>
@@ -185,7 +210,7 @@ export function UnifiedBreadcrumb() {
                     {isLoading ? (
                       <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
                     ) : (
-                      projectName || "Project Details"
+                      projectName || t("projectDetails")
                     )}
                   </Link>
                 </BreadcrumbLink>
@@ -194,7 +219,7 @@ export function UnifiedBreadcrumb() {
                   {isLoading ? (
                     <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
                   ) : (
-                    projectName || "Project Details"
+                    projectName || t("projectDetails")
                   )}
                 </BreadcrumbPage>
               )}
@@ -212,7 +237,7 @@ export function UnifiedBreadcrumb() {
                 {isLoading ? (
                   <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
                 ) : (
-                  taskName || "Task Details"
+                  taskName || t("taskDetails")
                 )}
               </BreadcrumbPage>
             </BreadcrumbItem>
@@ -227,7 +252,7 @@ export function UnifiedBreadcrumb() {
                 <BreadcrumbItem>
                   <BreadcrumbPage className="flex items-center">
                     <PlusIcon className="h-4 w-4 mr-1" />
-                    Create Project
+                    {t("createProject")}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </>
@@ -239,7 +264,7 @@ export function UnifiedBreadcrumb() {
                 <BreadcrumbItem>
                   <BreadcrumbPage className="flex items-center">
                     <PlusIcon className="h-4 w-4 mr-1" />
-                    Create Task
+                    {t("createTask")}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </>

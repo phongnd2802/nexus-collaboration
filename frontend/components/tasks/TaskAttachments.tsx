@@ -37,7 +37,8 @@ const TaskAttachments = ({
             </div>
             {onRemoveFile ? (
               <Button
-                variant="ghost"
+                type="button"
+                variant="neutral"
                 size="sm"
                 className="h-8 w-8 p-0 text-muted-foreground"
                 onClick={() => onRemoveFile(file.url, file.key!)}
@@ -47,7 +48,7 @@ const TaskAttachments = ({
             ) : (
               <Button
                 asChild
-                variant="ghost"
+                variant="neutral"
                 size="sm"
                 className="h-8 w-8 p-0 hover:bg-transparent text-muted-foreground"
               >

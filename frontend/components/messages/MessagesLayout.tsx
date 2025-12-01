@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMessagesLayout } from "@/hooks/useMessagesLayout";
+import { useTranslations } from "next-intl";
 
 const ConversationList = lazy(() => import("./ConversationList"));
 const Chat = lazy(() => import("./Chat"));
@@ -12,6 +13,7 @@ const NewMessageButton = lazy(() => import("./NewMessageButton"));
 const EmptyState = lazy(() => import("./EmptyState"));
 
 const MessagesLayout = () => {
+  const t = useTranslations("MessagesPage");
   const isMobile = useIsMobile();
   const router = useRouter();
 
@@ -38,7 +40,7 @@ const MessagesLayout = () => {
   if (status === "loading") {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-main" />
       </div>
     );
   }
@@ -46,7 +48,7 @@ const MessagesLayout = () => {
   if (isLoading && isInitialRender) {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-main" />
       </div>
     );
   }
@@ -244,7 +246,7 @@ const MessagesLayout = () => {
       {/* Floating loading indicator for subsequent data fetches */}
       {isLoading && !isInitialRender && (
         <div className="fixed bottom-4 right-4 bg-background shadow-lg rounded-full p-2 z-50 border">
-          <Loader2 className="h-6 w-6 animate-spin text-violet-700" />
+          <Loader2 className="h-6 w-6 animate-spin text-main" />
         </div>
       )}
     </div>

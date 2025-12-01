@@ -12,138 +12,28 @@ import { WelcomeBanner } from "@/components/dashboard/welcome-banner";
 import PendingInvitationsSection from "@/components/dashboard/pending-invitations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectWithDetails, Task, Activity } from "@/types/index";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export default function DashboardPage() {
   const isMobile = useIsMobile();
   const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState(true);
   const [isInitialRender, setIsInitialRender] = useState(true);
-  const [projects, setProjects] = useState<ProjectWithDetails[]>([]);
-  const [displayTasks, setDisplayTasks] = useState<Task[]>([]);
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [showInvitations, setShowInvitations] = useState(false);
-  const [stats, setStats] = useState({
-    totalProjects: 0,
-    completedTasks: 0,
-    pendingTasks: 0,
-    upcomingDeadlines: 0,
-  });
+
+  const {
+    projects,
+    displayTasks,
+    activities,
+    stats,
+    isLoading,
+    showInvitations,
+    fetchDashboardData,
+    checkPendingInvitations,
+  } = useDashboardData();
 
   useEffect(() => {
     setIsInitialRender(false);
   }, []);
-
-  // Fetch dashboard data when authenticated
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchDashboardData();
-      checkPendingInvitations();
-    }
-  }, [session?.user?.id]);
-
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      const [projectsRes, allTasksRes, activityRes] = await Promise.all([
-        fetch("/api/dashboard/projects?limit=4"),
-        fetch("/api/tasks/all"),
-        fetch("/api/dashboard/activity"),
-      ]);
-
-      // Projects response
-      if (projectsRes.ok) {
-        const projectsData = await projectsRes.json();
-        setProjects(projectsData.projects);
-        setStats((prev) => ({
-          ...prev,
-          totalProjects: projectsData.total,
-        }));
-      } else {
-        toast.error("Failed to load projects");
-      }
-
-      if (allTasksRes.ok) {
-        const allTasksData: Task[] = await allTasksRes.json();
-        setAllTasks(allTasksData);
-
-        const currentUserId = session?.user?.id;
-        const assignedTasks = allTasksData.filter(
-          (task) => task.assignee && task.assignee.id === currentUserId
-        );
-
-        const completed = assignedTasks.filter(
-          (t) => t.status === "DONE"
-        ).length;
-        const pending = assignedTasks.filter((t) => t.status !== "DONE").length;
-
-        const upcoming = allTasksData.filter((t) => {
-          if (!t.dueDate || t.status === "DONE") return false;
-          const dueDate = new Date(t.dueDate);
-          const today = new Date();
-          const sevenDaysLater = new Date();
-          sevenDaysLater.setDate(today.getDate() + 7);
-          return dueDate >= today && dueDate <= sevenDaysLater;
-        }).length;
-
-        setStats((prev) => ({
-          ...prev,
-          completedTasks: completed,
-          pendingTasks: pending,
-          upcomingDeadlines: upcoming,
-        }));
-        const sortedAssignedTasks = [...assignedTasks].sort((a, b) => {
-          if (!a.dueDate && !b.dueDate) return 0;
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-
-          const dateComparison =
-            new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-
-          if (dateComparison === 0) {
-            if (!a.updatedAt && !b.updatedAt) return 0;
-            if (!a.updatedAt) return 1;
-            if (!b.updatedAt) return -1;
-            return (
-              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-            );
-          }
-
-          return dateComparison;
-        });
-
-        setDisplayTasks(sortedAssignedTasks.slice(0, 4));
-      } else {
-        toast.error("Failed to load tasks data");
-      }
-
-      // Activity response
-      if (activityRes.ok) {
-        const activityData = await activityRes.json();
-        setActivities(activityData);
-      } else {
-        toast.error("Failed to load activity feed");
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      toast.error("Failed to load dashboard data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const checkPendingInvitations = async () => {
-    try {
-      const response = await fetch("/api/invitations/pending");
-      if (response.ok) {
-        const data = await response.json();
-        setShowInvitations(data.length > 0);
-      }
-    } catch (error) {
-      console.error("Error checking pending invitations:", error);
-    }
-  };
 
   const handleInvitationAction = () => {
     checkPendingInvitations();
@@ -151,21 +41,13 @@ export default function DashboardPage() {
   };
 
   if (status === "loading") {
-    return (
-      <div className="flex h-[calc(100vh-2rem)] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   const firstName = session?.user?.name?.split(" ")[0] || "there";
 
   if (isLoading && isInitialRender) {
-    return (
-      <div className="flex h-[calc(100vh-2rem)] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -223,7 +105,7 @@ export default function DashboardPage() {
 
       {isLoading && !isInitialRender && (
         <div className="fixed bottom-4 right-4 bg-background shadow-lg rounded-full p-2 z-50 border">
-          <Loader2 className="h-6 w-6 animate-spin text-violet-700" />
+          <Loader2 className="h-6 w-6 animate-spin text-main dark:text-main" />
         </div>
       )}
     </div>

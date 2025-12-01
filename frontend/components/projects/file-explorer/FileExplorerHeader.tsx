@@ -31,7 +31,7 @@ export default function FileExplorerHeader({
       {/* Desktop View */}
       <div className="hidden sm:flex items-center">
         <Button
-          variant="ghost"
+          variant="neutral"
           onClick={navigateUp}
           disabled={currentPath.length <= 1}
           className="mr-2"
@@ -39,7 +39,7 @@ export default function FileExplorerHeader({
           <ArrowLeft className="h-6 w-6" />
         </Button>
 
-        <Badge variant="outline" className="font-medium min-w-32 w-auto">
+        <Badge variant="default" className="font-medium min-w-32 w-auto">
           {currentLocation}
         </Badge>
         <div className="ml-4 mt-4">
@@ -54,14 +54,14 @@ export default function FileExplorerHeader({
       {/* Mobile View */}
       <div className="flex sm:hidden items-center w-full">
         <Button
-          variant="ghost"
+          variant="neutral"
           onClick={navigateUp}
           disabled={currentPath.length <= 1}
           className="mr-2 p-2"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <Badge variant="outline" className="font-medium py-1.5">
+        <Badge variant="default" className="font-medium py-1.5">
           {currentLocation}
         </Badge>
       </div>
@@ -72,7 +72,7 @@ export default function FileExplorerHeader({
           {(currentLocation === "root" ||
             currentLocation === "Project Files") && (
             <Button
-              variant="outline"
+              variant="default"
               className="ml-auto cursor-pointer hidden sm:flex"
               onClick={handleFileUpload}
             >
@@ -84,7 +84,7 @@ export default function FileExplorerHeader({
           {(currentLocation === "root" ||
             currentLocation === "Project Files") && (
             <Button
-              variant="outline"
+              variant="default"
               size="icon"
               className="ml-auto cursor-pointer sm:hidden"
               onClick={handleFileUpload}

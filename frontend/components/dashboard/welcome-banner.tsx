@@ -2,15 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Calendar,
-  Clock,
-  PlusCircle,
-  Crown,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Calendar, Clock, PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface WelcomeBannerProps {
   userName: string;
@@ -23,54 +17,53 @@ export const WelcomeBanner = ({
   tasksDue,
   projectsDue,
 }: WelcomeBannerProps) => {
+  const t = useTranslations("DashboardPage.welcomeBanner");
+
+  // Greeting
   const hours = new Date().getHours();
-  let greeting = "Good morning";
+  let greeting = t("goodMorning");
+  if (hours >= 12 && hours < 18) greeting = t("goodAfternoon");
+  else if (hours >= 18) greeting = t("goodEvening");
 
-  if (hours >= 12 && hours < 18) {
-    greeting = "Good afternoon";
-  } else if (hours >= 18) {
-    greeting = "Good evening";
-  }
-
+  // Date
   const today = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  };
-  const dateString = today.toLocaleDateString("en-US", options);
+  const weekday = t(
+    `weekday.${today.toLocaleDateString("en-US", { weekday: "long" })}`
+  );
+  const month = t(
+    `month.${today.toLocaleDateString("en-US", { month: "long" })}`
+  );
+  const day = today.getDate();
+  const year = today.getFullYear();
+  const dateString = `${weekday}, ${day} ${month} ${year}`;
 
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
     },
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-    },
+    visible: { y: 0, opacity: 1 },
   };
 
   return (
     <motion.div
-      className="relative overflow-hidden rounded-2xl bg-linear-to-r from-violet-600 to-violet-800 p-8 text-white shadow-lg"
+      className="relative overflow-hidden rounded-2xl bg-linear-to-r bg-main text-white shadow-shadow p-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
+      {/* Bóng mờ trang trí */}
       <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
       <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
 
       <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        {/* Nội dung bên trái */}
         <div className="space-y-2">
           <motion.div
             variants={itemVariants}
@@ -81,20 +74,21 @@ export const WelcomeBanner = ({
               <span>{dateString}</span>
             </div>
           </motion.div>
+
           <motion.h1 variants={itemVariants} className="text-3xl font-bold">
             {greeting}, {userName}!
           </motion.h1>
+
           <motion.p variants={itemVariants} className="text-white/80">
-            You have{" "}
             <Link href="/calendar?tab=deadlines">
               <span className="font-semibold">
-                {tasksDue} task{tasksDue > 1 && "s"}
+                {t("tasksDueMessage", { count: tasksDue })}
               </span>
-            </Link>{" "}
-            due this week.
+            </Link>
           </motion.p>
         </div>
 
+        {/* Nội dung bên phải */}
         <motion.div variants={itemVariants} className="flex flex-wrap gap-3">
           <Link href="/calendar">
             <Button
@@ -102,16 +96,17 @@ export const WelcomeBanner = ({
               className="rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm dark:text-accent-foreground cursor-pointer"
             >
               <Calendar className="mr-2 h-4 w-4" />
-              View Schedule
+              {t("viewSchedule")}
             </Button>
           </Link>
+
           <Link href="/projects/create">
             <Button
               size="sm"
-              className="rounded-full bg-white text-violet-800 hover:bg-white/90 cursor-pointer"
+              className="rounded-full bg-white text-main hover:bg-white/90 cursor-pointer"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
-              Create Project
+              {t("createProject")}
               <ArrowRight className="ml-2 h-3 w-3" />
             </Button>
           </Link>

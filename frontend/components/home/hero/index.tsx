@@ -28,7 +28,6 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Animation variants for cleaner code
     const fadeInUp = {
       initial: { opacity: 0, y: 20 },
       animate: { opacity: 1, y: 0 },
@@ -37,8 +36,12 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
 
     return (
       <div
-        className="bg-linear-to-br from-violet-50 via-background to-purple-50 dark:from-violet-950/30 dark:via-background dark:to-purple-950/20"
         ref={ref}
+        className="
+          bg-linear-to-br 
+          from-main/10 via-background to-main/20 
+          dark:from-main/20 dark:via-background dark:to-main/10
+        "
       >
         <div
           className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
@@ -46,23 +49,29 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
           } pb-10`}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content Section */}
+            {/* Left */}
             <motion.div
               className="text-left"
               initial="initial"
               animate="animate"
               variants={fadeInUp}
             >
+              {/* Badge */}
               <motion.div
-                className="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/30 px-4 py-1.5 mb-6"
+                className="
+                  inline-flex items-center rounded-full 
+                  bg-main/15 dark:bg-main/20 
+                  px-4 py-1.5 mb-6
+                "
                 variants={fadeInUp}
                 transition={{ delay: 0.1 }}
               >
-                <span className="text-violet-900 dark:text-violet-300 text-sm font-medium flex items-center">
+                <span className="text-main text-sm font-medium flex items-center">
                   <Zap className="h-4 w-4 mr-1.5" /> {t("badge")}
                 </span>
               </motion.div>
 
+              {/* Title */}
               <motion.h1
                 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight"
                 variants={fadeInUp}
@@ -70,7 +79,14 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
               >
                 <span className="block">{t("title1")}</span>
                 <span className="block">{t("title2")}</span>
-                <span className="bg-clip-text text-transparent bg-linear-to-br from-violet-700 to-purple-600 dark:from-violet-500 dark:to-purple-400">
+
+                {/* Highlight */}
+                <span
+                  className="
+                    bg-clip-text text-transparent 
+                    bg-linear-to-br from-main to-main/70
+                  "
+                >
                   {t("titleHighlight")}
                 </span>
               </motion.h1>
@@ -83,6 +99,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                 {t("description")}
               </motion.p>
 
+              {/* Buttons */}
               <motion.div
                 className="mt-10 flex flex-col sm:flex-row gap-4"
                 variants={fadeInUp}
@@ -93,14 +110,19 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                     <Button
                       asChild
                       size="lg"
-                      className="bg-violet-700 hover:bg-violet-900 text-white px-8 py-6 rounded-lg shadow-lg hover:scale-105 transition-all"
+                      className="
+                        bg-main hover:bg-main/80 text-white 
+                        px-8 py-6 rounded-lg shadow-lg 
+                        hover:scale-105 transition-all
+                      "
                     >
                       <Link href="/dashboard">
                         {t("dashboard")} <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                     </Button>
+
                     <Button
-                      variant="outline"
+                      variant="neutral"
                       size="lg"
                       onClick={handleSignOut}
                       className="px-8 py-6 rounded-lg"
@@ -113,16 +135,20 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                     <Button
                       asChild
                       size="lg"
-                      className="bg-violet-700 hover:bg-violet-900 text-white px-8 py-6 rounded-lg shadow-lg hover:scale-105 transition-all"
+                      className="
+                        bg-main hover:bg-main/80 text-white 
+                        px-8 py-6 rounded-lg shadow-lg 
+                        hover:scale-105 transition-all
+                      "
                     >
                       <Link href="/auth/signup">
-                        {t("getStarted")}{" "}
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                        {t("getStarted")} <ArrowRight className="ml-2 h-5 w-5" />
                       </Link>
                     </Button>
+
                     <Button
                       asChild
-                      variant="outline"
+                      variant="neutral"
                       size="lg"
                       className="px-8 py-6 rounded-lg"
                     >
@@ -133,7 +159,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
               </motion.div>
             </motion.div>
 
-            {/* Right Visual Section - Now Refactored */}
+            {/* Right */}
             <motion.div
               className="flex items-center justify-center lg:justify-end"
               initial={{ opacity: 0, scale: 0.9 }}

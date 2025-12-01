@@ -6,6 +6,7 @@ import { getProfileUrl } from "@/lib/profile-utils";
 import { getInitials, formatDate } from "@/lib/utils";
 import { ProjectWithDetails } from "@/types/index";
 import { Session } from "next-auth";
+import { useTranslations, useLocale } from "next-intl";
 
 interface ProjectDetailsProps {
   project: ProjectWithDetails;
@@ -16,18 +17,21 @@ export default function ProjectDetails({
   project,
   session,
 }: ProjectDetailsProps) {
+  const t = useTranslations("ProjectDetailPage");
+  const locale = useLocale();
+
   return (
     <Card className="flex md:w-sm w-full">
       <CardHeader>
         <CardTitle className="flex items-center">
           <CalendarDays className="h-5 w-5 mr-2" />
-          Project Details
+          {t("projectDetails")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-muted-foreground">Created By</p>
+            <p className="text-sm text-muted-foreground">{t("createdBy")}</p>
             <div className="flex items-center mt-1">
               <Link
                 href={getProfileUrl(
@@ -41,7 +45,7 @@ export default function ProjectDetails({
                     alt={project.creator?.name || ""}
                     className="object-cover cursor-pointer"
                   />
-                  <AvatarFallback className="bg-violet-100 text-violet-700 text-xs">
+                  <AvatarFallback className="bg-violet-100 text-main text-xs">
                     {getInitials(project.creator?.name ?? null)}
                   </AvatarFallback>
                 </Avatar>
@@ -53,18 +57,20 @@ export default function ProjectDetails({
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">Created On</p>
-            <p>{formatDate(project.createdAt ?? null)}</p>
+            <p className="text-sm text-muted-foreground">{t("createdOn")}</p>
+            <p>{formatDate(project.createdAt ?? null, useTranslations(), locale)}</p>
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">Due Date</p>
-            <p>{formatDate(project.dueDate, { includeTime: true })}</p>
+            <p className="text-sm text-muted-foreground">{t("dueDate")}</p>
+            <p>
+              {formatDate(project.dueDate, useTranslations(), locale, { includeTime: true })}
+            </p>
           </div>
 
           <div>
-            <p className="text-sm text-muted-foreground">Last Updated</p>
-            <p>{formatDate(project.updatedAt ?? null)}</p>
+            <p className="text-sm text-muted-foreground">{t("updatedOn")}</p>
+            <p>{formatDate(project.updatedAt ?? null, useTranslations(), locale)}</p>
           </div>
         </div>
       </CardContent>

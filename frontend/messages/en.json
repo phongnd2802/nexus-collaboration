@@ -16,7 +16,7 @@
       "signOut": "Sign Out",
       "getStarted": "Get Started",
       "signIn": "Sign In",
-      "signUp": "Sign Up" 
+      "signUp": "Sign Up"
     }
   },
   "AuthPage": {
@@ -26,18 +26,98 @@
       "description": "Login to your account to continue",
       "email": "Email",
       "password": "Password",
+      "signingIn": "Signing in...",
       "signIn": "Sign In",
       "signUp": "Sign Up",
       "forgotPassword": "Forgot Password?",
       "or": "Or",
-      "needAccount": "Need an account?",
-      "google": "Sign in with Google",
-      "github": "Sign in with GitHub"
+      "needAccount": "Need an account?"
+    },
+    "signUp": {
+      "home": "Home",
+      "title": "Create an account",
+      "description": "Join our collaboration platform",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "creatingAccount": "Creating account...",
+      "signUp": "Sign Up",
+      "or": "Or",
+      "haveAccount": "Have an account? Sign in"
     }
   },
   "LanguageSwitcher": {
     "label": "Language",
     "en": "EN",
     "vi": "VI"
+  },
+  "date": {
+    "noDueDate": "No due date",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "withTime": "{date} at {time}"
+  },
+  "relative": {
+    "seconds": "{value} seconds ago",
+    "minutes": "{value} minutes ago",
+    "hours": "{value} hours ago",
+    "days": "{value} days ago"
+  },
+  "UnifiedBreadcrumb": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "calendar": "Calendar",
+    "team": "Team",
+    "profile": "Profile",
+    "settings": "Settings",
+    "create": "Create",
+    "projectDetails": "Project Details",
+    "taskDetails": "Task Details",
+    "createProject": "Create Project",
+    "createTask": "Create Task"
+  },
+  "TasksPage": {
+    "header": {
+      "title": "My Tasks",
+      "subtitle": "View and manage all your tasks across projects",
+      "newTask": "New Task"
+    },
+    "tabs": {
+      "assigned": "Assigned",
+      "created": "Created"
+    },
+    "search": {
+      "placeholder": "Search tasks..."
+    },
+    "filter": {
+      "button": "Filter",
+      "byStatus": "Filter By Status",
+      "byPriority": "Filter By Priority",
+      "clearFilters": "Clear Filters",
+      "activeFilters": "Active filters:",
+      "clearAll": "Clear All"
+    },
+    "sort": {
+      "button": "Sort by",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "status": "Status"
+    },
+    "status": {
+      "TODO": "To Do",
+      "IN_PROGRESS": "In Progress",
+      "DONE": "Done"
+    },
+    "priority": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "emptyState": {
+      "title": "No tasks found",
+      "description": "Try adjusting your filters or create a new task.",
+      "createTask": "Create New Task"
+    }
   }
 }

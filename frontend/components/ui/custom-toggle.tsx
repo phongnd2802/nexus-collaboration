@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import { cn } from "@/lib/utils";
+
 interface CustomToggleProps {
   id: string;
   checked: boolean;
@@ -20,18 +22,18 @@ export function CustomToggle({
   const sizeClasses = {
     sm: {
       button: "h-5 w-9",
-      thumb: "h-4 w-4",
+      thumb: "h-3 w-3",
       translate: "translate-x-4",
     },
     md: {
-      button: "h-6 w-11",
-      thumb: "h-5 w-5",
-      translate: "translate-x-5",
+      button: "h-6 w-12",
+      thumb: "h-4 w-4",
+      translate: "translate-x-6",
     },
     lg: {
-      button: "h-7 w-12",
-      thumb: "h-6 w-6",
-      translate: "translate-x-5",
+      button: "h-7 w-14",
+      thumb: "h-5 w-5",
+      translate: "translate-x-7",
     },
   };
 
@@ -45,21 +47,20 @@ export function CustomToggle({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`
-        relative inline-flex ${button} flex-shrink-0 cursor-pointer rounded-full 
-        border-2 border-transparent transition-colors duration-200 ease-in-out 
-        focus:outline-none
-        ${checked ? "bg-violet-600" : "bg-gray-200"} 
-        ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-      `}
+      className={cn(
+        "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-border bg-secondary-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        checked ? "bg-main" : "bg-secondary-background",
+        button,
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
     >
       <span
         aria-hidden="true"
-        className={`
-          pointer-events-none inline-block ${thumb} transform rounded-full 
-          bg-white shadow ring-0 transition duration-200 ease-in-out
-          ${checked ? translate : "translate-x-0"}
-        `}
+        className={cn(
+          "pointer-events-none block rounded-full bg-white border-2 border-border ring-0 transition-transform",
+          thumb,
+          checked ? translate : "translate-x-1"
+        )}
       />
     </button>
   );

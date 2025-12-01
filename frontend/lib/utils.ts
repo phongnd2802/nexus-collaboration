@@ -70,56 +70,48 @@ export const formatTime = (dateString: string): string => {
   return format(new Date(dateString), "h:mm a");
 };
 
-/**
- * Formats a date string with options for relative dates (Today, Tomorrow) and time inclusion.
- * @param dateString - The date string to format.
- * @param options - Formatting options.
- * @returns Formatted date string.
- */
+type TFunc = (key: string, opts?: any) => string;
+
 export const formatDate = (
   dateString: string | null,
+  t: TFunc,
+  locale: string,
   options: { includeTime?: boolean; relative?: boolean } = {}
 ): string => {
-  if (!dateString) return "No due date";
-  
+  if (!dateString) return t("date.noDueDate");
+
   const date = new Date(dateString);
   const { includeTime = false, relative = false } = options;
 
-  // Check if time is significant (not default 23:59 or midnight)
-  // This logic was preserved from original utils
   const hasSignificantTime =
     date.getHours() !== 23 ||
     (date.getHours() === 23 && date.getMinutes() !== 59);
 
   let dateStr = "";
 
+  // 🌍 CHỌN FORMAT THEO LOCALE
+  const dateFormat = locale === "vi" ? "dd-MM-yyyy" : "MM-dd-yyyy";
+
   if (relative) {
     if (isToday(date)) {
-      dateStr = "Today";
+      dateStr = t("date.today");
     } else if (isTomorrow(date)) {
-      dateStr = "Tomorrow";
+      dateStr = t("date.tomorrow");
     } else {
-      dateStr = format(date, "MMM d, yyyy");
+      dateStr = format(date, dateFormat);
     }
   } else {
-    dateStr = date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    dateStr = format(date, dateFormat);
   }
 
-  // Add time if it's significant or explicitly requested
+  // ⏱ time phần
   if (hasSignificantTime || includeTime) {
     const timeStr = format(date, "HH:mm");
-    // If relative and today/tomorrow, we might want to append time differently or not at all depending on UI
-    // But based on previous TaskCard logic:
-    return `${dateStr} at ${timeStr}`;
+    return t("date.withTime", { date: dateStr, time: timeStr });
   }
 
   return dateStr;
 };
-
 /**
  * Formats a date string to a relative time string (e.g., "5 minutes ago").
  * @param dateString - The date string to format.

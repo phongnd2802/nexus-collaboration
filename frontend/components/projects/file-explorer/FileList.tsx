@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/utils";
 import { FileItem } from "@/hooks/useFileExplorer";
+import { useTranslations, useLocale } from "next-intl";
 
 interface FileListProps {
   items: any[]; // Using any[] for now as items can be FileItem or folder objects
@@ -40,6 +41,9 @@ export default function FileList({
   handleDownload,
   handleDeleteFile,
 }: FileListProps) {
+  const t = useTranslations();
+  const locale = useLocale();
+
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " bytes";
     else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
@@ -108,7 +112,7 @@ export default function FileList({
 
                               {"count" in item && (
                                 <Badge
-                                  variant="outline"
+                                  variant="default"
                                   className="text-xs w-16 mr-2 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                                 >
                                   {item.count} file
@@ -121,7 +125,7 @@ export default function FileList({
                                   <div className="flex">
                                     {item.hasDeliverables && (
                                       <Badge
-                                        variant="outline"
+                                        variant="default"
                                         className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
                                       >
                                         {item.deliverablesCount} deliverable
@@ -158,7 +162,11 @@ export default function FileList({
 
                         <div className="col-span-3">
                           {item.type === "file"
-                            ? formatDate((item as FileItem).createdAt)
+                            ? formatDate(
+                                (item as FileItem).createdAt,
+                                t,
+                                locale
+                              )
                             : ""}
                         </div>
 
@@ -166,7 +174,7 @@ export default function FileList({
                           {item.type === "file" && (
                             <div className="flex space-x-1">
                               <Button
-                                variant="ghost"
+                                variant="neutral"
                                 size="sm"
                                 className="h-8 w-8 p-0 cursor-pointer"
                                 onClick={(e) => {
@@ -178,7 +186,7 @@ export default function FileList({
                               </Button>
 
                               <Button
-                                variant="ghost"
+                                variant="neutral"
                                 size="sm"
                                 className="h-8 w-8 p-0 text-red-500/70 hover:text-red-600/70 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
                                 onClick={(e) => {
@@ -213,7 +221,7 @@ export default function FileList({
                                 <div className="flex mt-1 gap-2">
                                   {"count" in item && (
                                     <Badge
-                                      variant="outline"
+                                      variant="neutral"
                                       className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                                     >
                                       {item.count} file
@@ -225,7 +233,7 @@ export default function FileList({
                                     "hasDeliverables" in item &&
                                     item.hasDeliverables && (
                                       <Badge
-                                        variant="outline"
+                                        variant="neutral"
                                         className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
                                       >
                                         {item.deliverablesCount} deliverable
@@ -264,7 +272,7 @@ export default function FileList({
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
-                                    variant="ghost"
+                                    variant="neutral"
                                     size="sm"
                                     className="h-8 w-8 p-0"
                                     onClick={(e) => e.stopPropagation()}

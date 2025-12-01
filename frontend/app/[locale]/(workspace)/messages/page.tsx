@@ -3,12 +3,14 @@
 import React, { Suspense, lazy } from "react";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslations } from "next-intl";
 
 const MessagesLayout = lazy(
   () => import("@/components/messages/MessagesLayout")
 );
 
 export default function MessagesPage() {
+  const t = useTranslations("MessagesPage");
   const isMobile = useIsMobile();
 
   return (
@@ -20,18 +22,18 @@ export default function MessagesPage() {
           }`}
         >
           <MessageSquare className="h-7 w-7" />
-          Messages
+          {t("title")}
         </h1>
         {!isMobile && (
           <p className="text-muted-foreground mt-1">
-            Chat with your team members and collaborators
+            {t("description")}
           </p>
         )}
       </div>
       <Suspense
         fallback={
           <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
+            <Loader2 className="h-8 w-8 animate-spin text-main" />
           </div>
         }
       >

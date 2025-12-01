@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 
 interface EditProjectDialogProps {
   project: any;
@@ -31,6 +32,7 @@ export default function EditProjectDialog({
   onProjectUpdated,
   onDeleteClick,
 }: EditProjectDialogProps) {
+  const t = useTranslations("editProjectDialog");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showStatusOptions, setShowStatusOptions] = useState(false);
 
@@ -86,13 +88,13 @@ export default function EditProjectDialog({
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case "IN_PROGRESS":
-        return "In Progress";
+        return t("in_progress");
       case "AT_RISK":
-        return "At Risk";
+        return t("at_risk");
       case "COMPLETED":
-        return "Completed";
+        return t("completed");
       default:
-        return "Select a status";
+        return t("select_status");
     }
   };
 
@@ -105,43 +107,43 @@ export default function EditProjectDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-md sm:max-w-lg mx-auto">
         <DialogHeader>
-          <DialogTitle>Edit Project</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Update your project details below.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
-              Project Name
+              {t("project_name")}
             </label>
             <Input
               id="name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="Enter project name"
+              placeholder={t("project_name_placeholder")}
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="description" className="text-sm font-medium">
-              Description
+              {t("project_description")}
             </label>
             <Textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Enter project description"
+              placeholder={t("project_description_placeholder")}
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">{t("status")}</Label>
 
               <div className="relative">
                 <button
@@ -157,9 +159,9 @@ export default function EditProjectDialog({
                 {showStatusOptions && (
                   <div className="absolute z-10 mt-1 w-full rounded-md border border-input bg-popover shadow-md">
                     <div className="py-1">
-                      <button
-                        type="button"
-                        className="relative w-full flex items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                      <Button
+                        variant="noShadow"
+                        className="w-full"
                         onClick={() => handleStatusChange("IN_PROGRESS")}
                       >
                         <span className="mr-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -167,11 +169,11 @@ export default function EditProjectDialog({
                             <Check className="h-4 w-4" />
                           )}
                         </span>
-                        In Progress
-                      </button>
-                      <button
-                        type="button"
-                        className="relative w-full flex items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                        {t("in_progress")}
+                      </Button>
+                      <Button
+                        variant="noShadow"
+                        className="w-full"
                         onClick={() => handleStatusChange("AT_RISK")}
                       >
                         <span className="mr-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -179,11 +181,11 @@ export default function EditProjectDialog({
                             <Check className="h-4 w-4" />
                           )}
                         </span>
-                        At Risk
-                      </button>
-                      <button
-                        type="button"
-                        className="relative w-full flex items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                        {t("at_risk")}
+                      </Button>
+                      <Button
+                        variant="noShadow"
+                        className="w-full"
                         onClick={() => handleStatusChange("COMPLETED")}
                       >
                         <span className="mr-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -191,8 +193,8 @@ export default function EditProjectDialog({
                             <Check className="h-4 w-4" />
                           )}
                         </span>
-                        Completed
-                      </button>
+                        {t("completed")}
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -201,7 +203,7 @@ export default function EditProjectDialog({
 
             <div className="space-y-2">
               <label htmlFor="dueDate" className="text-sm font-medium">
-                Due Date & Time
+                {t("due_date")}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <Input
@@ -235,30 +237,30 @@ export default function EditProjectDialog({
               className="w-full sm:w-auto dark:bg-red-600/70 dark:hover:bg-red-600/80 text-white bg-red-600 hover:bg-red-700 cursor-pointer"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Project
+              {t("delete_project")}
             </Button>
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-2 w-full sm:w-auto justify-end">
               <Button
-                variant="outline"
+                variant="neutral"
                 onClick={() => onOpenChange(false)}
                 className="w-full sm:w-auto"
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={updateProject}
                 disabled={isUpdating}
-                className="w-full sm:w-auto bg-violet-700 hover:bg-violet-800 text-white"
+                className="w-full sm:w-auto bg-main hover:bg-main text-white"
               >
                 {isUpdating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
                   <>
                     <CheckIcon className="h-4 w-4 mr-2" />
-                    Save Changes
+                    {t("save_changes")}
                   </>
                 )}
               </Button>

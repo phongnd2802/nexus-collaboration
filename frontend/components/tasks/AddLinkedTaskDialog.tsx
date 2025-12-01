@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { useAddLinkedTask } from "@/hooks/useAddLinkedTask";
+import { useTranslations } from "next-intl";
 
 interface AddLinkedTaskDialogProps {
   taskId: string;
@@ -34,6 +35,7 @@ export default function AddLinkedTaskDialog({
   onClose,
   onSuccess,
 }: AddLinkedTaskDialogProps) {
+  const t = useTranslations("TaskDetailPage");
   const {
     isSubmitting,
     isLoading,
@@ -54,12 +56,12 @@ export default function AddLinkedTaskDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add Linked Task</DialogTitle>
+          <DialogTitle>{t("addLinkedTask")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="linkedTaskId">
-              Task Name <span className="text-destructive">*</span>
+              {t("taskName")} <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.linkedTaskId}
@@ -67,16 +69,16 @@ export default function AddLinkedTaskDialog({
               disabled={isSubmitting || isLoading}
             >
               <SelectTrigger id="linkedTaskId">
-                <SelectValue placeholder="Select a task" />
+                <SelectValue placeholder={t("selectTask")} />
               </SelectTrigger>
               <SelectContent>
                 {isLoading ? (
                   <div className="p-2 text-center text-sm text-muted-foreground">
-                    Loading tasks...
+                    {t("loadingTasks")}...
                   </div>
                 ) : projectTasks.length === 0 ? (
                   <div className="p-2 text-center text-sm text-muted-foreground">
-                    No tasks available
+                    {t("noTasksAvailable")}
                   </div>
                 ) : (
                   projectTasks.map((task) => (
@@ -90,18 +92,18 @@ export default function AddLinkedTaskDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="relationship">Relationship Type</Label>
+            <Label htmlFor="relationship">{t("relationship")}</Label>
             <Select
               value={formData.relationship}
               onValueChange={setRelationship}
               disabled={isSubmitting}
             >
               <SelectTrigger id="relationship">
-                <SelectValue placeholder="Select relationship" />
+                <SelectValue placeholder={t("selectRelationship")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BLOCKS">Blocks</SelectItem>
-                <SelectItem value="BLOCKED_BY">Blocked by</SelectItem>
+                <SelectItem value="BLOCKS">{t("blocks")}</SelectItem>
+                <SelectItem value="BLOCKED_BY">{t("blockedBy")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -109,17 +111,17 @@ export default function AddLinkedTaskDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="neutral"
               onClick={onClose}
               disabled={isSubmitting}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Add link
+              {t("addLink")}
             </Button>
           </DialogFooter>
         </form>

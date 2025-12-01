@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,6 +12,7 @@ import TaskForm from "@/components/tasks/TaskForm";
 import { ProjectWithDetails } from "@/types/index";
 
 function TaskPage() {
+  const t = useTranslations("TasksPage.create");
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,7 +60,7 @@ function TaskPage() {
       <div className="flex flex-col min-h-[80vh]">
         <div className="grow flex items-center justify-center">
           <div className="text-center space-y-4">
-            <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
+            <Loader2 className="h-12 w-12 animate-spin text-main mx-auto" />
           </div>
         </div>
       </div>
@@ -69,22 +72,8 @@ function TaskPage() {
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Create New Task
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Add a task to organize and track your team's work
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Badge
-              variant="outline"
-              className="px-3 py-1 border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-400"
-            >
-              <Clipboard className="h-3.5 w-3.5 mr-1.5" />
-              New Task
-            </Badge>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground mt-1">{t("description")}</p>
           </div>
         </div>
       </div>
@@ -106,7 +95,7 @@ function LoadingTaskCreate() {
     <div className="flex flex-col min-h-screen">
       <main className="grow">
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
+          <Loader2 className="h-8 w-8 animate-spin text-main" />
         </div>
       </main>
     </div>

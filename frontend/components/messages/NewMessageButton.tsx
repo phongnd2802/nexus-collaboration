@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUserSearch } from "@/hooks/useUserSearch";
 import UserSearchResults from "./UserSearchResults";
+import { useTranslations } from "next-intl";
 
 interface User {
   id: string;
@@ -27,6 +28,7 @@ interface NewMessageButtonProps {
 const NewMessageButton: React.FC<NewMessageButtonProps> = ({
   onSelectUser,
 }) => {
+  const t = useTranslations("MessagesPage.button");
   const [open, setOpen] = useState(false);
   const { searchQuery, searchResults, isLoading, handleSearch, clearSearch } =
     useUserSearch();
@@ -40,30 +42,27 @@ const NewMessageButton: React.FC<NewMessageButtonProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="default"
-          className="w-full bg-violet-700 hover:bg-violet-800 text-white flex items-center cursor-pointer"
-        >
+        <Button variant="default" className="w-full">
           <PlusCircle className="h-4 w-4 mr-2" />
-          New Message
+          {t("newMessage")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New Message</DialogTitle>
+          <DialogTitle>{t("newMessage")}</DialogTitle>
         </DialogHeader>
         <div className="relative mt-2">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search for a user..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-9 pr-9"
           />
           {searchQuery && (
             <Button
-              variant="ghost"
+              variant="noShadow"
               size="sm"
               className="absolute right-1 top-1 h-8 w-8 p-0"
               onClick={clearSearch}
@@ -85,7 +84,7 @@ const NewMessageButton: React.FC<NewMessageButtonProps> = ({
 
         <div className="mt-4 flex justify-end">
           <DialogClose asChild>
-            <Button variant="secondary">Cancel</Button>
+            <Button variant="neutral">{t("cancel")}</Button>
           </DialogClose>
         </div>
       </DialogContent>

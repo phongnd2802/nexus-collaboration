@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { User } from "@/types/index";
+import { useTranslations } from "next-intl";
 
 interface InviteEmailInputProps {
   email: string;
@@ -32,6 +33,7 @@ export function InviteEmailInput({
   selectedSuggestionIndex,
   onClear,
 }: InviteEmailInputProps) {
+  const t = useTranslations("inviteDialog");
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -60,7 +62,7 @@ export function InviteEmailInput({
           ref={inputRef}
           id="email"
           type="email"
-          placeholder="Enter email address"
+          placeholder={t("placeholder")}
           className="pl-9 pr-9"
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}
@@ -76,7 +78,7 @@ export function InviteEmailInput({
         {email && (
           <Button
             type="button"
-            variant="ghost"
+            variant="noShadow"
             size="sm"
             className="absolute right-1 top-1 h-8 w-8 p-0 z-10"
             onClick={onClear}
@@ -96,14 +98,14 @@ export function InviteEmailInput({
               </div>
             ) : suggestions.length === 0 ? (
               <div className="py-4 text-center">
-                <p className="text-sm text-muted-foreground">No users found</p>
+                <p className="text-sm text-muted-foreground">{t("noUsersFound")}</p>
               </div>
             ) : (
               <div className="py-1">
                 {suggestions.map((user, index) => (
-                  <button
+                  <Button
                     key={user.id}
-                    type="button"
+                    variant="noShadow"
                     className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent cursor-pointer ${
                       selectedSuggestionIndex === index ? "bg-accent" : ""
                     }`}
@@ -126,7 +128,7 @@ export function InviteEmailInput({
                         {user.email}
                       </p>
                     </div>
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -134,7 +136,7 @@ export function InviteEmailInput({
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Enter the email address of the user you want to invite
+        {t("input_description")}
       </p>
     </div>
   );

@@ -104,7 +104,7 @@ function EventListItem({
         <p className="font-medium text-sm">{event.title}</p>
         <div className="flex items-center gap-1 mt-1">
           <Button
-            variant="ghost"
+            variant="neutral"
             size="sm"
             className="h-6 px-2 text-xs"
             asChild

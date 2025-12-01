@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
 
 interface TaskFormAssigneeSelectProps {
   assigneeId: string;
@@ -28,14 +29,15 @@ export function TaskFormAssigneeSelect({
   availableMembers,
   handleSelectChange,
 }: TaskFormAssigneeSelectProps) {
+  const t = useTranslations("TasksPage.form");
   return (
     <div className="space-y-2">
       <Label
         htmlFor="assignee"
         className="text-base font-medium flex items-center"
       >
-        <Users className="h-4 w-4 mr-2 text-violet-600" />
-        Assignee
+        <Users className="h-4 w-4 mr-2 text-main" />
+        {t("assignee")}
       </Label>
       <TooltipProvider>
         <Tooltip>
@@ -49,7 +51,7 @@ export function TaskFormAssigneeSelect({
                 disabled={!projectId || availableMembers.length === 0}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Assign to team member" />
+                  <SelectValue placeholder={t("assignee_placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableMembers.map((member) => (
@@ -80,14 +82,14 @@ export function TaskFormAssigneeSelect({
           </TooltipTrigger>
           {!projectId && (
             <TooltipContent>
-              <p>Select a project first to see available team members</p>
+              <p>{t("project_helper")}</p>
             </TooltipContent>
           )}
         </Tooltip>
       </TooltipProvider>
       {projectId && availableMembers.length === 0 && (
         <p className="text-xs text-muted-foreground mt-1">
-          No team members available in this project
+          {t("no_members_helper")}
         </p>
       )}
     </div>

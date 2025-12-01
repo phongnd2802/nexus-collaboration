@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslations } from "next-intl";
 
 interface DeadlineFiltersProps {
   filter: string;
@@ -24,16 +25,17 @@ export function DeadlineFilters({
   onFilterChange,
   onTimeframeChange,
 }: DeadlineFiltersProps) {
+  const t = useTranslations("CalendarPage");
   return (
     <div className={isMobile ? "flex flex-col gap-2" : "flex gap-2"}>
       <Select value={filter} onValueChange={onFilterChange}>
         <SelectTrigger className={isMobile ? "w-full" : "w-[120px]"}>
-          <SelectValue placeholder="Filter" />
+          <SelectValue placeholder={t("filter")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All</SelectItem>
-          <SelectItem value="project">Projects</SelectItem>
-          <SelectItem value="task">Tasks</SelectItem>
+          <SelectItem value="all">{t("all")}</SelectItem>
+          <SelectItem value="project">{t("project")}</SelectItem>
+          <SelectItem value="task">{t("task")}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -42,9 +44,9 @@ export function DeadlineFilters({
           <SelectValue placeholder="Timeframe" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="7">7 days</SelectItem>
-          <SelectItem value="14">14 days</SelectItem>
-          <SelectItem value="30">30 days</SelectItem>
+          <SelectItem value="7">7 {t("day")}</SelectItem>
+          <SelectItem value="14">14 {t("day")}</SelectItem>
+          <SelectItem value="30">30 {t("day")}</SelectItem>
         </SelectContent>
       </Select>
     </div>

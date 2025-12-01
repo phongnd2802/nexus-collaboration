@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from "next-intl";
 
 interface ProjectCompletionDialogProps {
   open: boolean;
@@ -22,25 +23,24 @@ export default function ProjectCompletionDialog({
   onConfirm,
   isUpdating,
 }: ProjectCompletionDialogProps) {
+  const t = useTranslations("ProjectDetailPage");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Mark Project as Completed?</AlertDialogTitle>
+          <AlertDialogTitle>{t("mark_as_completed")}</AlertDialogTitle>
           <AlertDialogDescription>
-            All tasks in this project are complete. Changing the project status
-            to "Completed" will notify all team members that the project has
-            been finalized.
+            {t("mark_as_completed_description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
             disabled={isUpdating}
           >
-            {isUpdating ? "Updating..." : "Mark as Completed"}
+            {isUpdating ? t("updating") : t("mark_as_completed")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

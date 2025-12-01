@@ -2,6 +2,7 @@ import { Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TaskFormData } from "@/hooks/useTaskForm";
+import { useTranslations } from "next-intl";
 
 interface TaskFormDatesProps {
   formData: TaskFormData;
@@ -12,14 +13,15 @@ export function TaskFormDates({
   formData,
   handleInputChange,
 }: TaskFormDatesProps) {
+  const t = useTranslations("TasksPage.form");
   return (
     <div className="space-y-2 md:col-span-2">
       <Label
         htmlFor="dueDate"
         className="text-base font-medium flex items-center"
       >
-        <Clock className="h-4 w-4 mr-2 text-violet-600" />
-        Due Date & Time (Optional)
+        <Clock className="h-4 w-4 mr-2 text-main" />
+        {t("due_date")}
       </Label>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="relative">
@@ -46,7 +48,7 @@ export function TaskFormDates({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Select a date, then optionally set a specific time.
+        {t("due_date_helper")}
       </p>
     </div>
   );

@@ -54,8 +54,8 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     >
       <div className="relative">
         {isTeamChat ? (
-          <Avatar className="bg-violet-100 dark:bg-violet-900/30">
-            <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white">
+          <Avatar className="bg-main dark:bg-main">
+            <AvatarFallback className="bg-linear-to-br from-main to-indigo-700 text-white">
               {getInitials(conversation.name ?? null)}
             </AvatarFallback>
           </Avatar>
