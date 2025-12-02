@@ -23,6 +23,8 @@ import {
   getEventNavigationLabel,
 } from "./calendar-utils";
 import { EventIcon } from "./event-icon";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocaleObject } from "./calendar-utils";
 
 interface DayEventsDialogProps {
   day: Date | null;
@@ -42,6 +44,9 @@ export function DayEventsDialog({
   onOpenChange,
   onEventClick,
 }: DayEventsDialogProps) {
+  const t = useTranslations("CalendarPage.dialog");
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
   if (!day) return null;
 
   return (
@@ -50,17 +55,17 @@ export function DayEventsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
-            {format(day, "MMMM d, yyyy")}
+            {format(day, "MMMM d, yyyy", { locale: localeObject })}
             {isToday(day) && (
               <Badge className="bg-violet-500 hover:bg-violet-600 ml-2">
-                Today
+                {t("today")}
               </Badge>
             )}
           </DialogTitle>
         </DialogHeader>
 
         <div className="py-4">
-          <h3 className="text-sm font-medium mb-2">Events</h3>
+          <h3 className="text-sm font-medium mb-2">{t("events")}</h3>
           <div className="space-y-2">
             {events.length > 0 ? (
               events.map((event, index) => (
@@ -90,6 +95,7 @@ function EventListItem({
   event: CalendarEvent;
   onClick: () => void;
 }) {
+  const t = useTranslations("CalendarPage.navigation");
   return (
     <div
       className={`p-2 rounded flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity ${getEventColor(
@@ -110,7 +116,7 @@ function EventListItem({
             asChild
           >
             <Link href={getEventNavigationUrl(event)}>
-              View {getEventNavigationLabel(event)}
+              {t("view")} {t(getEventNavigationLabel(event) as any)}
               <ArrowUpRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>
@@ -124,10 +130,11 @@ function EventListItem({
  * Message displayed when no events exist for the day
  */
 function EmptyEventsMessage() {
+  const t = useTranslations("CalendarPage.dialog");
   return (
     <div className="text-center p-4 bg-muted rounded-md">
       <Info className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-      <p className="text-sm text-muted-foreground">No events for this day</p>
+      <p className="text-sm text-muted-foreground">{t("noEvents")}</p>
     </div>
   );
 }

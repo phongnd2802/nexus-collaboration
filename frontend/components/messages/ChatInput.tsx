@@ -8,6 +8,7 @@ import React, {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Info } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
@@ -26,8 +27,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   inputRef,
   disabled = false,
   fallbackMode = false,
-  placeholder = "Type a message...", // Default placeholder text
+  placeholder,
 }) => {
+  const t = useTranslations("MessagesPage.chatInput");
+  const displayPlaceholder = placeholder || t("placeholder");
   const [message, setMessage] = useState("");
   const [lastTypingStatus, setLastTypingStatus] = useState(false);
 
@@ -81,13 +84,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
       {disabled && (
         <div className="flex items-center text-sm text-destructive mb-1">
           <Info className="h-4 w-4 mr-2" />
-          <span>Connection error. Messages may not be delivered.</span>
+          <span>{t("connectionError")}</span>
         </div>
       )}
       {fallbackMode && !disabled && (
         <div className="flex items-center text-xs text-muted-foreground mb-1">
           <Info className="h-3 w-3 mr-1" />
-          <span>Using basic mode - typing indicators unavailable</span>
+          <span>{t("basicMode")}</span>
         </div>
       )}
       <div className="flex items-center gap-2">
@@ -96,7 +99,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={disabled ? "Connection lost..." : placeholder}
+          placeholder={disabled ? t("connectionLost") : displayPlaceholder}
           disabled={isLoading || disabled}
           className="flex-1"
           autoComplete="off"

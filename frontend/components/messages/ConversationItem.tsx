@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 import { formatLastActive, truncateMessage } from "@/lib/message-utils";
 import { Users } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
+import { vi, enUS } from "date-fns/locale";
 
 interface User {
   id: string;
@@ -41,6 +43,10 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
   isSelected,
   onClick,
 }) => {
+  const t = useTranslations("MessagesPage");
+  const tChat = useTranslations("MessagesPage.chat");
+  const locale = useLocale();
+  const dateLocale = locale === "vi" ? vi : enUS;
   const isTeamChat = !!conversation.isTeamChat;
 
   return (
@@ -63,7 +69,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
           <Avatar>
             <AvatarImage
               src={conversation.user?.image || ""}
-              alt={conversation.user?.name || "User"}
+              alt={conversation.user?.name || t("chatHeader.userAlt")}
             />
             <AvatarFallback>
               {getInitials(conversation.user?.name ?? null)}
@@ -84,7 +90,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
           >
             {isTeamChat ? (
               <>
-                {conversation.name || "Project Chat"}
+                {conversation.name || t("conversationItem.projectChat")}
                 <Users className="h-3 w-3 ml-1 text-muted-foreground" />
               </>
             ) : (
@@ -92,7 +98,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
             )}
           </h3>
           <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-            {formatLastActive(conversation.lastMessageAt)}
+            {formatLastActive(conversation.lastMessageAt, dateLocale)}
           </span>
         </div>
         <p
@@ -106,12 +112,31 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
           {isTeamChat && conversation.lastMessageSender ? (
             <span>
               <span className="font-medium">
-                {conversation.lastMessageSender.name || "User"}:
+                {conversation.lastMessageSender.name || t("chatHeader.userAlt")}
+                :
               </span>{" "}
-              {truncateMessage(conversation.lastMessageContent)}
+              {(() => {
+                const content = truncateMessage(
+                  conversation.lastMessageContent
+                );
+                if (!content || content === "No messages yet") {
+                  return locale === "vi"
+                    ? "Chưa có tin nhắn"
+                    : tChat("noMessages");
+                }
+                return content;
+              })()}
             </span>
           ) : (
-            truncateMessage(conversation.lastMessageContent)
+            (() => {
+              const content = truncateMessage(conversation.lastMessageContent);
+              if (!content || content === "No messages yet") {
+                return locale === "vi"
+                  ? "Chưa có tin nhắn"
+                  : tChat("noMessages");
+              }
+              return content;
+            })()
           )}
         </p>
       </div>

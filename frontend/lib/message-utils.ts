@@ -1,4 +1,5 @@
 import { format, formatDistanceToNow } from "date-fns";
+import { Locale } from "date-fns";
 
 /**
  * Format a date string to time (e.g., "3:45 PM")
@@ -13,7 +14,7 @@ export function formatTime(dateString: string): string {
  * Used in ConversationList component
  */
 export function truncateMessage(message: string, maxLength = 30): string {
-  if (!message) return "New conversation";
+  if (!message) return "";
   if (message.length <= maxLength) return message;
   return `${message.substring(0, maxLength)}...`;
 }
@@ -22,6 +23,6 @@ export function truncateMessage(message: string, maxLength = 30): string {
  * Format a date to relative time (e.g., "2 hours ago")
  * Used in ConversationList component
  */
-export function formatLastActive(date: string): string {
-  return formatDistanceToNow(new Date(date), { addSuffix: true });
+export function formatLastActive(date: string, locale?: Locale): string {
+  return formatDistanceToNow(new Date(date), { addSuffix: true, locale });
 }

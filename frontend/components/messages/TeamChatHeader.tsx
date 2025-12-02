@@ -4,6 +4,7 @@ import { ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getInitials } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface TeamChatHeaderProps {
   project: {
@@ -20,6 +21,7 @@ const TeamChatHeader: React.FC<TeamChatHeaderProps> = ({
   project,
   onBackClick,
 }) => {
+  const t = useTranslations("MessagesPage.chatHeader");
   const isMobile = useIsMobile();
 
   if (!project) return null;
@@ -67,7 +69,7 @@ const TeamChatHeader: React.FC<TeamChatHeaderProps> = ({
         </div>
         {project.creator && (
           <p className="text-sm text-muted-foreground truncate">
-            Created by {project.creator}
+            {t("createdBy", { creator: project.creator })}
           </p>
         )}
       </div>

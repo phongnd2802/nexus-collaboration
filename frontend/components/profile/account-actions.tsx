@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Trash2 } from "lucide-react";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface AccountActionsProps {
   hasPasswordAuth: boolean;
@@ -21,6 +22,7 @@ interface AccountActionsProps {
 export function AccountActions({
   hasPasswordAuth = false,
 }: AccountActionsProps) {
+  const t = useTranslations("ProfilePage.accountActions");
   const getSavedDialogState = () => {
     if (typeof window !== "undefined") {
       const savedState = sessionStorage.getItem("deleteDialogOpen");
@@ -57,28 +59,26 @@ export function AccountActions({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account Actions</CardTitle>
-        <CardDescription>Manage your account settings and data</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-foreground">
-              Export Your Data
+              {t("exportTitle")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Download a copy of your personal data, including your profile
-              information, projects you've created, and tasks you've been
-              assigned.
+              {t("exportDescription")}
             </p>
             <Button
               variant="neutral"
               className="mt-4 border-border hover:bg-muted text-foreground"
               onClick={() => {
-                toast.success("Export Data feature coming soon!");
+                toast.success(t("exportComingSoon"));
               }}
             >
-              Export Data
+              {t("exportButton")}
             </Button>
           </div>
 
@@ -86,11 +86,10 @@ export function AccountActions({
 
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-foreground">
-              Delete Account
+              {t("deleteTitle")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Permanently delete your account and all associated data. This
-              action cannot be undone.
+              {t("deleteDescription")}
             </p>
             <Button
               variant="neutral"
@@ -98,7 +97,7 @@ export function AccountActions({
               onClick={() => handleDeleteModalChange(true)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Account
+              {t("deleteButton")}
             </Button>
 
             <DeleteAccountDialog

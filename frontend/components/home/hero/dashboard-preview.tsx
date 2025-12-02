@@ -1,18 +1,28 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, MousePointer, Calendar as CalendarIcon, Users, FileText } from "lucide-react";
+import {
+  Zap,
+  MousePointer,
+  Calendar as CalendarIcon,
+  Users,
+  FileText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHeroAnimation } from "@/hooks/use-hero-animation";
-import { CalendarView } from "./calendar"; 
+import { CalendarView } from "./calendar";
 import { TeamView } from "./team";
 import { ProjectProgressView } from "./project-progress";
+import { useTranslations } from "next-intl";
 
 interface DashboardPreviewProps {
   inView?: boolean;
 }
 
-const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) => {
+const DashboardPreview: React.FC<DashboardPreviewProps> = ({
+  inView = true,
+}) => {
+  const t = useTranslations("HomePage.hero.preview.dashboard");
   const isMobile = useIsMobile();
   const isDesktop = !isMobile;
 
@@ -28,24 +38,41 @@ const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) =>
 
   const renderContent = () => {
     switch (currentView) {
-      case "calendar": return <CalendarView />;
-      case "team": return <TeamView />;
-      default: return <ProjectProgressView progress={projectProgress} completedTasks={completedTasks} />;
+      case "calendar":
+        return <CalendarView />;
+      case "team":
+        return <TeamView />;
+      default:
+        return (
+          <ProjectProgressView
+            progress={projectProgress}
+            completedTasks={completedTasks}
+          />
+        );
     }
   };
 
   // Card Selector
-  const SelectorCard = ({ type, icon: Icon, label }: { type: string, icon: any, label: string }) => (
+  const SelectorCard = ({
+    type,
+    icon: Icon,
+    label,
+  }: {
+    type: string;
+    icon: any;
+    label: string;
+  }) => (
     <motion.div
       className={`
         h-24 rounded-xl flex flex-col items-center justify-center 
         p-2 transition-all cursor-pointer relative border
 
-        ${activeCard === type
-          ? "bg-main/25 border-main/40 dark:bg-main/30 dark:border-main/40 scale-105 shadow-sm shadow-main/20"
-          : currentView === type
-          ? "bg-main/10 border-main/20 dark:bg-main/20 dark:border-main/20"
-          : "bg-card/50 border-border hover:bg-main/10 hover:border-main/30"
+        ${
+          activeCard === type
+            ? "bg-main/25 border-main/40 dark:bg-main/30 dark:border-main/40 scale-105 shadow-sm shadow-main/20"
+            : currentView === type
+            ? "bg-main/10 border-main/20 dark:bg-main/20 dark:border-main/20"
+            : "bg-card/50 border-border hover:bg-main/10 hover:border-main/30"
         }
       `}
       animate={activeCard === type ? { scale: 1.05 } : { scale: 1 }}
@@ -58,7 +85,6 @@ const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) =>
 
   return (
     <div className="relative w-full max-w-lg">
-
       {/* Subtle Ambient Glow (tone nhẹ, đồng bộ page) */}
       <motion.div
         className="absolute -inset-0.5 rounded-2xl 
@@ -88,7 +114,12 @@ const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) =>
             <motion.div
               className="absolute z-50 pointer-events-none"
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1, x: cursorPosition.x, y: cursorPosition.y }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                x: cursorPosition.x,
+                y: cursorPosition.y,
+              }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
@@ -107,14 +138,15 @@ const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) =>
         </AnimatePresence>
 
         <div className="space-y-6 relative z-10">
-          
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg bg-main flex items-center justify-center shadow-sm shadow-main/30">
                 <Zap className="h-4 w-4 text-main-foreground" />
               </div>
-              <span className="font-semibold text-foreground tracking-tight">Project Dashboard</span>
+              <span className="font-semibold text-foreground tracking-tight">
+                {t("title")}
+              </span>
             </div>
 
             <div className="flex space-x-1.5 opacity-70">
@@ -126,9 +158,17 @@ const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) =>
 
           {/* Selector */}
           <div className="grid grid-cols-3 gap-4 mt-3">
-            <SelectorCard type="calendar" icon={CalendarIcon} label="Calendar" />
-            <SelectorCard type="team" icon={Users} label="Team" />
-            <SelectorCard type="tasks" icon={FileText} label="Tasks" />
+            <SelectorCard
+              type="calendar"
+              icon={CalendarIcon}
+              label={t("tabs.calendar")}
+            />
+            <SelectorCard type="team" icon={Users} label={t("tabs.team")} />
+            <SelectorCard
+              type="tasks"
+              icon={FileText}
+              label={t("tabs.tasks")}
+            />
           </div>
 
           {/* Dynamic Content */}
@@ -147,13 +187,10 @@ const DashboardPreview: React.FC<DashboardPreviewProps> = ({ inView = true }) =>
           {/* Footer */}
           <div className="flex gap-2 justify-end pt-4">
             <Button size="sm" variant="neutral">
-              View Details
+              {t("buttons.viewDetails")}
             </Button>
-            <Button size="sm">
-              Add Task
-            </Button>
+            <Button size="sm">{t("buttons.addTask")}</Button>
           </div>
-
         </div>
       </div>
     </div>

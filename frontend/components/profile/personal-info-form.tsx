@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 interface PersonalInfoFormProps {
   formData: {
@@ -31,19 +32,19 @@ export function PersonalInfoForm({
   formData,
   handleInputChange,
 }: PersonalInfoFormProps) {
+  const t = useTranslations("ProfilePage.personalInfo");
+
   return (
     <Card className="col-span-1 md:col-span-2">
       <CardHeader>
-        <CardTitle>Personal Information</CardTitle>
-        <CardDescription>
-          Update your personal information visible to your team members
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">{t("fullName")}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -52,12 +53,12 @@ export function PersonalInfoForm({
                   value={formData.name}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Your full name"
+                  placeholder={t("fullNamePlaceholder")}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -66,19 +67,19 @@ export function PersonalInfoForm({
                   value={formData.email}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Your email address"
+                  placeholder={t("emailPlaceholder")}
                   disabled
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Your email address is used for sign-in and cannot be changed.
+                {t("emailHelper")}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="jobTitle">Job Title</Label>
+              <Label htmlFor="jobTitle">{t("jobTitle")}</Label>
               <div className="relative">
                 <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -87,12 +88,12 @@ export function PersonalInfoForm({
                   value={formData.jobTitle}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Your job title"
+                  placeholder={t("jobTitlePlaceholder")}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
+              <Label htmlFor="department">{t("department")}</Label>
               <div className="relative">
                 <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -101,14 +102,14 @@ export function PersonalInfoForm({
                   value={formData.department}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Your department"
+                  placeholder={t("departmentPlaceholder")}
                 />
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="skills">Skills & Expertise</Label>
+            <Label htmlFor="skills">{t("skills")}</Label>
             <div className="relative">
               <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -117,17 +118,14 @@ export function PersonalInfoForm({
                 value={formData.skills}
                 onChange={handleInputChange}
                 className="pl-10"
-                placeholder="Your skills (comma separated)"
+                placeholder={t("skillsPlaceholder")}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              List skills relevant to project collaboration (e.g., UI Design,
-              JavaScript, Project Management)
-            </p>
+            <p className="text-xs text-muted-foreground">{t("skillsHelper")}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">Professional Bio</Label>
+            <Label htmlFor="bio">{t("bio")}</Label>
             <textarea
               id="bio"
               name="bio"
@@ -135,7 +133,7 @@ export function PersonalInfoForm({
               onChange={handleInputChange}
               rows={4}
               className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Tell your team members about your professional background and expertise"
+              placeholder={t("bioPlaceholder")}
             />
           </div>
         </form>

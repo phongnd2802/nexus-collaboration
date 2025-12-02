@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,6 +33,8 @@ export default function ProjectMemberItem({
   onRoleChange,
   onRemove,
 }: ProjectMemberItemProps) {
+  const t = useTranslations("DashboardPage.projectCard");
+
   return (
     <div className="flex md:items-center md:justify-between border-b border-border/40 last:border-0 pb-3 last:pb-0 flex-col md:flex-row">
       <div className="flex items-center">
@@ -54,11 +57,11 @@ export default function ProjectMemberItem({
             {member.user?.name || "Unknown user"}
             {projectCreatorId === member.userId && (
               <span className="ml-2 text-xs text-muted-foreground">
-                (Creator)
+                {t("creatorLabel")}
               </span>
             )}
             {member.userId === session?.user?.id && (
-              <span className="ml-2 text-xs text-muted-foreground">(You)</span>
+              <span className="ml-2 text-xs text-muted-foreground">{t("youLabel")}</span>
             )}
           </p>
           <p className="text-sm text-muted-foreground">{member.user?.email}</p>

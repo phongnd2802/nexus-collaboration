@@ -16,7 +16,44 @@
       "signOut": "Sign Out",
       "getStarted": "Get Started",
       "signIn": "Sign In",
-      "signUp": "Sign Up"
+      "signUp": "Sign Up",
+      "preview": {
+        "calendar": {
+          "title": "Calendar View",
+          "date": "May 2025",
+          "weekdays": "S,M,T,W,T,F,S"
+        },
+        "team": {
+          "title": "Team Members",
+          "membersCount": "{count} members",
+          "roles": {
+            "Admin": "Admin",
+            "Editor": "Editor",
+            "Member": "Member"
+          }
+        },
+        "projectProgress": {
+          "title": "Project Progress",
+          "taskDone": "Task Done!",
+          "tasks": {
+            "research": "Research completed",
+            "design": "Design phase completed",
+            "development": "Development"
+          }
+        },
+        "dashboard": {
+          "title": "Project Dashboard",
+          "tabs": {
+            "calendar": "Calendar",
+            "team": "Team",
+            "tasks": "Tasks"
+          },
+          "buttons": {
+            "viewDetails": "View Details",
+            "addTask": "Add Task"
+          }
+        }
+      }
     }
   },
   "AuthPage": {
@@ -43,7 +80,196 @@
       "creatingAccount": "Creating account...",
       "signUp": "Sign Up",
       "or": "Or",
-      "haveAccount": "Have an account? Sign in"
+      "haveAccount": "Have an account? Sign in",
+      "passwordStrength": {
+        "enterPassword": "Enter a password",
+        "weak": "Weak password",
+        "medium": "Medium password",
+        "strong": "Strong password"
+      }
+    }
+  },
+  "DashboardPage": {
+    "welcomeBanner": {
+      "goodMorning": "Good Morning",
+      "goodAfternoon": "Good Afternoon",
+      "goodEvening": "Good Evening",
+      "tasksDueMessage": "You have {count} tasks due this week.",
+      "weekday": {
+        "Monday": "Monday",
+        "Tuesday": "Tuesday",
+        "Wednesday": "Wednesday",
+        "Thursday": "Thursday",
+        "Friday": "Friday",
+        "Saturday": "Saturday",
+        "Sunday": "Sunday"
+      },
+      "month": {
+        "January": "January",
+        "February": "February",
+        "March": "March",
+        "April": "April",
+        "May": "May",
+        "June": "June",
+        "July": "July",
+        "August": "August",
+        "September": "September",
+        "October": "October",
+        "November": "November",
+        "December": "December"
+      },
+      "viewSchedule": "View Schedule",
+      "createProject": "Create Project"
+    },
+    "projectSection": {
+      "yourProjects": "Your Projects",
+      "viewAll": "View All",
+      "noProjects": "You don't have any projects",
+      "createProject": "Create Project"
+    },
+    "projectCard": {
+      "noDescription": "No description",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "DONE": "Done",
+      "TODO": "To Do",
+      "AT_RISK": "At Risk",
+      "members": "Members",
+      "date": {
+        "noDueDate": "No due date",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "withTime": "{date} at {time}"
+      },
+      "progress": "Progress",
+      "priority": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      },
+      "team": "Team",
+      "edit": "Edit",
+      "invite": "Invite",
+      "create_task": "Create Task",
+      "creatorLabel": "(Creator)",
+      "youLabel": "(You)"
+    },
+    "taskSection": {
+      "yourTasks": "Your Tasks",
+      "viewAll": "View All",
+      "noTasks": "You don't have any tasks",
+      "noTasksDescription": "Tasks will appear here when you are assigned to them",
+      "createTask": "Create Task"
+    },
+    "taskCard": {
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "DONE": "Done",
+      "TODO": "To Do",
+      "AT_RISK": "At Risk",
+      "overdue": "Overdue: ",
+      "date": {
+        "noDueDate": "No due date",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "withTime": "{date} at {time}"
+      },
+      "assignee": "Assignee",
+      "unassignee": "Unassigned",
+      "creator": "Creator",
+      "priority": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      },
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "activityFeed": {
+      "title": "Activity Feed",
+      "emptyState": "No activity to display",
+      "relative": {
+        "seconds": "{value} seconds ago",
+        "minutes": "{value} minutes ago",
+        "hours": "{value} hours ago",
+        "days": "{value} days ago"
+      }
+    }
+  },
+  "WorkspaceSidebar": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "calendar": "Calendar",
+    "messages": "Messages",
+    "quickActions": "Quick Actions",
+    "createProject": "Create Project",
+    "createTask": "Create Task",
+    "deadlines": "Deadlines",
+    "myAccount": "My Account",
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Sign Out"
+  },
+  "DashboardStats": {
+    "totalProjects": "Total Projects",
+    "completedTasks": "Completed Tasks",
+    "pendingTasks": "Pending Tasks",
+    "upcomingDeadlines": "Upcoming Deadlines"
+  },
+  "MessagesPage": {
+    "title": "Messages",
+    "description": "Manage your messages",
+    "button": {
+      "newMessage": "New Message",
+      "searchPlaceholder": "Search user...",
+      "cancel": "Cancel"
+    },
+    "userSearchResults": {
+      "noUsersFound": "No users found",
+      "startTyping": "Start typing to search users"
+    },
+    "conversationList": {
+      "noConversations": "No conversations",
+      "noConversationsFound": "No conversations found"
+    },
+    "conversationSearch": {
+      "placeholder": "Search conversation..."
+    },
+    "emptyState": {
+      "title": "No conversation selected",
+      "description": "Choose a conversation from the list or start a new one"
+    },
+    "chatInput": {
+      "placeholder": "Type a message...",
+      "connectionError": "Connection error. Messages may not be delivered.",
+      "basicMode": "Using basic mode - typing indicators unavailable",
+      "connectionLost": "Connection lost..."
+    },
+    "chatHeader": {
+      "userAlt": "User",
+      "unnamedUser": "Unnamed User",
+      "createdBy": "Created by {creator}"
+    },
+    "chat": {
+      "noMessages": "No messages yet",
+      "startConversationWith": "Start a conversation with {name}",
+      "thisUser": "this user",
+      "startConversationIn": "Start a conversation in {name} team chat",
+      "teamChat": "team chat",
+      "messageTo": "Message to {name} team...",
+      "team": "team"
+    },
+    "conversationItem": {
+      "projectChat": "Project Chat"
+    },
+    "fallbackAlert": {
+      "message": "Real-time chat is currently unavailable. Using polling instead."
+    },
+    "messageList": {
+      "isTyping": "{name} is typing...",
+      "startConversation": "Start a conversation"
     }
   },
   "LanguageSwitcher": {
@@ -51,17 +277,332 @@
     "en": "EN",
     "vi": "VI"
   },
-  "date": {
-    "noDueDate": "No due date",
-    "today": "Today",
-    "tomorrow": "Tomorrow",
-    "withTime": "{date} at {time}"
+  "TasksPage": {
+    "header": {
+      "title": "My tasks",
+      "subtitle": "View and manage all your tasks on projects",
+      "newTask": "New task"
+    },
+    "tabs": {
+      "assigned": "Assigned",
+      "created": "Created"
+    },
+    "search": {
+      "placeholder": "Search task..."
+    },
+    "filter": {
+      "button": "Filter",
+      "byStatus": "Filter by status",
+      "byPriority": "Filter by priority",
+      "clearFilters": "Clear filters",
+      "activeFilters": "Active filters:",
+      "clearAll": "Clear all"
+    },
+    "sort": {
+      "button": "Sort by",
+      "dueDate": "Due date",
+      "priority": "Priority",
+      "status": "Status"
+    },
+    "status": {
+      "TODO": "To do",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done"
+    },
+    "priority": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "emptyState": {
+      "title": "No tasks found",
+      "description": "Try adjusting the filters or create a new task.",
+      "createTask": "Create task"
+    },
+    "create": {
+      "title": "Create task",
+      "description": "Add a task to organize and track tasks for your team"
+    },
+    "form": {
+      "attachments": "Attachments",
+      "title": "Task name",
+      "title_placeholder": "Enter a clear, specific task name",
+      "title_helper": "A short title helps team members understand the task right away",
+      "description": "Description",
+      "description_placeholder": "Provide details, context, and specific requirements for this task",
+      "description_helper": "Provide additional information or requirements",
+      "projects": "Projects",
+      "project_placeholder": "Select a project",
+      "project_helper": "You need to be a member of at least one project to create a task",
+      "create_project": "Create project",
+      "assignee": "Assignee",
+      "assignee_placeholder": "Select an assignee",
+      "assignee_helper": "Select a project first to view available team members",
+      "no_members_helper": "No members in the project",
+      "status": "Status",
+      "due_date": "Due date",
+      "due_date_helper": "Select a date, then set a specific time.",
+      "priority": "Priority",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "preview": "Preview",
+      "preview_title": "Task name",
+      "preview_title_placeholder": "Task name will appear here",
+      "preview_project": "Project",
+      "no_project_selected": "No project selected",
+      "assigned_to": "Assignee",
+      "cancel": "Cancel",
+      "creating_task": "Creating task...",
+      "saving_changes": "Saving changes...",
+      "create_task": "Create task",
+      "save_changes": "Save changes",
+      "notes": "Notes",
+      "notes_placeholder": "Add information about the completed task or upload deliverables",
+      "deliverables": "Attachments",
+      "current_deliverables": "Current attachments",
+      "deliverables_description": "Provide additional information or requirements",
+      "add_deliverables": "Add attachments",
+      "saving": "Saving...",
+      "save": "Save"
+    },
+
+    "ProjectsPage": {
+      "header": {
+        "title": "Projects",
+        "description": "Manage your projects",
+        "newProject": "Create project"
+      },
+      "filter": {
+        "placeholder": "Search projects...",
+        "filterByStatus": "Filter by status",
+        "activeFilters": "Filters",
+        "inProgress": "In progress",
+        "filter": "Filter",
+        "sortBy": "Sort by",
+        "name": "Name",
+        "dueDate": "Due date",
+        "members": "Members",
+        "progress": "Progress",
+        "atRisk": "At risk",
+        "completed": "Completed",
+        "clearFilters": "Clear filters"
+      },
+      "list": {
+        "noProjects": "You don't have any projects",
+        "createFirstProject": "Create your first project to start collaborating with your team",
+        "createNewProject": "Create new project",
+        "noProjectsMatch": "No projects match your filters",
+        "tryAdjustingFilters": "Try adjusting your filters",
+        "clearFilters": "Clear filters"
+      },
+      "create": {
+        "title": "Create project",
+        "description": "Set up a new project and add team members to start collaborating",
+        "name": "Project name",
+        "nameDescription": "Choose a clear, specific name that reflects the project's purpose",
+        "namePlaceholder": "Enter project name",
+        "projectDescription": "Project description",
+        "descriptionPlaceholder": "Describe the project's objective, scope, and any additional information",
+        "descriptionDescription": "Describe the project in detail to help team members understand its purpose",
+        "projectFiles": "Project files",
+        "projectFilesDescription": "Add project files or references for your team",
+        "cancel": "Cancel",
+        "createProject": "Create project",
+        "dueDate": "Due date & Time",
+        "dueDateDescription": "Select a date, then set a specific time.",
+        "projectPreview": "Project preview",
+        "teamMembers": "Team members",
+        "youAdmin": "You (Admin)",
+        "youCanInvite": "You can invite team members to the project after creating it",
+        "attachedFiles": "Attached files",
+        "file": "file",
+        "namePlaceholderPreview": "Your project name will appear here"
+      },
+      "tips": {
+        "title": "Project Management Tips",
+        "tip1": "Break down your project into smaller tasks for easier management.",
+        "tip2": "Set clear milestones and deadlines to track progress.",
+        "tip3": "Invite all relevant team members to collaborate easily.",
+        "tip4": "Use task descriptions to provide clear context and requirements."
+      }
+    },
+    "ProjectDetailPage": {
+      "projectNotFound": "Project not found",
+      "projectNotFoundDescription": "The project you're looking for doesn't exist or you don't have access to it.",
+      "overview": "Overview",
+      "tasks": "Tasks",
+      "files": "Files",
+      "loadingTasks": "Loading tasks...",
+      "progress": "Project progress",
+      "overallCompletion": "Overall completion",
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "todo": "To do",
+      "all_tasks_completed": "All tasks completed!",
+      "project_ready_to_be_marked_as_completed": "The project is ready to be marked as completed.",
+      "mark_as_completed": "Mark as completed",
+      "mark_as_completed_description": "All tasks in this project have been completed. Changing this status will notify all team members that the project has been completed.",
+      "cancel": "Cancel",
+      "updating": "Updating...",
+      "team_members": "Team members",
+      "no_team_members_found": "No team members found",
+      "projectDetails": "Project details",
+      "createdBy": "Created by",
+      "createdOn": "Created on",
+      "dueDate": "Due date",
+      "updatedOn": "Updated on"
+    },
+    "LanguageSwitcher": {
+      "label": "Language",
+      "en": "EN",
+      "vi": "VI"
+    },
+    "date": {
+      "noDueDate": "No due date",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "withTime": "{date} at {time}"
+    },
+    "relative": {
+      "seconds": "{value} seconds ago",
+      "minutes": "{value} minutes ago",
+      "hours": "{value} hours ago",
+      "days": "{value} days ago"
+    },
+    "UnifiedBreadcrumb": {
+      "dashboard": "Dashboard",
+      "projects": "Projects",
+      "tasks": "Tasks",
+      "calendar": "Calendar",
+      "team": "Team",
+      "profile": "Profile",
+      "settings": "Settings",
+      "create": "Create",
+      "projectDetails": "Project details",
+      "taskDetails": "Task details",
+      "createProject": "Create project",
+      "createTask": "Create task"
+    },
+    "editProjectDialog": {
+      "title": "Edit project",
+      "description": "Update project information",
+      "project_name": "Project name",
+      "project_description": "Project description",
+      "project_name_placeholder": "Enter project name",
+      "project_description_placeholder": "Enter project description",
+      "status": "Status",
+      "in_progress": "In progress",
+      "at_risk": "At risk",
+      "completed": "Completed",
+      "select_status": "Select status",
+      "due_date": "Due date & Time",
+      "delete_project": "Delete project",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "save_changes": "Save changes"
+    },
+    "deleteProjectDialog": {
+      "title": "Delete project",
+      "description": "This action cannot be undone. This will permanently delete the project, all tasks, files, and remove all team members.",
+      "confirm_text": "To confirm, please enter",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "delete": "Delete"
+    },
+    "inviteDialog": {
+      "title": "Invite member",
+      "description": "Invite member to project",
+      "cancel": "Cancel",
+      "inviting": "Inviting...",
+      "invite": "Invite",
+      "placeholder": "Enter email",
+      "noUsersFound": "No users found",
+      "input_description": "Enter email of the user you want to invite",
+      "selectRole": "Select role",
+      "role": "Role",
+      "admin": "Control the entire project",
+      "editor": "Create and manage tasks",
+      "member": "View project and participate in tasks assigned"
+    },
+    "memberRoleDialog": {
+      "change_member_role": "Change member role",
+      "cancel": "Cancel",
+      "updating": "Updating...",
+      "are_you_sure_you_want_to_change_this_member_s_role_from": "Are you sure you want to change this member's role from",
+      "to": "to",
+      "confirm": "Confirm"
+    },
+    "memberRemoveDialog": {
+      "remove_team_member": "Remove team member",
+      "description": "This action cannot be undone. This will permanently delete the team member from the project.",
+      "confirm_text": "To confirm, please enter",
+      "cancel": "Cancel",
+      "removing": "Removing...",
+      "remove": "Remove"
+    }
   },
-  "relative": {
-    "seconds": "{value} seconds ago",
-    "minutes": "{value} minutes ago",
-    "hours": "{value} hours ago",
-    "days": "{value} days ago"
+  "TaskDetailPage": {
+    "projectNotFound": "Project not found",
+    "taskNotFound": "Task not found",
+    "permissionDenied": "You do not have permission to access this page",
+    "projectNotFoundDescription": "The project you are looking for does not exist or you do not have permission to access it.",
+    "taskNotFoundDescription": "The task you are looking for does not exist or you do not have permission to access it.",
+    "permissionDeniedDescription": "You do not have permission to access this page",
+    "accessRestricted": "Access restricted",
+    "youNeedToBeAMemberOfThisProjectToViewTasks": "You need to be a member of this project to view tasks",
+    "returnToProject": "Return to project",
+    "description": "Description",
+    "addDescription": "Add description...",
+    "noDescription": "No description",
+    "attachments": "Attachments",
+    "created_by": "Created by",
+    "edit": "Edit",
+    "delete": "Delete",
+    "are_you_sure": "Are you sure",
+    "are_you_sure_delete_task": "This action cannot be undone. This will permanently delete the task and remove it from the project.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "saving": "Saving...",
+    "save_changes": "Save changes",
+    "taskCompletion": "Task completion",
+    "notes": "Notes",
+    "noNotes": "No notes",
+    "deliverables": "Deliverables",
+    "noDeliverables": "No deliverables",
+    "taskDetails": "Task details",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDate": "Due date",
+    "assignee": "Assignee",
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "selectPriority": "Select priority",
+    "noDueDate": "No due date",
+    "assignToTeamMember": "Assign to team member",
+    "unassigned": "Unassigned",
+    "creator": "Creator",
+    "subtask": "Subtask",
+    "addSubtask": "Add subtask",
+    "noSubtasks": "No subtasks",
+    "name": "Name",
+    "subtaskName": "Subtask name",
+    "enterSubtaskName": "Enter subtask name",
+    "selectAssignee": "Select assignee",
+    "createSubtask": "Create subtask",
+    "linkedTask": "Linked task",
+    "addLink": "Add link",
+    "noLinkedTasks": "No linked tasks",
+    "relationship": "Relationship",
+    "taskName": "Task name",
+    "addLinkedTask": "Add linked task",
+    "selectTask": "Select task",
+    "loadingTasks": "Loading tasks",
+    "noTasksAvailable": "No tasks available",
+    "selectRelationship": "Select relationship",
+    "blocks": "Blocks",
+    "blockedBy": "Blocked by"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Dashboard",
@@ -72,52 +613,414 @@
     "profile": "Profile",
     "settings": "Settings",
     "create": "Create",
-    "projectDetails": "Project Details",
-    "taskDetails": "Task Details",
-    "createProject": "Create Project",
-    "createTask": "Create Task"
+    "projectDetails": "Project details",
+    "taskDetails": "Task details",
+    "createProject": "Create project",
+    "createTask": "Create task"
   },
-  "TasksPage": {
+  "ProjectsPage": {
     "header": {
-      "title": "My Tasks",
-      "subtitle": "View and manage all your tasks across projects",
-      "newTask": "New Task"
-    },
-    "tabs": {
-      "assigned": "Assigned",
-      "created": "Created"
-    },
-    "search": {
-      "placeholder": "Search tasks..."
+      "title": "Projects",
+      "description": "Manage your projects",
+      "newProject": "Create project"
     },
     "filter": {
-      "button": "Filter",
-      "byStatus": "Filter By Status",
-      "byPriority": "Filter By Priority",
-      "clearFilters": "Clear Filters",
-      "activeFilters": "Active filters:",
-      "clearAll": "Clear All"
+      "placeholder": "Search projects...",
+      "filterByStatus": "Filter by status",
+      "activeFilters": "Filters",
+      "inProgress": "In progress",
+      "filter": "Filter",
+      "sortBy": "Sort by",
+      "name": "Name",
+      "dueDate": "Due date",
+      "members": "Members",
+      "progress": "Progress",
+      "atRisk": "At risk",
+      "completed": "Completed",
+      "clearFilters": "Clear filters"
     },
-    "sort": {
-      "button": "Sort by",
-      "dueDate": "Due Date",
-      "priority": "Priority",
-      "status": "Status"
+    "list": {
+      "noProjects": "You don't have any projects",
+      "createFirstProject": "Create your first project to start collaborating with your team",
+      "createNewProject": "Create new project",
+      "noProjectsMatch": "No projects match your filters",
+      "tryAdjustingFilters": "Try adjusting your filters",
+      "clearFilters": "Clear filters"
     },
-    "status": {
-      "TODO": "To Do",
-      "IN_PROGRESS": "In Progress",
-      "DONE": "Done"
+    "create": {
+      "title": "Create project",
+      "description": "Set up your project and add team members to start collaborating",
+      "name": "Project name",
+      "nameDescription": "Choose a clear, specific name that reflects the purpose of the project",
+      "namePlaceholder": "Enter project name",
+      "projectDescription": "Project description",
+      "descriptionPlaceholder": "Describe the project's goal, scope, and any additional information",
+      "descriptionDescription": "Describe the project's goal, scope, and any additional information",
+      "projectFiles": "Project files",
+      "projectFilesDescription": "Add project files or references for your team",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "createProject": "Create project",
+      "dueDate": "Due date & Time",
+      "dueDateDescription": "Choose a date, then select a specific time.",
+      "projectPreview": "Preview project",
+      "teamMembers": "Team members",
+      "youAdmin": "You (Admin)",
+      "youCanInvite": "You can invite team members to the project after creating it",
+      "attachedFiles": "Attached files",
+      "file": "file",
+      "namePlaceholderPreview": "Your project name will appear here"
     },
-    "priority": {
-      "HIGH": "High",
-      "MEDIUM": "Medium",
-      "LOW": "Low"
-    },
-    "emptyState": {
-      "title": "No tasks found",
-      "description": "Try adjusting your filters or create a new task.",
-      "createTask": "Create New Task"
+    "tips": {
+      "title": "Project Management Tips",
+      "tip1": "Break down your project into smaller tasks and easier to manage.",
+      "tip2": "Set milestones and deadlines to easily track progress.",
+      "tip3": "Invite all relevant team members to easily collaborate.",
+      "tip4": "Use task descriptions to provide context and clear requirements."
     }
+  },
+  "ProjectDetailPage": {
+    "projectNotFound": "Project not found",
+    "projectNotFoundDescription": "The project you are searching for does not exist or you do not have access to it.",
+    "overview": "Overview",
+    "tasks": "Tasks",
+    "files": "Files",
+    "loadingTasks": "Loading tasks...",
+    "progress": "Project progress",
+    "overallCompletion": "Overall completion",
+    "completed": "Completed",
+    "inProgress": "In progress",
+    "todo": "To do",
+    "all_tasks_completed": "All tasks have been completed!",
+    "project_ready_to_be_marked_as_completed": "Project is ready to be marked as completed.",
+    "mark_as_completed": "Mark as completed",
+    "mark_as_completed_description": "All tasks in this project have been completed. Changing this status will notify all team members that the project has been completed.",
+    "cancel": "Cancel",
+    "updating": "Updating...",
+    "team_members": "Team members",
+    "no_team_members_found": "No team members found",
+    "projectDetails": "Project details",
+    "createdBy": "Created by",
+    "createdOn": "Created on",
+    "dueDate": "Due date",
+    "updatedOn": "Updated on"
+  },
+  "date": {
+    "noDueDate": "No due date",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "withTime": "{date} at {time}"
+  },
+  "editProjectDialog": {
+    "title": "Edit project",
+    "description": "Update project information",
+    "project_name": "Project name",
+    "project_description": "Project description",
+    "project_name_placeholder": "Enter project name",
+    "project_description_placeholder": "Enter project description",
+    "status": "Status",
+    "in_progress": "In progress",
+    "at_risk": "At risk",
+    "completed": "Completed",
+    "select_status": "Select status",
+    "due_date": "Due date & Time",
+    "delete_project": "Delete project",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save_changes": "Save changes"
+  },
+  "deleteProjectDialog": {
+    "title": "Delete project",
+    "description": "This action cannot be undone. This will permanently delete the project, all tasks, files, and remove all team members.",
+    "confirm_text": "To confirm, please enter",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "delete": "Delete"
+  },
+  "inviteDialog": {
+    "title": "Invite members",
+    "description": "Invite members to the project",
+    "cancel": "Cancel",
+    "inviting": "Inviting...",
+    "invite": "Invite",
+    "placeholder": "Enter email",
+    "noUsersFound": "No users found",
+    "input_description": "Enter email of the user you want to invite",
+    "selectRole": "Select role",
+    "role": "Role",
+    "admin": "Control the entire project",
+    "editor": "Create and manage tasks",
+    "member": "View project and participate in tasks assigned."
+  },
+  "memberRoleDialog": {
+    "change_member_role": "Change member role",
+    "cancel": "Cancel",
+    "updating": "Updating...",
+    "are_you_sure_you_want_to_change_this_member_s_role_from": "Are you sure you want to change this member's role from",
+    "to": "to",
+    "confirm": "Confirm"
+  },
+  "memberRemoveDialog": {
+    "remove_team_member": "Remove team member",
+    "description": "This action cannot be undone. This will permanently remove the team member from the project.",
+    "confirm_text": "To confirm, please enter",
+    "cancel": "Cancel",
+    "removing": "Removing...",
+    "remove": "Remove"
+  },
+  "CalendarPage": {
+    "header": {
+      "title": "Calendar",
+      "description": "Manage your project deadlines and time",
+      "today": "Today"
+    },
+    "weekdays": {
+      "full": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
+      "short": "S,M,T,W,T,F,S"
+    },
+    "noCalendarData": "No calendar data",
+    "calendar": "Calendar",
+    "deadlines": "Deadlines",
+    "upcomingDeadlines": "Upcoming deadlines",
+    "all": "All",
+    "project": "Project",
+    "task": "Task",
+    "day": "day",
+    "noDeadlines": "You don't have any deadlines in the selected time range.",
+    "noProjectDeadlines": "No project deadlines in the selected time range.",
+    "noTaskDeadlines": "No task deadlines in the selected time range.",
+    "noDeadlinesTitle": "No deadlines",
+    "filter": "Filter",
+    "eventTypes": {
+      "projectStart": "Project Start Date",
+      "projectDue": "Project Due Date",
+      "taskDue": "Task Due Date",
+      "event": "Event"
+    },
+    "navigation": {
+      "view": "View",
+      "goTo": "Go to",
+      "project": "Project",
+      "task": "Task"
+    },
+    "dialog": {
+      "today": "Today",
+      "events": "Events",
+      "noEvents": "No events for this day",
+      "project": "Project",
+      "task": "Task"
+    },
+    "deadline": {
+      "overdue": "Overdue",
+      "timeframePlaceholder": "Timeframe",
+      "tomorrow": "Tomorrow",
+      "today": "Today"
+    }
+  },
+  "ActivityFeed": {
+    "createdProject": "Created project",
+    "added": "Added",
+    "toProject": "to project",
+    "as": "as",
+    "createdTask": "Created task",
+    "inProject": "in project",
+    "updatedTask": "Updated task",
+    "from": "from",
+    "to": "to",
+    "completedTask": "Completed task",
+    "updatedProject": "Updated project",
+    "activityInProject": "Activity in project",
+    "aNewUser": "a new user"
+  },
+  "ProfilePage": {
+    "header": {
+      "title": "My Profile",
+      "description": "Manage your personal information and preferences",
+      "saveButton": "Save Changes",
+      "saving": "Saving"
+    },
+    "tabs": {
+      "profile": "Profile",
+      "settings": "Account Settings"
+    },
+    "sidebar": {
+      "title": "Profile Picture",
+      "description": "Your profile picture will be visible to team members",
+      "uploadInstruction": "Click on the avatar to upload a new image. JPG, GIF or PNG. 1MB max.",
+      "accountSummary": "Account Summary",
+      "memberSince": "Member Since",
+      "projects": "Projects"
+    },
+    "imageUpload": {
+      "changePhoto": "Change profile picture",
+      "title": "Profile Photo",
+      "description": "Upload a professional profile picture",
+      "saving": "Saving your profile picture...",
+      "uploading": "Uploading... {progress}%",
+      "removeTitle": "Remove profile picture?",
+      "removeDescription": "This will remove your current profile picture and replace it with your initials. This action cannot be undone.",
+      "cancel": "Cancel",
+      "remove": "Remove",
+      "previewText": "How does this look?",
+      "setAsProfile": "Set as profile picture",
+      "removePhoto": "Remove photo",
+      "format": "JPEG, PNG, or GIF (max. 1MB)",
+      "success": "Profile picture updated successfully!",
+      "removedSuccess": "Profile picture removed successfully!",
+      "error": "Failed to update profile image",
+      "uploadError": "Upload failed: {error}"
+    },
+    "personalInfo": {
+      "title": "Personal Information",
+      "description": "Update your personal information visible to your team members",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "Your email address",
+      "emailHelper": "Your email address is used for sign-in and cannot be changed.",
+      "jobTitle": "Job Title",
+      "jobTitlePlaceholder": "Your job title",
+      "department": "Department",
+      "departmentPlaceholder": "Your department",
+      "skills": "Skills & Expertise",
+      "skillsPlaceholder": "Your skills (comma separated)",
+      "skillsHelper": "List skills relevant to project collaboration (e.g., UI Design, JavaScript, Project Management)",
+      "bio": "Professional Bio",
+      "bioPlaceholder": "Tell your team members about your professional background and expertise"
+    },
+    "accountActions": {
+      "title": "Account Actions",
+      "description": "Manage your account settings and data",
+      "exportTitle": "Export Your Data",
+      "exportDescription": "Download a copy of your personal data, including your profile information, projects you've created, and tasks you've been assigned.",
+      "exportButton": "Export Data",
+      "exportComingSoon": "Export Data feature coming soon!",
+      "deleteTitle": "Delete Account",
+      "deleteDescription": "Permanently delete your account and all associated data. This action cannot be undone.",
+      "deleteButton": "Delete Account"
+    },
+    "deleteDialog": {
+      "title": "Delete Account",
+      "description": "This action is permanent and cannot be undone. All your data will be removed.",
+      "confirmInstruction": "Please type \"delete my account\" to confirm:",
+      "confirmPlaceholder": "delete my account",
+      "preventAccidental": "This helps prevent accidental account deletion",
+      "verifyIdentity": "Verify your identity",
+      "verifyPasswordDesc": "For security, we need to verify your identity. You can enter your password or verify your email.",
+      "verifySocialDesc": "Since you log in with a social account, we need to verify your email before deleting your account.",
+      "optionPassword": "Option 1: Enter your password",
+      "passwordPlaceholder": "Your current password",
+      "optionEmail": "Option 2: Verify by email",
+      "sendCode": "Send verification code to email",
+      "sending": "Sending...",
+      "codeSent": "A verification code has been sent to your email.",
+      "codeExpires": "Code expires at: {time}",
+      "codePlaceholder": "6-digit code",
+      "verify": "Verify",
+      "resend": "Resend code",
+      "verified": "Email verified successfully",
+      "cancel": "Cancel",
+      "deleteButton": "Permanently Delete Account",
+      "deleting": "Deleting...",
+      "errorMatch": "Please type 'delete my account' to confirm",
+      "errorAuth": "Please enter your password or verify your email",
+      "errorVerify": "Please verify your email before deleting your account",
+      "success": "Account deleted successfully"
+    },
+    "collaboration": {
+      "title": "Collaboration Preferences",
+      "description": "Set your preferences for project collaboration",
+      "loading": "Loading your preferences...",
+      "defaultRoleTitle": "Default Project Role",
+      "defaultRoleDesc": "When you create a new project, you'll automatically be assigned the Admin role. When invited to projects, you'll be assigned the role set by the project admin.",
+      "assignmentTitle": "Task Assignment Preferences",
+      "autoAccept": "Auto-accept task assignments",
+      "taskReminders": "Receive task reminder notifications",
+      "localTimezone": "Show due dates in my local timezone",
+      "error": "Failed to update setting. Please try again."
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "description": "Manage how and when you receive notifications",
+      "loading": "Loading your preferences...",
+      "emailTitle": "Email Notifications",
+      "emailDesc": "Choose which email notifications you'd like to receive.",
+      "projectInvitations": "Project Invitations",
+      "projectInvitationsDesc": "Receive emails when you're invited to join a project",
+      "taskAssignments": "Task Assignments",
+      "taskAssignmentsDesc": "Receive emails when you are assigned to a task",
+      "dueDateReminders": "Task Due Date Reminders",
+      "dueDateRemindersDesc": "Receive emails when a task is approaching its due date",
+      "comments": "Comments",
+      "commentsDesc": "Receive emails when someone comments on your tasks",
+      "inAppTitle": "In-App Notifications",
+      "inAppDesc": "Choose which notifications you'd like to see within the app.",
+      "projectUpdates": "Project Updates",
+      "projectUpdatesDesc": "Receive notifications about changes to projects you're a member of",
+      "roleChanges": "Role Changes",
+      "roleChangesDesc": "Receive notifications when your role in a project changes",
+      "error": "Failed to update setting. Please try again."
+    },
+    "security": {
+      "title": "Security Settings",
+      "description": "Manage your password and security preferences",
+      "changePassword": "Change Password",
+      "changePasswordDesc": "Update your password to keep your account secure. Password must be at least 8 characters long.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter your new password",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm your new password",
+      "updateButton": "Update Password",
+      "updating": "Updating...",
+      "strength": {
+        "enter": "Enter a password",
+        "weak": "Weak password",
+        "medium": "Medium password",
+        "strong": "Strong password"
+      },
+      "twoFactorTitle": "Two-Factor Authentication",
+      "twoFactorDesc": "Add an extra layer of security to your account by enabling two-factor authentication.",
+      "enableTwoFactor": "Enable Two-Factor Authentication",
+      "twoFactorComingSoon": "Two-Factor Authentication coming soon!"
+    }
+  },
+  "Footer": {
+    "brand": "Nexus Collaboration",
+    "description": "Streamline your team's workflow with our intuitive project management platform. Create projects, manage tasks, and collaborate effectively.",
+    "subscribe": {
+      "title": "Subscribe to our newsletter",
+      "placeholder": "Enter your email",
+      "button": "Subscribe",
+      "success": "Subscribed!"
+    },
+    "product": {
+      "title": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "roadmap": "Roadmap",
+      "documentation": "Documentation"
+    },
+    "company": {
+      "title": "Company",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "contact": "Contact"
+    },
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookie": "Cookie Policy",
+      "dataProcessing": "Data Processing"
+    }
+  },
+  "UserDropdown": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "signOut": "Sign out"
   }
 }

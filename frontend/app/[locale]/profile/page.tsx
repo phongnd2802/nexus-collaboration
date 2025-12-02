@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "next-intl";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileSidebar } from "@/components/profile/profile-sidebar";
 import { PersonalInfoForm } from "@/components/profile/personal-info-form";
@@ -37,6 +38,7 @@ function LoadingProfile() {
 
 // Content component
 function ProfileContent() {
+  const t = useTranslations("ProfilePage.tabs");
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -118,13 +120,7 @@ function ProfileContent() {
           department: userData.profile?.department || "",
           skills: userData.profile?.skills || "",
           bio: userData.profile?.bio || "",
-          dateJoined: userData.createdAt
-            ? new Date(userData.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
-            : "",
+          dateJoined: userData.createdAt || "",
           projectsCount: userData.memberProjectsCount || 0,
         });
 
@@ -142,7 +138,7 @@ function ProfileContent() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
@@ -281,8 +277,8 @@ function ProfileContent() {
             className="w-full"
           >
             <TabsList className="mb-8">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="settings">Account Settings</TabsTrigger>
+              <TabsTrigger value="profile">{t("profile")}</TabsTrigger>
+              <TabsTrigger value="settings">{t("settings")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">

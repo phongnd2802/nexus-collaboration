@@ -79,7 +79,7 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
           >
             <Calendar className="h-3.5 w-3.5 mr-1" />
             <span>
-              {isOverdue(task.dueDate, task.status) ? "Overdue: " : ""}
+              {isOverdue(task.dueDate, task.status) ? t("overdue") : ""}
               {formatDate(task.dueDate, t, locale, {
                 relative: true,
                 includeTime: true,

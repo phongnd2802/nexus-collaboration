@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocaleObject } from "./calendar-utils";
 
 interface CalendarPageHeaderProps {
   isMobile: boolean;
@@ -23,6 +24,19 @@ export function CalendarPageHeader({
   isLoading = false,
 }: CalendarPageHeaderProps) {
   const t = useTranslations("CalendarPage.header");
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
+
+  const formattedDate = format(
+    selectedDate,
+    isMobile ? "MMM yyyy" : "MMMM yyyy",
+    {
+      locale: localeObject,
+    }
+  );
+
+  const capitalizedDate =
+    formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -34,9 +48,7 @@ export function CalendarPageHeader({
         </h1>
 
         {!isMobile && (
-          <p className="mt-1 text-muted-foreground">
-            {t("description")}
-          </p>
+          <p className="mt-1 text-muted-foreground">{t("description")}</p>
         )}
       </div>
 
@@ -70,7 +82,7 @@ export function CalendarPageHeader({
                 text-sm md:text-base
               "
             >
-              {format(selectedDate, isMobile ? "MMM yyyy" : "MMMM yyyy")}
+              {capitalizedDate}
             </span>
 
             {/* Next */}

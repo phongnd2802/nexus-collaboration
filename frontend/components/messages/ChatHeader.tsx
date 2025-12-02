@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getProfileUrl } from "@/lib/profile-utils";
 import { getInitials } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ChatHeaderProps {
   user: {
@@ -18,6 +19,7 @@ interface ChatHeaderProps {
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBackClick }) => {
+  const t = useTranslations("MessagesPage.chatHeader");
   const isMobile = useIsMobile();
   const { data: session } = useSession();
 
@@ -46,7 +48,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBackClick }) => {
         }}
         className="cursor-pointer"
       >
-        <AvatarImage src={user.image || ""} alt={user.name || "User"} />
+        <AvatarImage src={user.image || ""} alt={user.name || t("userAlt")} />
         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
       </Avatar>
       <div
@@ -60,7 +62,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBackClick }) => {
           }
         }}
       >
-        <h3 className="font-medium truncate">{user.name || "Unnamed User"}</h3>
+        <h3 className="font-medium truncate">
+          {user.name || t("unnamedUser")}
+        </h3>
         <p className="text-sm text-muted-foreground truncate">{user.email}</p>
       </div>
     </div>
