@@ -23,7 +23,9 @@ import {
   extractEventTitle,
   getEventNavigationUrl,
   getEventNavigationLabel,
+  getLocaleObject,
 } from "./calendar-utils";
+import { useTranslations, useLocale } from "next-intl";
 
 interface EventDetailsDialogProps {
   event: CalendarEvent | null;
@@ -39,6 +41,9 @@ export function EventDetailsDialog({
   isOpen,
   onOpenChange,
 }: EventDetailsDialogProps) {
+  const t = useTranslations("CalendarPage");
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
   if (!event) return null;
 
   return (
@@ -47,7 +52,9 @@ export function EventDetailsDialog({
         <DialogHeader>
           <DialogTitle>{event.title}</DialogTitle>
           <DialogDescription>
-            {format(new Date(event.start), "MMMM d, yyyy")}
+            {format(new Date(event.start), "MMMM d, yyyy", {
+              locale: localeObject,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -55,13 +62,17 @@ export function EventDetailsDialog({
           {/* Event Type Info */}
           <div className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{getEventTypeLabel(event.type)}</span>
+            <span className="text-sm">
+              {t(`eventTypes.${getEventTypeLabel(event.type)}`)}
+            </span>
           </div>
 
           {/* Project Info */}
           {event.projectId && (
             <div className="bg-muted p-3 rounded-md">
-              <h4 className="text-sm font-medium mb-1">Project</h4>
+              <h4 className="text-sm font-medium mb-1">
+                {t("dialog.project")}
+              </h4>
               <p className="text-sm text-muted-foreground">
                 {extractEventTitle(event)}
               </p>
@@ -71,7 +82,7 @@ export function EventDetailsDialog({
           {/* Task Info */}
           {event.taskId && (
             <div className="bg-muted p-3 rounded-md">
-              <h4 className="text-sm font-medium mb-1">Task</h4>
+              <h4 className="text-sm font-medium mb-1">{t("dialog.task")}</h4>
               <p className="text-sm text-muted-foreground">
                 {extractEventTitle(event)}
               </p>
@@ -83,7 +94,8 @@ export function EventDetailsDialog({
           {(event.projectId || event.taskId) && (
             <Button asChild>
               <Link href={getEventNavigationUrl(event)}>
-                Go to {getEventNavigationLabel(event)}{" "}
+                {t("navigation.goTo")}{" "}
+                {t(`navigation.${getEventNavigationLabel(event)}`)}{" "}
                 <ArrowUpRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>

@@ -1,8 +1,10 @@
 import React, { useMemo } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export const CalendarView = () => {
-  const days = useMemo(() => ["S", "M", "T", "W", "T", "F", "S"], []);
+  const t = useTranslations("HomePage.hero.preview.calendar");
+  const days = useMemo(() => t("weekdays").split(","), [t]);
   const dates = useMemo(
     () =>
       Array.from({ length: 21 }, (_, i) => {
@@ -29,22 +31,25 @@ export const CalendarView = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-sm font-medium text-foreground flex items-center">
-          <CalendarIcon className="h-3 w-3 mr-1 text-main" /> Calendar View
+          <CalendarIcon className="h-3 w-3 mr-1 text-main" /> {t("title")}
         </h3>
-        <span className="text-xs text-muted-foreground">May 2025</span>
+        <span className="text-xs text-muted-foreground">{t("date")}</span>
       </div>
 
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-0.5 text-xs">
         {/* Weekday labels */}
         {days.map((d, i) => (
-          <div key={i} className="text-center font-medium text-muted-foreground py-1">
+          <div
+            key={i}
+            className="text-center font-medium text-muted-foreground py-1"
+          >
             {d}
           </div>
         ))}
 
         {/* Dates */}
-        {dates.map((item) => {
+        {dates.map(item => {
           const baseClasses =
             "text-center py-1 px-0.5 rounded text-xs h-6 flex items-center justify-center transition-all duration-150";
           let extraClasses = "";

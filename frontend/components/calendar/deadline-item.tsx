@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+// Force rebuild
 
 import { Deadline } from "@/types/index";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,6 +27,7 @@ interface DeadlineItemProps {
  */
 export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
   const t = useTranslations("DashboardPage.taskCard");
+  const tCalendar = useTranslations("CalendarPage");
   const { Icon, className: iconClassName } = getDeadlineIconConfig(deadline);
   const deadlineUrl = getDeadlineUrl(deadline);
 
@@ -62,7 +64,7 @@ export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
                   isMobile ? "text-xs" : "text-sm"
                 )}
               >
-                Project:{" "}
+                {tCalendar("navigation.project")}:{" "}
                 <Link
                   className={cn(
                     "text-violet-600 dark:text-violet-400 hover:underline",
@@ -105,7 +107,12 @@ export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
                   asChild
                 >
                   <Link href={deadlineUrl}>
-                    Go to {deadline.type === "project" ? "Project" : "Task"}
+                    {tCalendar("navigation.goTo")}{" "}
+                    {tCalendar(
+                      `navigation.${
+                        deadline.type === "project" ? "project" : "task"
+                      }`
+                    )}
                     <ArrowUpRight className="ml-1 h-3 w-3" />
                   </Link>
                 </Button>
@@ -126,7 +133,12 @@ export function DeadlineItem({ deadline, isMobile }: DeadlineItemProps) {
               asChild
             >
               <Link href={deadlineUrl}>
-                Go to {deadline.type === "project" ? "Project" : "Task"}
+                {tCalendar("navigation.goTo")}{" "}
+                {tCalendar(
+                  `navigation.${
+                    deadline.type === "project" ? "project" : "task"
+                  }`
+                )}
                 <ArrowUpRight className="ml-1 h-3 w-3" />
               </Link>
             </Button>

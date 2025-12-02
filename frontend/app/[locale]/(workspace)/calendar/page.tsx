@@ -39,11 +39,11 @@ function CalendarPage() {
   }, []);
 
   const handlePreviousMonth = () => {
-    setSelectedDate((prevDate) => subMonths(prevDate, 1));
+    setSelectedDate(prevDate => subMonths(prevDate, 1));
   };
 
   const handleNextMonth = () => {
-    setSelectedDate((prevDate) => addMonths(prevDate, 1));
+    setSelectedDate(prevDate => addMonths(prevDate, 1));
   };
 
   if (status === "loading") {
@@ -81,7 +81,7 @@ function CalendarPage() {
       <Tabs
         defaultValue="calendar"
         value={selectedView}
-        onValueChange={(value) => setSelectedView(value as any)}
+        onValueChange={value => setSelectedView(value as any)}
         className="w-full"
       >
         <TabsList className={isMobile ? "w-full mb-3" : "mb-4"}>
@@ -97,7 +97,7 @@ function CalendarPage() {
             className={isMobile ? "flex-1" : "min-w-[110px] md:min-w-[130px]"}
             disabled={isLoading}
           >
-            Deadlines
+            {t("deadlines")}
           </TabsTrigger>
         </TabsList>
 
@@ -115,9 +115,7 @@ function CalendarPage() {
               <CardContent className="p-6 flex justify-center">
                 <div className="text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground opacity-50 mx-auto mb-2" />
-                  <p className="text-muted-foreground">
-                    {t("noCalendarData")}
-                  </p>
+                  <p className="text-muted-foreground">{t("noCalendarData")}</p>
                 </div>
               </CardContent>
             </Card>

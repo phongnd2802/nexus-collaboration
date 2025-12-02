@@ -46,7 +46,7 @@ export default function ProjectCard({
       <Card className="h-full transition-all hover:shadow-md hover:bg-muted/30 dark:hover:bg-muted/20">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start gap-2">
-            <CardTitle className="font-medium! text-lg text-foreground line-clamp-1 wrap-break-word">
+            <CardTitle className="font-medium! text-lg text-foreground line-clamp-2 overflow-hidden text-ellipsis break-all">
               {project.name}
             </CardTitle>
             {getStatusBadge(project.status, t)}

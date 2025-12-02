@@ -27,6 +27,7 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
   onClearSearch,
 }) => {
   const t = useTranslations("MessagesPage.userSearchResults");
+  const tHeader = useTranslations("MessagesPage.chatHeader");
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -41,9 +42,7 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
         {searchQuery.length > 1 ? (
           <p className="text-sm text-muted-foreground">{t("noUsersFound")}</p>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            {t("startTyping")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("startTyping")}</p>
         )}
       </div>
     );
@@ -51,19 +50,22 @@ const UserSearchResults: React.FC<UserSearchResultsProps> = ({
 
   return (
     <div className="space-y-1">
-      {searchResults.map((user) => (
+      {searchResults.map(user => (
         <div
           key={user.id}
           className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer border border-border hover:bg-main"
           onClick={() => onSelectUser(user)}
         >
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.image || ""} alt={user.name || "User"} />
+            <AvatarImage
+              src={user.image || ""}
+              alt={user.name || tHeader("userAlt")}
+            />
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">
-              {user.name || "Unnamed User"}
+              {user.name || tHeader("unnamedUser")}
             </p>
             <p className="text-sm text-muted-foreground truncate">
               {user.email}

@@ -65,7 +65,9 @@ export default function ProjectHeader({
     <div className="w-full">
       <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
         <div className="max-w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 wrap-break-word">
+          <h1
+            className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 line-clamp-2 overflow-hidden text-ellipsis break-all"
+          >
             {project.name}
           </h1>
           <div
@@ -116,10 +118,7 @@ export default function ProjectHeader({
             </>
           )}
           {(isAdmin || isEditor) && (
-            <Button
-              asChild
-              size="sm"
-            >
+            <Button asChild size="sm">
               <Link href={`/tasks/create?projectId=${project.id}`}>
                 <PlusCircle className="h-4 w-4 mr-2" />
                 {t("create_task")}

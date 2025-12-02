@@ -41,7 +41,7 @@ export function DeadlineFilters({
 
       <Select value={timeframe} onValueChange={onTimeframeChange}>
         <SelectTrigger className={isMobile ? "w-full" : "w-[120px]"}>
-          <SelectValue placeholder="Timeframe" />
+          <SelectValue placeholder={t("deadline.timeframePlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="7">7 {t("day")}</SelectItem>

@@ -5,6 +5,7 @@ import EmptyState from "./EmptyState";
 import FallbackAlert from "./FallbackAlert";
 import MessageList from "./MessageList";
 import { useDirectChat } from "@/hooks/useDirectChat";
+import { useTranslations } from "next-intl";
 
 interface User {
   id: string;
@@ -24,6 +25,7 @@ const Chat: React.FC<ChatProps> = ({
   currentUserId,
   onBackClick,
 }) => {
+  const t = useTranslations("MessagesPage.chat");
   const {
     messages,
     isLoading,
@@ -52,10 +54,10 @@ const Chat: React.FC<ChatProps> = ({
         isLoading={isLoading}
         isTyping={isTyping}
         typingUserName={selectedUser.name || "User"}
-        emptyStateTitle="No messages yet"
-        emptyStateDescription={`Start a conversation with ${
-          selectedUser.name || "this user"
-        }`}
+        emptyStateTitle={t("noMessages")}
+        emptyStateDescription={t("startConversationWith", {
+          name: selectedUser.name || t("thisUser"),
+        })}
         useFallback={useFallback}
       />
 

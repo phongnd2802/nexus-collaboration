@@ -159,7 +159,7 @@ export const SignUpForm = () => {
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   placeholder="John Doe"
                 />
               </div>
@@ -178,7 +178,7 @@ export const SignUpForm = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
                 />
               </div>
@@ -197,7 +197,7 @@ export const SignUpForm = () => {
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => {
+                  onChange={e => {
                     setPassword(e.target.value);
                     // Simple password strength checker
                     if (e.target.value.length === 0) {
@@ -252,10 +252,11 @@ export const SignUpForm = () => {
                       ></div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {passwordStrength === 0 && "Enter a password"}
-                      {passwordStrength === 1 && "Weak password"}
-                      {passwordStrength === 2 && "Medium password"}
-                      {passwordStrength === 3 && "Strong password"}
+                      {passwordStrength === 0 &&
+                        t("passwordStrength.enterPassword")}
+                      {passwordStrength === 1 && t("passwordStrength.weak")}
+                      {passwordStrength === 2 && t("passwordStrength.medium")}
+                      {passwordStrength === 3 && t("passwordStrength.strong")}
                     </p>
                   </div>
                 )}
@@ -333,13 +334,13 @@ export const SignUpForm = () => {
         <CardFooter className="flex justify-center pt-0">
           <div className="text-sm text-center">
             <span className="text-muted-foreground"></span>{" "}
-              <Link
-                href="/auth/signin"
-                className="items-center inline-flex hover:text-main dark:hover:text-main transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                {t("haveAccount")}
-              </Link>
+            <Link
+              href="/auth/signin"
+              className="items-center inline-flex hover:text-main dark:hover:text-main transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              {t("haveAccount")}
+            </Link>
           </div>
         </CardFooter>
       </Card>

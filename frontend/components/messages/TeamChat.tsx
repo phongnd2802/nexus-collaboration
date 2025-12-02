@@ -4,6 +4,7 @@ import ChatInput from "./ChatInput";
 import EmptyState from "./EmptyState";
 import MessageList from "./MessageList";
 import { useTeamChat } from "@/hooks/useTeamChat";
+import { useTranslations } from "next-intl";
 
 interface TeamProject {
   id: string;
@@ -24,6 +25,7 @@ const TeamChat: React.FC<TeamChatProps> = ({
   currentUserId,
   onBackClick,
 }) => {
+  const t = useTranslations("MessagesPage.chat");
   const { messages, isLoading, isSending, handleSendMessage, inputRef } =
     useTeamChat({ selectedProject, currentUserId });
 
@@ -40,8 +42,10 @@ const TeamChat: React.FC<TeamChatProps> = ({
         currentUserId={currentUserId}
         isTeamChat={true}
         isLoading={isLoading}
-        emptyStateTitle="No messages yet"
-        emptyStateDescription={`Start a conversation in ${selectedProject.name} team chat`}
+        emptyStateTitle={t("noMessages")}
+        emptyStateDescription={t("startConversationIn", {
+          name: selectedProject.name,
+        })}
       />
 
       <div className="p-4 border-t">
@@ -49,7 +53,7 @@ const TeamChat: React.FC<TeamChatProps> = ({
           onSendMessage={handleSendMessage}
           isLoading={isSending}
           inputRef={inputRef}
-          placeholder={`Message to ${selectedProject.name} team...`}
+          placeholder={t("messageTo", { name: selectedProject.name })}
         />
       </div>
     </div>

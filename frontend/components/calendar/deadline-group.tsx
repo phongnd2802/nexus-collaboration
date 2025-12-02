@@ -11,6 +11,8 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDueDate, isOverdue } from "@/lib/deadline-utils";
 import { DeadlineItem } from "./deadline-item";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocaleObject } from "./calendar-utils";
 
 interface DeadlineGroupProps {
   dateStr: string;
@@ -31,9 +33,17 @@ export function DeadlineGroup({
   isOpen = false,
   onToggle,
 }: DeadlineGroupProps) {
+  const t = useTranslations("CalendarPage");
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
   const overdue = isOverdue(dateStr);
-  const formattedDate = formatDueDate(dateStr);
-  const overdueText = overdue ? " (Overdue)" : "";
+  const formattedDate = formatDueDate(
+    dateStr,
+    localeObject,
+    t("dialog.today"),
+    t("deadline.tomorrow")
+  );
+  const overdueText = overdue ? ` (${t("deadline.overdue")})` : "";
 
   // Mobile view with collapsible sections
   if (isMobile) {
@@ -66,7 +76,7 @@ export function DeadlineGroup({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="divide-y">
-            {deadlines.map((deadline) => (
+            {deadlines.map(deadline => (
               <DeadlineItem
                 key={deadline.id}
                 deadline={deadline}
@@ -95,7 +105,7 @@ export function DeadlineGroup({
       </div>
 
       <div className="pl-6 space-y-3">
-        {deadlines.map((deadline) => (
+        {deadlines.map(deadline => (
           <DeadlineItem
             key={deadline.id}
             deadline={deadline}

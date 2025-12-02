@@ -12,6 +12,8 @@ import { CalendarEvent } from "@/types/index";
 import { getEventColor } from "./calendar-utils";
 import { EventIcon } from "./event-icon";
 import { EventTooltip } from "./event-tooltip";
+import { useTranslations, useLocale } from "next-intl";
+import { getLocaleObject } from "./calendar-utils";
 interface CalendarDayCellProps {
   day: Date;
   selectedDate: Date;
@@ -84,9 +86,13 @@ function MobileDayContent({
   events: CalendarEvent[];
   dateTextClass: string;
 }) {
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
   return (
     <>
-      <span className={dateTextClass}>{format(day, "d")}</span>
+      <span className={dateTextClass}>
+        {format(day, "d", { locale: localeObject })}
+      </span>
       {events.length > 0 && (
         <div className="absolute bottom-0 w-full flex justify-center">
           <div className="h-1.5 w-1.5 bg-violet-500 rounded-full mb-0.5"></div>
@@ -110,13 +116,19 @@ function DesktopDayContent({
   dateTextClass: string;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
 }) {
+  const t = useTranslations("CalendarPage.header");
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
+
   return (
     <>
       <div className="flex justify-between">
-        <span className={dateTextClass}>{format(day, "d")}</span>
+        <span className={dateTextClass}>
+          {format(day, "d", { locale: localeObject })}
+        </span>
         {isToday(day) && (
           <Badge className="bg-violet-500 hover:bg-violet-600 h-4 px-1">
-            Today
+            {t("today")}
           </Badge>
         )}
       </div>
@@ -128,7 +140,7 @@ function DesktopDayContent({
                 "rounded px-1 py-0.5 text-xs truncate flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity",
                 getEventColor(event)
               )}
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 onEventClick(event, e);
               }}
