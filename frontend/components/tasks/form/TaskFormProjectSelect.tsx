@@ -41,23 +41,26 @@ export function TaskFormProjectSelect({
           )}
         >
           <FolderKanban className="h-4 w-4 mr-2 text-main" />
-          {(t("projects"))}*
+          {t("projects")}*
         </Label>
 
         <Select
           value={projectId}
-          onValueChange={(value) => handleSelectChange("projectId", value)}
+          onValueChange={value => handleSelectChange("projectId", value)}
           required
         >
           <SelectTrigger
             id="project"
-            className={cn("h-11", errors.projectId && "border-destructive")}
+            className={cn(
+              "h-11 bg-white",
+              errors.projectId && "border-destructive"
+            )}
           >
             <SelectValue placeholder={t("project_placeholder")} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             {projects.length > 0
-              ? projects.map((project) => (
+              ? projects.map(project => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
                   </SelectItem>

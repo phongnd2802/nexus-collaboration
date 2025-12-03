@@ -144,7 +144,7 @@ export default function WorkspaceSidebar() {
     {
       href: "/team",
       icon: <Users className="h-4 w-4" />,
-      label: "Team",
+      label: t("team"),
       isActive: isLinkActive("/team"),
     },
     // {

@@ -178,6 +178,7 @@ export default function TaskHeader({
               size="sm"
               onClick={handleSaveChanges}
               disabled={isSaving}
+              className="!bg-blue-500 hover:!bg-blue-600"
             >
               {isSaving ? (
                 <>

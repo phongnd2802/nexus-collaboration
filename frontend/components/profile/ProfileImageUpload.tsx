@@ -337,7 +337,7 @@ export default function ProfileImageUpload({
                   <Button
                     onClick={handleConfirmUpload}
                     size="sm"
-                    className="flex items-center bg-violet-600 hover:bg-violet-700 px-4"
+                    className="flex items-center !bg-blue-500 hover:!bg-blue-600 px-4"
                   >
                     <Check className="h-4 w-4 mr-1" />
                     {t("setAsProfile")}

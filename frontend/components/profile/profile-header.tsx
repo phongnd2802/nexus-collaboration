@@ -27,7 +27,7 @@ export function ProfileHeader({ isSaving, onSave }: ProfileHeaderProps) {
         </div>
         <Button
           onClick={onSave}
-          className="bg-violet-700 hover:bg-violet-800 text-white"
+          className="!bg-blue-500 hover:!bg-blue-600 text-black"
           disabled={isSaving}
         >
           {isSaving ? (

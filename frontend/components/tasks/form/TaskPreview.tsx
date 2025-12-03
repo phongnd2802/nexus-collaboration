@@ -105,9 +105,7 @@ export function TaskPreview({
                   className={`${getPriorityColor(formData.priority)}`}
                 >
                   <Flag className="h-3 w-3 mr-1" />
-                  {formData.priority.charAt(0) +
-                    formData.priority.slice(1).toLowerCase()}{" "}
-                  Priority
+                  {t(`priority_${formData.priority}`)}
                 </Badge>
               )}
             </div>

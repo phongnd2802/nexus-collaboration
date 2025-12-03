@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -50,6 +52,7 @@ interface Collaborator {
 }
 
 export default function TeamPage() {
+  const t = useTranslations("TeamPage");
   // check of mobile
   const isMobile = useIsMobile();
 
@@ -89,11 +92,11 @@ export default function TeamPage() {
         const data = await response.json();
         setCollaborators(data.collaborators || []);
       } else {
-        toast.error("Failed to load team members");
+        toast.error(t("toast.loadError"));
       }
     } catch (error) {
       console.error("Error fetching collaborators:", error);
-      toast.error("Failed to load team members");
+      toast.error(t("toast.loadError"));
     } finally {
       setIsLoading(false);
     }
@@ -122,21 +125,21 @@ export default function TeamPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (c) =>
+        c =>
           c.name?.toLowerCase().includes(query) ||
           c.email.toLowerCase().includes(query)
       );
     }
 
     if (projectFilter !== "all") {
-      filtered = filtered.filter((c) =>
-        c.commonProjects.some((p) => p.id === projectFilter)
+      filtered = filtered.filter(c =>
+        c.commonProjects.some(p => p.id === projectFilter)
       );
     }
 
     if (roleFilter !== "all") {
-      filtered = filtered.filter((c) =>
-        c.commonProjects.some((p) => p.role === roleFilter)
+      filtered = filtered.filter(c =>
+        c.commonProjects.some(p => p.role === roleFilter)
       );
     }
 
@@ -165,10 +168,10 @@ export default function TeamPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Users className="h-7 w-7" />
-            Team Members
+            {t("header.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            People you've collaborated with across projects
+            {t("header.description")}
           </p>
         </div>
       </div>
@@ -178,10 +181,10 @@ export default function TeamPage() {
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search team members..."
+              placeholder={t("search.placeholder")}
               className="pl-9 w-full"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               disabled={isLoading}
             />
           </div>
@@ -192,11 +195,11 @@ export default function TeamPage() {
             ) : (
               <Select value={projectFilter} onValueChange={setProjectFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by project" />
+                  <SelectValue placeholder={t("filter.projectPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map((project) => (
+                  <SelectItem value="all">{t("filter.allProjects")}</SelectItem>
+                  {projects.map(project => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>
@@ -210,13 +213,19 @@ export default function TeamPage() {
             ) : (
               <Select value={roleFilter} onValueChange={setRoleFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by role" />
+                  <SelectValue placeholder={t("filter.rolePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="EDITOR">Editor</SelectItem>
-                  <SelectItem value="MEMBER">Member</SelectItem>
+                  <SelectItem value="all">{t("filter.allRoles")}</SelectItem>
+                  <SelectItem value="ADMIN">
+                    {t("filter.roles.ADMIN")}
+                  </SelectItem>
+                  <SelectItem value="EDITOR">
+                    {t("filter.roles.EDITOR")}
+                  </SelectItem>
+                  <SelectItem value="MEMBER">
+                    {t("filter.roles.MEMBER")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -227,10 +236,10 @@ export default function TeamPage() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search team members..."
+              placeholder={t("search.placeholder")}
               className="pl-9"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               disabled={isLoading}
             />
           </div>
@@ -240,11 +249,11 @@ export default function TeamPage() {
             ) : (
               <Select value={projectFilter} onValueChange={setProjectFilter}>
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by project" />
+                  <SelectValue placeholder={t("filter.projectPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map((project) => (
+                  <SelectItem value="all">{t("filter.allProjects")}</SelectItem>
+                  {projects.map(project => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
                     </SelectItem>
@@ -258,13 +267,19 @@ export default function TeamPage() {
             ) : (
               <Select value={roleFilter} onValueChange={setRoleFilter}>
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Filter by role" />
+                  <SelectValue placeholder={t("filter.rolePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="EDITOR">Editor</SelectItem>
-                  <SelectItem value="MEMBER">Member</SelectItem>
+                  <SelectItem value="all">{t("filter.allRoles")}</SelectItem>
+                  <SelectItem value="ADMIN">
+                    {t("filter.roles.ADMIN")}
+                  </SelectItem>
+                  <SelectItem value="EDITOR">
+                    {t("filter.roles.EDITOR")}
+                  </SelectItem>
+                  <SelectItem value="MEMBER">
+                    {t("filter.roles.MEMBER")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -291,13 +306,13 @@ export default function TeamPage() {
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 {collaborators.length === 0
-                  ? "You haven't collaborated with anyone yet"
-                  : "No results match your current filters"}
+                  ? t("list.empty")
+                  : t("list.noResults")}
               </p>
             </div>
           ) : (
             <div>
-              {filteredCollaborators.map((collaborator) => (
+              {filteredCollaborators.map(collaborator => (
                 <div
                   key={collaborator.id}
                   className={
@@ -318,7 +333,7 @@ export default function TeamPage() {
                     </Avatar>
                     <div>
                       <h3 className="font-medium">
-                        {collaborator.name || "Unnamed User"}
+                        {collaborator.name || t("list.unnamedUser")}
                       </h3>
                       <p
                         className={
@@ -338,8 +353,9 @@ export default function TeamPage() {
                         variant="neutral"
                         className="text-sm text-muted-foreground mr-2"
                       >
-                        {collaborator.commonProjects.length} project
-                        {collaborator.commonProjects.length !== 1 ? "s" : ""}
+                        {t("list.projectsCount", {
+                          count: collaborator.commonProjects.length,
+                        })}
                       </Badge>
 
                       <DropdownMenu>
@@ -357,20 +373,22 @@ export default function TeamPage() {
                             <Link
                               href={`/messages?email=${collaborator.email}`}
                             >
-                              <MessageSquare className="h-4 w-4 mr-2" /> Message
+                              <MessageSquare className="h-4 w-4 mr-2" />{" "}
+                              {t("actions.message")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`mailto:${collaborator.email}`}>
-                              <Mail className="h-4 w-4 mr-2" /> Email
+                              <Mail className="h-4 w-4 mr-2" />{" "}
+                              {t("actions.email")}
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link
                               href={`/projects/create?invite=${collaborator.email}`}
                             >
-                              <UserPlus className="h-4 w-4 mr-2" /> Add to
-                              Project
+                              <UserPlus className="h-4 w-4 mr-2" />{" "}
+                              {t("actions.addToProject")}
                             </Link>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -383,8 +401,9 @@ export default function TeamPage() {
                         variant="neutral"
                         className="text-sm text-muted-foreground mr-2"
                       >
-                        {collaborator.commonProjects.length} project
-                        {collaborator.commonProjects.length !== 1 ? "s" : ""}
+                        {t("list.projectsCount", {
+                          count: collaborator.commonProjects.length,
+                        })}
                       </Badge>
 
                       <Link

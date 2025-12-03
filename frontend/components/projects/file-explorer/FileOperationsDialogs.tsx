@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, X } from "lucide-react";
 import ProjectFileUpload from "../ProjectFileUpload";
 import { FileItem } from "@/hooks/useFileExplorer";
+import { useTranslations } from "next-intl";
 
 interface FileOperationsDialogsProps {
   isUploadDialogOpen: boolean;
@@ -49,6 +50,8 @@ export default function FileOperationsDialogs({
   setDeleteDialogOpen,
   confirmDeleteFile,
 }: FileOperationsDialogsProps) {
+  const t = useTranslations("ProjectDetailPage.fileExplorer");
+  
   return (
     <>
       {/* File Upload Dialog */}
@@ -63,17 +66,16 @@ export default function FileOperationsDialogs({
       >
         <DialogContent className="sm:max-w-md [&>button]:hidden max-w-[90vw] mx-auto">
           <DialogHeader>
-            <DialogTitle>Upload Project Files</DialogTitle>
+            <DialogTitle>{t("uploadDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Add files to your project. Files uploaded here will be available
-              to all project members.
+              {t("uploadDialogDescription")}
             </DialogDescription>
           </DialogHeader>
           {projectFiles.length >= 5 && (
             <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md text-red-600 dark:text-red-400 text-sm flex items-start">
               <X className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
               <span>
-                You can only upload a maximum of 5 files to this project.
+                {t("maxFilesReached")}
               </span>
             </div>
           )}
@@ -92,7 +94,7 @@ export default function FileOperationsDialogs({
               onClick={handleUploadCancel}
               disabled={isUploading}
             >
-              {projectFiles.length >= 5 ? "Close" : "Cancel"}
+              {projectFiles.length >= 5 ? t("close") : t("cancel")}
             </Button>
 
             {projectFiles.length <= 4 && (
@@ -104,10 +106,10 @@ export default function FileOperationsDialogs({
                 {isUploading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Adding Files...
+                    {t("addingFiles")}
                   </>
                 ) : (
-                  "Add Files"
+                  t("addFiles")
                 )}
               </Button>
             )}
@@ -126,10 +128,9 @@ export default function FileOperationsDialogs({
       >
         <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{fileToDelete?.name}"? This
-              action cannot be undone.
+              {t("deleteDialogDescription", { fileName: fileToDelete?.name || "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:flex-row flex-col gap-2 sm:gap-0">
@@ -138,7 +139,7 @@ export default function FileOperationsDialogs({
                 disabled={isDeleting}
                 className="cursor-pointer mt-0"
               >
-                Cancel
+                {t("cancel")}
               </AlertDialogCancel>
               <Button
                 onClick={confirmDeleteFile}
@@ -148,7 +149,7 @@ export default function FileOperationsDialogs({
                 {isDeleting ? (
                   <Loader2 className="h-4 w-4 animate-spin flex self-center" />
                 ) : (
-                  "Delete"
+                  t("delete")
                 )}
               </Button>
             </div>

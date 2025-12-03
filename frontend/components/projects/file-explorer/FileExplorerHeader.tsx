@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import FileBreadcrumb from "./FileBreadcrumb";
 import { TaskItem } from "@/hooks/useFileExplorer";
+import { useTranslations } from "next-intl";
 
 interface FileExplorerHeaderProps {
   currentPath: string[];
@@ -24,7 +25,23 @@ export default function FileExplorerHeader({
   getCurrentLocation,
   handleFileUpload,
 }: FileExplorerHeaderProps) {
+  const t = useTranslations("ProjectDetailPage.fileExplorer");
   const currentLocation = getCurrentLocation();
+
+  const getTranslatedLocation = (location: string) => {
+    switch (location) {
+      case "root":
+        return t("root");
+      case "Project Files":
+        return t("projectFiles");
+      case "Tasks":
+        return t("tasks");
+      case "Task Folder":
+        return t("taskFiles");
+      default:
+        return location;
+    }
+  };
 
   return (
     <div className="flex items-center mb-4 h-12 justify-between">
@@ -40,7 +57,7 @@ export default function FileExplorerHeader({
         </Button>
 
         <Badge variant="default" className="font-medium min-w-32 w-auto">
-          {currentLocation}
+          {getTranslatedLocation(currentLocation)}
         </Badge>
         <div className="ml-4 mt-4">
           <FileBreadcrumb
@@ -62,7 +79,7 @@ export default function FileExplorerHeader({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <Badge variant="default" className="font-medium py-1.5">
-          {currentLocation}
+          {getTranslatedLocation(currentLocation)}
         </Badge>
       </div>
 
@@ -77,7 +94,7 @@ export default function FileExplorerHeader({
               onClick={handleFileUpload}
             >
               <Upload className="h-4 w-4 mr-2" />
-              Upload File
+              {t("uploadFile")}
             </Button>
           )}
 

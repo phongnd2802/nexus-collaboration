@@ -5,6 +5,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import FileExplorer from "./FileExplorer";
+import { useTranslations } from "next-intl";
 
 interface FileItem {
   id: string;
@@ -44,6 +45,7 @@ export default function ProjectFiles({
   isAdmin,
   isEditor,
 }: ProjectFilesProps) {
+  const t = useTranslations("ProjectDetailPage.fileExplorer");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [projectFiles, setProjectFiles] = useState<FileItem[]>([]);
@@ -110,14 +112,14 @@ export default function ProjectFiles({
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
         );
-        toast.error("Failed to load project files");
+        toast.error(t("loadError"));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFilesData();
-  }, [projectId]);
+  }, [projectId, t]);
 
   if (isLoading) {
     return (
@@ -133,7 +135,7 @@ export default function ProjectFiles({
         <CardContent className="py-8">
           <div className="flex flex-col items-center text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-medium mb-2">Failed to load files</h3>
+            <h3 className="text-lg font-medium mb-2">{t("failedToLoad")}</h3>
             <p className="text-muted-foreground">{error}</p>
           </div>
         </CardContent>

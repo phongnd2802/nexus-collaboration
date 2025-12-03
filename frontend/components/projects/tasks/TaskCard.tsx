@@ -26,6 +26,10 @@ export const TaskCard = React.memo(
     isMobile,
     onDragStart,
   }: TaskCardProps) => {
+    const t = useTranslations("TasksPage.priority");
+    const tDate = useTranslations();
+    const locale = useLocale();
+    
     const getStatusIcon = (status: string) => {
       // Note: Icons are handled in the parent or we can duplicate logic here if needed.
       // But the original code rendered the icon in the card header.
@@ -91,10 +95,10 @@ export const TaskCard = React.memo(
           {task.dueDate && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {formatDate(task.dueDate, useTranslations(), useLocale(), { relative: true, includeTime: true })}
+              {formatDate(task.dueDate, tDate, locale, { relative: true, includeTime: true })}
             </div>
           )}
-          {getPriorityBadge(task.priority)}
+          {getPriorityBadge(task.priority, t)}
         </div>
         <p className="text-xs text-muted-foreground truncate">
           {task.description}
