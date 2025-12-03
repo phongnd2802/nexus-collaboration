@@ -56,7 +56,7 @@ export const getInitials = (name: string | null): string => {
   if (!name) return "";
   return name
     .split(" ")
-    .map((n) => n[0])
+    .map(n => n[0])
     .join("")
     .toUpperCase();
 };
@@ -153,11 +153,14 @@ export const formatRelativeTime = (dateString: string): string => {
  * @param status - The task status.
  * @returns True if overdue, false otherwise.
  */
-export const isOverdue = (dateString: string | null, status: string): boolean => {
+export const isOverdue = (
+  dateString: string | null,
+  status: string
+): boolean => {
   if (!dateString || status === "DONE") return false;
-  
+
   const today = startOfDay(new Date());
   const dueDate = startOfDay(new Date(dateString));
-  
+
   return isBefore(dueDate, today);
 };

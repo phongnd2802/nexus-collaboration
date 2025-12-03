@@ -125,7 +125,9 @@ export default function TaskCard({ task, currentUserId }: TaskCardProps) {
               </TooltipProvider>
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground">{t("unassigned")}</div>
+            <div className="text-xs text-muted-foreground">
+              {t("unassignee")}
+            </div>
           )}
 
           {task.creator && (

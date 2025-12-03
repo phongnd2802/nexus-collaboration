@@ -26,7 +26,9 @@ export default function TaskStatusSelect({
   if (!canEdit) {
     return (
       <div>
-        <h3 className="text-sm font-medium text-muted-foreground">{t("status")}</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">
+          {t("status")}
+        </h3>
         <div className="mt-1">{getStatusBadge(status, t)}</div>
       </div>
     );
@@ -34,28 +36,30 @@ export default function TaskStatusSelect({
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-muted-foreground">{t("status")}</h3>
+      <h3 className="text-sm font-medium text-muted-foreground">
+        {t("status")}
+      </h3>
       <Select value={status} onValueChange={handleUpdateStatus}>
-        <SelectTrigger className="h-9 mt-1">
+        <SelectTrigger className="h-9 mt-1 bg-white">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white">
           <SelectItem value="TODO">
             <div className="flex items-center">
               <Circle className="h-4 w-4 mr-2 text-gray-400" />
-              <span>To Do</span>
+              <span>{t("status_options.TODO")}</span>
             </div>
           </SelectItem>
           <SelectItem value="IN_PROGRESS">
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-2 text-blue-500" />
-              <span>In Progress</span>
+              <span>{t("status_options.IN_PROGRESS")}</span>
             </div>
           </SelectItem>
           <SelectItem value="DONE">
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-              <span>Done</span>
+              <span>{t("status_options.DONE")}</span>
             </div>
           </SelectItem>
         </SelectContent>

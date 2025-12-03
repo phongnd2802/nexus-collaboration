@@ -47,9 +47,7 @@ export function TaskFormDates({
           />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {t("due_date_helper")}
-      </p>
+      <p className="text-xs text-muted-foreground">{t("due_date_helper")}</p>
     </div>
   );
 }

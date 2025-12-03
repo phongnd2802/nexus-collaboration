@@ -31,7 +31,7 @@ export default function ProjectDateSelection({
           id="due-date"
           type="date"
           value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          onChange={e => setDueDate(e.target.value)}
           className="h-11"
           min={new Date().toISOString().split("T")[0]}
         />
@@ -39,14 +39,12 @@ export default function ProjectDateSelection({
           id="due-time"
           type="time"
           value={dueTime}
-          onChange={(e) => setDueTime(e.target.value)}
+          onChange={e => setDueTime(e.target.value)}
           className="h-11"
           disabled={!dueDate}
         />
       </div>
-      <p className="text-xs text-muted-foreground">
-        {t("dueDateDescription")}
-      </p>
+      <p className="text-xs text-muted-foreground">{t("dueDateDescription")}</p>
     </div>
   );
 }

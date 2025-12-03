@@ -1,6 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 
 interface TaskDatePickerProps {
   dueDate: string | null;
@@ -16,6 +15,7 @@ export default function TaskDatePicker({
   handleEditField,
 }: TaskDatePickerProps) {
   const t = useTranslations("TaskDetailPage");
+  const format = useFormatter();
   const formatDueDate = (dateString: string | null) => {
     if (!dateString) return t("noDueDate");
 
@@ -23,9 +23,24 @@ export default function TaskDatePicker({
     const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
 
     if (hasTime) {
-      return format(date, "MMM d, yyyy 'at' HH:mm");
+      return t("date.withTime", {
+        date: format.dateTime(date, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        time: format.dateTime(date, {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: false,
+        }),
+      });
     }
-    return format(date, "MMM d, yyyy");
+    return format.dateTime(date, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
@@ -38,14 +53,14 @@ export default function TaskDatePicker({
           <Input
             type="date"
             value={editedTask.dueDate}
-            onChange={(e) => handleEditField("dueDate", e.target.value)}
+            onChange={e => handleEditField("dueDate", e.target.value)}
             className="h-9"
             min={new Date().toISOString().split("T")[0]}
           />
           <Input
             type="time"
             value={editedTask.dueTime || ""}
-            onChange={(e) => handleEditField("dueTime", e.target.value)}
+            onChange={e => handleEditField("dueTime", e.target.value)}
             className="h-9 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-clock-picker-indicator]:hidden"
             disabled={!editedTask.dueDate}
           />

@@ -9,6 +9,7 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import { TaskItem } from "@/hooks/useFileExplorer";
+import { useTranslations } from "next-intl";
 
 interface FileBreadcrumbProps {
   currentPath: string[];
@@ -21,6 +22,23 @@ export default function FileBreadcrumb({
   tasks,
   navigateTo,
 }: FileBreadcrumbProps) {
+  const t = useTranslations("ProjectDetailPage.fileExplorer");
+
+  const getTranslatedSegment = (segment: string) => {
+    switch (segment) {
+      case "Project":
+        return t("projectFiles");
+      case "Tasks":
+        return t("tasks");
+      case "main":
+        return t("taskFiles");
+      case "deliverables":
+        return t("deliverables");
+      default:
+        return segment;
+    }
+  };
+
   return (
     <Breadcrumb className="mb-4">
       <BreadcrumbList>
@@ -45,10 +63,9 @@ export default function FileBreadcrumb({
             if (task) {
               displayName = task.title;
             }
+          } else {
+            displayName = getTranslatedSegment(segment);
           }
-
-          if (segment === "main") displayName = "Task Files";
-          if (segment === "deliverables") displayName = "Deliverables";
 
           return (
             <React.Fragment key={index}>

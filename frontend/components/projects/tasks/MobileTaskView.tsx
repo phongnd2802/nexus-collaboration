@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskCard } from "./TaskCard";
 import { Task } from "@/types/index";
+import { useTranslations } from "next-intl";
 
 interface ColumnConfig {
   title: string;
@@ -15,6 +16,7 @@ interface ColumnConfig {
   emptyIcon: React.ReactNode;
   bgColor: string;
   borderColor: string;
+  emptyMessage?: string;
 }
 
 interface MobileTaskViewProps {
@@ -36,6 +38,7 @@ export const MobileTaskView = ({
   isAdmin,
   isEditor,
 }: MobileTaskViewProps) => {
+  const t = useTranslations("ProjectDetailPage.mobileView");
   const currentColumn = columns[mobileColumnIndex];
 
   return (
@@ -137,7 +140,7 @@ export const MobileTaskView = ({
                 {currentColumn.emptyIcon}
               </div>
               <p className="text-sm text-muted-foreground">
-                No {currentColumn.title.toLowerCase()} tasks
+                {currentColumn.emptyMessage}
               </p>
             </div>
           )}
@@ -146,7 +149,7 @@ export const MobileTaskView = ({
 
       {/* Swipe Indicator */}
       <div className="text-center text-xs text-muted-foreground mt-1">
-        Swipe or tap dots to change views
+        {t("swipeHint")}
       </div>
     </div>
   );

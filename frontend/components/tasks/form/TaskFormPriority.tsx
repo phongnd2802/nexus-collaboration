@@ -30,12 +30,12 @@ export function TaskFormPriority({
       </Label>
       <Select
         value={priority}
-        onValueChange={(value) => handleSelectChange("priority", value)}
+        onValueChange={value => handleSelectChange("priority", value)}
       >
-        <SelectTrigger id="priority" className="h-11">
+        <SelectTrigger id="priority" className="h-11 bg-white">
           <SelectValue placeholder="Select priority" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white">
           <SelectItem value="LOW">
             <div className="flex items-center">
               <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>

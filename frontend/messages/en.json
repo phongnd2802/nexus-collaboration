@@ -210,7 +210,8 @@
     "myAccount": "My Account",
     "profile": "Profile",
     "settings": "Settings",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "team": "Team"
   },
   "DashboardStats": {
     "totalProjects": "Total Projects",
@@ -298,6 +299,13 @@
       "activeFilters": "Active filters:",
       "clearAll": "Clear all"
     },
+    "taskStats": {
+      "assigned": "Assigned",
+      "created": "Created",
+      "todo": "To do",
+      "in_progress": "In progress",
+      "done": "Done"
+    },
     "sort": {
       "button": "Sort by",
       "dueDate": "Due date",
@@ -346,6 +354,9 @@
       "high": "High",
       "medium": "Medium",
       "low": "Low",
+      "priority_HIGH": "High Priority",
+      "priority_MEDIUM": "Medium Priority",
+      "priority_LOW": "Low Priority",
       "preview": "Preview",
       "preview_title": "Task name",
       "preview_title_placeholder": "Task name will appear here",
@@ -451,7 +462,49 @@
       "createdBy": "Created by",
       "createdOn": "Created on",
       "dueDate": "Due date",
-      "updatedOn": "Updated on"
+      "updatedOn": "Updated on",
+      "taskColumns": {
+        "todo": "To Do",
+        "inProgress": "In Progress",
+        "done": "Done",
+        "noTodoTasks": "No to do tasks",
+        "noInProgressTasks": "No in progress tasks",
+        "noDoneTasks": "No done tasks"
+      },
+      "mobileView": {
+        "swipeHint": "Swipe or tap dots to change views"
+      },
+      "fileExplorer": {
+        "uploadFile": "Upload File",
+        "projectFiles": "Project Files",
+        "tasks": "Tasks",
+        "taskFiles": "Task Files",
+        "deliverables": "Deliverables",
+        "root": "root",
+        "name": "Name",
+        "size": "Size",
+        "dateAdded": "Date Added",
+        "actions": "Actions",
+        "noFiles": "No files in this folder",
+        "file": "file",
+        "files": "files",
+        "deliverable": "deliverable",
+        "deliverables_count": "deliverables",
+        "download": "Download",
+        "delete": "Delete",
+        "uploadDialogTitle": "Upload Project Files",
+        "uploadDialogDescription": "Add files to your project. Files uploaded here will be available to all project members.",
+        "maxFilesReached": "You can only upload a maximum of 5 files to this project.",
+        "close": "Close",
+        "cancel": "Cancel",
+        "addFiles": "Add Files",
+        "addingFiles": "Adding Files...",
+        "deleteDialogTitle": "Delete File",
+        "deleteDialogDescription": "Are you sure you want to delete \"{fileName}\"? This action cannot be undone.",
+        "deleting": "Deleting...",
+        "failedToLoad": "Failed to load files",
+        "loadError": "Failed to load project files"
+      }
     },
     "LanguageSwitcher": {
       "label": "Language",
@@ -602,7 +655,15 @@
     "noTasksAvailable": "No tasks available",
     "selectRelationship": "Select relationship",
     "blocks": "Blocks",
-    "blockedBy": "Blocked by"
+    "blockedBy": "Blocked by",
+    "date": {
+      "withTime": "{date} at {time}"
+    },
+    "status_options": {
+      "TODO": "To Do",
+      "IN_PROGRESS": "In Progress",
+      "DONE": "Done"
+    }
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Dashboard",
@@ -703,7 +764,48 @@
     "createdBy": "Created by",
     "createdOn": "Created on",
     "dueDate": "Due date",
-    "updatedOn": "Updated on"
+    "updatedOn": "Updated on",
+    "taskColumns": {
+      "todo": "To Do",
+      "inProgress": "In Progress",
+      "done": "Done",
+      "noTodoTasks": "No to do tasks",
+      "noInProgressTasks": "No in progress tasks",
+      "noDoneTasks": "No done tasks"
+    },
+    "mobileView": {
+      "swipeHint": "Swipe or tap dots to change views"
+    },
+    "fileExplorer": {
+      "uploadFile": "Upload File",
+      "projectFiles": "Project Files",
+      "project": "Project",
+      "tasks": "Tasks",
+      "taskFiles": "Task Files",
+      "deliverables": "Deliverables",
+      "root": "root",
+      "name": "Name",
+      "size": "Size",
+      "dateAdded": "Date Added",
+      "actions": "Actions",
+      "noFiles": "No files in this folder",
+      "file": "file",
+      "files": "files",
+      "deliverable": "deliverable",
+      "deliverables_count": "deliverables",
+      "download": "Download",
+      "delete": "Delete",
+      "uploadDialogTitle": "Upload Project Files",
+      "uploadDialogDescription": "Add files to your project. Files uploaded here will be available to all project members.",
+      "maxFilesReached": "You can only upload a maximum of 5 files to this project.",
+      "close": "Close",
+      "cancel": "Cancel",
+      "addFiles": "Add Files",
+      "addingFiles": "Adding Files...",
+      "deleteDialogTitle": "Delete File",
+      "deleteDialogDescription": "Are you sure you want to delete \"{fileName}\"? This action cannot be undone.",
+      "deleting": "Deleting..."
+    }
   },
   "date": {
     "noDueDate": "No due date",
@@ -1022,5 +1124,40 @@
     "settings": "Settings",
     "dashboard": "Dashboard",
     "signOut": "Sign out"
+  },
+  "TeamPage": {
+    "header": {
+      "title": "Team Members",
+      "description": "People you've collaborated with across projects"
+    },
+    "search": {
+      "placeholder": "Search team members..."
+    },
+    "filter": {
+      "projectPlaceholder": "Filter by project",
+      "allProjects": "All Projects",
+      "rolePlaceholder": "Filter by role",
+      "allRoles": "All Roles",
+      "roles": {
+        "ADMIN": "Admin",
+        "EDITOR": "Editor",
+        "MEMBER": "Member"
+      }
+    },
+    "list": {
+      "empty": "You haven't collaborated with anyone yet",
+      "noResults": "No results match your current filters",
+      "unnamedUser": "Unnamed User",
+      "projectsCount": "{count} project",
+      "projectsCount_plural": "{count} projects"
+    },
+    "actions": {
+      "message": "Message",
+      "email": "Email",
+      "addToProject": "Add to Project"
+    },
+    "toast": {
+      "loadError": "Failed to load team members"
+    }
   }
 }

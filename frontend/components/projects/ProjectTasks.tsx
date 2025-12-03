@@ -7,6 +7,7 @@ import { Project, Task } from "@/types/index";
 import { useProjectTasks } from "@/hooks/useProjectTasks";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { MobileTaskView } from "./tasks/MobileTaskView";
+import { useTranslations } from "next-intl";
 
 interface ProjectTasksProps {
   id: string;
@@ -25,6 +26,7 @@ export default function ProjectTasks({
   isEditor,
   onTasksUpdated,
 }: ProjectTasksProps) {
+  const t = useTranslations("ProjectDetailPage.taskColumns");
   const isMobile = useIsMobile();
   const {
     hoverColumn,
@@ -55,7 +57,7 @@ export default function ProjectTasks({
 
   const columns = [
     {
-      title: "To Do",
+      title: t("todo"),
       status: "TODO",
       ref: columnRefs.TODO,
       tasks: todoTasks,
@@ -63,9 +65,10 @@ export default function ProjectTasks({
       emptyIcon: <PlusCircle className="h-5 w-5 text-gray-400" />,
       bgColor: "bg-gray-50 dark:bg-gray-900/50",
       borderColor: "border-gray-200 dark:border-gray-700",
+      emptyMessage: t("noTodoTasks"),
     },
     {
-      title: "In Progress",
+      title: t("inProgress"),
       status: "IN_PROGRESS",
       ref: columnRefs.IN_PROGRESS,
       tasks: inProgressTasks,
@@ -73,9 +76,10 @@ export default function ProjectTasks({
       emptyIcon: <Clock className="h-5 w-5 text-blue-400" />,
       bgColor: "bg-blue-50/30 dark:bg-blue-900/10",
       borderColor: "border-blue-200 dark:border-blue-800/30",
+      emptyMessage: t("noInProgressTasks"),
     },
     {
-      title: "Done",
+      title: t("done"),
       status: "DONE",
       ref: columnRefs.DONE,
       tasks: doneTasks,
@@ -85,6 +89,7 @@ export default function ProjectTasks({
       emptyIcon: <CheckCircle2 className="h-5 w-5 text-green-400" />,
       bgColor: "bg-green-50/30 dark:bg-green-900/10",
       borderColor: "border-green-200 dark:border-green-800/30",
+      emptyMessage: t("noDoneTasks"),
     },
   ];
 

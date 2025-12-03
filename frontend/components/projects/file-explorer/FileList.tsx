@@ -42,7 +42,23 @@ export default function FileList({
   handleDeleteFile,
 }: FileListProps) {
   const t = useTranslations();
+  const tFile = useTranslations("ProjectDetailPage.fileExplorer");
   const locale = useLocale();
+
+  const getTranslatedLocation = (location: string) => {
+    switch (location) {
+      case "root":
+        return tFile("root");
+      case "Project Files":
+        return tFile("projectFiles");
+      case "Tasks":
+        return tFile("tasks");
+      case "Task Folder":
+        return tFile("taskFiles");
+      default:
+        return location;
+    }
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " bytes";
@@ -62,10 +78,10 @@ export default function FileList({
               currentLocation != "Task Folder" && (
                 <div className="border-b p-4 pt-0 hidden sm:block">
                   <div className="grid grid-cols-12 text-xs font-medium text-muted-foreground">
-                    <div className="col-span-6">Name</div>
-                    <div className="col-span-2">Size</div>
-                    <div className="col-span-3">Date Added</div>
-                    <div className="col-span-1">Actions</div>
+                    <div className="col-span-6">{tFile("name")}</div>
+                    <div className="col-span-2">{tFile("size")}</div>
+                    <div className="col-span-3">{tFile("dateAdded")}</div>
+                    <div className="col-span-1">{tFile("actions")}</div>
                   </div>
                 </div>
               )}
@@ -73,11 +89,11 @@ export default function FileList({
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <File className="h-12 w-12 mb-4 opacity-20" />
-                  <p>No files in this folder</p>
+                  <p>{tFile("noFiles")}</p>
                 </div>
               ) : (
                 <div>
-                  {items.map((item) => (
+                  {items.map(item => (
                     <div
                       key={item.id}
                       className={`border-b hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors ${
@@ -85,7 +101,7 @@ export default function FileList({
                           ? "bg-slate-100 dark:bg-slate-800/60"
                           : ""
                       }`}
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         if (item.type === "file") {
                           setSelectedFile(item as FileItem);
@@ -98,7 +114,7 @@ export default function FileList({
                           {item.type === "folder" ? (
                             <div
                               className="flex items-center cursor-pointer"
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
                                 if ("navigateTo" in item && item.navigateTo) {
                                   navigateTo(item.navigateTo);
@@ -107,7 +123,11 @@ export default function FileList({
                             >
                               <Folder className="h-5 w-5 mr-2 text-blue-500" />
                               <span className="mr-2 min-w-16 w-auto">
-                                {item.name}
+                                {item.name === "Project"
+                                  ? tFile("project")
+                                  : item.name === "Tasks"
+                                  ? tFile("tasks")
+                                  : item.name}
                               </span>
 
                               {"count" in item && (
@@ -115,8 +135,10 @@ export default function FileList({
                                   variant="default"
                                   className="text-xs w-16 mr-2 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                                 >
-                                  {item.count} file
-                                  {item.count !== 1 ? "s" : ""}
+                                  {item.count}{" "}
+                                  {item.count !== 1
+                                    ? tFile("files")
+                                    : tFile("file")}
                                 </Badge>
                               )}
 
@@ -128,10 +150,10 @@ export default function FileList({
                                         variant="default"
                                         className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
                                       >
-                                        {item.deliverablesCount} deliverable
+                                        {item.deliverablesCount}{" "}
                                         {item.deliverablesCount !== 1
-                                          ? "s"
-                                          : ""}
+                                          ? tFile("deliverables_count")
+                                          : tFile("deliverable")}
                                       </Badge>
                                     )}
                                   </div>
@@ -147,7 +169,7 @@ export default function FileList({
                               {(item as FileItem).isTaskDeliverable && (
                                 <Badge className="ml-2 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                                   <CheckCircle className="h-3 w-3 mr-1" />
-                                  Deliverable
+                                  {tFile("deliverable")}
                                 </Badge>
                               )}
                             </div>
@@ -177,7 +199,7 @@ export default function FileList({
                                 variant="neutral"
                                 size="sm"
                                 className="h-8 w-8 p-0 cursor-pointer"
-                                onClick={(e) => {
+                                onClick={e => {
                                   e.stopPropagation();
                                   handleDownload(item as FileItem);
                                 }}
@@ -189,7 +211,7 @@ export default function FileList({
                                 variant="neutral"
                                 size="sm"
                                 className="h-8 w-8 p-0 text-red-500/70 hover:text-red-600/70 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
-                                onClick={(e) => {
+                                onClick={e => {
                                   e.stopPropagation();
                                   handleDeleteFile(item as FileItem);
                                 }}
@@ -206,7 +228,7 @@ export default function FileList({
                         {item.type === "folder" ? (
                           <div
                             className="flex items-center cursor-pointer justify-between"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               if ("navigateTo" in item && item.navigateTo) {
                                 navigateTo(item.navigateTo);
@@ -216,7 +238,13 @@ export default function FileList({
                             <div className="flex">
                               <Folder className="h-5 w-5 mr-2 text-blue-500" />
                               <div className="flex flex-col">
-                                <span className="font-medium">{item.name}</span>
+                                <span className="font-medium">
+                                  {item.name === "Project"
+                                    ? tFile("project_folder")
+                                    : item.name === "Tasks"
+                                    ? tFile("tasks")
+                                    : item.name}
+                                </span>
 
                                 <div className="flex mt-1 gap-2">
                                   {"count" in item && (
@@ -224,8 +252,10 @@ export default function FileList({
                                       variant="neutral"
                                       className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
                                     >
-                                      {item.count} file
-                                      {item.count !== 1 ? "s" : ""}
+                                      {item.count}{" "}
+                                      {item.count !== 1
+                                        ? tFile("files")
+                                        : tFile("file")}
                                     </Badge>
                                   )}
 
@@ -236,10 +266,10 @@ export default function FileList({
                                         variant="neutral"
                                         className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
                                       >
-                                        {item.deliverablesCount} deliverable
+                                        {item.deliverablesCount}{" "}
                                         {item.deliverablesCount !== 1
-                                          ? "s"
-                                          : ""}
+                                          ? tFile("deliverables_count")
+                                          : tFile("deliverable")}
                                       </Badge>
                                     )}
                                 </div>
@@ -259,7 +289,7 @@ export default function FileList({
                                 {(item as FileItem).isTaskDeliverable && (
                                   <Badge className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                                     <CheckCircle className="h-3 w-3 mr-1" />
-                                    Deliverable
+                                    {tFile("deliverable")}
                                   </Badge>
                                 )}
                               </div>
@@ -275,30 +305,30 @@ export default function FileList({
                                     variant="neutral"
                                     size="sm"
                                     className="h-8 w-8 p-0"
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={e => e.stopPropagation()}
                                   >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem
-                                    onClick={(e) => {
+                                    onClick={e => {
                                       e.stopPropagation();
                                       handleDownload(item as FileItem);
                                     }}
                                   >
                                     <Download className="h-4 w-4 mr-2" />
-                                    Download
+                                    {tFile("download")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-red-500 focus:text-red-500"
-                                    onClick={(e) => {
+                                    onClick={e => {
                                       e.stopPropagation();
                                       handleDeleteFile(item as FileItem);
                                     }}
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
+                                    {tFile("delete")}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>

@@ -45,16 +45,14 @@ export function TaskFormAssigneeSelect({
             <div>
               <Select
                 value={assigneeId}
-                onValueChange={(value) =>
-                  handleSelectChange("assigneeId", value)
-                }
+                onValueChange={value => handleSelectChange("assigneeId", value)}
                 disabled={!projectId || availableMembers.length === 0}
               >
-                <SelectTrigger className="h-11">
+                <SelectTrigger className="h-11 bg-white">
                   <SelectValue placeholder={t("assignee_placeholder")} />
                 </SelectTrigger>
-                <SelectContent>
-                  {availableMembers.map((member) => (
+                <SelectContent className="bg-white">
+                  {availableMembers.map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center">
                         <Avatar className="h-6 w-6 mr-2">
