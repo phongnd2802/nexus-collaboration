@@ -44,7 +44,7 @@ export const getSharedProjectsController: RequestHandler = async (
   try {
     const userId =
       (req.headers["x-user-id"] as string) || (req.query.userId as string);
-    const targetUserId = req.params.targetUserId;
+    const targetUserId = req.query.targetUserId as string;
     const { projects, count } = await getSharedProjects(userId, targetUserId);
     res.status(200).json({ projects, count });
   } catch (error) {

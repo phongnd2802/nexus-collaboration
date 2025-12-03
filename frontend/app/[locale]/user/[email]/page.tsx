@@ -48,6 +48,9 @@ interface UserProfile {
 
 function UserProfileContent() {
   const t = useTranslations("DashboardPage.projectCard");
+  const tProfile = useTranslations("UserProfilePage");
+  const tCommon = useTranslations();
+  const locale = useLocale();
   const params = useParams();
   const { data: session } = useSession();
   const email = decodeURIComponent(params.email as string);
@@ -74,7 +77,7 @@ function UserProfileContent() {
       );
 
       if (response.status === 404) {
-        setError("User not found");
+        setError(tProfile("userNotFound"));
         return;
       }
 
@@ -86,7 +89,7 @@ function UserProfileContent() {
       setUserProfile(data);
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      setError("Failed to load user profile");
+      setError(tProfile("loadErrorDescription"));
     } finally {
       setIsLoading(false);
     }
@@ -111,12 +114,14 @@ function UserProfileContent() {
         <main className="grow flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">
-              {error === "User not found" ? "User Not Found" : "Error"}
+              {error === tProfile("userNotFound")
+                ? tProfile("userNotFound")
+                : tProfile("error")}
             </h1>
             <p className="text-muted-foreground">
-              {error === "User not found"
-                ? "The user you're looking for doesn't exist or isn't available."
-                : "Failed to load user profile. Please try again later."}
+              {error === tProfile("userNotFound")
+                ? tProfile("userNotFoundDescription")
+                : tProfile("loadErrorDescription")}
             </p>
           </div>
         </main>
@@ -145,7 +150,7 @@ function UserProfileContent() {
               </Avatar>
               <div className="text-center md:text-left">
                 <h1 className="text-3xl font-bold">
-                  {userProfile.name || "Unnamed User"}
+                  {userProfile.name || tProfile("unnamedUser")}
                 </h1>
                 <div className="flex items-center justify-center md:justify-start mt-2 text-muted-foreground">
                   <Mail className="h-4 w-4 mr-2" />
@@ -156,7 +161,9 @@ function UserProfileContent() {
                     <Briefcase className="h-4 w-4 mr-2" />
                     <span>{userProfile.profile.jobTitle}&nbsp;</span>
                     {userProfile.profile.department && (
-                      <span>at {userProfile.profile.department}</span>
+                      <span>
+                        {tProfile("at")} {userProfile.profile.department}
+                      </span>
                     )}
                   </div>
                 )}
@@ -170,7 +177,7 @@ function UserProfileContent() {
               {/* About Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>About</CardTitle>
+                  <CardTitle>{tProfile("about")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {userProfile.profile?.bio ? (
@@ -179,7 +186,7 @@ function UserProfileContent() {
                     </p>
                   ) : (
                     <p className="text-muted-foreground italic">
-                      This user hasn't added a bio yet.
+                      {tProfile("noBio")}
                     </p>
                   )}
                 </CardContent>
@@ -191,7 +198,7 @@ function UserProfileContent() {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileText className="h-5 w-5 mr-2" />
-                      Skills & Expertise
+                      {tProfile("skills")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -212,10 +219,10 @@ function UserProfileContent() {
                 </Card>
               )}
 
-              <CardTitle>Shared Projects</CardTitle>
+              <CardTitle>{tProfile("sharedProjects")}</CardTitle>
               {userProfile.publicProjects.length > 0 ? (
                 <div className="space-y-4">
-                  {userProfile.publicProjects.map((project) => (
+                  {userProfile.publicProjects.map(project => (
                     <Link
                       key={project.id}
                       href={`/projects/${project.id}`}
@@ -242,8 +249,12 @@ function UserProfileContent() {
                               {getRoleBadge(project.userRole, t)}
                               <div className="flex items-center text-sm text-muted-foreground">
                                 <Users className="h-3 w-3 mr-1" />
-                                {project.memberCount} member
-                                {project.memberCount !== 1 ? "s" : ""}
+                                {tProfile(
+                                  project.memberCount === 1
+                                    ? "member"
+                                    : "members",
+                                  { count: project.memberCount }
+                                )}
                               </div>
                             </div>
                           </div>
@@ -257,7 +268,7 @@ function UserProfileContent() {
                 </div>
               ) : (
                 <p className="text-muted-foreground text-center py-6">
-                  You don't share any projects with this user yet.
+                  {tProfile("noSharedProjects")}
                 </p>
               )}
             </div>
@@ -266,25 +277,21 @@ function UserProfileContent() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Member Information</CardTitle>
+                  <CardTitle>{tProfile("memberInfo")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Member Since
+                      {tProfile("memberSince")}
                     </span>
                     <span className="text-sm font-medium">
-                      {formatDate(
-                        userProfile.createdAt,
-                        useTranslations(),
-                        useLocale()
-                      )}
+                      {formatDate(userProfile.createdAt, tCommon, locale)}
                     </span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Projects
+                      {tProfile("projects")}
                     </span>
                     <span className="text-sm font-medium">
                       {userProfile.projectsCount}
@@ -293,7 +300,7 @@ function UserProfileContent() {
                   <Separator />
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Shared Projects
+                      {tProfile("sharedProjects")}
                     </span>
                     <span className="text-sm font-medium">
                       {userProfile.publicProjects.length}

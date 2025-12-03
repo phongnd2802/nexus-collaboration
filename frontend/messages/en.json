@@ -1,4 +1,4 @@
-{
+﻿{
   "Theme": {
     "light": "Light",
     "dark": "Dark"
@@ -152,7 +152,12 @@
       "invite": "Invite",
       "create_task": "Create Task",
       "creatorLabel": "(Creator)",
-      "youLabel": "(You)"
+      "youLabel": "(You)",
+      "role": {
+        "ADMIN": "Admin",
+        "EDITOR": "Editor",
+        "MEMBER": "Member"
+      }
     },
     "taskSection": {
       "yourTasks": "Your Tasks",
@@ -376,223 +381,6 @@
       "add_deliverables": "Add attachments",
       "saving": "Saving...",
       "save": "Save"
-    },
-
-    "ProjectsPage": {
-      "header": {
-        "title": "Projects",
-        "description": "Manage your projects",
-        "newProject": "Create project"
-      },
-      "filter": {
-        "placeholder": "Search projects...",
-        "filterByStatus": "Filter by status",
-        "activeFilters": "Filters",
-        "inProgress": "In progress",
-        "filter": "Filter",
-        "sortBy": "Sort by",
-        "name": "Name",
-        "dueDate": "Due date",
-        "members": "Members",
-        "progress": "Progress",
-        "atRisk": "At risk",
-        "completed": "Completed",
-        "clearFilters": "Clear filters"
-      },
-      "list": {
-        "noProjects": "You don't have any projects",
-        "createFirstProject": "Create your first project to start collaborating with your team",
-        "createNewProject": "Create new project",
-        "noProjectsMatch": "No projects match your filters",
-        "tryAdjustingFilters": "Try adjusting your filters",
-        "clearFilters": "Clear filters"
-      },
-      "create": {
-        "title": "Create project",
-        "description": "Set up a new project and add team members to start collaborating",
-        "name": "Project name",
-        "nameDescription": "Choose a clear, specific name that reflects the project's purpose",
-        "namePlaceholder": "Enter project name",
-        "projectDescription": "Project description",
-        "descriptionPlaceholder": "Describe the project's objective, scope, and any additional information",
-        "descriptionDescription": "Describe the project in detail to help team members understand its purpose",
-        "projectFiles": "Project files",
-        "projectFilesDescription": "Add project files or references for your team",
-        "cancel": "Cancel",
-        "createProject": "Create project",
-        "dueDate": "Due date & Time",
-        "dueDateDescription": "Select a date, then set a specific time.",
-        "projectPreview": "Project preview",
-        "teamMembers": "Team members",
-        "youAdmin": "You (Admin)",
-        "youCanInvite": "You can invite team members to the project after creating it",
-        "attachedFiles": "Attached files",
-        "file": "file",
-        "namePlaceholderPreview": "Your project name will appear here"
-      },
-      "tips": {
-        "title": "Project Management Tips",
-        "tip1": "Break down your project into smaller tasks for easier management.",
-        "tip2": "Set clear milestones and deadlines to track progress.",
-        "tip3": "Invite all relevant team members to collaborate easily.",
-        "tip4": "Use task descriptions to provide clear context and requirements."
-      }
-    },
-    "ProjectDetailPage": {
-      "projectNotFound": "Project not found",
-      "projectNotFoundDescription": "The project you're looking for doesn't exist or you don't have access to it.",
-      "overview": "Overview",
-      "tasks": "Tasks",
-      "files": "Files",
-      "loadingTasks": "Loading tasks...",
-      "progress": "Project progress",
-      "overallCompletion": "Overall completion",
-      "completed": "Completed",
-      "inProgress": "In progress",
-      "todo": "To do",
-      "all_tasks_completed": "All tasks completed!",
-      "project_ready_to_be_marked_as_completed": "The project is ready to be marked as completed.",
-      "mark_as_completed": "Mark as completed",
-      "mark_as_completed_description": "All tasks in this project have been completed. Changing this status will notify all team members that the project has been completed.",
-      "cancel": "Cancel",
-      "updating": "Updating...",
-      "team_members": "Team members",
-      "no_team_members_found": "No team members found",
-      "projectDetails": "Project details",
-      "createdBy": "Created by",
-      "createdOn": "Created on",
-      "dueDate": "Due date",
-      "updatedOn": "Updated on",
-      "taskColumns": {
-        "todo": "To Do",
-        "inProgress": "In Progress",
-        "done": "Done",
-        "noTodoTasks": "No to do tasks",
-        "noInProgressTasks": "No in progress tasks",
-        "noDoneTasks": "No done tasks"
-      },
-      "mobileView": {
-        "swipeHint": "Swipe or tap dots to change views"
-      },
-      "fileExplorer": {
-        "uploadFile": "Upload File",
-        "projectFiles": "Project Files",
-        "tasks": "Tasks",
-        "taskFiles": "Task Files",
-        "deliverables": "Deliverables",
-        "root": "root",
-        "name": "Name",
-        "size": "Size",
-        "dateAdded": "Date Added",
-        "actions": "Actions",
-        "noFiles": "No files in this folder",
-        "file": "file",
-        "files": "files",
-        "deliverable": "deliverable",
-        "deliverables_count": "deliverables",
-        "download": "Download",
-        "delete": "Delete",
-        "uploadDialogTitle": "Upload Project Files",
-        "uploadDialogDescription": "Add files to your project. Files uploaded here will be available to all project members.",
-        "maxFilesReached": "You can only upload a maximum of 5 files to this project.",
-        "close": "Close",
-        "cancel": "Cancel",
-        "addFiles": "Add Files",
-        "addingFiles": "Adding Files...",
-        "deleteDialogTitle": "Delete File",
-        "deleteDialogDescription": "Are you sure you want to delete \"{fileName}\"? This action cannot be undone.",
-        "deleting": "Deleting...",
-        "failedToLoad": "Failed to load files",
-        "loadError": "Failed to load project files"
-      }
-    },
-    "LanguageSwitcher": {
-      "label": "Language",
-      "en": "EN",
-      "vi": "VI"
-    },
-    "date": {
-      "noDueDate": "No due date",
-      "today": "Today",
-      "tomorrow": "Tomorrow",
-      "withTime": "{date} at {time}"
-    },
-    "relative": {
-      "seconds": "{value} seconds ago",
-      "minutes": "{value} minutes ago",
-      "hours": "{value} hours ago",
-      "days": "{value} days ago"
-    },
-    "UnifiedBreadcrumb": {
-      "dashboard": "Dashboard",
-      "projects": "Projects",
-      "tasks": "Tasks",
-      "calendar": "Calendar",
-      "team": "Team",
-      "profile": "Profile",
-      "settings": "Settings",
-      "create": "Create",
-      "projectDetails": "Project details",
-      "taskDetails": "Task details",
-      "createProject": "Create project",
-      "createTask": "Create task"
-    },
-    "editProjectDialog": {
-      "title": "Edit project",
-      "description": "Update project information",
-      "project_name": "Project name",
-      "project_description": "Project description",
-      "project_name_placeholder": "Enter project name",
-      "project_description_placeholder": "Enter project description",
-      "status": "Status",
-      "in_progress": "In progress",
-      "at_risk": "At risk",
-      "completed": "Completed",
-      "select_status": "Select status",
-      "due_date": "Due date & Time",
-      "delete_project": "Delete project",
-      "cancel": "Cancel",
-      "saving": "Saving...",
-      "save_changes": "Save changes"
-    },
-    "deleteProjectDialog": {
-      "title": "Delete project",
-      "description": "This action cannot be undone. This will permanently delete the project, all tasks, files, and remove all team members.",
-      "confirm_text": "To confirm, please enter",
-      "cancel": "Cancel",
-      "deleting": "Deleting...",
-      "delete": "Delete"
-    },
-    "inviteDialog": {
-      "title": "Invite member",
-      "description": "Invite member to project",
-      "cancel": "Cancel",
-      "inviting": "Inviting...",
-      "invite": "Invite",
-      "placeholder": "Enter email",
-      "noUsersFound": "No users found",
-      "input_description": "Enter email of the user you want to invite",
-      "selectRole": "Select role",
-      "role": "Role",
-      "admin": "Control the entire project",
-      "editor": "Create and manage tasks",
-      "member": "View project and participate in tasks assigned"
-    },
-    "memberRoleDialog": {
-      "change_member_role": "Change member role",
-      "cancel": "Cancel",
-      "updating": "Updating...",
-      "are_you_sure_you_want_to_change_this_member_s_role_from": "Are you sure you want to change this member's role from",
-      "to": "to",
-      "confirm": "Confirm"
-    },
-    "memberRemoveDialog": {
-      "remove_team_member": "Remove team member",
-      "description": "This action cannot be undone. This will permanently delete the team member from the project.",
-      "confirm_text": "To confirm, please enter",
-      "cancel": "Cancel",
-      "removing": "Removing...",
-      "remove": "Remove"
     }
   },
   "TaskDetailPage": {
@@ -1159,5 +947,23 @@
     "toast": {
       "loadError": "Failed to load team members"
     }
+  },
+  "UserProfilePage": {
+    "userNotFound": "User Not Found",
+    "error": "Error",
+    "userNotFoundDescription": "The user you're looking for doesn't exist or isn't available.",
+    "loadErrorDescription": "Failed to load user profile. Please try again later.",
+    "unnamedUser": "Unnamed User",
+    "at": "at",
+    "about": "About",
+    "noBio": "This user hasn't added a bio yet.",
+    "skills": "Skills & Expertise",
+    "sharedProjects": "Shared Projects",
+    "noSharedProjects": "You don't share any projects with this user yet.",
+    "memberInfo": "Member Information",
+    "memberSince": "Member Since",
+    "projects": "Projects",
+    "member": "{count} member",
+    "members": "{count} members"
   }
 }
