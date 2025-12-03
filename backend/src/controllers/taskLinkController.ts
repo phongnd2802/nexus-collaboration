@@ -7,13 +7,12 @@ import { sendError } from "../utils/errors";
  * Create a new task link
  * POST /api/tasks/:taskId/links
  */
-export async function createTaskLink(
-  req: Request,
-  res: Response
-) {
+export async function createTaskLink(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
     const { linkedTaskId, relationship } = req.body;
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
 
     const sourceTaskId = relationship === "BLOCKS" ? taskId : linkedTaskId;
     const targetTaskId = relationship === "BLOCKS" ? linkedTaskId : taskId;
@@ -26,6 +25,7 @@ export async function createTaskLink(
       sourceTaskId,
       targetTaskId,
       relationship: linkRelationship,
+      userId,
     });
     res.status(201).json(taskLink);
   } catch (error: any) {
@@ -38,10 +38,7 @@ export async function createTaskLink(
  * Get all task links for a task
  * GET /api/tasks/:taskId/links
  */
-export async function getTaskLinks(
-  req: Request,
-  res: Response
-) {
+export async function getTaskLinks(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
 
@@ -58,10 +55,7 @@ export async function getTaskLinks(
  * Update a task link
  * PATCH /api/tasks/:taskId/links/:linkId
  */
-export async function updateTaskLink(
-  req: Request,
-  res: Response
-) {
+export async function updateTaskLink(req: Request, res: Response) {
   try {
     const { linkId } = req.params;
     const { relationship } = req.body;
@@ -87,10 +81,7 @@ export async function updateTaskLink(
  * Delete a task link
  * DELETE /api/tasks/:taskId/links/:linkId
  */
-export async function deleteTaskLink(
-  req: Request,
-  res: Response
-) {
+export async function deleteTaskLink(req: Request, res: Response) {
   try {
     const { linkId } = req.params;
 

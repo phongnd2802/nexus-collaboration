@@ -152,7 +152,12 @@
       "invite": "Mời",
       "create_task": "Tạo công việc",
       "creatorLabel": "(Người tạo)",
-      "youLabel": "(Bạn)"
+      "youLabel": "(Bạn)",
+      "role": {
+        "ADMIN": "Quản trị viên",
+        "EDITOR": "Biên tập viên",
+        "MEMBER": "Thành viên"
+      }
     },
     "taskSection": {
       "yourTasks": "Công việc của bạn",
@@ -564,6 +569,7 @@
       "description": "Mời thành viên vào dự án",
       "cancel": "Hủy",
       "inviting": "Đang mời",
+      "sending": "Đang gửi...",
       "invite": "Mời",
       "placeholder": "Nhập email",
       "noUsersFound": "Không tìm thấy người dùng",
@@ -659,7 +665,12 @@
       "TODO": "Đang chờ",
       "IN_PROGRESS": "Đang tiến hành",
       "DONE": "Hoàn thành"
-    }
+    },
+    "IN_PROGRESS": "Đang tiến hành",
+    "TODO": "Đang chờ",
+    "DONE": "Hoàn thành",
+    "COMPLETED": "Hoàn thành",
+    "AT_RISK": "Sắp tới hạn"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Bảng điều khiển",
@@ -1157,5 +1168,23 @@
     "toast": {
       "loadError": "Không thể tải danh sách thành viên"
     }
+  },
+  "UserProfilePage": {
+    "userNotFound": "Không tìm thấy người dùng",
+    "error": "Lỗi",
+    "userNotFoundDescription": "Người dùng bạn đang tìm kiếm không tồn tại hoặc không khả dụng.",
+    "loadErrorDescription": "Không thể tải hồ sơ người dùng. Vui lòng thử lại sau.",
+    "unnamedUser": "Người dùng không tên",
+    "at": "tại",
+    "about": "Giới thiệu",
+    "noBio": "Người dùng này chưa thêm tiểu sử.",
+    "skills": "Kỹ năng & Chuyên môn",
+    "sharedProjects": "Dự án chung",
+    "noSharedProjects": "Bạn chưa có dự án chung nào với người dùng này.",
+    "memberInfo": "Thông tin thành viên",
+    "memberSince": "Tham gia từ",
+    "projects": "Dự án",
+    "member": "{count} thành viên",
+    "members": "{count} thành viên"
   }
 }

@@ -10,6 +10,8 @@ export async function createSubtask(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
     const { name, status, priority, assigneeId } = req.body;
+    const userId =
+      (req.headers["x-user-id"] as string) || (req.query.userId as string);
 
     const subtask = await subtaskService.createSubtask({
       taskId,
@@ -17,6 +19,7 @@ export async function createSubtask(req: Request, res: Response) {
       status: status as TaskStatus,
       priority: priority as TaskPriority,
       assigneeId,
+      userId,
     });
 
     res.status(201).json(subtask);

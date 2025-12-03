@@ -1,5 +1,6 @@
 import { PrismaClient, TaskRelationship, TaskStatus } from "@prisma/client";
 import { AppError } from "../utils/errors";
+import { canCreateTaskLink } from "../utils/permissions";
 
 const prisma = new PrismaClient();
 
@@ -7,6 +8,7 @@ interface CreateTaskLinkInput {
   sourceTaskId: string;
   targetTaskId: string;
   relationship: TaskRelationship;
+  userId: string;
 }
 
 interface UpdateTaskLinkInput {
@@ -18,7 +20,20 @@ export const taskLinkService = {
    * Create a new task link
    */
   async createTaskLink(data: CreateTaskLinkInput) {
-    const { sourceTaskId, targetTaskId, relationship } = data;
+    const { sourceTaskId, targetTaskId, relationship, userId } = data;
+
+    if (!userId) {
+      throw new AppError(400, "USER_ID_REQUIRED", "User ID is required");
+    }
+
+    const permissionCheck = await canCreateTaskLink(sourceTaskId, userId);
+    if (!permissionCheck.allowed) {
+      throw new AppError(
+        403,
+        "INSUFFICIENT_PERMISSIONS",
+        permissionCheck.reason as string
+      );
+    }
 
     // Verify both tasks exist
     const [sourceTask, targetTask] = await Promise.all([
