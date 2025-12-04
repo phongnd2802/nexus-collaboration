@@ -7,7 +7,7 @@ import { Task, Project, User } from "@/types/index";
 export const useTaskDetails = (taskId: string) => {
   const router = useRouter();
   const { data: session, status } = useSession();
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
   const [task, setTask] = useState<Task | null>(null);
@@ -219,7 +219,7 @@ export const useTaskDetails = (taskId: string) => {
     setEditedTask((prev: any) => ({ ...prev, [field]: value }));
 
     if (validationErrors[field]) {
-      setValidationErrors((prev) => {
+      setValidationErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;

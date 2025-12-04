@@ -350,6 +350,66 @@ export const taskLinkService = {
   },
 
   /**
+   * Recursively revert blocked tasks to TODO status
+   */
+  /**
+   * Recursively revert blocked tasks to TODO status
+   */
+  async cascadeRevertTaskStatus(taskId: string, tx: any): Promise<any[]> {
+    // Find all tasks that are blocked by this task (taskId)
+    // 1. taskId is source and relationship is BLOCKS
+    // 2. taskId is target and relationship is BLOCKED_BY
+    const [blockingLinks, blockedByLinks] = await Promise.all([
+      tx.taskLink.findMany({
+        where: {
+          sourceTaskId: taskId,
+          relationship: TaskRelationship.BLOCKS,
+        },
+        include: { targetTask: true },
+      }),
+      tx.taskLink.findMany({
+        where: {
+          targetTaskId: taskId,
+          relationship: TaskRelationship.BLOCKED_BY,
+        },
+        include: { sourceTask: true },
+      }),
+    ]);
+
+    const blockedTasks = [
+      ...blockingLinks.map((l: any) => l.targetTask),
+      ...blockedByLinks.map((l: any) => l.sourceTask),
+    ];
+
+    let updatedTasks: any[] = [];
+
+    for (const task of blockedTasks) {
+      if (task.status !== TaskStatus.TODO) {
+        // Revert to TODO
+        const updated = await tx.task.update({
+          where: { id: task.id },
+          data: { status: TaskStatus.TODO },
+          include: {
+            creator: { select: { id: true, name: true, image: true } },
+            assignee: { select: { id: true, name: true, image: true } },
+            project: { select: { id: true, name: true } },
+          },
+        });
+        updatedTasks.push(updated);
+
+        // Recursively check tasks blocked by this task
+        const recursiveUpdates = await this.cascadeRevertTaskStatus(
+          task.id,
+          tx
+        );
+        updatedTasks = [...updatedTasks, ...recursiveUpdates];
+      }
+    }
+
+    return updatedTasks;
+  },
+
+  /**
    * Check if a task can change status based on blocking relationships
    */
   async canTaskChangeStatus(
@@ -361,31 +421,35 @@ export const taskLinkService = {
       return { allowed: true };
     }
 
-    // Get all BLOCKED_BY relationships where this task is the source
-    const blockedByLinks = await prisma.taskLink.findMany({
-      where: {
-        sourceTaskId: taskId,
-        relationship: TaskRelationship.BLOCKED_BY,
-      },
-      include: {
-        targetTask: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-          },
-        },
-      },
-    });
+    // Check if task is blocked by others
+    // 1. sourceTaskId = taskId AND relationship = BLOCKED_BY
+    // 2. targetTaskId = taskId AND relationship = BLOCKS
 
-    // Check if any blocking tasks are not DONE
-    const blockingTasks = blockedByLinks.filter(
-      link => link.targetTask.status !== TaskStatus.DONE
-    );
+    const [blockedByLinks, blocksLinks] = await Promise.all([
+      prisma.taskLink.findMany({
+        where: {
+          sourceTaskId: taskId,
+          relationship: TaskRelationship.BLOCKED_BY,
+        },
+        include: { targetTask: true },
+      }),
+      prisma.taskLink.findMany({
+        where: {
+          targetTaskId: taskId,
+          relationship: TaskRelationship.BLOCKS,
+        },
+        include: { sourceTask: true },
+      }),
+    ]);
+
+    const blockingTasks = [
+      ...blockedByLinks.map(l => l.targetTask),
+      ...blocksLinks.map(l => l.sourceTask),
+    ].filter(task => task.status !== TaskStatus.DONE);
 
     if (blockingTasks.length > 0) {
       const blockingTaskNames = blockingTasks
-        .map(link => link.targetTask.title)
+        .map(task => task.title)
         .join(", ");
       return {
         allowed: false,

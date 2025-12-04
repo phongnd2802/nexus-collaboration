@@ -451,7 +451,12 @@
       "TODO": "To Do",
       "IN_PROGRESS": "In Progress",
       "DONE": "Done"
-    }
+    },
+    "IN_PROGRESS": "In Progress",
+    "TODO": "To Do",
+    "DONE": "Done",
+    "COMPLETED": "Completed",
+    "AT_RISK": "At Risk"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Dashboard",

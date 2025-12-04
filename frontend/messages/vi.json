@@ -476,7 +476,7 @@
         "swipeHint": "Vuốt hoặc chạm vào các chấm để thay đổi chế độ xem"
       },
       "fileExplorer": {
-        "uploadFile": "Tải lên file",
+        "uploadFile": "Tải file lên",
         "projectFiles": "File dự án",
         "tasks": "Công việc",
         "taskFiles": "File công việc",
@@ -784,7 +784,7 @@
       "swipeHint": "Vuốt hoặc chạm vào các chấm để thay đổi chế độ xem"
     },
     "fileExplorer": {
-      "uploadFile": "Tải lên file",
+      "uploadFile": "Tải file lên",
       "projectFiles": "File dự án",
       "project": "Dự án",
       "tasks": "Công việc",

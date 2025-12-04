@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ProjectWithDetails, Task } from "@/types/index";
+import { useSocket } from "@/components/context/socket-context";
 
 interface UseProjectDataReturn {
   project: ProjectWithDetails | null;
@@ -18,7 +19,7 @@ interface UseProjectDataReturn {
 
 export function useProjectData(projectId: string): UseProjectDataReturn {
   const { data: session, status } = useSession();
-  
+
   const [project, setProject] = useState<ProjectWithDetails | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProjectLoading, setIsProjectLoading] = useState(true);
@@ -29,7 +30,7 @@ export function useProjectData(projectId: string): UseProjectDataReturn {
 
   const fetchProjectData = useCallback(async () => {
     if (!projectId) return;
-    
+
     setIsProjectLoading(true);
     try {
       const projectRes = await fetch(`/api/projects/${projectId}`);
@@ -56,7 +57,9 @@ export function useProjectData(projectId: string): UseProjectDataReturn {
         );
         if (userMember) {
           setUserRole(userMember.role);
-          setIsEditor(userMember.role === "EDITOR" || userMember.role === "ADMIN");
+          setIsEditor(
+            userMember.role === "EDITOR" || userMember.role === "ADMIN"
+          );
           setIsAdmin(userMember.role === "ADMIN");
         }
       }
@@ -93,6 +96,43 @@ export function useProjectData(projectId: string): UseProjectDataReturn {
       fetchTasksData();
     }
   }, [status, projectId, fetchProjectData, fetchTasksData]);
+
+  // Socket integration
+  const { socket, joinProject, leaveProject } = useSocket();
+
+  useEffect(() => {
+    if (projectId && socket) {
+      joinProject(projectId);
+
+      const handleTaskUpdate = (updatedTask: Task) => {
+        setTasks(prevTasks => {
+          const taskIndex = prevTasks.findIndex(t => t.id === updatedTask.id);
+          if (taskIndex !== -1) {
+            // Merge updated task with existing task to preserve fields not in update
+            const existingTask = prevTasks[taskIndex];
+            const mergedTask = {
+              ...existingTask,
+              ...updatedTask,
+              // Ensure project info is preserved
+              project: updatedTask.project || existingTask.project,
+            };
+            const newTasks = [...prevTasks];
+            newTasks[taskIndex] = mergedTask;
+            return newTasks;
+          }
+          // Task doesn't exist in current list, ignore (might be from different project)
+          return prevTasks;
+        });
+      };
+
+      socket.on("task:updated", handleTaskUpdate);
+
+      return () => {
+        leaveProject(projectId);
+        socket.off("task:updated", handleTaskUpdate);
+      };
+    }
+  }, [projectId, socket, joinProject, leaveProject]);
 
   return {
     project,
