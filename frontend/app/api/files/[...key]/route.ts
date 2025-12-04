@@ -36,8 +36,12 @@ export async function GET(
           "Cache-Control": "public, max-age=31536000, immutable",
         },
       });
-    } catch (s3Error) {
-      console.error("S3 GetObject error:", s3Error);
+    } catch (s3Error: any) {
+      if (s3Error.name === "NoSuchKey" || s3Error.Code === "NoSuchKey") {
+        console.warn(`File not found in S3: ${key}`);
+      } else {
+        console.error("S3 GetObject error:", s3Error);
+      }
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
   } catch (error) {

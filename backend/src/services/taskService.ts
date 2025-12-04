@@ -331,13 +331,26 @@ export async function updateTask(
       }
     }
 
-    const updated = await prisma.task.update({
-      where: { id: taskId },
-      data: { status },
-      include: {
-        creator: { select: { id: true, name: true, image: true } },
-        assignee: { select: { id: true, name: true, image: true } },
-      },
+    const updated = await prisma.$transaction(async tx => {
+      const updatedTask = await tx.task.update({
+        where: { id: taskId },
+        data: { status },
+        include: {
+          creator: { select: { id: true, name: true, image: true } },
+          assignee: { select: { id: true, name: true, image: true } },
+        },
+      });
+
+      // If task was DONE and is now not DONE, revert blocked tasks
+      let cascadedTasks: any[] = [];
+      if (task.status === TaskStatus.DONE && status !== TaskStatus.DONE) {
+        cascadedTasks = await taskLinkService.cascadeRevertTaskStatus(
+          taskId,
+          tx
+        );
+      }
+
+      return { updatedTask, cascadedTasks };
     });
 
     return updated;
@@ -410,7 +423,7 @@ export async function updateTask(
     });
 
     const hasIncompleteSubtasks = subtasks.some(
-      (subtask) => subtask.status !== TaskStatus.DONE
+      subtask => subtask.status !== TaskStatus.DONE
     );
 
     if (hasIncompleteSubtasks) {
@@ -422,35 +435,51 @@ export async function updateTask(
     }
   }
 
-  const updatedTask = await prisma.task.update({
-    where: { id: taskId },
-    data: {
-      title: title ?? undefined,
-      description: description ?? undefined,
-      assigneeId: assigneeId ?? undefined,
-      dueDate: computedDue,
-      priority: priority ?? undefined,
-      status: status ?? undefined,
-    },
-    include: {
-      creator: { select: { id: true, name: true, image: true } },
-      assignee: { select: { id: true, name: true, image: true } },
-    },
+  const updatedTask = await prisma.$transaction(async tx => {
+    const updated = await tx.task.update({
+      where: { id: taskId },
+      data: {
+        title: title ?? undefined,
+        description: description ?? undefined,
+        assigneeId: assigneeId ?? undefined,
+        dueDate: computedDue,
+        priority: priority ?? undefined,
+        status: status ?? undefined,
+      },
+      include: {
+        creator: { select: { id: true, name: true, image: true } },
+        assignee: { select: { id: true, name: true, image: true } },
+      },
+    });
+
+    // If task was DONE and is now not DONE, revert blocked tasks
+    let cascadedTasks: any[] = [];
+    if (
+      status !== undefined &&
+      task.status === TaskStatus.DONE &&
+      status !== TaskStatus.DONE
+    ) {
+      cascadedTasks = await taskLinkService.cascadeRevertTaskStatus(taskId, tx);
+    }
+
+    return { updatedTask: updated, cascadedTasks };
   });
 
   // Update reminders nếu dueDate thay đổi
   if (computedDue) {
-    await upsertTaskReminders(updatedTask.id, computedDue).catch(err => {
-      console.error(
-        `Failed to update reminders for task ${updatedTask.id}:`,
-        err
-      );
-    });
+    await upsertTaskReminders(updatedTask.updatedTask.id, computedDue).catch(
+      err => {
+        console.error(
+          `Failed to update reminders for task ${updatedTask.updatedTask.id}:`,
+          err
+        );
+      }
+    );
   } else if (task.dueDate && !computedDue) {
     // Nếu xóa dueDate => xóa reminders
-    await deleteReminders("task", updatedTask.id).catch(err => {
+    await deleteReminders("task", updatedTask.updatedTask.id).catch(err => {
       console.error(
-        `Failed to delete reminders for task ${updatedTask.id}:`,
+        `Failed to delete reminders for task ${updatedTask.updatedTask.id}:`,
         err
       );
     });

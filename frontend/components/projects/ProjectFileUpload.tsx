@@ -7,11 +7,13 @@ import TaskAttachments from "@/components/tasks/TaskAttachments";
 interface ProjectFileUploadProps {
   files: any[];
   setFiles: (files: any[]) => void;
+  maxFiles?: number;
 }
 
 export default function ProjectFileUpload({
   files,
   setFiles,
+  maxFiles,
 }: ProjectFileUploadProps) {
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +31,7 @@ export default function ProjectFileUpload({
           throw new Error(data.message || "Failed to delete file");
         }
 
-        setFiles(files.filter((file) => file.url !== fileUrl));
+        setFiles(files.filter(file => file.url !== fileUrl));
         toast.success("File removed successfully");
       } catch (error) {
         console.error("Error deleting file:", error);
@@ -79,6 +81,7 @@ export default function ProjectFileUpload({
         <S3Upload
           onUploadComplete={handleUploadComplete}
           onUploadError={handleUploadError}
+          maxFiles={maxFiles}
         />
       </div>
     </div>

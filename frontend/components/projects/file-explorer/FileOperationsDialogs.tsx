@@ -51,13 +51,13 @@ export default function FileOperationsDialogs({
   confirmDeleteFile,
 }: FileOperationsDialogsProps) {
   const t = useTranslations("ProjectDetailPage.fileExplorer");
-  
+
   return (
     <>
       {/* File Upload Dialog */}
       <Dialog
         open={isUploadDialogOpen}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           if (!isUploading && !open) {
             handleUploadCancel();
           }
@@ -71,19 +71,11 @@ export default function FileOperationsDialogs({
               {t("uploadDialogDescription")}
             </DialogDescription>
           </DialogHeader>
-          {projectFiles.length >= 5 && (
-            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md text-red-600 dark:text-red-400 text-sm flex items-start">
-              <X className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
-              <span>
-                {t("maxFilesReached")}
-              </span>
-            </div>
-          )}
+
           <div className="space-y-4 py-4">
             <ProjectFileUpload
               files={filesToUpload}
               setFiles={setFilesToUpload}
-              maxFiles={5 - projectFiles.length}
             />
           </div>
 
@@ -94,25 +86,23 @@ export default function FileOperationsDialogs({
               onClick={handleUploadCancel}
               disabled={isUploading}
             >
-              {projectFiles.length >= 5 ? t("close") : t("cancel")}
+              {t("cancel")}
             </Button>
 
-            {projectFiles.length <= 4 && (
-              <Button
-                onClick={handleSubmitFiles}
-                disabled={isUploading || filesToUpload.length === 0}
-                className="bg-violet-600 hover:bg-violet-700 text-white cursor-pointer"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t("addingFiles")}
-                  </>
-                ) : (
-                  t("addFiles")
-                )}
-              </Button>
-            )}
+            <Button
+              onClick={handleSubmitFiles}
+              disabled={isUploading || filesToUpload.length === 0}
+              className="bg-violet-600 hover:bg-violet-700 text-white cursor-pointer"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t("addingFiles")}
+                </>
+              ) : (
+                t("addFiles")
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -120,7 +110,7 @@ export default function FileOperationsDialogs({
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialogOpen}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           if (!isDeleting && !open) {
             setDeleteDialogOpen(false);
           }
@@ -130,7 +120,9 @@ export default function FileOperationsDialogs({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteDialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteDialogDescription", { fileName: fileToDelete?.name || "" })}
+              {t("deleteDialogDescription", {
+                fileName: fileToDelete?.name || "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:flex-row flex-col gap-2 sm:gap-0">
