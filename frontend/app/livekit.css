@@ -1,0 +1,510 @@
+/* -------------------------------------------------------
+   LIVEKIT PREJOIN COMPONENT OVERRIDE
+------------------------------------------------------- */
+[data-lk-theme="default"] {
+  --lk-bg: var(--secondary-background);
+  --lk-bg2: var(--background);
+  --lk-bg3: oklch(35% 0.05 270);
+  --lk-fg: var(--foreground);
+  --lk-border-color: var(--border);
+  --lk-control-bg: var(--secondary-background);
+  --lk-control-fg: var(--foreground);
+  --lk-control-hover-bg: oklch(35% 0.05 270);
+  --lk-accent-bg: var(--main);
+  --lk-accent-fg: var(--main-foreground);
+  --lk-danger-bg: oklch(55% 0.25 25);
+  --lk-border-radius: 5px;
+}
+
+/* PreJoin Container */
+.lk-prejoin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 !important;
+  background: transparent !important;
+  width: 100%;
+}
+
+/* Video Preview */
+.lk-prejoin .lk-video-container,
+.lk-camera-off-note {
+  width: 100%;
+  border-radius: 5px;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: oklch(15% 0.01 270) !important;
+}
+
+.lk-camera-off-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+  opacity: 0.6;
+}
+
+/* Controls Row - Make horizontal layout */
+.lk-prejoin .lk-button-group {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Device Select Buttons */
+.lk-prejoin .lk-button-group-menu {
+  display: flex;
+  flex: 1;
+  min-width: 140px;
+  max-width: 200px;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  overflow: hidden;
+  box-shadow: 4px 4px 0px 0px var(--border);
+  transition: all 0.15s ease;
+  background: var(--secondary-background);
+}
+
+.lk-prejoin .lk-button-group-menu:hover {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.lk-prejoin .lk-button-group-menu > button {
+  background: var(--secondary-background) !important;
+  color: var(--foreground) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.625rem 0.875rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.lk-prejoin .lk-button-group-menu > button:first-child {
+  border-right: 2px solid var(--border) !important;
+}
+
+.lk-prejoin .lk-button-group-menu > button:last-child {
+  padding: 0.625rem 0.5rem;
+  flex: 0;
+}
+
+.lk-prejoin .lk-button-group-menu > button:hover {
+  background: oklch(35% 0.05 270) !important;
+}
+
+/* SVG Icons */
+.lk-prejoin .lk-button-group-menu svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* Username Input */
+.lk-prejoin .lk-username-container,
+.lk-prejoin .lk-form-control {
+  width: 100%;
+}
+
+.lk-prejoin .lk-username-container input,
+.lk-prejoin input[type="text"],
+.lk-form-control input {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  background: var(--secondary-background) !important;
+  color: var(--foreground) !important;
+  font-weight: 500;
+  font-size: 0.875rem;
+  box-shadow: none !important;
+}
+
+.lk-prejoin .lk-username-container input:focus,
+.lk-prejoin input[type="text"]:focus,
+.lk-form-control input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--main) !important;
+}
+
+.lk-prejoin .lk-username-container input::placeholder,
+.lk-prejoin input[type="text"]::placeholder {
+  color: var(--foreground);
+  opacity: 0.5;
+}
+
+/* Join Button */
+.lk-prejoin .lk-join-button,
+.lk-prejoin button[type="submit"] {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0.5rem 1.5rem;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  background: var(--main) !important;
+  color: var(--main-foreground) !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: 4px 4px 0px 0px var(--border);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.lk-prejoin .lk-join-button:hover,
+.lk-prejoin button[type="submit"]:hover {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.lk-prejoin .lk-join-button:disabled,
+.lk-prejoin button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0px 0px var(--border);
+}
+
+/* Dropdown Menu */
+.lk-device-menu {
+  background: var(--secondary-background) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  box-shadow: 4px 4px 0px 0px var(--border) !important;
+  padding: 0 !important;
+  z-index: 100;
+}
+
+.lk-device-menu .lk-button {
+  background: transparent !important;
+  color: var(--foreground) !important;
+  border: none !important;
+  border-radius: 3px !important;
+  padding: 0.5rem 0.75rem !important;
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.lk-device-menu .lk-button:hover {
+  background: oklch(35% 0.05 270) !important;
+}
+
+.lk-device-menu .lk-button[aria-pressed="true"] {
+  background: var(--main) !important;
+  color: var(--main-foreground) !important;
+}
+
+/* -------------------------------------------------------
+   LIVEKIT VIDEO CONFERENCE - Neobrutalism Style
+------------------------------------------------------- */
+
+/* Room Container */
+.lk-room-container {
+  background: oklch(18% 0.02 270) !important;
+}
+
+/* Control Bar - Bottom bar with all controls */
+.lk-control-bar {
+  background: oklch(22% 0.02 270) !important;
+  border-top: 2px solid var(--border) !important;
+  padding: 0.875rem 1.5rem !important;
+  gap: 0.5rem !important;
+}
+
+/* Control Buttons Base Style */
+.lk-control-bar .lk-button {
+  background: var(--secondary-background) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  color: var(--foreground) !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  padding: 0.5rem 0.875rem !important;
+  gap: 0.5rem !important;
+  box-shadow: 3px 3px 0px 0px var(--border);
+  transition: all 0.15s ease;
+}
+
+.lk-control-bar .lk-button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px var(--border);
+}
+
+.lk-control-bar .lk-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+/* Button with dropdown (Microphone, Camera) */
+.lk-button-group {
+  display: flex !important;
+}
+
+.lk-button-group .lk-button {
+  border-radius: 5px 0 0 5px !important;
+}
+
+.lk-button-group .lk-button:last-child {
+  border-radius: 0 5px 5px 0 !important;
+  border-left: none !important;
+  padding: 0.5rem !important;
+}
+
+/* Enabled state (mic/camera ON) - uses main color */
+.lk-control-bar .lk-button[data-lk-enabled="true"] {
+  background: var(--main) !important;
+  color: var(--main-foreground) !important;
+  border-color: var(--border) !important;
+}
+
+/* Disabled state (mic/camera OFF) - blends with background */
+.lk-control-bar .lk-button[data-lk-enabled="false"] {
+  background: var(--secondary-background) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+
+/* Leave/Disconnect Button */
+.lk-control-bar .lk-disconnect-button {
+  background: oklch(30% 0.12 25) !important;
+  border: 2px solid oklch(50% 0.2 25) !important;
+  color: oklch(75% 0.2 25) !important;
+  box-shadow: 3px 3px 0px 0px var(--border);
+}
+
+.lk-control-bar .lk-disconnect-button:hover {
+  background: oklch(55% 0.25 25) !important;
+  color: white !important;
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px oklch(60% 0.25 25);
+}
+
+/* Participant Tile */
+.lk-participant-tile {
+  background: oklch(18% 0.02 270) !important;
+  border-radius: 5px !important;
+  overflow: hidden;
+}
+
+/* Speaking indicator */
+.lk-participant-tile[data-lk-speaking="true"] {
+  outline: 2px solid var(--main) !important;
+  outline-offset: -2px;
+}
+
+/* Participant placeholder (camera off) */
+.lk-participant-placeholder {
+  background: oklch(22% 0.02 270) !important;
+}
+
+/* Participant Name Badge */
+.lk-participant-name {
+  background: var(--secondary-background) !important;
+  color: var(--foreground) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  padding: 0.25rem 0.625rem !important;
+  font-weight: 500 !important;
+  font-size: 0.8125rem !important;
+}
+
+/* Connection Quality */
+.lk-connection-quality {
+  background: var(--secondary-background) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  padding: 0.25rem !important;
+}
+
+/* Focus Layout (when screen sharing) */
+.lk-focus-layout .lk-participant-tile[data-lk-source="screen_share"] {
+  border: 2px solid var(--main) !important;
+}
+
+/* Device Menu Dropdown */
+.lk-device-menu,
+.lk-media-device-select {
+  background: oklch(25% 0.02 270) !important;
+  border: none !important;
+  border-radius: 5px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  padding: 0.5rem !important;
+  min-width: 200px !important;
+}
+
+.lk-device-menu ul {
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+}
+
+.lk-device-menu li,
+.lk-media-device-select .lk-button {
+  background: transparent !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 5px !important;
+  padding: 0.625rem 0.875rem !important;
+  font-size: 0.875rem !important;
+  cursor: pointer !important;
+  margin: 0.125rem 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.lk-device-menu li:hover,
+.lk-media-device-select .lk-button:hover {
+  background: oklch(35% 0.05 270) !important;
+  color: white !important;
+}
+
+/* Selected/Active item */
+.lk-device-menu li[aria-selected="true"],
+.lk-device-menu li.lk-button-selected {
+  background: oklch(35% 0.05 270) !important;
+  color: white !important;
+}
+
+/* Chat Panel */
+.lk-chat {
+  background: oklch(20% 0.02 270) !important;
+  border-left: 2px solid var(--border) !important;
+}
+
+.lk-chat-header {
+  background: oklch(22% 0.02 270) !important;
+  border-bottom: 2px solid var(--border) !important;
+  padding: 0.875rem 1rem !important;
+  font-weight: 600 !important;
+  color: white !important;
+}
+
+.lk-chat-messages {
+  background: oklch(18% 0.02 270) !important;
+  padding: 0.75rem !important;
+}
+
+/* Chat message entry - clean style */
+.lk-chat-entry {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0.75rem 0 !important;
+  padding: 0 !important;
+}
+
+/* Message metadata (name + timestamp) - no border on name */
+.lk-chat-entry .lk-meta-data {
+  margin-bottom: 0.375rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.lk-chat-entry .lk-participant-name,
+.lk-chat-entry-name {
+  background: transparent !important;
+  border: none !important;
+  color: var(--main) !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding: 0 !important;
+}
+
+.lk-chat-entry .lk-timestamp,
+.lk-chat-entry-timestamp {
+  color: oklch(70% 0 0) !important;
+  font-size: 0.75rem !important;
+}
+
+/* Message text bubble */
+.lk-chat-entry .lk-message-body,
+.lk-chat-entry p,
+.lk-chat-entry ul {
+  background: oklch(28% 0.02 270) !important;
+  color: white !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 5px !important;
+  display: inline-block !important;
+}
+
+/* Links in messages */
+.lk-chat-entry a {
+  color: var(--main) !important;
+  text-decoration: underline !important;
+}
+
+/* Chat form */
+.lk-chat-form {
+  background: oklch(22% 0.02 270) !important;
+  border-top: 2px solid var(--border) !important;
+  padding: 0.75rem !important;
+  gap: 0.5rem !important;
+}
+
+.lk-chat-form-input {
+  background: oklch(15% 0.02 270) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  color: white !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.lk-chat-form-input::placeholder {
+  color: oklch(60% 0 0) !important;
+}
+
+.lk-chat-form-input:focus {
+  outline: none !important;
+  border-color: var(--main) !important;
+}
+
+.lk-chat-form-button {
+  background: var(--main) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  color: var(--main-foreground) !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 600 !important;
+  box-shadow: 2px 2px 0px 0px var(--border);
+}
+
+.lk-chat-form-button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Settings Panel */
+.lk-settings-menu {
+  background: var(--secondary-background) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  box-shadow: 4px 4px 0px 0px var(--border) !important;
+}
+
+/* Full screen button */
+.lk-focus-toggle-button {
+  background: var(--secondary-background) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: 5px !important;
+  color: var(--foreground) !important;
+}
+
+.lk-focus-toggle-button:hover {
+  background: oklch(35% 0.05 270) !important;
+}

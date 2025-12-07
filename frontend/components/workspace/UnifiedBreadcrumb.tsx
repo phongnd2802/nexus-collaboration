@@ -115,11 +115,7 @@ export function UnifiedBreadcrumb() {
   const formatSegmentName = (segment: string) => {
     if (segment === "taskId") return t("taskDetails");
 
-    // Check if the segment is a known key in translations
-    const translationKey = segment.replace(/-/g, "") as any;
-    // We try to translate, if it returns the key (meaning no translation found) or if we want to be safe
-    // actually next-intl returns the key if not found? No, it throws or returns key depending on config.
-    // Let's assume we only translate known static segments.
+    const translationKey = segment.replace(/-/g, "") as any
 
     // List of known static segments that we have translations for
     const knownSegments = [

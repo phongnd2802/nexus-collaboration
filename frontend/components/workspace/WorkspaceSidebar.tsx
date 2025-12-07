@@ -22,6 +22,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   CreditCard,
+  Video,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -146,13 +147,14 @@ export default function WorkspaceSidebar() {
       icon: <Users className="h-4 w-4" />,
       label: t("team"),
       isActive: isLinkActive("/team"),
-    },
-    // {
-    //   href: "/subscription",
-    //   icon: <CreditCard className="h-4 w-4" />,
-    //   label: "Subscription",
-    //   isActive: isLinkActive("/subscription"),
-    // },
+    },  
+    {
+      href: "/meetings",
+      icon: <Video className="h-4 w-4" />,
+      label: "Meetings",
+      isActive: isLinkActive("/meetings"),
+    }
+  
   ];
 
   // Mobile sidebar

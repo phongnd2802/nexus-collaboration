@@ -45,6 +45,17 @@ services:
       retries: 3
     networks:
       - nexus-network
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit-server
+    command: --dev
+    restart: unless-stopped
+    ports:
+      - "7880:7880" # WebSockets & API
+      - "7881:7881" # TCP (WebRTC)
+      - "7882:7882/udp" # UDP (WebRTC)
+    networks:
+      - nexus-network
 
 volumes:
   postgres-data:
