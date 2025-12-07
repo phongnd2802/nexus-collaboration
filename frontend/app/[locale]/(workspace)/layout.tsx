@@ -44,23 +44,26 @@ export default function WorkspaceLayout({
           <WorkspaceSidebar />
           <main
             className={`flex-1 overflow-auto ${
-              pathname === "/messages" ? "overflow-hidden" : "overflow-auto"
+              pathname === "/messages" || pathname.includes("/meetings/rooms")
+                ? "overflow-hidden"
+                : "overflow-auto"
             } md:pt-0 pt-14
                ${isMobile ? "px-0" : "px-8 lg:px-12"}`}
           >
-            <div className="mx-auto py-2 px-4 md:px-6 lg:px-8">
+            <div className="mx-auto py-2 px-4 md:px-6 lg:px-8 h-full">
               <UnifiedBreadcrumb />
 
-              <div className="pt-4">{children}</div>
-              {pathname !== "/messages" && (
-                <footer>
-                  <div className="py-4">
-                    <p className="text-center text-sm text-main dark:text-main">
-                      © {new Date().getFullYear()} Nexus. All rights reserved.
-                    </p>
-                  </div>
-                </footer>
-              )}
+              <div className="pt-4 h-[calc(100%-3rem)]">{children}</div>
+              {pathname !== "/messages" &&
+                !pathname.includes("/meetings/rooms") && (
+                  <footer>
+                    <div className="py-4">
+                      <p className="text-center text-sm text-main dark:text-main">
+                        © {new Date().getFullYear()} Nexus. All rights reserved.
+                      </p>
+                    </div>
+                  </footer>
+                )}
             </div>
           </main>
         </div>

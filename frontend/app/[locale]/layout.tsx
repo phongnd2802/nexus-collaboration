@@ -1,4 +1,6 @@
 import "@/app/globals.css";
+import "@livekit/components-styles";
+import "@/app/livekit.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AuthProvider from "@/components/auth/auth-provider";
