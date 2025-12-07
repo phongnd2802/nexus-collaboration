@@ -470,7 +470,8 @@
     "projectDetails": "Project details",
     "taskDetails": "Task details",
     "createProject": "Create project",
-    "createTask": "Create task"
+    "createTask": "Create task",
+    "meetings": "Meetings"
   },
   "ProjectsPage": {
     "header": {

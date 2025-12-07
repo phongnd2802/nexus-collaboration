@@ -21,6 +21,7 @@ import {
   UsersIcon,
   UserIcon,
   SettingsIcon,
+  VideoIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -105,6 +106,8 @@ export function UnifiedBreadcrumb() {
         return <UserIcon className="h-4 w-4 mr-1" />;
       case "settings":
         return <SettingsIcon className="h-4 w-4 mr-1" />;
+      case "meetings":
+        return <VideoIcon className="h-4 w-4 mr-1" />;
       case "create":
         return <PlusIcon className="h-4 w-4 mr-1" />;
       default:
@@ -115,7 +118,7 @@ export function UnifiedBreadcrumb() {
   const formatSegmentName = (segment: string) => {
     if (segment === "taskId") return t("taskDetails");
 
-    const translationKey = segment.replace(/-/g, "") as any
+    const translationKey = segment.replace(/-/g, "") as any;
 
     // List of known static segments that we have translations for
     const knownSegments = [
@@ -126,6 +129,7 @@ export function UnifiedBreadcrumb() {
       "team",
       "profile",
       "settings",
+      "meetings",
       "create",
     ];
 
@@ -194,40 +198,39 @@ export function UnifiedBreadcrumb() {
 
         {/* Project specific breadcrumb */}
         {projectId && (
-  <>
-    <BreadcrumbSeparator />
-    <BreadcrumbItem>
-      {taskId ? (
-        <BreadcrumbLink asChild>
-          <Link
-            href={`/projects/${projectId}`}
-            className="flex items-center min-w-0" /* cho phép con co nhỏ */
-          >
-            {isLoading ? (
-              <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
-            ) : (
-              /* wrapper có truncate và max width */
-              <span className="block truncate max-w-[12rem] sm:max-w-[20rem]">
-                {projectName || t("projectDetails")}
-              </span>
-            )}
-          </Link>
-        </BreadcrumbLink>
-      ) : (
-        <BreadcrumbPage className="flex items-center min-w-0">
-          {isLoading ? (
-            <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
-          ) : (
-            <span className="block truncate max-w-[12rem] sm:max-w-[20rem]">
-              {projectName || t("projectDetails")}
-            </span>
-          )}
-        </BreadcrumbPage>
-      )}
-    </BreadcrumbItem>
-  </>
-)}
-
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {taskId ? (
+                <BreadcrumbLink asChild>
+                  <Link
+                    href={`/projects/${projectId}`}
+                    className="flex items-center min-w-0" /* cho phép con co nhỏ */
+                  >
+                    {isLoading ? (
+                      <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
+                    ) : (
+                      /* wrapper có truncate và max width */
+                      <span className="block truncate max-w-[12rem] sm:max-w-[20rem]">
+                        {projectName || t("projectDetails")}
+                      </span>
+                    )}
+                  </Link>
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage className="flex items-center min-w-0">
+                  {isLoading ? (
+                    <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
+                  ) : (
+                    <span className="block truncate max-w-[12rem] sm:max-w-[20rem]">
+                      {projectName || t("projectDetails")}
+                    </span>
+                  )}
+                </BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </>
+        )}
 
         {/* Task specific breadcrumb */}
         {taskId && (
