@@ -684,7 +684,8 @@
     "projectDetails": "Chi tiết dự án",
     "taskDetails": "Chi tiết công việc",
     "createProject": "Tạo dự án",
-    "createTask": "Tạo công việc"
+    "createTask": "Tạo công việc",
+    "meetings": "Cuộc họp"
   },
   "ProjectsPage": {
     "header": {
