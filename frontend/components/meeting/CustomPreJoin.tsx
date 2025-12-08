@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Mic, MicOff, Video, VideoOff, User } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CustomPreJoinProps {
   defaults?: {
@@ -40,6 +41,7 @@ export function CustomPreJoin({
   onSubmit,
   onError,
 }: CustomPreJoinProps) {
+  const t = useTranslations("MeetingPage.preJoin");
   const [username, setUsername] = useState(defaults?.username || "");
   const [videoEnabled, setVideoEnabled] = useState(
     defaults?.videoEnabled ?? true
@@ -202,7 +204,7 @@ export function CustomPreJoin({
             onValueChange={setSelectedAudioDevice}
           >
             <SelectTrigger className="flex-1 min-w-0">
-              <SelectValue placeholder="Microphone" />
+              <SelectValue placeholder={t("microphone")} />
             </SelectTrigger>
             <SelectContent>
               {audioDevices.map((device) => (
@@ -234,7 +236,7 @@ export function CustomPreJoin({
             onValueChange={setSelectedVideoDevice}
           >
             <SelectTrigger className="flex-1 min-w-0">
-              <SelectValue placeholder="Camera" />
+              <SelectValue placeholder={t("camera")} />
             </SelectTrigger>
             <SelectContent>
               {videoDevices.map((device) => (
@@ -247,18 +249,25 @@ export function CustomPreJoin({
         </div>
       </div>
 
-      {/* Username Input */}
-      <Input
-        type="text"
-        placeholder="Enter your name"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
+      {/* Username Display - show current user name from session */}
+      {defaults?.username ? (
+        <div className="flex items-center gap-2 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-base border-2 border-border">
+          <User className="w-5 h-5 text-neutral-500" />
+          <span className="font-medium">{username}</span>
+        </div>
+      ) : (
+        <Input
+          type="text"
+          placeholder={t("enterName")}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+      )}
 
       {/* Join Button */}
       <Button type="submit" disabled={!username.trim()} className="w-full">
-        Join Room
+        {t("joinRoom")}
       </Button>
     </form>
   );

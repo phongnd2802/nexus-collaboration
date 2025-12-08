@@ -148,16 +148,14 @@ export default function WorkspaceSidebar() {
       label: t("team"),
       isActive: isLinkActive("/team"),
     },  
-    {
+    {  
       href: "/meetings",
       icon: <Video className="h-4 w-4" />,
-      label: "Meetings",
+      label: t("meetings"),
       isActive: isLinkActive("/meetings"),
     }
   
-  ];
-
-  // Mobile sidebar
+  ];  // Mobile sidebar
   const MobileSidebar = () => (
     <div className="md:hidden fixed top-0 left-0 z-40 h-14 w-full bg-background border-b border-border/40 px-4 flex items-center justify-between">
       <div className="flex items-center">

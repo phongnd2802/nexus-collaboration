@@ -4,10 +4,10 @@
     "dark": "Dark"
   },
   "HomePage": {
-    "title": "Nexus Collaboration",
+    "title": "Nexus",
     "subtitle": "Streamline your workflow with our all-in-one collaboration platform.",
     "hero": {
-      "badge": "Introducing Nexus Collaboration",
+      "badge": "Introducing Nexus",
       "title1": "Collaborate",
       "title2": "Seamlessly on",
       "titleHighlight": "Projects",
@@ -87,6 +87,51 @@
         "medium": "Medium password",
         "strong": "Strong password"
       }
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "description": "We'll send you a link to reset your password",
+      "emailLabel": "Email Address",
+      "emailDescription": "Enter the email address associated with your account.",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send Reset Link",
+      "submitting": "Sending...",
+      "success": {
+        "title": "Check your email",
+        "description": "If your email is in our system, you will receive a password reset link shortly. Please check the spam folder if you don't see it in your inbox."
+      },
+      "returnToSignIn": "Return to Sign In",
+      "signIn": "Sign In",
+      "home": "Home"
+    },
+    "resetPassword": {
+      "title": "Create new password",
+      "subtitle": "Your new password must be different from previously used passwords",
+      "validating": "Validating reset token...",
+      "invalidToken": "This password reset link is invalid or has expired",
+      "requestNewLink": "Request a new password reset link",
+      "successTitle": "Password reset successful!",
+      "successMessage": "Your password has been updated. You'll be redirected to the sign in page shortly.",
+      "goToSignIn": "Go to Sign In",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "submit": "Reset Password",
+      "loading": "Resetting...",
+      "errors": {
+        "passwordMismatch": "Passwords do not match",
+        "passwordRequirements": "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        "missingToken": "Missing reset token",
+        "validateFailed": "Failed to validate reset token",
+        "resetFailed": "Failed to reset password",
+        "unexpectedError": "An unexpected error occurred"
+      },
+      "strength": {
+        "enter": "Enter a password",
+        "weak": "Weak password",
+        "medium": "Medium password",
+        "strong": "Strong password"
+      },
+      "home": "Home"
     }
   },
   "DashboardPage": {
@@ -212,6 +257,7 @@
     "tasks": "Tasks",
     "calendar": "Calendar",
     "messages": "Messages",
+    "meetings": "Meetings",
     "quickActions": "Quick Actions",
     "createProject": "Create Project",
     "createTask": "Create Task",
@@ -891,7 +937,7 @@
     }
   },
   "Footer": {
-    "brand": "Nexus Collaboration",
+    "brand": "Nexus",
     "description": "Streamline your team's workflow with our intuitive project management platform. Create projects, manage tasks, and collaborate effectively.",
     "subscribe": {
       "title": "Subscribe to our newsletter",
@@ -979,5 +1025,56 @@
     "projects": "Projects",
     "member": "{count} member",
     "members": "{count} members"
+  },
+  "MeetingPage": {
+    "preJoin": {
+      "title": "Join Meeting",
+      "enterName": "Enter your name",
+      "joinRoom": "Join Room",
+      "camera": "Camera",
+      "microphone": "Microphone",
+      "loading": "Loading..."
+    },
+    "errors": {
+      "unauthorized": "You are not authorized to join this meeting. Please log in or ensure you are a member of this project.",
+      "joinFailed": "Failed to join meeting: {error}",
+      "encryptionNotSupported": "You're trying to join an encrypted meeting, but your browser does not support it. Please update it to the latest version and try again.",
+      "unexpectedError": "Encountered an unexpected error, check the console logs for details: {error}",
+      "encryptionError": "Encountered an unexpected encryption error, check the console logs for details: {error}"
+    },
+    "warnings": {
+      "lowPowerMode": "Low power mode enabled"
+    }
+  },
+  "MeetingsPage": {
+    "title": "Meetings",
+    "subtitle": "Create or join video meetings with your team",
+    "startMeeting": {
+      "title": "Start a Meeting",
+      "titleActive": "Join Active Meeting",
+      "description": "Select a project to start a meeting for",
+      "descriptionActive": "There is an active meeting for this project.",
+      "projectLabel": "Project",
+      "refreshStatus": "Refresh status",
+      "loadingProjects": "Loading projects...",
+      "selectProject": "Select a project",
+      "noProjects": "No projects found",
+      "startButton": "Start Meeting",
+      "joinButton": "Join Meeting",
+      "joinHint": "Clicking join will open the meeting in a new tab.",
+      "liveNow": "Live Now",
+      "participants": "{count} participants"
+    },
+    "security": {
+      "title": "Security Options",
+      "description": "Configure end-to-end encryption for your meetings",
+      "enableE2EE": "Enable end-to-end encryption",
+      "e2eeDescription": "All meeting data will be encrypted before transmission",
+      "e2eeDescriptionActive": "Security settings are determined by the host.",
+      "passphraseLabel": "Encryption Passphrase",
+      "passphrasePlaceholder": "Enter a secure passphrase",
+      "passphraseHint": "Share this passphrase securely with other participants",
+      "currentParticipants": "{count} people currently in this meeting"
+    }
   }
 }
