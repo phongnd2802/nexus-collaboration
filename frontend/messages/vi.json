@@ -670,7 +670,8 @@
     "TODO": "Đang chờ",
     "DONE": "Hoàn thành",
     "COMPLETED": "Hoàn thành",
-    "AT_RISK": "Sắp tới hạn"
+    "AT_RISK": "Sắp tới hạn",
+    "export_pdf": "Xuất PDF"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Bảng điều khiển",
@@ -774,7 +775,7 @@
     "dueDate": "Hạn chót",
     "updatedOn": "Cập nhật vào",
     "taskColumns": {
-      "todo": "Cần làm",
+      "todo": "Đang chờ",
       "inProgress": "Đang tiến hành",
       "done": "Hoàn thành",
       "noTodoTasks": "Không có công việc cần làm",

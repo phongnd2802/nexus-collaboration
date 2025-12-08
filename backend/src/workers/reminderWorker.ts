@@ -16,10 +16,6 @@ const prisma = new PrismaClient();
 async function processReminderJob(job: Job<ReminderJobData>): Promise<void> {
   const { reminderId, entityType, entityId, threshold } = job.data;
 
-  console.log(
-    `🔔 [Worker] Processing reminder ${reminderId} for ${entityType}:${entityId} (${threshold}m before)`
-  );
-
   try {
     // BƯỚC 1: Cố gắng "claim" reminder bằng cách set sentAt
     // Chỉ worker đầu tiên update thành công mới được gửi email
@@ -32,14 +28,10 @@ async function processReminderJob(job: Job<ReminderJobData>): Promise<void> {
 
     // Nếu count == 0 => reminder đã được gửi bởi worker/backfill khác
     if (updateResult === 0) {
-      console.log(`⚠️  [Worker] Reminder ${reminderId} already sent, skipping`);
       return;
     }
 
     // BƯỚC 2: Update thành công => Worker này được quyền gửi email
-    console.log(
-      `✅ [Worker] Claimed reminder ${reminderId}, sending notification...`
-    );
 
     // Lấy thông tin entity để gửi email
     if (entityType === "task") {
@@ -48,10 +40,9 @@ async function processReminderJob(job: Job<ReminderJobData>): Promise<void> {
       await sendProjectReminder(entityId, threshold);
     }
 
-    console.log(`✅ [Worker] Successfully sent reminder ${reminderId}`);
   } catch (error) {
     console.error(
-      `❌ [Worker] Error processing reminder ${reminderId}:`,
+      `[Worker] Error processing reminder ${reminderId}:`,
       error
     );
     // Throw để BullMQ retry
@@ -79,7 +70,7 @@ async function sendTaskReminder(
   });
 
   if (!task || !task.assignee?.email || !task.dueDate) {
-    console.warn(`⚠️  Task ${taskId} not found or missing required fields`);
+    console.warn(`Task ${taskId} not found or missing required fields`);
     return;
   }
 
@@ -117,7 +108,7 @@ async function sendProjectReminder(
   });
 
   if (!project || !project.dueDate) {
-    console.warn(`⚠️  Project ${projectId} not found or missing dueDate`);
+    console.warn(`Project ${projectId} not found or missing dueDate`);
     return;
   }
 
@@ -150,11 +141,10 @@ export const reminderWorker = new Worker<ReminderJobData>(
 
 // Event listeners
 reminderWorker.on("completed", (job) => {
-  console.log(`✅ [Worker] Job ${job.id} completed`);
+  console.log(`✅ Job ${job.id} completed`);
 });
 
 reminderWorker.on("failed", (job, err) => {
-  console.error(`❌ [Worker] Job ${job?.id} failed:`, err.message);
+  console.error(`❌ Job ${job?.id} failed:`, err.message);
 });
 
-console.log("👷 Reminder worker started with concurrency 5");

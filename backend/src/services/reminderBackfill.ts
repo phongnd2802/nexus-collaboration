@@ -21,10 +21,6 @@ async function cleanupOldReminderLogs(): Promise<void> {
   const cutoffDate = new Date(Date.now() - CLEANUP_THRESHOLD_MS);
   const now = new Date();
 
-  console.log(
-    `\n🧹 [Cleanup] Removing old reminder logs (cutoff: ${cutoffDate.toISOString()})`
-  );
-
   try {
     const result = await prisma.reminderLog.deleteMany({
       where: {
@@ -50,9 +46,9 @@ async function cleanupOldReminderLogs(): Promise<void> {
     });
 
     if (result.count > 0) {
-      console.log(`✅ [Cleanup] Deleted ${result.count} old reminder logs`);
+      console.log(`[Cleanup] Deleted ${result.count} old reminder logs`);
     } else {
-      console.log(`✓ [Cleanup] No old logs to delete`);
+      console.log(`[Cleanup] No old logs to delete`);
     }
 
     // Log thống kê
@@ -61,11 +57,8 @@ async function cleanupOldReminderLogs(): Promise<void> {
       where: { sentAt: null, fireAt: { gte: now } },
     });
 
-    console.log(
-      `📊 [Cleanup] Stats: ${remaining} total logs, ${pending} pending reminders\n`
-    );
   } catch (error) {
-    console.error(`❌ [Cleanup] Error:`, error);
+    console.error(`[Cleanup] Error:`, error);
   }
 }
 
@@ -77,10 +70,6 @@ async function backfillMissedReminders(): Promise<void> {
   const now = new Date();
   const windowStart = new Date(now.getTime() - WINDOW_MS - DRIFT_MS);
   const windowEnd = new Date(now.getTime() + DRIFT_MS);
-
-  console.log(
-    `\n🔍 [Backfill] Scanning for missed reminders (${windowStart.toISOString()} to ${windowEnd.toISOString()})`
-  );
 
   try {
     // Tìm reminders chưa gửi và fireAt trong cửa sổ
@@ -95,13 +84,8 @@ async function backfillMissedReminders(): Promise<void> {
     });
 
     if (missedReminders.length === 0) {
-      console.log(`✓ [Backfill] No missed reminders found`);
       return;
     }
-
-    console.log(
-      `⚠️  [Backfill] Found ${missedReminders.length} missed reminders, enqueueing...`
-    );
 
     for (const reminder of missedReminders) {
       // Enqueue job "send-now" với delay = 0
@@ -116,13 +100,9 @@ async function backfillMissedReminders(): Promise<void> {
         delay: 0, // Gửi ngay
         priority: 10, // Priority cao hơn để ưu tiên xử lý
       });
-
-      console.log(`📬 [Backfill] Enqueued reminder ${reminder.id}`);
     }
-
-    console.log(`✅ [Backfill] Enqueued ${missedReminders.length} reminders\n`);
   } catch (error) {
-    console.error(`❌ [Backfill] Error:`, error);
+    console.error(`[Backfill] Error:`, error);
   }
 }
 
@@ -131,17 +111,14 @@ let backfillTask: ScheduledTask | null = null;
 
 export async function startBackfillCron(): Promise<void> {
   if (backfillTask) {
-    console.log("⚠️  Backfill cron already running");
     return;
   }
 
   // Run cleanup immediately on server start
-  console.log("🚀 [STARTUP] Running initial cleanup...");
   await cleanupOldReminderLogs();
 
   // Cron pattern: */30 * * * * = every 30 minutes
   backfillTask = cron.schedule("*/30 * * * *", async () => {
-    console.log("⏰ [CRON] Running scheduled tasks...");
 
     // 1. Backfill missed reminders
     await backfillMissedReminders();
@@ -149,17 +126,12 @@ export async function startBackfillCron(): Promise<void> {
     // 2. Cleanup old reminder logs
     await cleanupOldReminderLogs();
   });
-
-  console.log("⏰ Backfill cron started:");
-  console.log("   - Checking missed reminders every 30 minutes");
-  console.log("   - Cleaning up old logs (>25h) every 30 minutes");
 }
 
 export function stopBackfillCron(): void {
   if (backfillTask) {
     backfillTask.stop();
     backfillTask = null;
-    console.log("⏹️  Backfill cron stopped");
   }
 }
 
