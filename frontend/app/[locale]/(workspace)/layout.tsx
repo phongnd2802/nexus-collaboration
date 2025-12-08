@@ -54,7 +54,7 @@ export default function WorkspaceLayout({
               <UnifiedBreadcrumb />
 
               <div className="pt-4 h-[calc(100%-3rem)]">{children}</div>
-              {pathname !== "/messages" &&
+              {/* {pathname !== "/messages" &&
                 !pathname.includes("/meetings/rooms") && (
                   <footer>
                     <div className="py-4">
@@ -63,7 +63,7 @@ export default function WorkspaceLayout({
                       </p>
                     </div>
                   </footer>
-                )}
+                )} */}
             </div>
           </main>
         </div>
