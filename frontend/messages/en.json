@@ -151,6 +151,10 @@
       "edit": "Edit",
       "invite": "Invite",
       "create_task": "Create Task",
+      "no_assigned_tasks": "No tasks assigned to you",
+      "export_pdf": "Export PDF",
+      "export_assigned": "Export My Assigned Tasks",
+      "export_created": "Export Created Tasks",
       "creatorLabel": "(Creator)",
       "youLabel": "(You)",
       "role": {
@@ -457,7 +461,10 @@
     "DONE": "Done",
     "COMPLETED": "Completed",
     "AT_RISK": "At Risk",
-    "export_pdf": "Export PDF"
+    "export_pdf": "Export PDF",
+    "pdf_preview": "PDF Preview",
+    "pdf_preview_description": "Preview before downloading",
+    "download_pdf": "Download PDF"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Dashboard",

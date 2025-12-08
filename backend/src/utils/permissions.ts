@@ -853,3 +853,13 @@ export async function canCreateSubtask(
     return { allowed: false, reason: "Permission check failed" };
   }
 }
+
+/**
+ * Check if user can view a project (member or creator)
+ */
+export async function canViewProject(
+  projectId: string,
+  userId: string
+): Promise<boolean> {
+  return isProjectMember(projectId, userId);
+}

@@ -151,6 +151,10 @@
       "edit": "Chỉnh sửa",
       "invite": "Mời",
       "create_task": "Tạo công việc",
+      "no_assigned_tasks": "Không có task nào được giao đến bạn",
+      "export_pdf": "Xuất PDF",
+      "export_assigned": "Xuất công việc được giao",
+      "export_created": "Xuất công việc đã tạo",
       "creatorLabel": "(Người tạo)",
       "youLabel": "(Bạn)",
       "role": {
@@ -671,7 +675,10 @@
     "DONE": "Hoàn thành",
     "COMPLETED": "Hoàn thành",
     "AT_RISK": "Sắp tới hạn",
-    "export_pdf": "Xuất PDF"
+    "export_pdf": "Xuất PDF",
+    "pdf_preview": "Xem trước PDF",
+    "pdf_preview_description": "Xem trước trước khi tải xuống",
+    "download_pdf": "Tải xuống PDF"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Bảng điều khiển",

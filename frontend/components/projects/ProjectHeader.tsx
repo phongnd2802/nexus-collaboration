@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import {
@@ -11,6 +13,7 @@ import {
   MessageSquare,
   Menu,
   Trash2,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getStatusBadge } from "@/lib/badge-utils";
@@ -23,13 +26,15 @@ import {
 import EditProjectDialog from "./EditProjectDialog";
 import DeleteProjectDialog from "./DeleteProjectDialog";
 import InviteDialog from "./InviteDialog";
-import { Project } from "@/types/index";
+import PdfPreviewDialog from "../tasks/PdfPreviewDialog";
+import { Project, Task } from "@/types/index";
 import { formatDate } from "@/lib/utils";
 
 interface ProjectHeaderProps {
   project: Project;
   isAdmin: boolean;
   isEditor?: boolean;
+  tasks: Task[];
   onProjectUpdated: () => void;
 }
 
@@ -37,13 +42,19 @@ export default function ProjectHeader({
   project,
   isAdmin,
   isEditor,
+  tasks,
   onProjectUpdated,
 }: ProjectHeaderProps) {
   const t = useTranslations("DashboardPage.projectCard");
+  const { data: session } = useSession();
   const locale = useLocale();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [currentFileName, setCurrentFileName] = useState("");
 
   const formattedDueDate = formatDate(project.dueDate, t, locale, {
     includeTime: true,
@@ -61,13 +72,51 @@ export default function ProjectHeader({
     setDeleteDialogOpen(true);
   };
 
+  const handleExportPdf = async (filter: "assignee" | "creator") => {
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
+        }/api/export/projects/${project.id}/pdf?filter=${filter}&lang=${locale}`,
+        {
+          method: "GET",
+          headers: {
+            "x-user-id": session?.user?.id || "",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+
+      const blob = await response.blob();
+      setPdfBlob(blob);
+      const url = window.URL.createObjectURL(blob);
+      setPdfUrl(url);
+      const fileName = `Project-${project.name}-${
+        filter === "assignee" ? "MyTasks" : "CreatedByMe"
+      }.pdf`;
+      setCurrentFileName(fileName);
+      setPdfPreviewOpen(true);
+    } catch (error) {
+      console.error("Failed to export Project PDF", error);
+    }
+  };
+
+  // Export visibility logic
+  const myAssigneeTasksCount = tasks.filter(
+    t => t.assigneeId === session?.user?.id
+  ).length;
+  const canExportAssigned = isAdmin || isEditor || myAssigneeTasksCount > 0;
+  const canExportCreated = isAdmin || isEditor;
+  const showExportButton = canExportCreated || canExportAssigned;
+
   return (
     <div className="w-full">
       <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
         <div className="max-w-full">
-          <h1
-            className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 line-clamp-2 overflow-hidden text-ellipsis break-all"
-          >
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1 line-clamp-2 overflow-hidden text-ellipsis break-all">
             {project.name}
           </h1>
           <div
@@ -95,6 +144,53 @@ export default function ProjectHeader({
               {t("team")}
             </Link>
           </Button>
+
+          {/* Export Button Logic */}
+          {(showExportButton || (!isAdmin && !isEditor)) && (
+            <>
+              {!isAdmin && !isEditor && myAssigneeTasksCount === 0 ? (
+                <Button
+                  variant="neutral"
+                  size="sm"
+                  className="flex items-center"
+                  onClick={() => toast.error(t("no_assigned_tasks"))}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {t("export_pdf")}
+                </Button>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="neutral"
+                      size="sm"
+                      className="flex items-center"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      {t("export_pdf")}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canExportAssigned && (
+                      <DropdownMenuItem
+                        onClick={() => handleExportPdf("assignee")}
+                      >
+                        {t("export_assigned")}
+                      </DropdownMenuItem>
+                    )}
+                    {canExportCreated && (
+                      <DropdownMenuItem
+                        onClick={() => handleExportPdf("creator")}
+                      >
+                        {t("export_created")}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </>
+          )}
+
           {isAdmin && (
             <>
               <Button
@@ -212,6 +308,33 @@ export default function ProjectHeader({
         isOpen={isInviteDialogOpen}
         onOpenChange={setIsInviteDialogOpen}
         onProjectUpdated={onProjectUpdated}
+      />
+
+      <PdfPreviewDialog
+        open={pdfPreviewOpen}
+        onOpenChange={(open) => {
+          setPdfPreviewOpen(open);
+          if (!open && pdfUrl) {
+            window.URL.revokeObjectURL(pdfUrl);
+            setPdfUrl(null);
+            setPdfBlob(null);
+            setCurrentFileName("");
+          }
+        }}
+        pdfUrl={pdfUrl}
+        fileName={currentFileName}
+        onDownload={() => {
+          if (pdfBlob && currentFileName) {
+            const url = window.URL.createObjectURL(pdfBlob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = currentFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          }
+        }}
       />
     </div>
   );

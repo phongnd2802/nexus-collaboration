@@ -1,6 +1,8 @@
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PdfPreviewDialog from "../PdfPreviewDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project } from "@/types/index";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 
 interface TaskHeaderProps {
@@ -61,6 +63,10 @@ export default function TaskHeader({
 }: TaskHeaderProps) {
   const { data: session } = useSession();
   const t = useTranslations("TaskDetailPage");
+  const locale = useLocale();
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "DONE":
@@ -116,46 +122,74 @@ export default function TaskHeader({
       </div>
 
       <div className="flex gap-2 mt-4 md:mt-0">
-        <Button
-          variant="neutral"
-          size="sm"
-          className="flex items-center"
-          onClick={async () => {
-            try {
-              const response = await fetch(
-                `${
-                  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
-                }/api/export/tasks/${task.id}/pdf`,
-                {
-                  method: "GET",
-                  headers: {
-                    "x-user-id": session?.user?.id || "",
-                  },
+        {(permissionLevel === "admin" ||
+          task.assignee?.id === session?.user?.id) && (
+          <>
+            <Button
+              variant="neutral"
+              size="sm"
+              className="flex items-center"
+              onClick={async () => {
+                try {
+                  const response = await fetch(
+                    `${
+                      process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
+                    }/api/export/tasks/${task.id}/pdf?lang=${locale}`,
+                    {
+                      method: "GET",
+                      headers: {
+                        "x-user-id": session?.user?.id || "",
+                      },
+                    }
+                  );
+
+                  if (!response.ok) {
+                    console.error("Export failed status:", response.status);
+                    throw new Error("Export failed");
+                  }
+
+                  const blob = await response.blob();
+                  setPdfBlob(blob);
+                  const url = window.URL.createObjectURL(blob);
+                  setPdfUrl(url);
+                  setPdfPreviewOpen(true);
+                } catch (error) {
+                  console.error("Failed to export PDF", error);
+                  // You might want to add a toast notification here
                 }
-              );
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {t("export_pdf")}
+            </Button>
 
-              if (!response.ok) {
-                console.error("Export failed status:", response.status);
-                throw new Error("Export failed");
-              }
-
-              const blob = await response.blob();
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `Task-${task.id}-Export.pdf`;
-              document.body.appendChild(a);
-              a.click();
-              window.URL.revokeObjectURL(url);
-            } catch (error) {
-              console.error("Failed to export PDF", error);
-              // You might want to add a toast notification here
-            }
-          }}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          {t("export_pdf")}
-        </Button>
+            <PdfPreviewDialog
+              open={pdfPreviewOpen}
+              onOpenChange={(open) => {
+                setPdfPreviewOpen(open);
+                if (!open && pdfUrl) {
+                  window.URL.revokeObjectURL(pdfUrl);
+                  setPdfUrl(null);
+                  setPdfBlob(null);
+                }
+              }}
+              pdfUrl={pdfUrl}
+              fileName={`${task.title}_${project.name}.pdf`}
+              onDownload={() => {
+                if (pdfBlob) {
+                  const url = window.URL.createObjectURL(pdfBlob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `${task.title}_${project.name}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  window.URL.revokeObjectURL(url);
+                }
+              }}
+            />
+          </>
+        )}
 
         {permissionLevel === "admin" && !isEditing && (
           <>

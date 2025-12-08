@@ -85,12 +85,12 @@ export default function SubtaskSection({
       </CardHeader>
       <CardContent>
         {subtasks.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
+          <p className="text-muted-foreground py-8">
             {t("noSubtasks")}
           </p>
         ) : (
           <div className="space-y-2">
-            <div className="grid grid-cols-[minmax(142px,250px)_minmax(80px,150px)_minmax(130px,150px)_minmax(130px,150px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
+            <div className="grid grid-cols-[minmax(122px,208px)_minmax(60px,85px)_minmax(100px,175px)_minmax(130px,150px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
               <div>{t("name")}</div>
               <div>{t("priority")}</div>
               <div>{t("assignee")}</div>
