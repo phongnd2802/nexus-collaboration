@@ -17,7 +17,6 @@ export async function upsertTaskReminders(
   taskId: string,
   dueDate: Date
 ): Promise<void> {
-  console.log(`📝 Upserting reminders for task ${taskId}`);
 
   for (const [label, threshold] of Object.entries(REMINDER_THRESHOLDS)) {
     await upsertReminder("task", taskId, threshold, dueDate);
@@ -31,7 +30,6 @@ export async function upsertProjectReminders(
   projectId: string,
   dueDate: Date
 ): Promise<void> {
-  console.log(`📝 Upserting reminders for project ${projectId}`);
 
   for (const [label, threshold] of Object.entries(REMINDER_THRESHOLDS)) {
     await upsertReminder("project", projectId, threshold, dueDate);
@@ -52,9 +50,6 @@ async function upsertReminder(
 
   // Nếu fireAt đã qua => bỏ qua (không gửi reminder cho quá khứ)
   if (fireAt < now) {
-    console.log(
-      `⏭️  Skipping ${entityType} ${entityId} threshold ${threshold}m (fireAt in past)`
-    );
     return;
   }
 
@@ -74,9 +69,6 @@ async function upsertReminder(
     existingReminder &&
     existingReminder.fireAt.getTime() === fireAt.getTime()
   ) {
-    console.log(
-      `✓ Reminder ${existingReminder.id} already scheduled correctly`
-    );
     return;
   }
 
@@ -86,7 +78,6 @@ async function upsertReminder(
       const job = await reminderQueue.getJob(existingReminder.jobId);
       if (job) {
         await job.remove();
-        console.log(`🗑️  Removed old job ${existingReminder.jobId}`);
       }
     } catch (error) {
       console.warn(
@@ -112,10 +103,6 @@ async function upsertReminder(
       delay, // Delay tính bằng milliseconds
       jobId: `${entityType}-${entityId}-${threshold}-${Date.now()}`, // Unique job ID
     }
-  );
-
-  console.log(
-    `📅 Scheduled job ${job.id} to fire at ${fireAt.toISOString()} (delay: ${Math.round(delay / 1000)}s)`
   );
 
   // Upsert reminder vào database
@@ -149,8 +136,6 @@ async function upsertReminder(
       reminderId: reminder.id,
     });
   }
-
-  console.log(`✅ Reminder ${reminder.id} upserted successfully`);
 }
 
 /**
@@ -182,6 +167,4 @@ export async function deleteReminders(
   await prisma.reminderLog.deleteMany({
     where: { entityType, entityId },
   });
-
-  console.log(`🗑️  Deleted all reminders for ${entityType} ${entityId}`);
 }

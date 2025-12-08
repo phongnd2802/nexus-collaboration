@@ -3,10 +3,6 @@ import { taskLinkService } from "../services/taskLinkService";
 import { TaskRelationship } from "@prisma/client";
 import { sendError } from "../utils/errors";
 
-/**
- * Create a new task link
- * POST /api/tasks/:taskId/links
- */
 export async function createTaskLink(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
@@ -34,10 +30,6 @@ export async function createTaskLink(req: Request, res: Response) {
   }
 }
 
-/**
- * Get all task links for a task
- * GET /api/tasks/:taskId/links
- */
 export async function getTaskLinks(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
@@ -51,10 +43,6 @@ export async function getTaskLinks(req: Request, res: Response) {
   }
 }
 
-/**
- * Update a task link
- * PATCH /api/tasks/:taskId/links/:linkId
- */
 export async function updateTaskLink(req: Request, res: Response) {
   try {
     const { linkId } = req.params;
@@ -77,10 +65,6 @@ export async function updateTaskLink(req: Request, res: Response) {
   }
 }
 
-/**
- * Delete a task link
- * DELETE /api/tasks/:taskId/links/:linkId
- */
 export async function deleteTaskLink(req: Request, res: Response) {
   try {
     const { linkId } = req.params;
