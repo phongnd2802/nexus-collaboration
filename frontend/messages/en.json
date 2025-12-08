@@ -456,7 +456,8 @@
     "TODO": "To Do",
     "DONE": "Done",
     "COMPLETED": "Completed",
-    "AT_RISK": "At Risk"
+    "AT_RISK": "At Risk",
+    "export_pdf": "Export PDF"
   },
   "UnifiedBreadcrumb": {
     "dashboard": "Dashboard",
