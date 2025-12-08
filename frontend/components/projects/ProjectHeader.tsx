@@ -77,7 +77,9 @@ export default function ProjectHeader({
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
-        }/api/export/projects/${project.id}/pdf?filter=${filter}&lang=${locale}`,
+        }/api/export/projects/${
+          project.id
+        }/pdf?filter=${filter}&lang=${locale}`,
         {
           method: "GET",
           headers: {
@@ -108,9 +110,9 @@ export default function ProjectHeader({
   const myAssigneeTasksCount = tasks.filter(
     t => t.assigneeId === session?.user?.id
   ).length;
-  const canExportAssigned = isAdmin || isEditor || myAssigneeTasksCount > 0;
-  const canExportCreated = isAdmin || isEditor;
-  const showExportButton = canExportCreated || canExportAssigned;
+  const myCreatedTasksCount = tasks.filter(
+    t => t.creatorId === session?.user?.id
+  ).length;
 
   return (
     <div className="w-full">
@@ -146,50 +148,39 @@ export default function ProjectHeader({
           </Button>
 
           {/* Export Button Logic */}
-          {(showExportButton || (!isAdmin && !isEditor)) && (
-            <>
-              {!isAdmin && !isEditor && myAssigneeTasksCount === 0 ? (
-                <Button
-                  variant="neutral"
-                  size="sm"
-                  className="flex items-center"
-                  onClick={() => toast.error(t("no_assigned_tasks"))}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  {t("export_pdf")}
-                </Button>
-              ) : (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="neutral"
-                      size="sm"
-                      className="flex items-center"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      {t("export_pdf")}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canExportAssigned && (
-                      <DropdownMenuItem
-                        onClick={() => handleExportPdf("assignee")}
-                      >
-                        {t("export_assigned")}
-                      </DropdownMenuItem>
-                    )}
-                    {canExportCreated && (
-                      <DropdownMenuItem
-                        onClick={() => handleExportPdf("creator")}
-                      >
-                        {t("export_created")}
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="neutral" size="sm" className="flex items-center">
+                <Download className="h-4 w-4 mr-2" />
+                {t("export_pdf")}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  if (myAssigneeTasksCount > 0) {
+                    handleExportPdf("assignee");
+                  } else {
+                    toast.error(t("no_assigned_tasks"));
+                  }
+                }}
+              >
+                {t("export_assigned")}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  if (myCreatedTasksCount > 0) {
+                    handleExportPdf("creator");
+                  } else {
+                    toast.error(t("no_created_tasks"));
+                  }
+                }}
+              >
+                {t("export_created")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {isAdmin && (
             <>
@@ -312,7 +303,7 @@ export default function ProjectHeader({
 
       <PdfPreviewDialog
         open={pdfPreviewOpen}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           setPdfPreviewOpen(open);
           if (!open && pdfUrl) {
             window.URL.revokeObjectURL(pdfUrl);

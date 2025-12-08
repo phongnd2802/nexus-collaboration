@@ -200,6 +200,7 @@
       "export_pdf": "Export PDF",
       "export_assigned": "Export My Assigned Tasks",
       "export_created": "Export Created Tasks",
+      "no_created_tasks": "No tasks created by you",
       "creatorLabel": "(Creator)",
       "youLabel": "(You)",
       "role": {
