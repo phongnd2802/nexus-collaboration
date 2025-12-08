@@ -82,7 +82,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(110px,180px)_minmax(60px,70px)_minmax(100px,150px)_minmax(80px,90px)_minmax(80px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
+    <div className="grid grid-cols-[minmax(110px,150px)_minmax(60px,70px)_minmax(100px,150px)_minmax(80px,90px)_minmax(80px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
       {/* Name */}
       <div className="min-w-0">
         <Link

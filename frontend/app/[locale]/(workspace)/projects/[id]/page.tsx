@@ -70,6 +70,7 @@ export default function ProjectDetailPage() {
                 project={project}
                 isAdmin={isAdmin}
                 isEditor={isEditor}
+                tasks={tasks}
                 onProjectUpdated={fetchProjectData}
               />
             </div>
@@ -78,7 +79,7 @@ export default function ProjectDetailPage() {
           <Tabs
             defaultValue="overview"
             className="mt-6"
-            onValueChange={(value) => setActiveTab(value)}
+            onValueChange={value => setActiveTab(value)}
           >
             <TabsList>
               <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
