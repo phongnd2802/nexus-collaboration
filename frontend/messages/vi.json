@@ -200,6 +200,7 @@
       "export_pdf": "Xuất PDF",
       "export_assigned": "Xuất công việc được giao",
       "export_created": "Xuất công việc đã tạo",
+      "no_created_tasks": "Không có task nào bạn đã tạo",
       "creatorLabel": "(Người tạo)",
       "youLabel": "(Bạn)",
       "role": {
