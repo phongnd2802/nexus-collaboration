@@ -6,10 +6,7 @@ import {
 
 const settingsRouter: Router = express.Router();
 
-// GET /api/settings/:userId
 settingsRouter.get("/:userId", getUserSettingController);
-
-// PUT /api/settings/:userId
 settingsRouter.put("/:userId", updateUserSettingController);
 
 export default settingsRouter;

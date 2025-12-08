@@ -2,10 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { subtaskService } from "../services/subtaskService";
 import { TaskStatus, TaskPriority } from "@prisma/client";
 import { sendError } from "../utils/errors";
-/**
- * Create a new subtask
- * POST /api/tasks/:taskId/subtasks
- */
+
 export async function createSubtask(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
@@ -29,10 +26,6 @@ export async function createSubtask(req: Request, res: Response) {
   }
 }
 
-/**
- * Get all subtasks for a task
- * GET /api/tasks/:taskId/subtasks
- */
 export async function getSubtasks(req: Request, res: Response) {
   try {
     const { taskId } = req.params;
@@ -46,10 +39,6 @@ export async function getSubtasks(req: Request, res: Response) {
   }
 }
 
-/**
- * Update a subtask
- * PATCH /api/tasks/:taskId/subtasks/:subtaskId
- */
 export async function updateSubtask(req: Request, res: Response) {
   try {
     const { subtaskId } = req.params;
@@ -75,10 +64,6 @@ export async function updateSubtask(req: Request, res: Response) {
   }
 }
 
-/**
- * Delete a subtask
- * DELETE /api/tasks/:taskId/subtasks/:subtaskId
- */
 export async function deleteSubtask(req: Request, res: Response) {
   try {
     const { subtaskId } = req.params;

@@ -64,7 +64,7 @@ export const ActivityItem = React.memo(
               {activity.userName}
             </Link>
             <span className="text-xs text-muted-foreground ml-2">
-              {formatRelativeTime(activity.createdAt)}
+              {formatRelativeTime(activity.createdAt, locale)}
             </span>
           </div>
 

@@ -1,6 +1,14 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format, isToday, isTomorrow, isBefore, startOfDay } from "date-fns";
+import {
+  format,
+  isToday,
+  isTomorrow,
+  isBefore,
+  startOfDay,
+  formatDistanceToNow,
+} from "date-fns";
+import { vi, enUS } from "date-fns/locale";
 
 /**
  * Merges Tailwind CSS classes with clsx.
@@ -117,33 +125,16 @@ export const formatDate = (
  * @param dateString - The date string to format.
  * @returns Relative time string.
  */
-export const formatRelativeTime = (dateString: string): string => {
+export const formatRelativeTime = (
+  dateString: string,
+  locale: string = "en"
+): string => {
   const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const localeObj = locale === "vi" ? vi : enUS;
 
-  if (diffInSeconds < 60) {
-    return `${diffInSeconds} seconds`;
-  }
-
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""}`;
-  }
-
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""}`;
-  }
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) {
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""}`;
-  }
-
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
+  return formatDistanceToNow(date, {
+    addSuffix: true,
+    locale: localeObj,
   });
 };
 

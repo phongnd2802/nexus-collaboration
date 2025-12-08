@@ -21,10 +21,12 @@ import {
   CheckCircle,
   Clock,
   Circle,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project } from "@/types/index";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 interface TaskHeaderProps {
   task: Task;
@@ -57,6 +59,7 @@ export default function TaskHeader({
   handleCancelEdit,
   handleSaveChanges,
 }: TaskHeaderProps) {
+  const { data: session } = useSession();
   const t = useTranslations("TaskDetailPage");
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -82,7 +85,7 @@ export default function TaskHeader({
             <div className="w-full max-w-md">
               <Input
                 value={editedTask.title}
-                onChange={(e) => handleEditField("title", e.target.value)}
+                onChange={e => handleEditField("title", e.target.value)}
                 className={cn(
                   "text-xl font-bold border-main focus-visible:ring-main",
                   validationErrors.title && "border-red-500"
@@ -105,12 +108,55 @@ export default function TaskHeader({
               {project.name}
             </Link>
             <span>•</span>
-            <span>{t("created_by")} {task.creator?.name || "Unknown"}</span>
+            <span>
+              {t("created_by")} {task.creator?.name || "Unknown"}
+            </span>
           </div>
         </div>
       </div>
 
       <div className="flex gap-2 mt-4 md:mt-0">
+        <Button
+          variant="neutral"
+          size="sm"
+          className="flex items-center"
+          onClick={async () => {
+            try {
+              const response = await fetch(
+                `${
+                  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
+                }/api/export/tasks/${task.id}/pdf`,
+                {
+                  method: "GET",
+                  headers: {
+                    "x-user-id": session?.user?.id || "",
+                  },
+                }
+              );
+
+              if (!response.ok) {
+                console.error("Export failed status:", response.status);
+                throw new Error("Export failed");
+              }
+
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `Task-${task.id}-Export.pdf`;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+            } catch (error) {
+              console.error("Failed to export PDF", error);
+              // You might want to add a toast notification here
+            }
+          }}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          {t("export_pdf")}
+        </Button>
+
         {permissionLevel === "admin" && !isEditing && (
           <>
             <Button
@@ -164,11 +210,7 @@ export default function TaskHeader({
 
         {isEditing && (
           <>
-            <Button
-              variant="neutral"
-              size="sm"
-              onClick={handleCancelEdit}
-            >
+            <Button variant="neutral" size="sm" onClick={handleCancelEdit}>
               <X className="h-4 w-4 mr-2" />
               {t("cancel")}
             </Button>
