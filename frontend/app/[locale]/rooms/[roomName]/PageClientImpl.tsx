@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { useSetupE2EE } from "@/lib/useSetupE2EE";
 import { useLowCPUOptimizer } from "@/lib/usePerfomanceOptimiser";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/connection-details";
@@ -41,16 +42,18 @@ export function PageClientImpl(props: {
   hq: boolean;
   codec: VideoCodec;
 }) {
+  const { data: session, status } = useSession();
+  const isSessionLoading = status === "loading";
   const [preJoinChoices, setPreJoinChoices] = React.useState<
     LocalUserChoices | undefined
   >(undefined);
   const preJoinDefaults = React.useMemo(() => {
     return {
-      username: "",
+      username: session?.user?.name || "",
       videoEnabled: true,
       audioEnabled: true,
     };
-  }, []);
+  }, [session?.user?.name]);
   const [connectionDetails, setConnectionDetails] = React.useState<
     ConnectionDetails | undefined
   >(undefined);
@@ -65,10 +68,30 @@ export function PageClientImpl(props: {
         url.searchParams.append("region", props.region);
       }
       const connectionDetailsResp = await fetch(url.toString());
+      if (!connectionDetailsResp.ok) {
+        // Handle specific error cases
+        const errorText = await connectionDetailsResp.text();
+        if (
+          connectionDetailsResp.status === 401 ||
+          connectionDetailsResp.status === 403
+        ) {
+          toast.error(
+            "You are not authorized to join this meeting. Please log in or ensure you are a member of this project."
+          );
+        } else {
+          toast.error(
+            `Failed to join meeting: ${
+              errorText || connectionDetailsResp.statusText
+            }`
+          );
+        }
+        setPreJoinChoices(undefined); // Reset so user stays on pre-join or sees error
+        return;
+      }
       const connectionDetailsData = await connectionDetailsResp.json();
       setConnectionDetails(connectionDetailsData);
     },
-    []
+    [props.roomName, props.region]
   );
   const handlePreJoinError = React.useCallback(
     (e: any) => console.error(e),
@@ -77,7 +100,14 @@ export function PageClientImpl(props: {
 
   return (
     <main data-lk-theme="default" className="h-screen w-full bg-background">
-      {connectionDetails === undefined || preJoinChoices === undefined ? (
+      {isSessionLoading ? (
+        <div className="grid place-items-center h-full w-full bg-background">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-main border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      ) : connectionDetails === undefined || preJoinChoices === undefined ? (
         <div className="grid place-items-center h-full w-full bg-background">
           <div className="w-full max-w-2xl p-6 rounded-base bg-secondary-background border-2 border-border shadow-shadow">
             <CustomPreJoin

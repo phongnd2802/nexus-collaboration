@@ -247,14 +247,21 @@ export function CustomPreJoin({
         </div>
       </div>
 
-      {/* Username Input */}
-      <Input
-        type="text"
-        placeholder="Enter your name"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
+      {/* Username Display - show current user name from session */}
+      {defaults?.username ? (
+        <div className="flex items-center gap-2 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-base border-2 border-border">
+          <User className="w-5 h-5 text-neutral-500" />
+          <span className="font-medium">{username}</span>
+        </div>
+      ) : (
+        <Input
+          type="text"
+          placeholder="Enter your name"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+      )}
 
       {/* Join Button */}
       <Button type="submit" disabled={!username.trim()} className="w-full">
