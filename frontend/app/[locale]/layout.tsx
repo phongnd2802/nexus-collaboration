@@ -15,7 +15,7 @@ import { routing } from "@/i18n/routing";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nexus Collaboration",
+  title: "Nexus",
   description: "A platform for project collaboration",
 };
 

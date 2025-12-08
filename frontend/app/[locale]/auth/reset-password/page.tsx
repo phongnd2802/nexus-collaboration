@@ -1,10 +1,21 @@
 import { ResetPassword } from "@/components/auth/reset-password";
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Reset Password | Nexus Collaboration",
-  description: "Set a new password for your Nexus Collaboration account",
-};
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) {
+  const t = await getTranslations({
+    locale,
+    namespace: "AuthPage.resetPassword",
+  });
+
+  return {
+    title: `${t("title")} | Nexus`,
+    description: t("subtitle"),
+  };
+}
 
 export default function ResetPasswordPage() {
   return (

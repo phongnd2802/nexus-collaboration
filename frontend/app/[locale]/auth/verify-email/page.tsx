@@ -2,7 +2,7 @@ import { VerifyEmail } from "@/components/auth/verify-email";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Verify Email | Nexus Collaboration",
+  title: "Verify Email | Nexus",
   description: "Verify your email address for your Nexus Collaboration account",
 };
 

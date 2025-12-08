@@ -4,10 +4,10 @@
     "dark": "Tối"
   },
   "HomePage": {
-    "title": "Nexus Collaboration",
+    "title": "Nexus",
     "subtitle": "Hợp lý hóa quy trình làm việc của bạn với nền tảng cộng tác tất cả trong một của chúng tôi.",
     "hero": {
-      "badge": "Giới thiệu Nexus Collaboration",
+      "badge": "Giới thiệu Nexus",
       "title1": "Cộng tác",
       "title2": "Liền mạch trên",
       "titleHighlight": "Các dự án",
@@ -87,6 +87,51 @@
         "medium": "Mật khẩu trung bình",
         "strong": "Mật khẩu mạnh"
       }
+    },
+    "forgotPassword": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
+      "emailLabel": "Địa chỉ Email",
+      "emailDescription": "Nhập địa chỉ email liên kết với tài khoản của bạn.",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Gửi liên kết",
+      "submitting": "Đang gửi...",
+      "success": {
+        "title": "Kiểm tra email",
+        "description": "Nếu email của bạn tồn tại trong hệ thống, bạn sẽ nhận được liên kết đặt lại mật khẩu. Vui lòng kiểm tra thư mục spam nếu không thấy trong hộp thư đến."
+      },
+      "returnToSignIn": "Quay lại Đăng nhập",
+      "signIn": "Đăng nhập",
+      "home": "Trang chủ"
+    },
+    "resetPassword": {
+      "title": "Tạo mật khẩu mới",
+      "subtitle": "Mật khẩu mới của bạn phải khác với các mật khẩu đã sử dụng trước đó",
+      "validating": "Đang xác thực liên kết...",
+      "invalidToken": "Liên kết đặt lại mật khẩu này không hợp lệ hoặc đã hết hạn",
+      "requestNewLink": "Yêu cầu liên kết đặt lại mật khẩu mới",
+      "successTitle": "Đặt lại mật khẩu thành công!",
+      "successMessage": "Mật khẩu của bạn đã được cập nhật. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.",
+      "goToSignIn": "Đi đến trang Đăng nhập",
+      "newPasswordLabel": "Mật khẩu mới",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "submit": "Đặt lại mật khẩu",
+      "loading": "Đang đặt lại...",
+      "errors": {
+        "passwordMismatch": "Mật khẩu không khớp",
+        "passwordRequirements": "Mật khẩu phải dài ít nhất 8 ký tự và chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt",
+        "missingToken": "Thiếu mã xác thực",
+        "validateFailed": "Không thể xác thực mã đặt lại",
+        "resetFailed": "Không thể đặt lại mật khẩu",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn"
+      },
+      "strength": {
+        "enter": "Nhập mật khẩu",
+        "weak": "Mật khẩu yếu",
+        "medium": "Mật khẩu trung bình",
+        "strong": "Mật khẩu mạnh"
+      },
+      "home": "Trang chủ"
     }
   },
   "DashboardPage": {
@@ -212,6 +257,7 @@
     "tasks": "Công việc",
     "calendar": "Lịch",
     "messages": "Tin nhắn",
+    "meetings": "Cuộc họp",
     "quickActions": "Thao tác nhanh",
     "createProject": "Tạo dự án",
     "createTask": "Tạo công việc",
@@ -1107,7 +1153,7 @@
     }
   },
   "Footer": {
-    "brand": "Nexus Collaboration",
+    "brand": "Nexus",
     "description": "Hợp lý hóa quy trình làm việc của nhóm bạn với nền tảng quản lý dự án trực quan của chúng tôi. Tạo dự án, quản lý tác vụ và cộng tác hiệu quả.",
     "subscribe": {
       "title": "Đăng ký nhận bản tin",
@@ -1195,5 +1241,56 @@
     "projects": "Dự án",
     "member": "{count} thành viên",
     "members": "{count} thành viên"
+  },
+  "MeetingPage": {
+    "preJoin": {
+      "title": "Tham gia cuộc họp",
+      "enterName": "Nhập tên của bạn",
+      "joinRoom": "Tham gia phòng",
+      "camera": "Camera",
+      "microphone": "Micrô",
+      "loading": "Đang tải..."
+    },
+    "errors": {
+      "unauthorized": "Bạn không có quyền tham gia cuộc họp này. Vui lòng đăng nhập hoặc đảm bảo bạn là thành viên của dự án này.",
+      "joinFailed": "Không thể tham gia cuộc họp: {error}",
+      "encryptionNotSupported": "Bạn đang cố gắng tham gia cuộc họp được mã hóa, nhưng trình duyệt của bạn không hỗ trợ. Vui lòng cập nhật lên phiên bản mới nhất và thử lại.",
+      "unexpectedError": "Đã xảy ra lỗi không mong muốn, kiểm tra nhật ký console để biết chi tiết: {error}",
+      "encryptionError": "Đã xảy ra lỗi mã hóa không mong muốn, kiểm tra nhật ký console để biết chi tiết: {error}"
+    },
+    "warnings": {
+      "lowPowerMode": "Chế độ tiết kiệm năng lượng đã bật"
+    }
+  },
+  "MeetingsPage": {
+    "title": "Cuộc họp",
+    "subtitle": "Tạo hoặc tham gia cuộc họp video với nhóm của bạn",
+    "startMeeting": {
+      "title": "Bắt đầu cuộc họp",
+      "titleActive": "Tham gia cuộc họp đang diễn ra",
+      "description": "Chọn một dự án để bắt đầu cuộc họp",
+      "descriptionActive": "Có một cuộc họp đang diễn ra cho dự án này.",
+      "projectLabel": "Dự án",
+      "refreshStatus": "Làm mới trạng thái",
+      "loadingProjects": "Đang tải dự án...",
+      "selectProject": "Chọn một dự án",
+      "noProjects": "Không tìm thấy dự án",
+      "startButton": "Bắt đầu cuộc họp",
+      "joinButton": "Tham gia cuộc họp",
+      "joinHint": "Nhấp vào tham gia sẽ mở cuộc họp trong tab mới.",
+      "liveNow": "Đang diễn ra",
+      "participants": "{count} người tham gia"
+    },
+    "security": {
+      "title": "Tùy chọn bảo mật",
+      "description": "Cấu hình mã hóa đầu cuối cho cuộc họp của bạn",
+      "enableE2EE": "Bật mã hóa đầu cuối",
+      "e2eeDescription": "Tất cả dữ liệu cuộc họp sẽ được mã hóa trước khi truyền",
+      "e2eeDescriptionActive": "Cài đặt bảo mật được xác định bởi người chủ trì.",
+      "passphraseLabel": "Cụm mật khẩu mã hóa",
+      "passphrasePlaceholder": "Nhập cụm mật khẩu an toàn",
+      "passphraseHint": "Chia sẻ cụm mật khẩu này một cách an toàn với những người tham gia khác",
+      "currentParticipants": "{count} người hiện đang trong cuộc họp này"
+    }
   }
 }

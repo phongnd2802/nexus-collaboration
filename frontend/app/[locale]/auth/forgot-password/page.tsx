@@ -1,10 +1,21 @@
 import { ForgotPasswordForm } from "@/components/auth/forgot-passsword";
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Forgot Password | ProjectCollab",
-  description: "Reset your ProjectCollab account password",
-};
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}) {
+  const t = await getTranslations({
+    locale,
+    namespace: "AuthPage.forgotPassword",
+  });
+
+  return {
+    title: `${t("title")} | Nexus`,
+    description: t("description"),
+  };
+}
 
 export default function ForgotPasswordPage() {
   return (

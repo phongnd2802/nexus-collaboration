@@ -23,16 +23,16 @@ export class PdfService {
       try {
         // Load fonts that support Vietnamese
         const fonts = await ensureFontsLoaded();
-        
-        const doc = new PDFDocument({ 
-          margin: 40, 
-          bufferPages: true
+
+        const doc = new PDFDocument({
+          margin: 40,
+          bufferPages: true,
         });
-        
+
         // Register custom fonts
-        doc.registerFont('NotoSans', fonts.regular);
-        doc.registerFont('NotoSans-Bold', fonts.bold);
-        
+        doc.registerFont("NotoSans", fonts.regular);
+        doc.registerFont("NotoSans-Bold", fonts.bold);
+
         const buffers: Buffer[] = [];
 
         doc.on("data", buffers.push.bind(buffers));
@@ -56,16 +56,16 @@ export class PdfService {
       try {
         // Load fonts that support Vietnamese
         const fonts = await ensureFontsLoaded();
-        
-        const doc = new PDFDocument({ 
-          margin: 50, 
-          bufferPages: true
+
+        const doc = new PDFDocument({
+          margin: 50,
+          bufferPages: true,
         });
-        
+
         // Register custom fonts
-        doc.registerFont('NotoSans', fonts.regular);
-        doc.registerFont('NotoSans-Bold', fonts.bold);
-        
+        doc.registerFont("NotoSans", fonts.regular);
+        doc.registerFont("NotoSans-Bold", fonts.bold);
+
         const buffers: Buffer[] = [];
 
         doc.on("data", buffers.push.bind(buffers));
@@ -174,7 +174,7 @@ export class PdfService {
     };
 
     // --- Header ---
-    doc.fontSize(20).font("NotoSans-Bold").text("Nexus Collaboration", { align: "center" });
+    doc.fontSize(20).font("NotoSans-Bold").text("Nexus", { align: "center" });
     doc.moveDown(0.5);
     doc
       .fontSize(16)
@@ -445,4 +445,3 @@ export class PdfService {
     return currentY;
   }
 }
-

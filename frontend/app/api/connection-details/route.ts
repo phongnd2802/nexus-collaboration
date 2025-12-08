@@ -3,6 +3,8 @@ import { getLiveKitURL } from '@/lib/getLiveKitURL';
 import { ConnectionDetails } from '@/lib/types';
 import { AccessToken, AccessTokenOptions, VideoGrant } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options";
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -12,11 +14,18 @@ const COOKIE_KEY = 'random-participant-postfix';
 
 export async function GET(request: NextRequest) {
   try {
+    // 1. Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session?.user?.email) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     // Parse query parameters
     const roomName = request.nextUrl.searchParams.get('roomName');
     const participantName = request.nextUrl.searchParams.get('participantName');
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
     const region = request.nextUrl.searchParams.get('region');
+
     if (!LIVEKIT_URL) {
       throw new Error('LIVEKIT_URL is not defined');
     }
@@ -31,6 +40,25 @@ export async function GET(request: NextRequest) {
     }
     if (participantName === null) {
       return new NextResponse('Missing required query parameter: participantName', { status: 400 });
+    }
+
+    // 2. Verify project membership
+    // We treat roomName as projectId
+    const projectId = roomName;
+    const projectCheckResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/projects/${projectId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": session.user.id,
+        },
+      }
+    );
+
+    if (!projectCheckResponse.ok) {
+      console.error(`User ${session.user.id} tried to access project ${projectId} but failed. Status: ${projectCheckResponse.status}`);
+      return new NextResponse('Unauthorized: You are not a member of this project', { status: 403 });
     }
 
     // Generate participant token
@@ -61,6 +89,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof Error) {
+      console.error(error);
       return new NextResponse(error.message, { status: 500 });
     }
   }

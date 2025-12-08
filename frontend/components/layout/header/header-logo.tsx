@@ -14,7 +14,7 @@ export const HeaderLogo = () => (
       </svg>
     </motion.div>
     <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-main to-main">
-      Nexus Collabration
+      Nexus
     </span>
   </Link>
 );

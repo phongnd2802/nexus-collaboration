@@ -30,6 +30,8 @@ import { useRouter } from "next/navigation";
 import { useSetupE2EE } from "@/lib/useSetupE2EE";
 import { useLowCPUOptimizer } from "@/lib/usePerfomanceOptimiser";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/connection-details";
@@ -41,16 +43,19 @@ export function PageClientImpl(props: {
   hq: boolean;
   codec: VideoCodec;
 }) {
+  const t = useTranslations("MeetingPage");
+  const { data: session, status } = useSession();
+  const isSessionLoading = status === "loading";
   const [preJoinChoices, setPreJoinChoices] = React.useState<
     LocalUserChoices | undefined
   >(undefined);
   const preJoinDefaults = React.useMemo(() => {
     return {
-      username: "",
+      username: session?.user?.name || "",
       videoEnabled: true,
       audioEnabled: true,
     };
-  }, []);
+  }, [session?.user?.name]);
   const [connectionDetails, setConnectionDetails] = React.useState<
     ConnectionDetails | undefined
   >(undefined);
@@ -65,10 +70,28 @@ export function PageClientImpl(props: {
         url.searchParams.append("region", props.region);
       }
       const connectionDetailsResp = await fetch(url.toString());
+      if (!connectionDetailsResp.ok) {
+        // Handle specific error cases
+        const errorText = await connectionDetailsResp.text();
+        if (
+          connectionDetailsResp.status === 401 ||
+          connectionDetailsResp.status === 403
+        ) {
+          toast.error(t("errors.unauthorized"));
+        } else {
+          toast.error(
+            t("errors.joinFailed", {
+              error: errorText || connectionDetailsResp.statusText,
+            })
+          );
+        }
+        setPreJoinChoices(undefined); // Reset so user stays on pre-join or sees error
+        return;
+      }
       const connectionDetailsData = await connectionDetailsResp.json();
       setConnectionDetails(connectionDetailsData);
     },
-    []
+    [props.roomName, props.region]
   );
   const handlePreJoinError = React.useCallback(
     (e: any) => console.error(e),
@@ -77,7 +100,14 @@ export function PageClientImpl(props: {
 
   return (
     <main data-lk-theme="default" className="h-screen w-full bg-background">
-      {connectionDetails === undefined || preJoinChoices === undefined ? (
+      {isSessionLoading ? (
+        <div className="grid place-items-center h-full w-full bg-background">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-main border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-muted-foreground">{t("preJoin.loading")}</p>
+          </div>
+        </div>
+      ) : connectionDetails === undefined || preJoinChoices === undefined ? (
         <div className="grid place-items-center h-full w-full bg-background">
           <div className="w-full max-w-2xl p-6 rounded-base bg-secondary-background border-2 border-border shadow-shadow">
             <CustomPreJoin
@@ -106,6 +136,7 @@ function VideoConferenceComponent(props: {
     codec: VideoCodec;
   };
 }) {
+  const t = useTranslations("MeetingPage");
   const keyProvider = new ExternalE2EEKeyProvider();
   const { worker, e2eePassphrase } = useSetupE2EE();
   const e2eeEnabled = !!(e2eePassphrase && worker);
@@ -156,9 +187,7 @@ function VideoConferenceComponent(props: {
         .then(() => {
           room.setE2EEEnabled(true).catch((e) => {
             if (e instanceof DeviceUnsupportedError) {
-              toast.error(
-                `You're trying to join an encrypted meeting, but your browser does not support it. Please update it to the latest version and try again.`
-              );
+              toast.error(t("errors.encryptionNotSupported"));
               console.error(e);
             } else {
               throw e;
@@ -214,24 +243,26 @@ function VideoConferenceComponent(props: {
 
   const router = useRouter();
   const handleOnLeave = React.useCallback(() => window.close(), []);
-  const handleError = React.useCallback((error: Error) => {
-    console.error(error);
-    toast.error(
-      `Encountered an unexpected error, check the console logs for details: ${error.message}`
-    );
-  }, []);
-  const handleEncryptionError = React.useCallback((error: Error) => {
-    console.error(error);
-    toast.error(
-      `Encountered an unexpected encryption error, check the console logs for details: ${error.message}`
-    );
-  }, []);
+  const handleError = React.useCallback(
+    (error: Error) => {
+      console.error(error);
+      toast.error(t("errors.unexpectedError", { error: error.message }));
+    },
+    [t]
+  );
+  const handleEncryptionError = React.useCallback(
+    (error: Error) => {
+      console.error(error);
+      toast.error(t("errors.encryptionError", { error: error.message }));
+    },
+    [t]
+  );
 
   React.useEffect(() => {
     if (lowPowerMode) {
-      console.warn("Low power mode enabled");
+      console.warn(t("warnings.lowPowerMode"));
     }
-  }, [lowPowerMode]);
+  }, [lowPowerMode, t]);
 
   return (
     <div className="h-full w-full overflow-hidden bg-background">

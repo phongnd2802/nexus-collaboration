@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Email Verified | Nexus Collaboration",
+  title: "Email Verified | Nexus",
   description: "Your email has been successfully verified",
 };
 

@@ -2,7 +2,7 @@ import { SignIn } from "@/components/auth/sign-in";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign In | Nexus Collaboration",
+  title: "Sign In | Nexus",
   description: "Sign in to your Nexus Collaboration account",
 };
 
