@@ -1,7 +1,9 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { getInitials } from "@/lib/utils";
+import { formatTime } from "@/lib/message-utils";
+import { useTranslations } from "next-intl";
 
 interface TeamChatMessage {
   id: string;
@@ -27,21 +29,8 @@ const MessageAdapter: React.FC<MessageAdapterProps> = ({
   currentUserId,
   isTeamChat = false,
 }) => {
+  const t = useTranslations("MessagesPage.chatHeader");
   const isCurrentUser = message.userId === currentUserId;
-
-  const getInitials = (name: string | null) => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  const formatTime = (dateString: string) => {
-    return format(new Date(dateString), "h:mm a");
-  };
 
   return (
     <div
@@ -51,7 +40,7 @@ const MessageAdapter: React.FC<MessageAdapterProps> = ({
         <Avatar className="h-8 w-8">
           <AvatarImage
             src={message.user.image || ""}
-            alt={message.user.name || "User"}
+            alt={message.user.name || t("userAlt")}
           />
           <AvatarFallback className="bg-primary text-primary-foreground text-xs">
             {getInitials(message.user.name)}
@@ -67,7 +56,7 @@ const MessageAdapter: React.FC<MessageAdapterProps> = ({
         {/* we Show sender name for team chats when not the current user */}
         {isTeamChat && !isCurrentUser && (
           <span className="text-xs font-medium text-primary mb-1">
-            {message.user.name || "User"}
+            {message.user.name || t("userAlt")}
           </span>
         )}
         <div

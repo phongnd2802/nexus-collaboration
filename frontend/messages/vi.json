@@ -1,0 +1,1297 @@
+{
+  "Theme": {
+    "light": "Sáng",
+    "dark": "Tối"
+  },
+  "HomePage": {
+    "title": "Nexus",
+    "subtitle": "Hợp lý hóa quy trình làm việc của bạn với nền tảng cộng tác tất cả trong một của chúng tôi.",
+    "hero": {
+      "badge": "Giới thiệu Nexus",
+      "title1": "Cộng tác",
+      "title2": "Liền mạch trên",
+      "titleHighlight": "Các dự án",
+      "description": "Hợp lý hóa quy trình làm việc của nhóm bạn với nền tảng quản lý dự án trực quan của chúng tôi. Tạo dự án, quản lý tác vụ và cộng tác hiệu quả.",
+      "dashboard": "Bảng điều khiển",
+      "signOut": "Đăng xuất",
+      "getStarted": "Bắt đầu ngay",
+      "signIn": "Đăng nhập",
+      "signUp": "Đăng ký",
+      "preview": {
+        "calendar": {
+          "title": "Lịch",
+          "date": "Tháng 5 2025",
+          "weekdays": "CN,T2,T3,T4,T5,T6,T7"
+        },
+        "team": {
+          "title": "Thành viên nhóm",
+          "membersCount": "{count} thành viên",
+          "roles": {
+            "Admin": "Quản trị viên",
+            "Editor": "Biên tập viên",
+            "Member": "Thành viên"
+          }
+        },
+        "projectProgress": {
+          "title": "Tiến độ dự án",
+          "taskDone": "Xong!",
+          "tasks": {
+            "research": "Nghiên cứu hoàn tất",
+            "design": "Thiết kế hoàn tất",
+            "development": "Phát triển"
+          }
+        },
+        "dashboard": {
+          "title": "Bảng điều khiển dự án",
+          "tabs": {
+            "calendar": "Lịch",
+            "team": "Nhóm",
+            "tasks": "Công việc"
+          },
+          "buttons": {
+            "viewDetails": "Xem chi tiết",
+            "addTask": "Thêm công việc"
+          }
+        }
+      }
+    }
+  },
+  "AuthPage": {
+    "signIn": {
+      "home": "Trang chủ",
+      "title": "Chào mừng trở lại",
+      "description": "Đăng nhập tài khoản của bạn để tiếp tục",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "signingIn": "Đang đăng nhập...",
+      "signIn": "Đăng nhập",
+      "signUp": "Đăng ký",
+      "forgotPassword": "Quên mật khẩu?",
+      "or": "Hoặc",
+      "needAccount": "Bạn cần tài khoản?"
+    },
+    "signUp": {
+      "home": "Trang chủ",
+      "title": "Tạo tài khoản",
+      "description": "Tham gia nền tảng cộng tác của chúng tôi",
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "creatingAccount": "Đang tạo tài khoản...",
+      "signUp": "Đăng ký",
+      "or": "Hoặc",
+      "haveAccount": "Đã có tài khoản? Đăng nhập",
+      "passwordStrength": {
+        "enterPassword": "Nhập mật khẩu",
+        "weak": "Mật khẩu yếu",
+        "medium": "Mật khẩu trung bình",
+        "strong": "Mật khẩu mạnh"
+      }
+    },
+    "forgotPassword": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
+      "emailLabel": "Địa chỉ Email",
+      "emailDescription": "Nhập địa chỉ email liên kết với tài khoản của bạn.",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Gửi liên kết",
+      "submitting": "Đang gửi...",
+      "success": {
+        "title": "Kiểm tra email",
+        "description": "Nếu email của bạn tồn tại trong hệ thống, bạn sẽ nhận được liên kết đặt lại mật khẩu. Vui lòng kiểm tra thư mục spam nếu không thấy trong hộp thư đến."
+      },
+      "returnToSignIn": "Quay lại Đăng nhập",
+      "signIn": "Đăng nhập",
+      "home": "Trang chủ"
+    },
+    "resetPassword": {
+      "title": "Tạo mật khẩu mới",
+      "subtitle": "Mật khẩu mới của bạn phải khác với các mật khẩu đã sử dụng trước đó",
+      "validating": "Đang xác thực liên kết...",
+      "invalidToken": "Liên kết đặt lại mật khẩu này không hợp lệ hoặc đã hết hạn",
+      "requestNewLink": "Yêu cầu liên kết đặt lại mật khẩu mới",
+      "successTitle": "Đặt lại mật khẩu thành công!",
+      "successMessage": "Mật khẩu của bạn đã được cập nhật. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.",
+      "goToSignIn": "Đi đến trang Đăng nhập",
+      "newPasswordLabel": "Mật khẩu mới",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "submit": "Đặt lại mật khẩu",
+      "loading": "Đang đặt lại...",
+      "errors": {
+        "passwordMismatch": "Mật khẩu không khớp",
+        "passwordRequirements": "Mật khẩu phải dài ít nhất 8 ký tự và chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt",
+        "missingToken": "Thiếu mã xác thực",
+        "validateFailed": "Không thể xác thực mã đặt lại",
+        "resetFailed": "Không thể đặt lại mật khẩu",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn"
+      },
+      "strength": {
+        "enter": "Nhập mật khẩu",
+        "weak": "Mật khẩu yếu",
+        "medium": "Mật khẩu trung bình",
+        "strong": "Mật khẩu mạnh"
+      },
+      "home": "Trang chủ"
+    }
+  },
+  "DashboardPage": {
+    "welcomeBanner": {
+      "goodMorning": "Chào buổi sáng",
+      "goodAfternoon": "Chào buổi chiều",
+      "goodEvening": "Chào buổi tối",
+      "tasksDueMessage": "Bạn có {count} công việc đến hạn trong tuần này.",
+      "weekday": {
+        "Monday": "Thứ Hai",
+        "Tuesday": "Thứ Ba",
+        "Wednesday": "Thứ Tư",
+        "Thursday": "Thứ Năm",
+        "Friday": "Thứ Sáu",
+        "Saturday": "Thứ Bảy",
+        "Sunday": "Chủ Nhật"
+      },
+      "month": {
+        "January": "Tháng 1",
+        "February": "Tháng 2",
+        "March": "Tháng 3",
+        "April": "Tháng 4",
+        "May": "Tháng 5",
+        "June": "Tháng 6",
+        "July": "Tháng 7",
+        "August": "Tháng 8",
+        "September": "Tháng 9",
+        "October": "Tháng 10",
+        "November": "Tháng 11",
+        "December": "Tháng 12"
+      },
+      "viewSchedule": "Xem lịch",
+      "createProject": "Tạo dự án"
+    },
+    "projectSection": {
+      "yourProjects": "Dự án của bạn",
+      "viewAll": "Xem tất cả",
+      "noProjects": "Bạn chưa có dự án",
+      "createProject": "Tạo dự án"
+    },
+    "projectCard": {
+      "noDescription": "Không có mô tả",
+      "IN_PROGRESS": "Đang tiến hành",
+      "COMPLETED": "Hoàn thành",
+      "DONE": "Hoàn thành",
+      "TODO": "Đang chờ",
+      "AT_RISK": "Sắp tới hạn",
+      "members": "thành viên",
+      "date": {
+        "noDueDate": "Không có hạn",
+        "today": "Hôm nay",
+        "tomorrow": "Ngày mai",
+        "withTime": "{date} lúc {time}"
+      },
+      "progress": "Tình trạng",
+      "priority": {
+        "HIGH": "Cao",
+        "MEDIUM": "Trung bình",
+        "LOW": "Thấp"
+      },
+      "team": "Tin nhắn",
+      "edit": "Chỉnh sửa",
+      "invite": "Mời",
+      "create_task": "Tạo công việc",
+      "no_assigned_tasks": "Không có task nào được giao đến bạn",
+      "export_pdf": "Xuất PDF",
+      "export_assigned": "Xuất công việc được giao",
+      "export_created": "Xuất công việc đã tạo",
+      "no_created_tasks": "Không có task nào bạn đã tạo",
+      "creatorLabel": "(Người tạo)",
+      "youLabel": "(Bạn)",
+      "role": {
+        "ADMIN": "Quản trị viên",
+        "EDITOR": "Biên tập viên",
+        "MEMBER": "Thành viên"
+      }
+    },
+    "taskSection": {
+      "yourTasks": "Công việc của bạn",
+      "viewAll": "Xem tất cả",
+      "noTasks": "Bạn chưa có công việc",
+      "noTasksDescription": "Công việc sẽ xuất hiện ở đây khi bạn được giao",
+      "createTask": "Tạo công việc"
+    },
+    "taskCard": {
+      "IN_PROGRESS": "Đang tiến hành",
+      "COMPLETED": "Hoàn thành",
+      "DONE": "Hoàn thành",
+      "TODO": "Đang chờ",
+      "AT_RISK": "Sắp tới hạn",
+      "overdue": "Quá hạn: ",
+      "date": {
+        "noDueDate": "Không có hạn",
+        "today": "Hôm nay",
+        "tomorrow": "Ngày mai",
+        "withTime": "{date} lúc {time}"
+      },
+      "assignee": "Người thực hiện",
+      "unassignee": "Chưa giao",
+      "creator": "Người tạo",
+      "priority": {
+        "HIGH": "Cao",
+        "MEDIUM": "Trung bình",
+        "LOW": "Thấp"
+      },
+      "HIGH": "Cao",
+      "MEDIUM": "Trung bình",
+      "LOW": "Thấp"
+    },
+    "activityFeed": {
+      "title": "Hoạt động gần đây",
+      "emptyState": "Không có hoạt động gần đây",
+      "relative": {
+        "seconds": "{value} giây trước",
+        "minutes": "{value} phút trước",
+        "hours": "{value} giờ trước",
+        "days": "{value} ngày trước"
+      }
+    }
+  },
+  "WorkspaceSidebar": {
+    "dashboard": "Bảng điều khiển",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "calendar": "Lịch",
+    "messages": "Tin nhắn",
+    "meetings": "Cuộc họp",
+    "quickActions": "Thao tác nhanh",
+    "createProject": "Tạo dự án",
+    "createTask": "Tạo công việc",
+    "deadlines": "Công việc đến hạn",
+    "myAccount": "Tài khoản của tôi",
+    "profile": "Thông tin cá nhân",
+    "settings": "Cài đặt",
+    "signOut": "Đăng xuất",
+    "team": "Nhóm"
+  },
+  "DashboardStats": {
+    "totalProjects": "Tổng số dự án",
+    "completedTasks": "Công việc hoàn thành",
+    "pendingTasks": "Công việc chờ",
+    "upcomingDeadlines": "Công việc sắp đến"
+  },
+  "MessagesPage": {
+    "title": "Tin nhắn",
+    "description": "Quản lý các tin nhắn của bạn",
+    "button": {
+      "newMessage": "Tin nhắn mới",
+      "searchPlaceholder": "Tìm kiếm người dùng...",
+      "cancel": "Hủy"
+    },
+    "userSearchResults": {
+      "noUsersFound": "Không tìm thấy người dùng",
+      "startTyping": "Bắt đầu gõ để tìm kiếm người dùng"
+    },
+    "conversationList": {
+      "noConversations": "Không có cuộc trò chuyện",
+      "noConversationsFound": "Không tìm thấy cuộc trò chuyện"
+    },
+    "conversationSearch": {
+      "placeholder": "Tìm kiếm cuộc trò chuyện..."
+    },
+    "emptyState": {
+      "title": "Chưa chọn cuộc trò chuyện",
+      "description": "Chọn một cuộc trò chuyện từ danh sách hoặc bắt đầu cuộc trò chuyện mới"
+    },
+    "chatInput": {
+      "placeholder": "Nhập tin nhắn...",
+      "connectionError": "Lỗi kết nối. Tin nhắn có thể không được gửi.",
+      "basicMode": "Đang sử dụng chế độ cơ bản - không có chỉ báo đang nhập",
+      "connectionLost": "Mất kết nối..."
+    },
+    "chatHeader": {
+      "userAlt": "Người dùng",
+      "unnamedUser": "Người dùng không tên",
+      "createdBy": "Được tạo bởi {creator}"
+    },
+    "chat": {
+      "noMessages": "Chưa có tin nhắn nào",
+      "startConversationWith": "Bắt đầu cuộc trò chuyện với {name}",
+      "thisUser": "người dùng này",
+      "startConversationIn": "Bắt đầu cuộc trò chuyện trong nhóm {name}",
+      "teamChat": "trò chuyện nhóm",
+      "messageTo": "Gửi tin nhắn đến nhóm {name}...",
+      "team": "nhóm"
+    },
+    "conversationItem": {
+      "projectChat": "Trò chuyện dự án"
+    },
+    "fallbackAlert": {
+      "message": "Trò chuyện thời gian thực hiện không khả dụng. Đang sử dụng polling thay thế."
+    },
+    "messageList": {
+      "isTyping": "{name} đang nhập...",
+      "startConversation": "Bắt đầu cuộc trò chuyện"
+    }
+  },
+  "TasksPage": {
+    "header": {
+      "title": "Công việc của tôi",
+      "subtitle": "Xem và quản lý tất cả công việc của bạn trên các dự án",
+      "newTask": "Công việc mới"
+    },
+    "tabs": {
+      "assigned": "Được giao",
+      "created": "Đã tạo"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm công việc..."
+    },
+    "filter": {
+      "button": "Bộ lọc",
+      "byStatus": "Lọc theo trạng thái",
+      "byPriority": "Lọc theo mức độ ưu tiên",
+      "clearFilters": "Xóa bộ lọc",
+      "activeFilters": "Bộ lọc đang dùng:",
+      "clearAll": "Xóa tất cả"
+    },
+    "sort": {
+      "button": "Sắp xếp theo",
+      "dueDate": "Hạn chót",
+      "priority": "Mức độ ưu tiên",
+      "status": "Trạng thái"
+    },
+    "status": {
+      "TODO": "Đang chờ",
+      "IN_PROGRESS": "Đang tiến hành",
+      "DONE": "Hoàn thành"
+    },
+    "priority": {
+      "HIGH": "Cao",
+      "MEDIUM": "Trung bình",
+      "LOW": "Thấp"
+    },
+    "emptyState": {
+      "title": "Không tìm thấy công việc",
+      "description": "Thử điều chỉnh bộ lọc hoặc tạo công việc mới.",
+      "createTask": "Tạo công việc mới"
+    },
+    "create": {
+      "title": "Tạo công việc",
+      "description": "Thêm một công việc để tổ chức và theo dõi công việc của nhóm"
+    },
+    "form": {
+      "attachments": "Tệp đính kèm",
+      "title": "Tên công việc",
+      "title_placeholder": "Nhập tên công việc rõ ràng, cụ thể",
+      "title_helper": "Tiêu đề ngắn gọn giúp các thành viên trong nhóm hiểu rõ nhiệm vụ ngay",
+      "description": "Mô tả",
+      "description_placeholder": "Cung cấp chi tiết, bối cảnh và yêu cầu cụ thể cho công việc này",
+      "description_helper": "Cung cấp thêm thông tin hoặc yêu cầu",
+      "projects": "Dự án",
+      "project_placeholder": "Chọn dự án",
+      "project_helper": "Bạn cần phải là thành viên của ít nhất một dự án để tạo công việc",
+      "create_project": "Tạo dự án",
+      "assignee": "Người thực hiện",
+      "assignee_placeholder": "Chọn người thực hiện",
+      "assignee_helper": "Chọn một dự án trước để xem các thành viên nhóm có sẵn",
+      "no_members_helper": "Không có thành viên trong dự án",
+      "status": "Trạng thái",
+      "due_date": "Hạn chót",
+      "due_date_helper": "Chọn ngày, sau đó đặt thời gian cụ thể.",
+      "priority": "Mức độ ưu tiên",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "priority_HIGH": "Ưu tiên cao",
+      "priority_MEDIUM": "Ưu tiên trung bình",
+      "priority_LOW": "Ưu tiên thấp",
+      "preview": "Xem trước",
+      "preview_title": "Tên công việc",
+      "preview_title_placeholder": "Tên công việc sẽ xuất hiện ở đây",
+      "preview_project": "Dự án",
+      "no_project_selected": "Không có dự án được chọn",
+      "assigned_to": "Người thực hiện",
+      "cancel": "Hủy",
+      "creating_task": "Tạo công việc...",
+      "saving_changes": "Lưu thay đổi...",
+      "create_task": "Tạo công việc",
+      "save_changes": "Lưu thay đổi",
+      "notes": "Ghi chú",
+      "notes_placeholder": "Thêm thông tin chi tiết về công việc đã thực hiện hoặc tải lên các sản phẩm bàn giao",
+      "deliverables": "Tệp đính kèm",
+      "current_deliverables": "Tệp đính kèm hiện tại",
+      "deliverables_description": "Cung cấp thêm thông tin hoặc yêu cầu",
+      "add_deliverables": "Thêm tệp đính kèm",
+      "saving": "Đang lưu...",
+      "save": "Lưu"
+    },
+    "taskStats": {
+      "assigned": "Được giao",
+      "created": "Đã tạo",
+      "todo": "Đang chờ",
+      "in_progress": "Đang tiến hành",
+      "done": "Hoàn thành"
+    },
+
+    "ProjectsPage": {
+      "header": {
+        "title": "Dự án",
+        "description": "Quản lý các dự án của bạn",
+        "newProject": "Tạo dự án"
+      },
+      "filter": {
+        "placeholder": "Tìm kiếm dự án...",
+        "filterByStatus": "Bộ lọc theo trạng thái",
+        "activeFilters": "Bộ lọc",
+        "inProgress": "Đang tiến hành",
+        "filter": "Bộ lọc",
+        "sortBy": "Sắp xếp theo",
+        "name": "Tên",
+        "dueDate": "Hạn chót",
+        "members": "Thành viên",
+        "progress": "Tình trạng",
+        "atRisk": "Sắp tới hạn",
+        "completed": "Hoàn thành",
+        "clearFilters": "Xóa bộ lọc"
+      },
+      "list": {
+        "noProjects": "Bạn chưa có dự án",
+        "createFirstProject": "Tạo dự án đầu tiên để bắt đầu hợp tác với nhóm của bạn",
+        "createNewProject": "Tạo dự án mới",
+        "noProjectsMatch": "Không có dự án phù hợp với bộ lọc của bạn",
+        "tryAdjustingFilters": "Thử điều chỉnh bộ lọc của bạn",
+        "clearFilters": "Xóa bộ lọc"
+      },
+      "create": {
+        "title": "Tạo dự án",
+        "description": "Thiết lập dự án mới và thêm thành viên để bắt đầu cộng tác",
+        "name": "Tên dự án",
+        "nameDescription": "Chọn một tên rõ ràng, cụ thể phản ánh mục đích dự án",
+        "namePlaceholder": "Nhập tên dự án",
+        "projectDescription": "Mô tả dự án",
+        "descriptionPlaceholder": "Mô tả mục tiêu của dự án, phạm vi, và bất kỳ thông tin bổ sung nào",
+        "descriptionDescription": "Mô tả kỹ lưỡng giúp các thành viên trong nhóm hiểu được mục đích của dự án",
+        "projectFiles": "File dự án",
+        "projectFilesDescription": "Thêm tài liệu dự án hoặc tài liệu tham khảo cho nhóm của bạn",
+        "cancel": "Hủy",
+        "creating": "Đang tạo",
+        "createProject": "Tạo dự án",
+        "dueDate": "Hạn chót & Thời gian",
+        "dueDateDescription": "Chọn một ngày, sau đó chọn thời gian cụ thể.",
+        "projectPreview": "Xem trước dự án",
+        "teamMembers": "Thành viên",
+        "youAdmin": "Bạn (Admin)",
+        "youCanInvite": "Bạn có thể mời thành viên vào dự án sau khi tạo dự án",
+        "attachedFiles": "File đính kèm",
+        "file": "file",
+        "namePlaceholderPreview": "Tên dự án của bạn sẽ xuất hiện ở đây"
+      },
+      "tips": {
+        "title": "Mẹo Quản Lý Dự Án",
+        "tip1": "Chia nhỏ dự án của bạn thành các nhiệm vụ nhỏ và dễ quản lý hơn.",
+        "tip2": "Đặt các mốc và hạn chót rõ ràng để dễ theo dõi tiến độ.",
+        "tip3": "Mời tất cả các thành viên liên quan đến dự án để dễ dàng hợp tác.",
+        "tip4": "Sử dụng mô tả công việc để cung cấp ngữ cảnh và yêu cầu rõ ràng."
+      }
+    },
+    "ProjectDetailPage": {
+      "projectNotFound": "Dự án không tồn tại",
+      "projectNotFoundDescription": "Dự án bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.",
+      "overview": "Tổng Quan",
+      "tasks": "Công việc",
+      "files": "File",
+      "loadingTasks": "Đang tải công việc...",
+      "progress": "Tiến độ dự án",
+      "overallCompletion": "Tổng tiến độ",
+      "completed": "Hoàn thành",
+      "inProgress": "Đang tiến hành",
+      "todo": "Đang chờ",
+      "all_tasks_completed": "Tất cả các công việc đã hoàn thành!",
+      "project_ready_to_be_marked_as_completed": "Dự án đã sẵn sàng để được đánh dấu là hoàn thành.",
+      "mark_as_completed": "Đánh dấu là hoàn thành",
+      "mark_as_completed_description": "Tất cả các nhiệm vụ trong dự án này đã hoàn tất. Việc thay đổi trạng thái này sẽ thông báo cho tất cả thành viên trong nhóm rằng dự án đã được hoàn tất.",
+      "cancel": "Hủy",
+      "updating": "Đang cập nhật",
+      "team_members": "Thành viên",
+      "no_team_members_found": "Không tìm thấy thành viên",
+      "projectDetails": "Chi tiết dự án",
+      "createdBy": "Tạo bởi",
+      "createdOn": "Tạo vào",
+      "dueDate": "Hạn chót",
+      "updatedOn": "Cập nhật vào",
+      "taskColumns": {
+        "todo": "Đang chờ",
+        "inProgress": "Đang tiến hành",
+        "done": "Hoàn thành",
+        "noTodoTasks": "Không có công việc đang chờ",
+        "noInProgressTasks": "Không có công việc đang tiến hành",
+        "noDoneTasks": "Không có công việc hoàn thành"
+      },
+      "mobileView": {
+        "swipeHint": "Vuốt hoặc chạm vào các chấm để thay đổi chế độ xem"
+      },
+      "fileExplorer": {
+        "uploadFile": "Tải file lên",
+        "projectFiles": "File dự án",
+        "tasks": "Công việc",
+        "taskFiles": "File công việc",
+        "deliverables": "Sản phẩm bàn giao",
+        "root": "root",
+        "name": "Tên",
+        "size": "Kích thước",
+        "dateAdded": "Ngày thêm",
+        "actions": "Hành động",
+        "noFiles": "Không có file trong thư mục này",
+        "file": "file",
+        "files": "file",
+        "deliverable": "sản phẩm",
+        "deliverables_count": "sản phẩm",
+        "download": "Tải xuống",
+        "delete": "Xóa",
+        "uploadDialogTitle": "Tải lên file dự án",
+        "uploadDialogDescription": "Thêm file vào dự án. File được tải lên sẽ khả dụng cho tất cả thành viên dự án.",
+        "maxFilesReached": "Bạn chỉ có thể tải lên tối đa 5 file cho dự án này.",
+        "close": "Đóng",
+        "cancel": "Hủy",
+        "addFiles": "Thêm file",
+        "addingFiles": "Đang thêm file...",
+        "deleteDialogTitle": "Xóa file",
+        "deleteDialogDescription": "Bạn có chắc chắn muốn xóa \"{fileName}\"? Hành động này không thể hoàn tác.",
+        "deleting": "Đang xóa...",
+        "failedToLoad": "Không thể tải file",
+        "loadError": "Không thể tải file dự án"
+      }
+    },
+    "LanguageSwitcher": {
+      "label": "Ngôn ngữ",
+      "en": "EN",
+      "vi": "VI"
+    },
+    "date": {
+      "noDueDate": "Không có hạn",
+      "today": "Hôm nay",
+      "tomorrow": "Ngày mai",
+      "withTime": "{date} lúc {time}"
+    },
+    "relative": {
+      "seconds": "{value} giây trước",
+      "minutes": "{value} phút trước",
+      "hours": "{value} giờ trước",
+      "days": "{value} ngày trước"
+    },
+    "UnifiedBreadcrumb": {
+      "dashboard": "Bảng điều khiển",
+      "projects": "Dự án",
+      "tasks": "Công việc",
+      "calendar": "Lịch",
+      "team": "Nhóm",
+      "profile": "Thông tin cá nhân",
+      "settings": "Cài đặt",
+      "create": "Tạo mới",
+      "projectDetails": "Chi tiết dự án",
+      "taskDetails": "Chi tiết công việc",
+      "createProject": "Tạo dự án",
+      "createTask": "Tạo công việc"
+    },
+    "editProjectDialog": {
+      "title": "Chỉnh sửa dự án",
+      "description": "Cập nhật thông tin dự án",
+      "project_name": "Tên dự án",
+      "project_description": "Mô tả dự án",
+      "project_name_placeholder": "Nhập tên dự án",
+      "project_description_placeholder": "Nhập mô tả dự án",
+      "status": "Trạng thái",
+      "in_progress": "Đang tiến hành",
+      "at_risk": "Sắp tới hạn",
+      "completed": "Hoàn thành",
+      "select_status": "Chọn trạng thái",
+      "due_date": "Hạn chót & Thời gian",
+      "delete_project": "Xóa dự án",
+      "cancel": "Hủy",
+      "saving": "Đang lưu",
+      "save_changes": "Lưu thay đổi"
+    },
+    "deleteProjectDialog": {
+      "title": "Xóa dự án",
+      "description": "Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn dự án, tất cả tác vụ, tệp và xóa toàn bộ thành viên nhóm.",
+      "confirm_text": "Để xác nhận, vui lòng nhập",
+      "cancel": "Hủy",
+      "deleting": "Đang xóa",
+      "delete": "Xóa"
+    },
+    "inviteDialog": {
+      "title": "Mời thành viên",
+      "description": "Mời thành viên vào dự án",
+      "cancel": "Hủy",
+      "inviting": "Đang mời",
+      "sending": "Đang gửi...",
+      "invite": "Mời",
+      "placeholder": "Nhập email",
+      "noUsersFound": "Không tìm thấy người dùng",
+      "input_description": "Nhập email người dùng bạn muốn mời",
+      "selectRole": "Chọn vai trò",
+      "role": "Vai trò",
+      "admin": "Kiểm soát toàn bộ dự án",
+      "editor": "Tạo và quản lý công việc",
+      "member": "Xem dự án và tham gia vào các công việc được giao."
+    },
+    "memberRoleDialog": {
+      "change_member_role": "Thay đổi vai trò thành viên",
+      "cancel": "Hủy",
+      "updating": "Đang cập nhật",
+      "are_you_sure_you_want_to_change_this_member_s_role_from": "Bạn có chắc chắn muốn thay đổi vai trò của thành viên này từ",
+      "to": "thành",
+      "confirm": "Xác nhận"
+    },
+    "memberRemoveDialog": {
+      "remove_team_member": "Xóa thành viên",
+      "description": "Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn thành viên khỏi dự án.",
+      "confirm_text": "Để xác nhận, vui lòng nhập",
+      "cancel": "Hủy",
+      "removing": "Đang xóa",
+      "remove": "Xóa"
+    }
+  },
+  "TaskDetailPage": {
+    "projectNotFound": "Dự án không tồn tại",
+    "taskNotFound": "Công việc không tồn tại",
+    "permissionDenied": "Bạn không có quyền truy cập",
+    "projectNotFoundDescription": "Dự án bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.",
+    "taskNotFoundDescription": "Công việc bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.",
+    "permissionDeniedDescription": "Bạn không có quyền truy cập",
+    "accessRestricted": "Truy cập bị hạn chế",
+    "youNeedToBeAMemberOfThisProjectToViewTasks": "Bạn cần phải là thành viên của dự án này để xem các công việc",
+    "returnToProject": "Quay lại dự án",
+    "description": "Mô tả",
+    "addDescription": "Thêm mô tả...",
+    "noDescription": "Không có mô tả",
+    "attachments": "Tệp đính kèm",
+    "created_by": "Tạo bởi",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "are_you_sure": "Bạn có chắc chắn",
+    "are_you_sure_delete_task": "Thao tác này không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn công việc này và xóa nó khỏi dự án.",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa",
+    "saving": "Đang lưu",
+    "save_changes": "Lưu thay đổi",
+    "taskCompletion": "Hoàn thành",
+    "notes": "Ghi chú",
+    "noNotes": "Không có ghi chú",
+    "deliverables": "Tệp đính kèm",
+    "noDeliverables": "Không có tệp đính kèm",
+    "taskDetails": "Chi tiết công việc",
+    "status": "Trạng thái",
+    "priority": "Độ ưu tiên",
+    "dueDate": "Hạn chót",
+    "assignee": "Người thực hiện",
+    "LOW": "Thấp",
+    "MEDIUM": "Trung bình",
+    "HIGH": "Cao",
+    "selectPriority": "Chọn độ ưu tiên",
+    "noDueDate": "Không có hạn chót",
+    "assignToTeamMember": "Giao cho thành viên nhóm",
+    "unassigned": "Không giao",
+    "creator": "Người tạo",
+    "subtask": "Công việc con",
+    "addSubtask": "Thêm công việc con",
+    "noSubtasks": "Không có công việc con",
+    "name": "Tên",
+    "subtaskName": "Tên công việc con",
+    "enterSubtaskName": "Nhập tên công việc con",
+    "selectAssignee": "Chọn người thực hiện",
+    "createSubtask": "Tạo công việc con",
+    "linkedTask": "Công việc liên kết",
+    "addLink": "Thêm liên kết",
+    "noLinkedTasks": "Không có công việc liên kết",
+    "relationship": "Quan hệ",
+    "taskName": "Tên công việc",
+    "addLinkedTask": "Thêm công việc liên kết",
+    "selectTask": "Chọn công việc",
+    "loadingTasks": "Đang tải công việc",
+    "noTasksAvailable": "Không có công việc",
+    "selectRelationship": "Chọn quan hệ",
+    "blocks": "Blocks",
+    "blockedBy": "Blocked by",
+    "date": {
+      "withTime": "{date} lúc {time}"
+    },
+    "status_options": {
+      "TODO": "Đang chờ",
+      "IN_PROGRESS": "Đang tiến hành",
+      "DONE": "Hoàn thành"
+    },
+    "IN_PROGRESS": "Đang tiến hành",
+    "TODO": "Đang chờ",
+    "DONE": "Hoàn thành",
+    "COMPLETED": "Hoàn thành",
+    "AT_RISK": "Sắp tới hạn",
+    "export_pdf": "Xuất PDF",
+    "pdf_preview": "Xem trước PDF",
+    "pdf_preview_description": "Xem trước trước khi tải xuống",
+    "download_pdf": "Tải xuống PDF"
+  },
+  "UnifiedBreadcrumb": {
+    "dashboard": "Bảng điều khiển",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "calendar": "Lịch",
+    "team": "Nhóm",
+    "profile": "Thông tin cá nhân",
+    "settings": "Cài đặt",
+    "create": "Tạo mới",
+    "projectDetails": "Chi tiết dự án",
+    "taskDetails": "Chi tiết công việc",
+    "createProject": "Tạo dự án",
+    "createTask": "Tạo công việc",
+    "meetings": "Cuộc họp"
+  },
+  "ProjectsPage": {
+    "header": {
+      "title": "Dự án",
+      "description": "Quản lý các dự án của bạn",
+      "newProject": "Tạo dự án"
+    },
+    "filter": {
+      "placeholder": "Tìm kiếm dự án...",
+      "filterByStatus": "Bộ lọc theo trạng thái",
+      "activeFilters": "Bộ lọc",
+      "inProgress": "Đang tiến hành",
+      "filter": "Bộ lọc",
+      "sortBy": "Sắp xếp theo",
+      "name": "Tên",
+      "dueDate": "Hạn chót",
+      "members": "Thành viên",
+      "progress": "Tình trạng",
+      "atRisk": "Sắp tới hạn",
+      "completed": "Hoàn thành",
+      "clearFilters": "Xóa bộ lọc"
+    },
+    "list": {
+      "noProjects": "Bạn chưa có dự án",
+      "createFirstProject": "Tạo dự án đầu tiên để bắt đầu hợp tác với nhóm của bạn",
+      "createNewProject": "Tạo dự án mới",
+      "noProjectsMatch": "Không có dự án phù hợp với bộ lọc của bạn",
+      "tryAdjustingFilters": "Thử điều chỉnh bộ lọc của bạn",
+      "clearFilters": "Xóa bộ lọc"
+    },
+    "create": {
+      "title": "Tạo dự án",
+      "description": "Thiết lập dự án mới và thêm thành viên để bắt đầu cộng tác",
+      "name": "Tên dự án",
+      "nameDescription": "Chọn một tên rõ ràng, cụ thể phản ánh mục đích dự án",
+      "namePlaceholder": "Nhập tên dự án",
+      "projectDescription": "Mô tả dự án",
+      "descriptionPlaceholder": "Mô tả mục tiêu của dự án, phạm vi, và bất kỳ thông tin bổ sung nào",
+      "descriptionDescription": "Mô tả kỹ lưỡng giúp các thành viên trong nhóm hiểu được mục đích của dự án",
+      "projectFiles": "File dự án",
+      "projectFilesDescription": "Thêm tài liệu dự án hoặc tài liệu tham khảo cho nhóm của bạn",
+      "cancel": "Hủy",
+      "creating": "Đang tạo",
+      "createProject": "Tạo dự án",
+      "dueDate": "Hạn chót & Thời gian",
+      "dueDateDescription": "Chọn một ngày, sau đó chọn thời gian cụ thể.",
+      "projectPreview": "Xem trước dự án",
+      "teamMembers": "Thành viên",
+      "youAdmin": "Bạn (Admin)",
+      "youCanInvite": "Bạn có thể mời thành viên vào dự án sau khi tạo dự án",
+      "attachedFiles": "File đính kèm",
+      "file": "file",
+      "namePlaceholderPreview": "Tên dự án của bạn sẽ xuất hiện ở đây"
+    },
+    "tips": {
+      "title": "Mẹo Quản Lý Dự Án",
+      "tip1": "Chia nhỏ dự án của bạn thành các nhiệm vụ nhỏ và dễ quản lý hơn.",
+      "tip2": "Đặt các mốc và hạn chót rõ ràng để dễ theo dõi tiến độ.",
+      "tip3": "Mời tất cả các thành viên liên quan đến dự án để dễ dàng hợp tác.",
+      "tip4": "Sử dụng mô tả công việc để cung cấp ngữ cảnh và yêu cầu rõ ràng."
+    }
+  },
+  "ProjectDetailPage": {
+    "projectNotFound": "Dự án không tồn tại",
+    "projectNotFoundDescription": "Dự án bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.",
+    "overview": "Tổng Quan",
+    "tasks": "Công việc",
+    "files": "File",
+    "loadingTasks": "Đang tải công việc...",
+    "progress": "Tiến độ dự án",
+    "overallCompletion": "Tổng tiến độ",
+    "completed": "Hoàn thành",
+    "inProgress": "Đang tiến hành",
+    "todo": "Đang chờ",
+    "all_tasks_completed": "Tất cả các công việc đã hoàn thành!",
+    "project_ready_to_be_marked_as_completed": "Dự án đã sẵn sàng để được đánh dấu là hoàn thành.",
+    "mark_as_completed": "Đánh dấu là hoàn thành",
+    "mark_as_completed_description": "Tất cả các nhiệm vụ trong dự án này đã hoàn tất. Việc thay đổi trạng thái này sẽ thông báo cho tất cả thành viên trong nhóm rằng dự án đã được hoàn tất.",
+    "cancel": "Hủy",
+    "updating": "Đang cập nhật",
+    "team_members": "Thành viên",
+    "no_team_members_found": "Không tìm thấy thành viên",
+    "projectDetails": "Chi tiết dự án",
+    "createdBy": "Tạo bởi",
+    "createdOn": "Tạo vào",
+    "dueDate": "Hạn chót",
+    "updatedOn": "Cập nhật vào",
+    "taskColumns": {
+      "todo": "Đang chờ",
+      "inProgress": "Đang tiến hành",
+      "done": "Hoàn thành",
+      "noTodoTasks": "Không có công việc cần làm",
+      "noInProgressTasks": "Không có công việc đang tiến hành",
+      "noDoneTasks": "Không có công việc hoàn thành"
+    },
+    "mobileView": {
+      "swipeHint": "Vuốt hoặc chạm vào các chấm để thay đổi chế độ xem"
+    },
+    "fileExplorer": {
+      "uploadFile": "Tải file lên",
+      "projectFiles": "File dự án",
+      "project": "Dự án",
+      "tasks": "Công việc",
+      "taskFiles": "File công việc",
+      "deliverables": "Sản phẩm bàn giao",
+      "root": "root",
+      "name": "Tên",
+      "size": "Kích thước",
+      "dateAdded": "Ngày thêm",
+      "actions": "Hành động",
+      "noFiles": "Không có file trong thư mục này",
+      "file": "file",
+      "files": "file",
+      "deliverable": "sản phẩm",
+      "deliverables_count": "sản phẩm",
+      "download": "Tải xuống",
+      "delete": "Xóa",
+      "uploadDialogTitle": "Tải lên file dự án",
+      "uploadDialogDescription": "Thêm file vào dự án. File được tải lên sẽ khả dụng cho tất cả thành viên dự án.",
+      "maxFilesReached": "Bạn chỉ có thể tải lên tối đa 5 file cho dự án này.",
+      "close": "Đóng",
+      "cancel": "Hủy",
+      "addFiles": "Thêm file",
+      "addingFiles": "Đang thêm file...",
+      "deleteDialogTitle": "Xóa file",
+      "deleteDialogDescription": "Bạn có chắc chắn muốn xóa \"{fileName}\"? Hành động này không thể hoàn tác.",
+      "deleting": "Đang xóa...",
+      "failedToLoad": "Không thể tải file",
+      "loadError": "Không thể tải file dự án"
+    }
+  },
+  "date": {
+    "noDueDate": "Không có hạn",
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai",
+    "withTime": "{date} lúc {time}"
+  },
+  "editProjectDialog": {
+    "title": "Chỉnh sửa dự án",
+    "description": "Cập nhật thông tin dự án",
+    "project_name": "Tên dự án",
+    "project_description": "Mô tả dự án",
+    "project_name_placeholder": "Nhập tên dự án",
+    "project_description_placeholder": "Nhập mô tả dự án",
+    "status": "Trạng thái",
+    "in_progress": "Đang tiến hành",
+    "at_risk": "Sắp tới hạn",
+    "completed": "Hoàn thành",
+    "select_status": "Chọn trạng thái",
+    "due_date": "Hạn chót & Thời gian",
+    "delete_project": "Xóa dự án",
+    "cancel": "Hủy",
+    "saving": "Đang lưu",
+    "save_changes": "Lưu thay đổi"
+  },
+  "deleteProjectDialog": {
+    "title": "Xóa dự án",
+    "description": "Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn dự án, tất cả tác vụ, tệp và xóa toàn bộ thành viên nhóm.",
+    "confirm_text": "Để xác nhận, vui lòng nhập",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa",
+    "delete": "Xóa"
+  },
+  "inviteDialog": {
+    "title": "Mời thành viên",
+    "description": "Mời thành viên vào dự án",
+    "cancel": "Hủy",
+    "inviting": "Đang mời",
+    "invite": "Mời",
+    "placeholder": "Nhập email",
+    "noUsersFound": "Không tìm thấy người dùng",
+    "input_description": "Nhập email người dùng bạn muốn mời",
+    "selectRole": "Chọn vai trò",
+    "role": "Vai trò",
+    "admin": "Kiểm soát toàn bộ dự án",
+    "editor": "Tạo và quản lý công việc",
+    "member": "Xem dự án và tham gia vào các công việc được giao."
+  },
+  "memberRoleDialog": {
+    "change_member_role": "Thay đổi vai trò thành viên",
+    "cancel": "Hủy",
+    "updating": "Đang cập nhật",
+    "are_you_sure_you_want_to_change_this_member_s_role_from": "Bạn có chắc chắn muốn thay đổi vai trò của thành viên này từ",
+    "to": "thành",
+    "confirm": "Xác nhận"
+  },
+  "memberRemoveDialog": {
+    "remove_team_member": "Xóa thành viên",
+    "description": "Không thể hoàn tác hành động này. Thao tác này sẽ xóa vĩnh viễn thành viên khỏi dự án.",
+    "confirm_text": "Để xác nhận, vui lòng nhập",
+    "cancel": "Hủy",
+    "removing": "Đang xóa",
+    "remove": "Xóa"
+  },
+  "CalendarPage": {
+    "header": {
+      "title": "Lịch",
+      "description": "Quản lý hạn chót dự án và thời gian của bạn",
+      "today": "Hôm nay"
+    },
+    "weekdays": {
+      "full": "CN,T2,T3,T4,T5,T6,T7",
+      "short": "CN,T2,T3,T4,T5,T6,T7"
+    },
+    "noCalendarData": "Không có dữ liệu lịch",
+    "calendar": "Lịch",
+    "deadlines": "Hạn chót",
+    "upcomingDeadlines": "Hạn chót sắp tới",
+    "all": "Tất cả",
+    "project": "Dự án",
+    "task": "Công việc",
+    "day": "ngày",
+    "noDeadlines": "Bạn không có hạn chót nào trong khoảng thời gian đã chọn.",
+    "noProjectDeadlines": "Không có hạn chót dự án trong khoảng thời gian đã chọn.",
+    "noTaskDeadlines": "Không có hạn chót công việc trong khoảng thời gian đã chọn.",
+    "noDeadlinesTitle": "Không có hạn chót",
+    "filter": "Lọc",
+    "eventTypes": {
+      "projectStart": "Ngày bắt đầu dự án",
+      "projectDue": "Ngày hết hạn dự án",
+      "taskDue": "Ngày hết hạn công việc",
+      "event": "Sự kiện"
+    },
+    "navigation": {
+      "view": "Xem",
+      "goTo": "Đi đến",
+      "project": "Dự án",
+      "task": "Công việc"
+    },
+    "dialog": {
+      "today": "Hôm nay",
+      "events": "Sự kiện",
+      "noEvents": "Không có sự kiện cho ngày này",
+      "project": "Dự án",
+      "task": "Công việc"
+    },
+    "deadline": {
+      "overdue": "Quá hạn",
+      "timeframePlaceholder": "Khoảng thời gian",
+      "tomorrow": "Ngày mai",
+      "today": "Hôm nay"
+    }
+  },
+  "ActivityFeed": {
+    "createdProject": "Tạo dự án",
+    "added": "Thêm",
+    "toProject": "vào dự án",
+    "as": "với vai trò",
+    "createdTask": "Tạo công việc",
+    "inProject": "trong dự án",
+    "updatedTask": "Cập nhật công việc",
+    "from": "từ",
+    "to": "đến",
+    "completedTask": "Hoàn thành công việc",
+    "updatedProject": "Cập nhật dự án",
+    "activityInProject": "Hoạt động trong dự án",
+    "aNewUser": "một người dùng mới"
+  },
+  "ProfilePage": {
+    "header": {
+      "title": "Hồ sơ của tôi",
+      "description": "Quản lý thông tin cá nhân và tùy chọn của bạn",
+      "saveButton": "Lưu thay đổi",
+      "saving": "Đang lưu"
+    },
+    "tabs": {
+      "profile": "Thông tin cá nhân",
+      "settings": "Cài đặt tài khoản"
+    },
+    "sidebar": {
+      "title": "Ảnh đại diện",
+      "description": "Ảnh đại diện của bạn sẽ hiển thị với các thành viên trong nhóm",
+      "uploadInstruction": "Nhấp vào ảnh đại diện để tải lên hình ảnh mới. JPG, GIF hoặc PNG. Tối đa 1MB.",
+      "accountSummary": "Tóm tắt tài khoản",
+      "memberSince": "Thành viên từ",
+      "projects": "Dự án"
+    },
+    "imageUpload": {
+      "changePhoto": "Đổi ảnh đại diện",
+      "title": "Ảnh hồ sơ",
+      "description": "Tải lên ảnh hồ sơ chuyên nghiệp",
+      "saving": "Đang lưu ảnh hồ sơ của bạn...",
+      "uploading": "Đang tải lên... {progress}%",
+      "removeTitle": "Xóa ảnh đại diện?",
+      "removeDescription": "Thao tác này sẽ xóa ảnh đại diện hiện tại của bạn và thay thế bằng tên viết tắt của bạn. Hành động này không thể hoàn tác.",
+      "cancel": "Hủy",
+      "remove": "Xóa",
+      "previewText": "Ảnh này trông thế nào?",
+      "setAsProfile": "Đặt làm ảnh đại diện",
+      "removePhoto": "Xóa ảnh",
+      "format": "JPEG, PNG, hoặc GIF (tối đa 1MB)",
+      "success": "Cập nhật ảnh đại diện thành công!",
+      "removedSuccess": "Đã xóa ảnh đại diện thành công!",
+      "error": "Không thể cập nhật ảnh đại diện",
+      "uploadError": "Tải lên thất bại: {error}"
+    },
+    "personalInfo": {
+      "title": "Thông tin cá nhân",
+      "description": "Cập nhật thông tin cá nhân hiển thị với các thành viên trong nhóm",
+      "fullName": "Họ và tên",
+      "fullNamePlaceholder": "Họ và tên của bạn",
+      "email": "Email",
+      "emailPlaceholder": "Địa chỉ email của bạn",
+      "emailHelper": "Địa chỉ email của bạn được sử dụng để đăng nhập và không thể thay đổi.",
+      "jobTitle": "Chức danh",
+      "jobTitlePlaceholder": "Chức danh của bạn",
+      "department": "Phòng ban",
+      "departmentPlaceholder": "Phòng ban của bạn",
+      "skills": "Kỹ năng & Chuyên môn",
+      "skillsPlaceholder": "Kỹ năng của bạn (phân cách bằng dấu phẩy)",
+      "skillsHelper": "Liệt kê các kỹ năng liên quan đến cộng tác dự án (ví dụ: Thiết kế UI, JavaScript, Quản lý dự án)",
+      "bio": "Tiểu sử",
+      "bioPlaceholder": "Giới thiệu với các thành viên trong nhóm về nền tảng chuyên môn và kinh nghiệm của bạn"
+    },
+    "accountActions": {
+      "title": "Thao tác tài khoản",
+      "description": "Quản lý cài đặt tài khoản và dữ liệu của bạn",
+      "exportTitle": "Xuất dữ liệu của bạn",
+      "exportDescription": "Tải xuống bản sao dữ liệu cá nhân của bạn, bao gồm thông tin hồ sơ, các dự án bạn đã tạo và các công việc được giao.",
+      "exportButton": "Xuất dữ liệu",
+      "exportComingSoon": "Tính năng Xuất dữ liệu sắp ra mắt!",
+      "deleteTitle": "Xóa tài khoản",
+      "deleteDescription": "Xóa vĩnh viễn tài khoản của bạn và tất cả dữ liệu liên quan. Hành động này không thể hoàn tác.",
+      "deleteButton": "Xóa tài khoản"
+    },
+    "deleteDialog": {
+      "title": "Xóa tài khoản",
+      "description": "Hành động này là vĩnh viễn và không thể hoàn tác. Tất cả dữ liệu của bạn sẽ bị xóa.",
+      "confirmInstruction": "Vui lòng nhập \"delete my account\" để xác nhận:",
+      "confirmPlaceholder": "delete my account",
+      "preventAccidental": "Điều này giúp ngăn chặn việc xóa tài khoản do nhầm lẫn",
+      "verifyIdentity": "Xác minh danh tính của bạn",
+      "verifyPasswordDesc": "Để bảo mật, chúng tôi cần xác minh danh tính của bạn. Bạn có thể nhập mật khẩu hoặc xác minh qua email.",
+      "verifySocialDesc": "Vì bạn đăng nhập bằng tài khoản xã hội, chúng tôi cần xác minh email của bạn trước khi xóa tài khoản.",
+      "optionPassword": "Tùy chọn 1: Nhập mật khẩu của bạn",
+      "passwordPlaceholder": "Mật khẩu hiện tại của bạn",
+      "optionEmail": "Tùy chọn 2: Xác minh qua email",
+      "sendCode": "Gửi mã xác minh đến email",
+      "sending": "Đang gửi...",
+      "codeSent": "Mã xác minh đã được gửi đến email của bạn.",
+      "codeExpires": "Mã hết hạn lúc: {time}",
+      "codePlaceholder": "Mã 6 chữ số",
+      "verify": "Xác minh",
+      "resend": "Gửi lại mã",
+      "verified": "Email đã được xác minh thành công",
+      "cancel": "Hủy",
+      "deleteButton": "Xóa tài khoản vĩnh viễn",
+      "deleting": "Đang xóa...",
+      "errorMatch": "Vui lòng nhập 'delete my account' để xác nhận",
+      "errorAuth": "Vui lòng nhập mật khẩu hoặc xác minh email của bạn",
+      "errorVerify": "Vui lòng xác minh email của bạn trước khi xóa tài khoản",
+      "success": "Đã xóa tài khoản thành công"
+    },
+    "collaboration": {
+      "title": "Tùy chọn cộng tác",
+      "description": "Thiết lập tùy chọn của bạn cho cộng tác dự án",
+      "loading": "Đang tải tùy chọn của bạn...",
+      "defaultRoleTitle": "Vai trò dự án mặc định",
+      "defaultRoleDesc": "Khi bạn tạo một dự án mới, bạn sẽ tự động được gán vai trò Quản trị viên. Khi được mời vào các dự án, bạn sẽ được gán vai trò do quản trị viên dự án thiết lập.",
+      "assignmentTitle": "Tùy chọn giao việc",
+      "autoAccept": "Tự động chấp nhận giao việc",
+      "taskReminders": "Nhận thông báo nhắc nhở công việc",
+      "localTimezone": "Hiển thị hạn chót theo múi giờ địa phương của tôi",
+      "error": "Không thể cập nhật cài đặt. Vui lòng thử lại."
+    },
+    "notifications": {
+      "title": "Tùy chọn thông báo",
+      "description": "Quản lý cách thức và thời điểm bạn nhận thông báo",
+      "loading": "Đang tải tùy chọn của bạn...",
+      "emailTitle": "Thông báo qua Email",
+      "emailDesc": "Chọn các thông báo email bạn muốn nhận.",
+      "projectInvitations": "Lời mời dự án",
+      "projectInvitationsDesc": "Nhận email khi bạn được mời tham gia dự án",
+      "taskAssignments": "Giao việc",
+      "taskAssignmentsDesc": "Nhận email khi bạn được giao một công việc",
+      "dueDateReminders": "Nhắc nhở hạn chót công việc",
+      "dueDateRemindersDesc": "Nhận email khi một công việc sắp đến hạn",
+      "comments": "Bình luận",
+      "commentsDesc": "Nhận email khi có người bình luận về công việc của bạn",
+      "inAppTitle": "Thông báo trong ứng dụng",
+      "inAppDesc": "Chọn các thông báo bạn muốn xem trong ứng dụng.",
+      "projectUpdates": "Cập nhật dự án",
+      "projectUpdatesDesc": "Nhận thông báo về các thay đổi đối với các dự án bạn là thành viên",
+      "roleChanges": "Thay đổi vai trò",
+      "roleChangesDesc": "Nhận thông báo khi vai trò của bạn trong dự án thay đổi",
+      "error": "Không thể cập nhật cài đặt. Vui lòng thử lại."
+    },
+    "security": {
+      "title": "Cài đặt bảo mật",
+      "description": "Quản lý mật khẩu và tùy chọn bảo mật của bạn",
+      "changePassword": "Đổi mật khẩu",
+      "changePasswordDesc": "Cập nhật mật khẩu của bạn để giữ an toàn cho tài khoản. Mật khẩu phải dài ít nhất 8 ký tự.",
+      "currentPassword": "Mật khẩu hiện tại",
+      "currentPasswordPlaceholder": "Nhập mật khẩu hiện tại của bạn",
+      "newPassword": "Mật khẩu mới",
+      "newPasswordPlaceholder": "Nhập mật khẩu mới của bạn",
+      "confirmPassword": "Xác nhận mật khẩu mới",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu mới của bạn",
+      "updateButton": "Cập nhật mật khẩu",
+      "updating": "Đang cập nhật...",
+      "strength": {
+        "enter": "Nhập mật khẩu",
+        "weak": "Mật khẩu yếu",
+        "medium": "Mật khẩu trung bình",
+        "strong": "Mật khẩu mạnh"
+      },
+      "twoFactorTitle": "Xác thực hai yếu tố",
+      "twoFactorDesc": "Thêm một lớp bảo mật bổ sung cho tài khoản của bạn bằng cách bật xác thực hai yếu tố.",
+      "enableTwoFactor": "Bật xác thực hai yếu tố",
+      "twoFactorComingSoon": "Tính năng Xác thực hai yếu tố sắp ra mắt!"
+    }
+  },
+  "Footer": {
+    "brand": "Nexus",
+    "description": "Hợp lý hóa quy trình làm việc của nhóm bạn với nền tảng quản lý dự án trực quan của chúng tôi. Tạo dự án, quản lý tác vụ và cộng tác hiệu quả.",
+    "subscribe": {
+      "title": "Đăng ký nhận bản tin",
+      "placeholder": "Nhập email của bạn",
+      "button": "Đăng ký",
+      "success": "Đã đăng ký!"
+    },
+    "product": {
+      "title": "Sản phẩm",
+      "features": "Tính năng",
+      "pricing": "Bảng giá",
+      "roadmap": "Lộ trình",
+      "documentation": "Tài liệu"
+    },
+    "company": {
+      "title": "Công ty",
+      "about": "Về chúng tôi",
+      "blog": "Blog",
+      "careers": "Tuyển dụng",
+      "contact": "Liên hệ"
+    },
+    "legal": {
+      "title": "Pháp lý",
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật",
+      "cookie": "Chính sách Cookie",
+      "dataProcessing": "Xử lý dữ liệu"
+    }
+  },
+  "UserDropdown": {
+    "profile": "Thông tin cá nhân",
+    "settings": "Cài đặt",
+    "dashboard": "Bảng điều khiển",
+    "signOut": "Đăng xuất"
+  },
+  "TeamPage": {
+    "header": {
+      "title": "Thành viên nhóm",
+      "description": "Những người bạn đã cộng tác trong các dự án"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm thành viên..."
+    },
+    "filter": {
+      "projectPlaceholder": "Lọc theo dự án",
+      "allProjects": "Tất cả dự án",
+      "rolePlaceholder": "Lọc theo vai trò",
+      "allRoles": "Tất cả vai trò",
+      "roles": {
+        "ADMIN": "Quản trị viên",
+        "EDITOR": "Biên tập viên",
+        "MEMBER": "Thành viên"
+      }
+    },
+    "list": {
+      "empty": "Bạn chưa cộng tác với ai",
+      "noResults": "Không có kết quả phù hợp với bộ lọc hiện tại",
+      "unnamedUser": "Người dùng không tên",
+      "projectsCount": "{count} dự án",
+      "projectsCount_plural": "{count} dự án"
+    },
+    "actions": {
+      "message": "Nhắn tin",
+      "email": "Email",
+      "addToProject": "Thêm vào dự án"
+    },
+    "toast": {
+      "loadError": "Không thể tải danh sách thành viên"
+    }
+  },
+  "UserProfilePage": {
+    "userNotFound": "Không tìm thấy người dùng",
+    "error": "Lỗi",
+    "userNotFoundDescription": "Người dùng bạn đang tìm kiếm không tồn tại hoặc không khả dụng.",
+    "loadErrorDescription": "Không thể tải hồ sơ người dùng. Vui lòng thử lại sau.",
+    "unnamedUser": "Người dùng không tên",
+    "at": "tại",
+    "about": "Giới thiệu",
+    "noBio": "Người dùng này chưa thêm tiểu sử.",
+    "skills": "Kỹ năng & Chuyên môn",
+    "sharedProjects": "Dự án chung",
+    "noSharedProjects": "Bạn chưa có dự án chung nào với người dùng này.",
+    "memberInfo": "Thông tin thành viên",
+    "memberSince": "Tham gia từ",
+    "projects": "Dự án",
+    "member": "{count} thành viên",
+    "members": "{count} thành viên"
+  },
+  "MeetingPage": {
+    "preJoin": {
+      "title": "Tham gia cuộc họp",
+      "enterName": "Nhập tên của bạn",
+      "joinRoom": "Tham gia phòng",
+      "camera": "Camera",
+      "microphone": "Micrô",
+      "loading": "Đang tải..."
+    },
+    "errors": {
+      "unauthorized": "Bạn không có quyền tham gia cuộc họp này. Vui lòng đăng nhập hoặc đảm bảo bạn là thành viên của dự án này.",
+      "joinFailed": "Không thể tham gia cuộc họp: {error}",
+      "encryptionNotSupported": "Bạn đang cố gắng tham gia cuộc họp được mã hóa, nhưng trình duyệt của bạn không hỗ trợ. Vui lòng cập nhật lên phiên bản mới nhất và thử lại.",
+      "unexpectedError": "Đã xảy ra lỗi không mong muốn, kiểm tra nhật ký console để biết chi tiết: {error}",
+      "encryptionError": "Đã xảy ra lỗi mã hóa không mong muốn, kiểm tra nhật ký console để biết chi tiết: {error}"
+    },
+    "warnings": {
+      "lowPowerMode": "Chế độ tiết kiệm năng lượng đã bật"
+    }
+  },
+  "MeetingsPage": {
+    "title": "Cuộc họp",
+    "subtitle": "Tạo hoặc tham gia cuộc họp video với nhóm của bạn",
+    "startMeeting": {
+      "title": "Bắt đầu cuộc họp",
+      "titleActive": "Tham gia cuộc họp đang diễn ra",
+      "description": "Chọn một dự án để bắt đầu cuộc họp",
+      "descriptionActive": "Có một cuộc họp đang diễn ra cho dự án này.",
+      "projectLabel": "Dự án",
+      "refreshStatus": "Làm mới trạng thái",
+      "loadingProjects": "Đang tải dự án...",
+      "selectProject": "Chọn một dự án",
+      "noProjects": "Không tìm thấy dự án",
+      "startButton": "Bắt đầu cuộc họp",
+      "joinButton": "Tham gia cuộc họp",
+      "joinHint": "Nhấp vào tham gia sẽ mở cuộc họp trong tab mới.",
+      "liveNow": "Đang diễn ra",
+      "participants": "{count} người tham gia"
+    },
+    "security": {
+      "title": "Tùy chọn bảo mật",
+      "description": "Cấu hình mã hóa đầu cuối cho cuộc họp của bạn",
+      "enableE2EE": "Bật mã hóa đầu cuối",
+      "e2eeDescription": "Tất cả dữ liệu cuộc họp sẽ được mã hóa trước khi truyền",
+      "e2eeDescriptionActive": "Cài đặt bảo mật được xác định bởi người chủ trì.",
+      "passphraseLabel": "Cụm mật khẩu mã hóa",
+      "passphrasePlaceholder": "Nhập cụm mật khẩu an toàn",
+      "passphraseHint": "Chia sẻ cụm mật khẩu này một cách an toàn với những người tham gia khác",
+      "currentParticipants": "{count} người hiện đang trong cuộc họp này"
+    }
+  }
+}

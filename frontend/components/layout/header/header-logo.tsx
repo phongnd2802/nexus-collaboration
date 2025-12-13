@@ -4,7 +4,7 @@ import Link from "next/link";
 export const HeaderLogo = () => (
   <Link href="/" className="flex items-center gap-2">
     <motion.div
-      className="h-10 w-10 rounded-full bg-violet-700 flex items-center justify-center"
+      className="h-10 w-10 rounded-full bg-main flex items-center justify-center"
       whileHover={{ scale: 1.05, rotate: 360 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       whileTap={{ scale: 0.95 }}
@@ -13,8 +13,8 @@ export const HeaderLogo = () => (
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     </motion.div>
-    <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-violet-700 to-purple-600">
-      Nexus Collabration
+    <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-main to-main">
+      Nexus
     </span>
   </Link>
 );

@@ -206,7 +206,11 @@ export async function forgotPassword(email: string) {
   // Find user by email
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    throw new AppError(400, "USER_NOT_FOUND", "Invalid or expired reset token");
+    throw new AppError(400, "INVALID_EMAIL", "Invalid email address");
+  }
+
+  if(!user.emailVerified) {
+    throw new AppError(400, "EMAIL_NOT_VERIFIED", "Email not verified. Cannot reset password.");
   }
 
   // Check if user has a password set

@@ -505,6 +505,7 @@ export async function canCompleteTask(
       select: {
         assigneeId: true,
         status: true,
+        projectId: true,
       },
     });
 
@@ -512,17 +513,37 @@ export async function canCompleteTask(
       return { allowed: false, reason: "Task not found" };
     }
 
-    if (task.assigneeId !== userId) {
-      return {
-        allowed: false,
-        reason: "Only the assigned user can add completion details",
-      };
-    }
-
     if (task.status !== "DONE") {
       return {
         allowed: false,
         reason: "Task must be marked as done before adding completion details",
+      };
+    }
+
+    // Check if user is the assignee
+    const isAssignee = task.assigneeId === userId;
+
+    // Check if user is the project admin or creator
+    const project = await prisma.project.findUnique({
+      where: { id: task.projectId },
+      select: {
+        creatorId: true,
+        members: {
+          where: { userId },
+          select: { role: true },
+        },
+      },
+    });
+
+    const isProjectCreator = project?.creatorId === userId;
+    const isProjectAdmin = project?.members.some(
+      member => member.role === "ADMIN"
+    );
+
+    if (!isAssignee && !isProjectCreator && !isProjectAdmin) {
+      return {
+        allowed: false,
+        reason: "Only the assignee or project admin can add completion details",
       };
     }
 
@@ -733,4 +754,112 @@ export async function canUpdatePassword(
     debugError("Error checking password update permissions:", error);
     return { allowed: false, reason: "Permission check failed" };
   }
+}
+
+/**
+ * Check if user can create a task link (assignee, admin, editor, creator)
+ */
+export async function canCreateTaskLink(
+  taskId: string,
+  userId: string
+): Promise<{ allowed: boolean; reason?: string }> {
+  try {
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        project: {
+          include: {
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return { allowed: false, reason: "Task not found" };
+    }
+
+    // Check if user is the assignee
+    if (task.assigneeId === userId) {
+      return { allowed: true };
+    }
+
+    // Check if user has higher privileges (Admin, Editor, Creator)
+    const isTaskCreator = task.creatorId === userId;
+    const isProjectCreator = task.project.creatorId === userId;
+    const member = task.project.members.find((m: any) => m.userId === userId);
+    const isAdmin = member?.role === "ADMIN";
+    const isEditor = member?.role === "EDITOR";
+
+    if (isTaskCreator || isProjectCreator || isAdmin || isEditor) {
+      return { allowed: true };
+    }
+
+    return {
+      allowed: false,
+      reason: "Only the task assignee or project admins can link tasks",
+    };
+  } catch (error) {
+    debugError("Error checking task link creation permissions:", error);
+    return { allowed: false, reason: "Permission check failed" };
+  }
+}
+
+/**
+ * Check if user can create a subtask (assignee, admin, editor, creator)
+ */
+export async function canCreateSubtask(
+  taskId: string,
+  userId: string
+): Promise<{ allowed: boolean; reason?: string }> {
+  try {
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        project: {
+          include: {
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return { allowed: false, reason: "Task not found" };
+    }
+
+    // Check if user is the assignee
+    if (task.assigneeId === userId) {
+      return { allowed: true };
+    }
+
+    // Check if user has higher privileges (Admin, Editor, Creator)
+    const isTaskCreator = task.creatorId === userId;
+    const isProjectCreator = task.project.creatorId === userId;
+    const member = task.project.members.find((m: any) => m.userId === userId);
+    const isAdmin = member?.role === "ADMIN";
+    const isEditor = member?.role === "EDITOR";
+
+    if (isTaskCreator || isProjectCreator || isAdmin || isEditor) {
+      return { allowed: true };
+    }
+
+    return {
+      allowed: false,
+      reason: "Only the task assignee or project admins can create subtasks",
+    };
+  } catch (error) {
+    debugError("Error checking subtask creation permissions:", error);
+    return { allowed: false, reason: "Permission check failed" };
+  }
+}
+
+/**
+ * Check if user can view a project (member or creator)
+ */
+export async function canViewProject(
+  projectId: string,
+  userId: string
+): Promise<boolean> {
+  return isProjectMember(projectId, userId);
 }

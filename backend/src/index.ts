@@ -17,7 +17,7 @@ import calendarRouter from "./routes/calendar";
 import collaboratorsRouter from "./routes/collaborators";
 import messagesRouter from "./routes/messages";
 import teamMessagesRouter from "./routes/teamMessages";
-import testRouter from "./routes/test"; // Test endpoints
+import exportRouter from "./routes/export";
 import { debugError } from "./utils/debug";
 
 // middleware
@@ -47,7 +47,7 @@ import { isAppError } from "./utils/errors";
 
 const app = express();
 const server = http.createServer(app);
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 // Socket.io server
 const io = createSocketServer(server);
@@ -66,7 +66,7 @@ app.use(
       process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
   })
 );
 
@@ -112,6 +112,7 @@ app.use("/api/calendar", calendarRouter);
 app.use("/api/collaborators", collaboratorsRouter);
 app.use("/api/messages", messageRateLimit, messagesRouter);
 app.use("/api/team-messages", messageRateLimit, teamMessagesRouter);
+app.use("/api/export", exportRouter);
 
 // Centralized error handler
 const errorHandler = (

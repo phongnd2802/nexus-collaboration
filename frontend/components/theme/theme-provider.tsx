@@ -10,7 +10,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       {...props}
       enableSystem={true}
       enableColorScheme={true}
-      storageKey="nudge-theme"
+      storageKey="nexus-theme"
     >
       {children}
     </NextThemesProvider>

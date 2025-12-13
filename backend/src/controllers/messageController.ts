@@ -33,7 +33,6 @@ export const getConversationsBetweenUsersController = async (
       otherUserId
     );
 
-    // we notify the other user that their messages have been read via Socket.io
     const io = req.app.get("io");
     if (io) {
       io.to(`user:${otherUserId}`).emit("messages_read", {
@@ -51,8 +50,7 @@ export async function sendMessageController(req: Request, res: Response) {
   try {
     const { senderId, receiverId, content } = req.body;
 
-    const message = await sendMessage(senderId, receiverId, content);
-    // Socket.io to notify clients
+    const message = await sendMessage(senderId, receiverId, content);    // Socket.io to notify clients
     const io = req.app.get("io");
     if (io) {
       io.to(`user:${senderId}`)

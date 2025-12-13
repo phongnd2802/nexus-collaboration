@@ -12,9 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useUserSettings } from "@/components/context/user-settings-context";
 import { CustomToggle } from "@/components/ui/custom-toggle";
+import { useTranslations } from "next-intl";
 
 export function NotificationPreferences() {
   const { settings, updateSetting, isLoading } = useUserSettings();
+  const t = useTranslations("ProfilePage.notifications");
 
   // Email notifications
   const [emailInvitations, setEmailInvitations] = useState(
@@ -47,7 +49,7 @@ export function NotificationPreferences() {
   // debugInfo is used to track the number of renders and the last action taken
   useEffect(() => {
     if (settings) {
-      setDebugInfo((prev) => ({
+      setDebugInfo(prev => ({
         renderCount: prev.renderCount + 1,
         lastAction: "settings-changed",
       }));
@@ -73,7 +75,7 @@ export function NotificationPreferences() {
       return async (checked: boolean) => {
         stateSetter(checked);
 
-        setDebugInfo((prev) => ({
+        setDebugInfo(prev => ({
           renderCount: prev.renderCount + 1,
           lastAction: `${settingKey}-changed-to-${checked}`,
         }));
@@ -123,15 +125,15 @@ export function NotificationPreferences() {
   );
 
   useEffect(() => {
-    setDebugInfo((prev) => ({ ...prev, renderCount: prev.renderCount + 1 }));
+    setDebugInfo(prev => ({ ...prev, renderCount: prev.renderCount + 1 }));
   }, []);
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Notification Preferences</CardTitle>
-          <CardDescription>Loading your preferences...</CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("loading")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-40 flex items-center justify-center">
@@ -145,24 +147,22 @@ export function NotificationPreferences() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Notification Preferences</CardTitle>
-        <CardDescription>
-          Manage how and when you receive notifications
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div className="space-y-2">
-            <h3 className="text-lg font-medium">Email Notifications</h3>
-            <p className="text-sm text-muted-foreground">
-              Choose which email notifications you'd like to receive.
-            </p>
+            <h3 className="text-lg font-medium">{t("emailTitle")}</h3>
+            <p className="text-sm text-muted-foreground">{t("emailDesc")}</p>
             <div className="grid grid-cols-1 gap-4 pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium">Project Invitations</h4>
+                  <h4 className="text-sm font-medium">
+                    {t("projectInvitations")}
+                  </h4>
                   <p className="text-xs text-muted-foreground">
-                    Receive emails when you're invited to join a project
+                    {t("projectInvitationsDesc")}
                   </p>
                 </div>
                 <CustomToggle
@@ -175,9 +175,11 @@ export function NotificationPreferences() {
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium">Task Assignments</h4>
+                  <h4 className="text-sm font-medium">
+                    {t("taskAssignments")}
+                  </h4>
                   <p className="text-xs text-muted-foreground">
-                    Receive emails when you are assigned to a task
+                    {t("taskAssignmentsDesc")}
                   </p>
                 </div>
                 <CustomToggle
@@ -191,10 +193,10 @@ export function NotificationPreferences() {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-medium">
-                    Task Due Date Reminders
+                    {t("dueDateReminders")}
                   </h4>
                   <p className="text-xs text-muted-foreground">
-                    Receive emails when a task is approaching its due date
+                    {t("dueDateRemindersDesc")}
                   </p>
                 </div>
                 <CustomToggle
@@ -207,9 +209,9 @@ export function NotificationPreferences() {
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium">Comments</h4>
+                  <h4 className="text-sm font-medium">{t("comments")}</h4>
                   <p className="text-xs text-muted-foreground">
-                    Receive emails when someone comments on your tasks
+                    {t("commentsDesc")}
                   </p>
                 </div>
                 <CustomToggle
@@ -225,17 +227,14 @@ export function NotificationPreferences() {
           <Separator />
 
           <div className="space-y-2">
-            <h3 className="text-lg font-medium">In-App Notifications</h3>
-            <p className="text-sm text-muted-foreground">
-              Choose which notifications you'd like to see within the app.
-            </p>
+            <h3 className="text-lg font-medium">{t("inAppTitle")}</h3>
+            <p className="text-sm text-muted-foreground">{t("inAppDesc")}</p>
             <div className="grid grid-cols-1 gap-4 pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium">Project Updates</h4>
+                  <h4 className="text-sm font-medium">{t("projectUpdates")}</h4>
                   <p className="text-xs text-muted-foreground">
-                    Receive notifications about changes to projects you're a
-                    member of
+                    {t("projectUpdatesDesc")}
                   </p>
                 </div>
                 <CustomToggle
@@ -248,9 +247,9 @@ export function NotificationPreferences() {
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium">Role Changes</h4>
+                  <h4 className="text-sm font-medium">{t("roleChanges")}</h4>
                   <p className="text-xs text-muted-foreground">
-                    Receive notifications when your role in a project changes
+                    {t("roleChangesDesc")}
                   </p>
                 </div>
                 <CustomToggle

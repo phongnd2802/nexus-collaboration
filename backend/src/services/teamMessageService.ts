@@ -63,7 +63,7 @@ export async function getProjectsByUser(userId: string) {
       image: null,
       memberCount: project.members.length,
       lastMessageAt: lastMessage ? lastMessage.createdAt : project.updatedAt,
-      lastMessageContent: lastMessage ? lastMessage.content : "No messages yet",
+      lastMessageContent: lastMessage ? lastMessage.content : "",
       lastMessageSender: lastMessage ? lastMessage.user : null,
       unreadCount: 0,
     };

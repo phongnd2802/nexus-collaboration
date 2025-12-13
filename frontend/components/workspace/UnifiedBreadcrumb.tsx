@@ -21,9 +21,12 @@ import {
   UsersIcon,
   UserIcon,
   SettingsIcon,
+  VideoIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function UnifiedBreadcrumb() {
+  const t = useTranslations("UnifiedBreadcrumb");
   const pathname = usePathname();
   const params = useParams();
   const [projectName, setProjectName] = useState<string | null>(null);
@@ -33,8 +36,10 @@ export function UnifiedBreadcrumb() {
   const segments = pathname.split("/").filter(Boolean);
   const projectId = params?.id as string;
   const taskId = params?.taskId as string;
+  const locale = params?.locale as string;
 
-  const showBreadcrumbs = pathname !== "/dashboard" && pathname !== "/messages";
+  const showBreadcrumbs =
+    pathname !== `/${locale}/dashboard` && pathname !== `/${locale}/messages`;
 
   useEffect(() => {
     setProjectName(null);
@@ -101,6 +106,8 @@ export function UnifiedBreadcrumb() {
         return <UserIcon className="h-4 w-4 mr-1" />;
       case "settings":
         return <SettingsIcon className="h-4 w-4 mr-1" />;
+      case "meetings":
+        return <VideoIcon className="h-4 w-4 mr-1" />;
       case "create":
         return <PlusIcon className="h-4 w-4 mr-1" />;
       default:
@@ -109,7 +116,26 @@ export function UnifiedBreadcrumb() {
   };
 
   const formatSegmentName = (segment: string) => {
-    if (segment === "taskId") return "Task";
+    if (segment === "taskId") return t("taskDetails");
+
+    const translationKey = segment.replace(/-/g, "") as any;
+
+    // List of known static segments that we have translations for
+    const knownSegments = [
+      "dashboard",
+      "projects",
+      "tasks",
+      "calendar",
+      "team",
+      "profile",
+      "settings",
+      "meetings",
+      "create",
+    ];
+
+    if (knownSegments.includes(segment)) {
+      return t(segment);
+    }
 
     return (
       segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")
@@ -124,7 +150,7 @@ export function UnifiedBreadcrumb() {
             <Link href="/dashboard" className="flex items-center">
               <HomeIcon className="h-4 w-4 mr-1" />
               <span className="sr-only md:not-sr-only md:inline-block">
-                Dashboard
+                {t("dashboard")}
               </span>
             </Link>
           </BreadcrumbLink>
@@ -132,6 +158,7 @@ export function UnifiedBreadcrumb() {
 
         {segments.map((segment, index) => {
           if (segment === "(workspace)") return null;
+          if (segment === locale) return null;
 
           if (
             segment === "id" ||
@@ -178,21 +205,26 @@ export function UnifiedBreadcrumb() {
                 <BreadcrumbLink asChild>
                   <Link
                     href={`/projects/${projectId}`}
-                    className="flex items-center"
+                    className="flex items-center min-w-0" /* cho phép con co nhỏ */
                   >
                     {isLoading ? (
                       <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
                     ) : (
-                      projectName || "Project Details"
+                      /* wrapper có truncate và max width */
+                      <span className="block truncate max-w-[12rem] sm:max-w-[20rem]">
+                        {projectName || t("projectDetails")}
+                      </span>
                     )}
                   </Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage className="flex items-center">
+                <BreadcrumbPage className="flex items-center min-w-0">
                   {isLoading ? (
                     <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
                   ) : (
-                    projectName || "Project Details"
+                    <span className="block truncate max-w-[12rem] sm:max-w-[20rem]">
+                      {projectName || t("projectDetails")}
+                    </span>
                   )}
                 </BreadcrumbPage>
               )}
@@ -210,7 +242,7 @@ export function UnifiedBreadcrumb() {
                 {isLoading ? (
                   <span className="h-4 w-20 bg-muted rounded animate-pulse"></span>
                 ) : (
-                  taskName || "Task Details"
+                  taskName || t("taskDetails")
                 )}
               </BreadcrumbPage>
             </BreadcrumbItem>
@@ -225,7 +257,7 @@ export function UnifiedBreadcrumb() {
                 <BreadcrumbItem>
                   <BreadcrumbPage className="flex items-center">
                     <PlusIcon className="h-4 w-4 mr-1" />
-                    Create Project
+                    {t("createProject")}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </>
@@ -237,7 +269,7 @@ export function UnifiedBreadcrumb() {
                 <BreadcrumbItem>
                   <BreadcrumbPage className="flex items-center">
                     <PlusIcon className="h-4 w-4 mr-1" />
-                    Create Task
+                    {t("createTask")}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </>

@@ -23,18 +23,25 @@ const publicPaths = [
   "/auth/verify-email",
 ];
 
+import createMiddleware from 'next-intl/middleware';
+import {routing} from './i18n/routing';
+
+const handleI18nRouting = createMiddleware(routing);
+
 // Check if the path is protected (requires auth)
 function isProtected(path: string) {
+  const pathWithoutLocale = path.replace(/^\/(en|vi)/, "") || "/";
   return protectedPaths.some(
     (protectedPath) =>
-      path === protectedPath || path.startsWith(`${protectedPath}/`)
+      pathWithoutLocale === protectedPath || pathWithoutLocale.startsWith(`${protectedPath}/`)
   );
 }
 
 // Check if the path is public (no auth required)
 function isPublic(path: string) {
+  const pathWithoutLocale = path.replace(/^\/(en|vi)/, "") || "/";
   return publicPaths.some(
-    (publicPath) => path === publicPath || path.startsWith(`${publicPath}/`)
+    (publicPath) => pathWithoutLocale === publicPath || pathWithoutLocale.startsWith(`${publicPath}/`)
   );
 }
 
@@ -56,7 +63,10 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Redirection logic
+  // 1. Handle i18n routing
+  const response = handleI18nRouting(request);
+
+  // 2. Auth check
   if (isProtected(pathname) && !token) {
     return NextResponse.redirect(
       new URL(
@@ -70,9 +80,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/", "/(en|vi)/:path*", "/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

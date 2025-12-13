@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Activity } from "@/types/index";
+import { useTranslations } from "next-intl";
 
 interface ActivityMessageProps {
   activity: Activity;
@@ -14,13 +15,14 @@ const ActivityLink = ({
 }) => (
   <Link
     href={href}
-    className="text-violet-700 hover:underline font-medium dark:text-violet-400"
+    className="text-main hover:underline font-medium dark:text-main"
   >
     {children}
   </Link>
 );
 
 export function ActivityMessage({ activity }: ActivityMessageProps) {
+  const t = useTranslations("ActivityFeed");
   const {
     type,
     projectId,
@@ -35,7 +37,7 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
     case "PROJECT_CREATED":
       return (
         <span>
-          Created project{" "}
+          {t("createdProject")}{" "}
           <ActivityLink href={`/projects/${projectId}`}>
             {projectName}
           </ActivityLink>
@@ -45,18 +47,18 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
     case "MEMBER_ADDED":
       return (
         <span>
-          Added{" "}
+          {t("added")}{" "}
           <span className="font-medium">
-            {targetUser?.name || "a new user"}
+            {targetUser?.name || t("aNewUser")}
           </span>{" "}
-          to project{" "}
+          {t("toProject")}{" "}
           <ActivityLink href={`/projects/${projectId}`}>
             {projectName}
           </ActivityLink>
           {details?.role && (
             <span className="text-muted-foreground">
               {" "}
-              as {details.role.toLowerCase()}
+              {t("as")} {details.role.toLowerCase()}
             </span>
           )}
         </span>
@@ -65,9 +67,9 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
     case "TASK_CREATED":
       return (
         <span>
-          Created task{" "}
+          {t("createdTask")}{" "}
           <ActivityLink href={`/tasks/${entityId}`}>{entityTitle}</ActivityLink>{" "}
-          in project{" "}
+          {t("inProject")}{" "}
           <ActivityLink href={`/projects/${projectId}`}>
             {projectName}
           </ActivityLink>
@@ -77,16 +79,16 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
     case "TASK_UPDATED":
       return (
         <span>
-          Updated task{" "}
+          {t("updatedTask")}{" "}
           <ActivityLink href={`/tasks/${entityId}`}>{entityTitle}</ActivityLink>
           {details?.oldStatus && details?.newStatus && (
             <span>
               {" "}
-              from{" "}
+              {t("from")}{" "}
               <span className="font-medium">
                 {details.oldStatus.toLowerCase()}
               </span>{" "}
-              to{" "}
+              {t("to")}{" "}
               <span className="font-medium">
                 {details.newStatus.toLowerCase()}
               </span>
@@ -98,9 +100,9 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
     case "TASK_COMPLETED":
       return (
         <span>
-          Completed task{" "}
+          {t("completedTask")}{" "}
           <ActivityLink href={`/tasks/${entityId}`}>{entityTitle}</ActivityLink>{" "}
-          in project{" "}
+          {t("inProject")}{" "}
           <ActivityLink href={`/projects/${projectId}`}>
             {projectName}
           </ActivityLink>
@@ -110,14 +112,14 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
     case "PROJECT_UPDATED":
       return (
         <span>
-          Updated project{" "}
+          {t("updatedProject")}{" "}
           <ActivityLink href={`/projects/${projectId}`}>
             {projectName}
           </ActivityLink>
           {details?.status && (
             <span>
               {" "}
-              to{" "}
+              {t("to")}{" "}
               <span className="font-medium">
                 {details.status.toLowerCase()}
               </span>
@@ -127,6 +129,10 @@ export function ActivityMessage({ activity }: ActivityMessageProps) {
       );
 
     default:
-      return <span>Activity in project {projectName}</span>;
+      return (
+        <span>
+          {t("activityInProject")} {projectName}
+        </span>
+      );
   }
 }

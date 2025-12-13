@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
-import { UploadButton } from "@/lib/uploadthing";
+import S3Upload from "@/components/S3Upload";
 import { toast } from "sonner";
 import TaskAttachments from "@/components/tasks/TaskAttachments";
 
@@ -13,14 +13,14 @@ interface ProjectFileUploadProps {
 export default function ProjectFileUpload({
   files,
   setFiles,
-  maxFiles = 5,
+  maxFiles,
 }: ProjectFileUploadProps) {
   const [error, setError] = useState<string | null>(null);
 
   const handleRemoveFile = useCallback(
     async (fileUrl: string, fileKey: string) => {
       try {
-        const response = await fetch("/api/uploadthing/delete", {
+        const response = await fetch("/api/files/delete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileKey }),
@@ -31,7 +31,7 @@ export default function ProjectFileUpload({
           throw new Error(data.message || "Failed to delete file");
         }
 
-        setFiles(files.filter((file) => file.url !== fileUrl));
+        setFiles(files.filter(file => file.url !== fileUrl));
         toast.success("File removed successfully");
       } catch (error) {
         console.error("Error deleting file:", error);
@@ -43,23 +43,6 @@ export default function ProjectFileUpload({
 
   const handleUploadComplete = useCallback(
     (res: any) => {
-      if (files.length + res.length > maxFiles) {
-        setError(`You can only attach up to ${maxFiles} files`);
-
-        res.forEach(async (file: any) => {
-          try {
-            await fetch("/api/uploadthing/delete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ fileKey: file.key }),
-            });
-          } catch (err) {
-            console.error("Failed to delete excess file:", err);
-          }
-        });
-        return;
-      }
-
       setError(null);
       const newFiles = res.map((file: any) => ({
         name: file.name,
@@ -74,7 +57,7 @@ export default function ProjectFileUpload({
         `${res.length} file${res.length > 1 ? "s" : ""} uploaded successfully`
       );
     },
-    [files, setFiles, maxFiles]
+    [files, setFiles]
   );
 
   const handleUploadError = useCallback((error: Error) => {
@@ -85,7 +68,7 @@ export default function ProjectFileUpload({
     <div className="space-y-4">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md text-red-600 dark:text-red-400 text-sm flex items-start">
-          <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -94,20 +77,13 @@ export default function ProjectFileUpload({
         <TaskAttachments files={files} onRemoveFile={handleRemoveFile} />
       )}
 
-      {files.length < maxFiles && (
-        <div className="">
-          <UploadButton
-            endpoint="projectFile"
-            onClientUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-            appearance={{
-              button:
-                "text-white py-2 px-4 rounded-md font-medium w-full border border-muted-foreground/80 bg-black/85 hover:bg-black/80 dark:bg-muted-foreground/20 dark:hover:bg-muted-foreground/30",
-              allowedContent: "hidden",
-            }}
-          />
-        </div>
-      )}
+      <div className="">
+        <S3Upload
+          onUploadComplete={handleUploadComplete}
+          onUploadError={handleUploadError}
+          maxFiles={maxFiles}
+        />
+      </div>
     </div>
   );
 }

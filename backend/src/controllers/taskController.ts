@@ -93,8 +93,30 @@ export const updateTaskController: RequestHandler = async (
 ): Promise<any> => {
   try {
     const { taskId } = req.params as { taskId: string };
-    const updated = await updateTask(taskId, req.body);
-    return res.status(200).json(updated);
+    const result = await updateTask(taskId, req.body);
+
+    // Handle both old and new return types (though we changed service to return object)
+    const updatedTask = "updatedTask" in result ? result.updatedTask : result;
+    const cascadedTasks = "cascadedTasks" in result ? result.cascadedTasks : [];
+
+    // Emit socket events
+    const io = req.app.get("io");
+    if (io) {
+      // Emit for the main task
+      io.to(`project:${updatedTask.projectId}`).emit(
+        "task:updated",
+        updatedTask
+      );
+
+      // Emit for cascaded tasks
+      if (Array.isArray(cascadedTasks)) {
+        cascadedTasks.forEach((task: any) => {
+          io.to(`project:${task.projectId}`).emit("task:updated", task);
+        });
+      }
+    }
+
+    return res.status(200).json(updatedTask);
   } catch (err) {
     return sendError(res, err);
   }
@@ -160,7 +182,7 @@ export const getTaskFilesController: RequestHandler = async (
 export const deleteTaskFilesController: RequestHandler = async (
   req: Request,
   res: Response
-) : Promise<any> => {
+): Promise<any> => {
   try {
     const { fileId } = req.params as { fileId: string };
     const { userId } = req.body as { userId: string };
