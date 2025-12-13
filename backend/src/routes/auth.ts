@@ -28,28 +28,17 @@ authRouter.post(
   loginController
 );
 
-// POST /api/auth/oauth
 authRouter.post("/oauth", oauthController);
-
-// POST /api/auth/forgot-password
 authRouter.post("/forgot-password", forgotPasswordController);
-
-// POST /api/auth/reset-password
 authRouter.post(
   "/reset-password",
   validate(authValidation.resetPassword) as express.RequestHandler,
   resetPasswordController
 );
-
-// POST /api/auth/validate-reset-token
 authRouter.post(
   "/validate-reset-token",
   validate(authValidation.validateResetToken) as express.RequestHandler,
   validateResetTokenController
 );
-
-// POST /api/auth/verify-email
 authRouter.post("/verify-email", verifyEmailController);
-
-// POST /api/auth/resend-verification
 authRouter.post("/resend-verification", resendVerificationController);

@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PasswordForm } from "./password-form";
@@ -40,23 +41,21 @@ export function SecuritySettings({
   passwordError,
   passwordSuccess,
 }: SecuritySettingsProps) {
+  const t = useTranslations("ProfilePage.security");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Security Settings</CardTitle>
-        <CardDescription>
-          Manage your password and security preferences
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-foreground">
-              Change Password
+              {t("changePassword")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Update your password to keep your account secure. Password must be
-              at least 8 characters long.
+              {t("changePasswordDesc")}
             </p>
 
             {passwordError && (
@@ -88,20 +87,19 @@ export function SecuritySettings({
 
           <div className="space-y-2">
             <h3 className="text-lg font-medium text-foreground">
-              Two-Factor Authentication
+              {t("twoFactorTitle")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Add an extra layer of security to your account by enabling
-              two-factor authentication.
+              {t("twoFactorDesc")}
             </p>
             <Button
-              variant="outline"
+              variant="default"
               className="mt-4 border-border hover:bg-muted text-foreground"
               onClick={() => {
-                toast.success("Two-Factor Authentication coming soon!");
+                toast.success(t("twoFactorComingSoon"));
               }}
             >
-              Enable Two-Factor Authentication
+              {t("enableTwoFactor")}
             </Button>
           </div>
         </div>

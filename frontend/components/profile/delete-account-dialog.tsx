@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface DeleteAccountDialogProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export function DeleteAccountDialog({
   onOpenChange,
   hasPasswordAuth = false,
 }: DeleteAccountDialogProps) {
+  const t = useTranslations("ProfilePage.deleteDialog");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
@@ -118,7 +120,7 @@ export function DeleteAccountDialog({
       if (response.ok) {
         setVerificationStep("code_sent");
         setCodeExpiry(new Date(data.expiresAt));
-        toast.success("Verification code sent to your email");
+        toast.success(t("codeSent"));
       } else {
         setDeleteError(data.message || "Failed to send verification code");
         toast.error(data.message || "Failed to send verification code");
@@ -134,7 +136,7 @@ export function DeleteAccountDialog({
 
   const verifyCode = async () => {
     if (!verificationCode || verificationCode.length !== 6) {
-      setDeleteError("Please enter a valid 6-digit verification code");
+      setDeleteError(t("codePlaceholder"));
       return;
     }
 
@@ -155,10 +157,10 @@ export function DeleteAccountDialog({
       if (response.ok && data.verified) {
         setVerificationStep("code_verified");
         setDeleteError("");
-        toast.success("Email verified successfully");
+        toast.success(t("verified"));
       } else {
-        setDeleteError(data.message || "Invalid verification code");
-        toast.error(data.message || "Invalid verification code");
+        setDeleteError(data.message || t("errorVerify"));
+        toast.error(data.message || t("errorVerify"));
       }
     } catch (error) {
       console.error("Error verifying code:", error);
@@ -171,7 +173,7 @@ export function DeleteAccountDialog({
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "delete my account") {
-      setDeleteError("Please type 'delete my account' to confirm");
+      setDeleteError(t("errorMatch"));
       return;
     }
 
@@ -184,9 +186,9 @@ export function DeleteAccountDialog({
 
     if (!hasValidAuth) {
       if (hasPasswordAuth) {
-        setDeleteError("Please enter your password or verify your email");
+        setDeleteError(t("errorAuth"));
       } else {
-        setDeleteError("Please verify your email before deleting your account");
+        setDeleteError(t("errorVerify"));
       }
       return;
     }
@@ -211,7 +213,7 @@ export function DeleteAccountDialog({
 
       if (response.ok) {
         clearAllStorage();
-        toast.success("Account deleted successfully");
+        toast.success(t("success"));
         await signOut({ callbackUrl: "/" });
       } else {
         const data = await response.json();
@@ -257,7 +259,7 @@ export function DeleteAccountDialog({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
+      onOpenChange={open => {
         if (!open) resetDialog();
         onOpenChange(open);
       }}
@@ -266,40 +268,36 @@ export function DeleteAccountDialog({
         <DialogHeader>
           <DialogTitle className="text-red-600 dark:text-red-500 flex items-center">
             <AlertTriangle className="h-5 w-5 mr-2" />
-            Delete Account
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            This action is permanent and cannot be undone. All your data will be
-            removed.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg p-4 text-amber-800 dark:text-amber-300 text-sm">
-            <p className="font-medium mb-1">
-              Please type <span className="font-bold">"delete my account"</span>{" "}
-              to confirm:
-            </p>
+            <p className="font-medium mb-1">{t("confirmInstruction")}</p>
             <p className="text-xs text-amber-700 dark:text-amber-400">
-              This helps prevent accidental account deletion
+              {t("preventAccidental")}
             </p>
           </div>
 
           <Input
             value={deleteConfirmText}
-            onChange={(e) => setDeleteConfirmText(e.target.value)}
-            placeholder="delete my account"
+            onChange={e => setDeleteConfirmText(e.target.value)}
+            placeholder={t("confirmPlaceholder")}
             className="w-full border-input focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
           />
 
           <div className="space-y-2 bg-muted p-4 rounded-lg">
             <h4 className="text-sm font-medium text-foreground">
-              Verify your identity
+              {t("verifyIdentity")}
             </h4>
             <p className="text-xs text-muted-foreground">
               {hasPasswordAuth
-                ? "For security, we need to verify your identity. You can enter your password or verify your email."
-                : "Since you log in with a social account, we need to verify your email before deleting your account."}
+                ? t("verifyPasswordDesc")
+                : t("verifySocialDesc")}
             </p>
           </div>
 
@@ -309,14 +307,14 @@ export function DeleteAccountDialog({
                 htmlFor="delete-password"
                 className="text-sm text-foreground"
               >
-                Option 1: Enter your password
+                {t("optionPassword")}
               </Label>
               <Input
                 id="delete-password"
                 type="password"
                 value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                placeholder="Your current password"
+                onChange={e => setDeletePassword(e.target.value)}
+                placeholder={t("passwordPlaceholder")}
                 className="w-full border-input focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 disabled={isDeleting}
               />
@@ -329,26 +327,26 @@ export function DeleteAccountDialog({
                 htmlFor="delete-password"
                 className="text-sm text-foreground"
               >
-                Option 2: Verify by email
+                {t("optionEmail")}
               </Label>
             )}
             {verificationStep === "initial" && (
               <Button
                 onClick={requestVerificationCode}
                 type="button"
-                variant="outline"
+                variant="neutral"
                 className="w-full border-border hover:bg-muted"
                 disabled={isRequestingCode}
               >
                 {isRequestingCode ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    {t("sending")}
                   </>
                 ) : (
                   <>
                     <Mail className="mr-2 h-4 w-4" />
-                    Send verification code to email
+                    {t("sendCode")}
                   </>
                 )}
               </Button>
@@ -356,56 +354,58 @@ export function DeleteAccountDialog({
             {verificationStep === "code_sent" && (
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground bg-muted p-3 rounded-lg">
-                  A verification code has been sent to your email.
+                  {t("codeSent")}
                   {codeExpiry && (
                     <span className="block mt-1 font-medium">
-                      Code expires at: {codeExpiry.toLocaleTimeString()}
+                      {t("codeExpires", {
+                        time: codeExpiry.toLocaleTimeString(),
+                      })}
                     </span>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <Input
                     value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="6-digit code"
-                    className="flex-1 border-input focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    onChange={e => setVerificationCode(e.target.value)}
+                    placeholder={t("codePlaceholder")}
+                    className="flex-1 border-input focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     maxLength={6}
                   />
                   <Button
                     onClick={verifyCode}
                     type="button"
-                    variant="outline"
+                    variant="neutral"
                     disabled={isVerifyingCode}
                   >
                     {isVerifyingCode ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      "Verify"
+                      t("verify")
                     )}
                   </Button>
                 </div>
                 <Button
                   onClick={requestVerificationCode}
                   type="button"
-                  variant="link"
-                  className="h-auto p-0 text-xs text-muted-foreground hover:text-violet-700 dark:hover:text-violet-400"
+                  variant="neutral"
+                  className="h-auto p-0 text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400"
                   disabled={isRequestingCode}
                 >
-                  {isRequestingCode ? "Sending..." : "Resend code"}
+                  {isRequestingCode ? t("sending") : t("resend")}
                 </Button>
               </div>
             )}
             {verificationStep === "code_verified" && (
               <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg flex items-center text-green-700 dark:text-green-400 text-sm">
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Email verified successfully
+                {t("verified")}
               </div>
             )}
           </div>
 
           {deleteError && (
             <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg flex items-start">
-              <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
               <span>{deleteError}</span>
             </div>
           )}
@@ -413,7 +413,7 @@ export function DeleteAccountDialog({
 
         <DialogFooter className="flex gap-2 sm:justify-between sm:gap-0">
           <Button
-            variant="outline"
+            variant="neutral"
             onClick={() => {
               onOpenChange(false);
               resetDialog();
@@ -421,7 +421,7 @@ export function DeleteAccountDialog({
             className="border-border hover:bg-muted text-foreground"
             disabled={isDeleting}
           >
-            Cancel
+            {t("cancel")}
           </Button>
 
           <Button
@@ -432,12 +432,12 @@ export function DeleteAccountDialog({
             {isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Deleting...
+                {t("deleting")}
               </>
             ) : (
               <>
                 <Trash2 className="mr-2 h-4 w-4" />
-                Permanently Delete Account
+                {t("deleteButton")}
               </>
             )}
           </Button>

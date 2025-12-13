@@ -7,6 +7,7 @@ import { DeadlineFilters } from "./deadline-filters";
 import { DeadlineEmptyState } from "./deadline-empty-state";
 import { DeadlineGroup } from "./deadline-group";
 import { useDeadlines } from "@/hooks/use-deadlines";
+import { useTranslations } from "next-intl";
 
 interface DeadlinesListProps {
   deadlines: Deadline[];
@@ -22,6 +23,7 @@ export default function DeadlinesList({
   deadlines = [],
   onTimeFrameChange,
 }: DeadlinesListProps) {
+  const t = useTranslations("CalendarPage");
   const isMobile = useIsMobile();
   const {
     filter,
@@ -43,7 +45,7 @@ export default function DeadlinesList({
     <Card>
       <CardHeader className={isMobile ? "pb-2 px-3 pt-3" : "pb-2"}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <CardTitle>Upcoming Deadlines</CardTitle>
+          <CardTitle>{t("upcomingDeadlines")}</CardTitle>
           <DeadlineFilters
             filter={filter}
             timeframe={timeframe}

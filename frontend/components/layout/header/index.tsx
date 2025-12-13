@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useHeaderLogic } from "@/hooks/use-header-logic";
 import { HeaderLogo } from "./header-logo";
-import { DesktopNav } from "./desktop-nav";
 import { UserDropdown } from "./user-drop-down";
 import { MobileNav } from "./mobile-nav";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { useTranslations } from "next-intl";
 
 export default function Header() {
+  const t = useTranslations("HomePage.hero");
   const {
     isAuthenticated,
     scrolled,
@@ -36,16 +38,13 @@ export default function Header() {
           {/* Left Section: Logo & Desktop Navigation */}
           <div className="flex items-center">
             <HeaderLogo />
-            <DesktopNav
-              isAuthenticated={isAuthenticated}
-              onScrollToSection={scrollToSection}
-            />
           </div>
 
           {/* Right Section: Auth, Theme & Mobile Toggle */}
           <div className="flex items-center">
             {/* Theme Toggle - Visible on all screens */}
-            <div className="hidden sm:block mr-4">
+            <div className="hidden sm:flex items-center space-x-4 mr-4">
+              <LanguageSwitcher />
               <ThemeToggle />
             </div>
 
@@ -59,16 +58,16 @@ export default function Header() {
                 <div className="flex items-center space-x-4">
                   <Button
                     asChild
-                    variant="ghost"
-                    className="text-foreground/70 hover:text-violet-900 dark:hover:text-violet-400"
+                    variant="neutral"
+                    className="text-foreground/70 hover:text-main dark:hover:text-main"
                   >
-                    <Link href="/auth/signin">Sign In</Link>
+                    <Link href="/auth/signin">{t("signIn")}</Link>
                   </Button>
                   <Button
                     asChild
-                    className="bg-violet-700 hover:bg-violet-900 text-white"
+                    className="bg-main hover:bg-main text-white"
                   >
-                    <Link href="/auth/signup">Sign Up</Link>
+                    <Link href="/auth/signup">{t("signUp")}</Link>
                   </Button>
                 </div>
               )}

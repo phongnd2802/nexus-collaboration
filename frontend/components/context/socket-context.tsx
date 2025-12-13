@@ -11,6 +11,8 @@ interface SocketContextType {
   joinTeamChat: (projectId: string) => void;
   leaveTeamChat: (projectId: string) => void;
   sendTeamMessage: (projectId: string, content: string) => void;
+  joinProject: (projectId: string) => void;
+  leaveProject: (projectId: string) => void;
 }
 
 const SocketContext = createContext<SocketContextType>({
@@ -19,6 +21,8 @@ const SocketContext = createContext<SocketContextType>({
   joinTeamChat: () => {},
   leaveTeamChat: () => {},
   sendTeamMessage: () => {},
+  joinProject: () => {},
+  leaveProject: () => {},
 });
 
 export const useSocket = () => useContext(SocketContext);
@@ -54,21 +58,21 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         socketInstance.emit("authenticate", session.user.id);
       });
 
-      socketInstance.on("disconnect", (reason) => {
+      socketInstance.on("disconnect", reason => {
         debugLog("Socket disconnected, reason:", reason);
         setIsConnected(false);
       });
 
-      socketInstance.on("connect_error", (error) => {
+      socketInstance.on("connect_error", error => {
         debugError("Socket connection error:", error);
         setIsConnected(false);
       });
 
-      socketInstance.on("error", (error) => {
+      socketInstance.on("error", error => {
         debugError("Socket error:", error);
       });
 
-      socketInstance.on("welcome", (data) => {
+      socketInstance.on("welcome", data => {
         debugLog("Received welcome from server:", data);
       });
 
@@ -121,6 +125,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         joinTeamChat,
         leaveTeamChat,
         sendTeamMessage,
+        joinProject: joinTeamChat,
+        leaveProject: leaveTeamChat,
       }}
     >
       {children}

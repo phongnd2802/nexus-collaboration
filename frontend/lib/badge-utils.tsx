@@ -1,32 +1,34 @@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ShieldAlert, ShieldCheck } from "lucide-react";
 
-export const getStatusBadge = (status: string) => {
+export const getStatusBadge = (status: string, t?: (key: string) => string) => {
   switch (status) {
     case "IN_PROGRESS":
       return (
         <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-          In Progress
+          {t ? t("IN_PROGRESS") : "In Progress"}
         </Badge>
       );
     case "AT_RISK":
-      return <Badge variant="destructive">At Risk</Badge>;
+      return (
+        <Badge variant="destructive">{t ? t("AT_RISK") : "At Risk"}</Badge>
+      );
     case "COMPLETED":
       return (
         <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-          Completed
+          {t ? t("COMPLETED") : "Completed"}
         </Badge>
       );
     case "DONE":
       return (
         <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-          Done
+          {t ? t("DONE") : "Done"}
         </Badge>
       );
     case "TODO":
       return (
         <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
-          To Do
+          {t ? t("TODO") : "To Do"}
         </Badge>
       );
     default:
@@ -34,7 +36,10 @@ export const getStatusBadge = (status: string) => {
   }
 };
 
-export const getPriorityBadge = (priority: string) => {
+export const getPriorityBadge = (
+  priority: string,
+  t?: (key: string) => string
+) => {
   switch (priority) {
     case "HIGH":
       return (
@@ -43,19 +48,19 @@ export const getPriorityBadge = (priority: string) => {
           className="text-xs font-medium flex items-center gap-1 px-2 py-1 bg-linear-to-r from-red-500 to-red-600 text-white shadow-sm"
         >
           <AlertTriangle className="h-3 w-3" />
-          High
+          {t ? t("HIGH") : "High"}
         </Badge>
       );
     case "MEDIUM":
       return (
         <Badge className="text-xs font-medium bg-linear-to-r from-yellow-400 to-yellow-500 text-yellow-900 shadow-sm px-2 py-1">
-          Medium
+          {t ? t("MEDIUM") : "Medium"}
         </Badge>
       );
     case "LOW":
       return (
         <Badge className="text-xs font-medium bg-linear-to-r from-blue-400 to-blue-500 text-white shadow-sm px-2 py-1">
-          Low
+          {t ? t("LOW") : "Low"}
         </Badge>
       );
     default:
@@ -63,26 +68,26 @@ export const getPriorityBadge = (priority: string) => {
   }
 };
 
-export const getRoleBadge = (role: string) => {
+export const getRoleBadge = (role: string, t?: (key: string) => string) => {
   switch (role) {
     case "ADMIN":
       return (
         <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 flex items-center gap-1.5">
           <ShieldAlert className="h-3 w-3" />
-          Admin
+          {t ? t("role.ADMIN") : "Admin"}
         </Badge>
       );
     case "EDITOR":
       return (
         <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 flex items-center gap-1.5">
           <ShieldCheck className="h-3 w-3" />
-          Editor
+          {t ? t("role.EDITOR") : "Editor"}
         </Badge>
       );
     case "MEMBER":
       return (
         <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
-          Member
+          {t ? t("role.MEMBER") : "Member"}
         </Badge>
       );
     default:

@@ -3,6 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getInitials } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface TeamChatHeaderProps {
   project: {
@@ -19,24 +21,16 @@ const TeamChatHeader: React.FC<TeamChatHeaderProps> = ({
   project,
   onBackClick,
 }) => {
+  const t = useTranslations("MessagesPage.chatHeader");
   const isMobile = useIsMobile();
 
   if (!project) return null;
-
-  const getProjectInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
 
   return (
     <div className="flex items-center gap-3 p-3 border-b">
       {isMobile && onBackClick && (
         <Button
-          variant="ghost"
+          variant="neutral"
           size="icon"
           onClick={onBackClick}
           className="mr-1"
@@ -53,7 +47,7 @@ const TeamChatHeader: React.FC<TeamChatHeaderProps> = ({
         }}
       >
         <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-700 text-white">
-          {getProjectInitials(project.name)}
+          {getInitials(project.name)}
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
@@ -75,7 +69,7 @@ const TeamChatHeader: React.FC<TeamChatHeaderProps> = ({
         </div>
         {project.creator && (
           <p className="text-sm text-muted-foreground truncate">
-            Created by {project.creator}
+            {t("createdBy", { creator: project.creator })}
           </p>
         )}
       </div>

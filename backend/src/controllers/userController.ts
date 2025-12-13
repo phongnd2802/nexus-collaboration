@@ -15,11 +15,14 @@ export async function getUserProfileController(req: Request, res: Response) {
 export async function deleteUserController(req: Request, res: Response) {
   try {
     const userId = req.headers["x-user-id"] as string;
-    const { password, verificationCode } = req.body;
+    const { password, verificationCode, code } = req.body;
+    const finalCode = (verificationCode || code || "").trim();
+    const finalPassword = (password || "").trim();
+
     const result = await userService.deleteUser(
       userId,
-      password,
-      verificationCode
+      finalCode,
+      finalPassword
     );
     res.status(200).json(result);
   } catch (error) {

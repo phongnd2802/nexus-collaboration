@@ -2,7 +2,15 @@
  * Calendar utility functions for event processing and date calculations
  */
 
-import { startOfMonth, endOfMonth, startOfWeek, addDays, parseISO, isSameDay } from "date-fns";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  addDays,
+  parseISO,
+  isSameDay,
+} from "date-fns";
+import { vi, enUS } from "date-fns/locale";
 import { CalendarEvent } from "@/types/index";
 
 /**
@@ -40,7 +48,10 @@ const COMPLETED_TASK_COLOR = "#22c55e";
  * @param weeksToShow - Number of weeks to display (default: 6)
  * @returns Array of Date objects for calendar grid
  */
-export function generateCalendarDays(selectedDate: Date, weeksToShow: number = 6): Date[] {
+export function generateCalendarDays(
+  selectedDate: Date,
+  weeksToShow: number = 6
+): Date[] {
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
   const startDate = startOfWeek(monthStart);
@@ -61,15 +72,18 @@ export function generateCalendarDays(selectedDate: Date, weeksToShow: number = 6
  * @param day - The date to filter events for
  * @returns Array of events occurring on the specified day
  */
-export function getEventsForDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
-  return events.filter((event) => {
+export function getEventsForDay(
+  events: CalendarEvent[],
+  day: Date
+): CalendarEvent[] {
+  return events.filter(event => {
     if (!event.start) return false;
-    
+
     const eventDate =
       typeof event.start === "string"
         ? parseISO(event.start)
         : new Date(event.start);
-        
+
     return isSameDay(day, eventDate);
   });
 }
@@ -85,11 +99,11 @@ export function getEventColor(event: CalendarEvent): string {
   if (type === EVENT_TYPES.PROJECT_START) {
     return EVENT_COLOR_MAP[EVENT_TYPES.PROJECT_START];
   }
-  
+
   if (type === EVENT_TYPES.PROJECT_DUE) {
     return EVENT_COLOR_MAP[EVENT_TYPES.PROJECT_DUE];
   }
-  
+
   if (type === EVENT_TYPES.TASK_DUE) {
     // Check if task is completed based on color
     if (event.color === COMPLETED_TASK_COLOR) {
@@ -109,13 +123,13 @@ export function getEventColor(event: CalendarEvent): string {
 export function getEventTypeLabel(eventType: string): string {
   switch (eventType) {
     case EVENT_TYPES.PROJECT_START:
-      return "Project Start Date";
+      return "projectStart";
     case EVENT_TYPES.PROJECT_DUE:
-      return "Project Due Date";
+      return "projectDue";
     case EVENT_TYPES.TASK_DUE:
-      return "Task Due Date";
+      return "taskDue";
     default:
-      return "Event";
+      return "event";
   }
 }
 
@@ -146,14 +160,18 @@ export function extractEventTitle(event: CalendarEvent): string {
  * @returns URL path for event navigation
  */
 export function getEventNavigationUrl(event: CalendarEvent): string {
-  if (event.projectId && (event.type === EVENT_TYPES.PROJECT_START || event.type === EVENT_TYPES.PROJECT_DUE)) {
+  if (
+    event.projectId &&
+    (event.type === EVENT_TYPES.PROJECT_START ||
+      event.type === EVENT_TYPES.PROJECT_DUE)
+  ) {
     return `/projects/${event.projectId}`;
   }
-  
+
   if (event.taskId) {
     return `/tasks/${event.taskId}`;
   }
-  
+
   return "#";
 }
 
@@ -164,7 +182,21 @@ export function getEventNavigationUrl(event: CalendarEvent): string {
  */
 export function getEventNavigationLabel(event: CalendarEvent): string {
   if (event.type.includes("project")) {
-    return "Project";
+    return "project";
   }
-  return "Task";
+  return "task";
+}
+
+/**
+ * Returns the date-fns locale object based on the locale string
+ * @param locale - The locale string (e.g., "vi", "en")
+ * @returns The date-fns locale object
+ */
+export function getLocaleObject(locale: string) {
+  switch (locale) {
+    case "vi":
+      return vi;
+    default:
+      return enUS;
+  }
 }

@@ -13,6 +13,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CalendarEvent } from "@/types/index";
+import { useLocale } from "next-intl";
+import { getLocaleObject } from "./calendar-utils";
 
 interface EventTooltipProps {
   event: CalendarEvent;
@@ -23,6 +25,8 @@ interface EventTooltipProps {
  * Wraps event elements with a tooltip showing event details
  */
 export function EventTooltip({ event, children }: EventTooltipProps) {
+  const locale = useLocale();
+  const localeObject = getLocaleObject(locale);
   return (
     <TooltipProvider>
       <Tooltip>
@@ -30,7 +34,9 @@ export function EventTooltip({ event, children }: EventTooltipProps) {
         <TooltipContent>
           <p className="font-medium">{event.title}</p>
           <p className="text-xs">
-            {format(new Date(event.start), "MMM d, yyyy")}
+            {format(new Date(event.start), "MMM d, yyyy", {
+              locale: localeObject,
+            })}
           </p>
         </TooltipContent>
       </Tooltip>

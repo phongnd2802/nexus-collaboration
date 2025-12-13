@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PasswordFormProps {
   currentPassword: string;
@@ -29,6 +30,7 @@ export function PasswordForm({
   handlePasswordUpdate,
   isUpdatingPassword,
 }: PasswordFormProps) {
+  const t = useTranslations("ProfilePage.security");
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   useEffect(() => {
@@ -61,27 +63,27 @@ export function PasswordForm({
     >
       <div className="space-y-2">
         <Label htmlFor="current-password" className="text-foreground">
-          Current Password
+          {t("currentPassword")}
         </Label>
         <Input
           id="current-password"
           type="password"
           value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          placeholder="Enter your current password"
+          onChange={e => setCurrentPassword(e.target.value)}
+          placeholder={t("currentPasswordPlaceholder")}
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="new-password" className="text-foreground">
-          New Password
+          {t("newPassword")}
         </Label>
         <Input
           id="new-password"
           type="password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="Enter your new password"
+          onChange={e => setNewPassword(e.target.value)}
+          placeholder={t("newPasswordPlaceholder")}
         />
 
         {newPassword && (
@@ -116,10 +118,10 @@ export function PasswordForm({
               ></div>
             </div>
             <p className="text-xs text-muted-foreground">
-              {passwordStrength === 0 && "Enter a password"}
-              {passwordStrength === 1 && "Weak password"}
-              {passwordStrength === 2 && "Medium password"}
-              {passwordStrength === 3 && "Strong password"}
+              {passwordStrength === 0 && t("strength.enter")}
+              {passwordStrength === 1 && t("strength.weak")}
+              {passwordStrength === 2 && t("strength.medium")}
+              {passwordStrength === 3 && t("strength.strong")}
             </p>
           </div>
         )}
@@ -127,29 +129,29 @@ export function PasswordForm({
 
       <div className="space-y-2">
         <Label htmlFor="confirm-password" className="text-foreground">
-          Confirm New Password
+          {t("confirmPassword")}
         </Label>
         <Input
           id="confirm-password"
           type="password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm your new password"
+          onChange={e => setConfirmPassword(e.target.value)}
+          placeholder={t("confirmPasswordPlaceholder")}
         />
       </div>
 
       <Button
         type="submit"
-        className="w-fit mt-2 bg-violet-700 hover:bg-violet-800 dark:bg-violet-600 dark:hover:bg-violet-700 text-white"
+        className="w-fit mt-2 !bg-blue-500 hover:!bg-blue-600 dark:!bg-blue-500 dark:hover:!bg-blue-600 text-black"
         disabled={isUpdatingPassword}
       >
         {isUpdatingPassword ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Updating...
+            {t("updating")}
           </>
         ) : (
-          "Update Password"
+          t("updateButton")
         )}
       </Button>
     </form>

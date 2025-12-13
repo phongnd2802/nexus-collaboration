@@ -1,6 +1,14 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format, isToday, isTomorrow, isBefore, startOfDay } from "date-fns";
+import {
+  format,
+  isToday,
+  isTomorrow,
+  isBefore,
+  startOfDay,
+  formatDistanceToNow,
+} from "date-fns";
+import { vi, enUS } from "date-fns/locale";
 
 /**
  * Merges Tailwind CSS classes with clsx.
@@ -56,7 +64,7 @@ export const getInitials = (name: string | null): string => {
   if (!name) return "";
   return name
     .split(" ")
-    .map((n) => n[0])
+    .map(n => n[0])
     .join("")
     .toUpperCase();
 };
@@ -70,88 +78,63 @@ export const formatTime = (dateString: string): string => {
   return format(new Date(dateString), "h:mm a");
 };
 
-/**
- * Formats a date string with options for relative dates (Today, Tomorrow) and time inclusion.
- * @param dateString - The date string to format.
- * @param options - Formatting options.
- * @returns Formatted date string.
- */
+type TFunc = (key: string, opts?: any) => string;
+
 export const formatDate = (
   dateString: string | null,
+  t: TFunc,
+  locale: string,
   options: { includeTime?: boolean; relative?: boolean } = {}
 ): string => {
-  if (!dateString) return "No due date";
-  
+  if (!dateString) return t("date.noDueDate");
+
   const date = new Date(dateString);
   const { includeTime = false, relative = false } = options;
 
-  // Check if time is significant (not default 23:59 or midnight)
-  // This logic was preserved from original utils
   const hasSignificantTime =
     date.getHours() !== 23 ||
     (date.getHours() === 23 && date.getMinutes() !== 59);
 
   let dateStr = "";
 
+  // 🌍 CHỌN FORMAT THEO LOCALE
+  const dateFormat = locale === "vi" ? "dd-MM-yyyy" : "MM-dd-yyyy";
+
   if (relative) {
     if (isToday(date)) {
-      dateStr = "Today";
+      dateStr = t("date.today");
     } else if (isTomorrow(date)) {
-      dateStr = "Tomorrow";
+      dateStr = t("date.tomorrow");
     } else {
-      dateStr = format(date, "MMM d, yyyy");
+      dateStr = format(date, dateFormat);
     }
   } else {
-    dateStr = date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    dateStr = format(date, dateFormat);
   }
 
-  // Add time if it's significant or explicitly requested
+  // ⏱ time phần
   if (hasSignificantTime || includeTime) {
     const timeStr = format(date, "HH:mm");
-    // If relative and today/tomorrow, we might want to append time differently or not at all depending on UI
-    // But based on previous TaskCard logic:
-    return `${dateStr} at ${timeStr}`;
+    return t("date.withTime", { date: dateStr, time: timeStr });
   }
 
   return dateStr;
 };
-
 /**
  * Formats a date string to a relative time string (e.g., "5 minutes ago").
  * @param dateString - The date string to format.
  * @returns Relative time string.
  */
-export const formatRelativeTime = (dateString: string): string => {
+export const formatRelativeTime = (
+  dateString: string,
+  locale: string = "en"
+): string => {
   const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const localeObj = locale === "vi" ? vi : enUS;
 
-  if (diffInSeconds < 60) {
-    return `${diffInSeconds} seconds`;
-  }
-
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""}`;
-  }
-
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""}`;
-  }
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) {
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""}`;
-  }
-
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
+  return formatDistanceToNow(date, {
+    addSuffix: true,
+    locale: localeObj,
   });
 };
 
@@ -161,11 +144,42 @@ export const formatRelativeTime = (dateString: string): string => {
  * @param status - The task status.
  * @returns True if overdue, false otherwise.
  */
-export const isOverdue = (dateString: string | null, status: string): boolean => {
+export const isOverdue = (
+  dateString: string | null,
+  status: string
+): boolean => {
   if (!dateString || status === "DONE") return false;
-  
+
   const today = startOfDay(new Date());
   const dueDate = startOfDay(new Date(dateString));
-  
+
   return isBefore(dueDate, today);
 };
+
+
+export function randomString(length: number): string {
+  let result = '';
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+export function generateRoomId(): string {
+  return `${randomString(4)}-${randomString(4)}`;
+}
+
+
+export function encodePassphrase(passphrase: string) {
+  return encodeURIComponent(passphrase);
+}
+
+export function decodePassphrase(base64String: string) {
+  return decodeURIComponent(base64String);
+}
+
+export function isLowPowerDevice() {
+  return navigator.hardwareConcurrency < 6;
+}

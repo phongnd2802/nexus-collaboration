@@ -3,6 +3,7 @@
 import React from "react";
 import { PlusCircle, Circle, Clock, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 interface TaskStatsGridProps {
   activeTab: "assigned" | "created";
@@ -15,6 +16,7 @@ const TaskStats: React.FC<TaskStatsGridProps> = ({
   getTaskCount,
   className = "",
 }) => {
+  const t = useTranslations("TasksPage.taskStats");
   return (
     <div
       className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}
@@ -23,7 +25,7 @@ const TaskStats: React.FC<TaskStatsGridProps> = ({
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {activeTab === "assigned" ? "Assigned Tasks" : "Created Tasks"}
+              {activeTab === "assigned" ? t("assigned") : t("created")}
             </p>
             <p className="text-2xl font-bold">{getTaskCount(activeTab)}</p>
           </div>
@@ -35,7 +37,9 @@ const TaskStats: React.FC<TaskStatsGridProps> = ({
       <Card>
         <CardContent className="p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">To Do</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {t("todo")}
+            </p>
             <p className="text-2xl font-bold">
               {getTaskCount(activeTab, "TODO")}
             </p>
@@ -49,7 +53,7 @@ const TaskStats: React.FC<TaskStatsGridProps> = ({
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              In Progress
+              {t("in_progress")}
             </p>
             <p className="text-2xl font-bold">
               {getTaskCount(activeTab, "IN_PROGRESS")}
@@ -64,7 +68,7 @@ const TaskStats: React.FC<TaskStatsGridProps> = ({
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              Completed
+              {t("done")}
             </p>
             <p className="text-2xl font-bold">
               {getTaskCount(activeTab, "DONE")}

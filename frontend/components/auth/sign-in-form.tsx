@@ -26,8 +26,10 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
+import { useTranslations } from "next-intl";
 
 export const SignInForm = () => {
+  const t = useTranslations("AuthPage.signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -123,25 +125,25 @@ export const SignInForm = () => {
       transition={{ duration: 0.4 }}
       className="w-full max-w-md mx-auto"
     >
-      <Card className="border-0 shadow-lg dark:shadow-md dark:shadow-violet-900/10">
+      <Card className="border border-main-200 dark:border-main-700 shadow-xl dark:shadow-main-900/20 rounded-xl backdrop-blur-sm bg-background/90 dark:bg-background/80 transition-transform transform hover:-translate-y-1 hover:shadow-2xl">
         <CardHeader className="space-y-1 text-center pb-0">
           <div className="relative w-full">
             <Link
               href="/"
-              className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+              className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-main dark:hover:text-main transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">{t("home")}</span>
             </Link>
-            <div className="h-12 w-12 rounded-full bg-violet-600 dark:bg-violet-700 flex items-center justify-center mx-auto">
+            <div className="h-12 w-12 rounded-full bg-main dark:bg-main flex items-center justify-center mx-auto">
               <KeyRound className="h-6 w-6 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Welcome back
+            {t("title")}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sign in to your account to continue
+            {t("description")}
           </CardDescription>
         </CardHeader>
 
@@ -167,7 +169,7 @@ export const SignInForm = () => {
                   <div className="mt-3">
                     <Button
                       onClick={handleResendVerification}
-                      variant="outline"
+                      variant="noShadow"
                       size="sm"
                       className="text-sm border-yellow-300 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
                       disabled={isResendingVerification || resendSuccess}
@@ -188,7 +190,7 @@ export const SignInForm = () => {
                     </Button>
                     <Button
                       asChild
-                      variant="link"
+                      variant="noShadow"
                       className="text-sm ml-2 text-yellow-800 dark:text-yellow-300 hover:text-yellow-900 dark:hover:text-yellow-200"
                       size="sm"
                     >
@@ -206,7 +208,7 @@ export const SignInForm = () => {
                 htmlFor="email"
                 className="text-sm font-medium text-foreground flex items-center"
               >
-                <Mail className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
+                <Mail className="h-4 w-4 mr-1.5 text-main dark:text-main" />
                 Email
               </label>
               <Input
@@ -227,14 +229,14 @@ export const SignInForm = () => {
                   htmlFor="password"
                   className="text-sm font-medium text-foreground flex items-center"
                 >
-                  <Lock className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
-                  Password
+                  <Lock className="h-4 w-4 mr-1.5 text-main dark:text-main" />
+                  {t("password")}
                 </label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 transition-colors"
+                  className="text-sm font-medium hover:text-main dark:text-main dark:hover:text-main transition-colors"
                 >
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <Input
@@ -252,15 +254,15 @@ export const SignInForm = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-700 dark:hover:bg-violet-800 text-white font-medium py-2.5"
+              className="w-full bg-main hover:bg-main dark:bg-main dark:hover:bg-main text-white font-medium py-2.5"
             >
               {isLoading ? (
                 <>
                   <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-                  Signing in...
+                  {t("signingIn")}
                 </>
               ) : (
-                "Sign in"
+                t("signIn")
               )}
             </Button>
           </form>
@@ -272,7 +274,7 @@ export const SignInForm = () => {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-background text-muted-foreground">
-                  Or continue with
+                  {t("or")}
                 </span>
               </div>
             </div>
@@ -280,7 +282,7 @@ export const SignInForm = () => {
             <div className="mt-6 grid grid-cols-2 gap-3">
               <Button
                 onClick={() => handleSocialSignIn("google")}
-                variant="outline"
+                variant="neutral"
                 className="w-full border-border bg-background text-foreground hover:bg-muted font-medium"
               >
                 <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -305,7 +307,7 @@ export const SignInForm = () => {
               </Button>
               <Button
                 onClick={() => handleSocialSignIn("github")}
-                variant="outline"
+                variant="neutral"
                 className="w-full border-border bg-background text-foreground hover:bg-muted font-medium"
               >
                 <Github className="h-5 w-5 mr-2" />
@@ -317,17 +319,11 @@ export const SignInForm = () => {
 
         <CardFooter className="flex justify-center pt-0">
           <div className="text-sm text-center">
-            <span className="text-muted-foreground">Need an account?</span>{" "}
-            <Button
-              asChild
-              variant="link"
-              className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 p-0"
-            >
-              <Link href="/auth/signup" className="inline-flex items-center">
-                Sign up
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </Button>
+            <span className="text-muted-foreground">{t("needAccount")}</span>{" "}
+            <Link href="/auth/signup" className="inline-flex items-center hover:text-main dark:hover:text-main transition-colors">
+              {t("signUp")}
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Link>
           </div>
         </CardFooter>
       </Card>

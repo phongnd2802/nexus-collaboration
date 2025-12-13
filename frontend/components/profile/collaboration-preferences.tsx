@@ -14,9 +14,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useUserSettings } from "@/components/context/user-settings-context";
 import { CustomToggle } from "@/components/ui/custom-toggle";
+import { useTranslations } from "next-intl";
 
 export function CollaborationPreferences() {
   const { settings, updateSetting, isLoading } = useUserSettings();
+  const t = useTranslations("ProfilePage.collaboration");
 
   // Local state for toggles
   const [autoAccept, setAutoAccept] = useState(
@@ -37,7 +39,7 @@ export function CollaborationPreferences() {
   // Sync with context settings when they change
   useEffect(() => {
     if (settings) {
-      setDebugInfo((prev) => ({
+      setDebugInfo(prev => ({
         renderCount: prev.renderCount + 1,
         lastAction: "settings-changed",
       }));
@@ -54,7 +56,7 @@ export function CollaborationPreferences() {
 
   const handleAutoAcceptChange = useCallback(
     async (checked: boolean) => {
-      setDebugInfo((prev) => ({
+      setDebugInfo(prev => ({
         renderCount: prev.renderCount + 1,
         lastAction: `autoAccept-changed-to-${checked}`,
       }));
@@ -66,7 +68,7 @@ export function CollaborationPreferences() {
         await updateSetting("autoAcceptTaskAssignments", checked);
       } catch (error) {
         setAutoAccept(!checked);
-        toast.error("Failed to update setting. Please try again.");
+        toast.error(t("error"));
         console.error("Error updating setting:", error);
       }
     },
@@ -75,7 +77,7 @@ export function CollaborationPreferences() {
 
   const handleTaskRemindersChange = useCallback(
     async (checked: boolean) => {
-      setDebugInfo((prev) => ({
+      setDebugInfo(prev => ({
         renderCount: prev.renderCount + 1,
         lastAction: `taskReminders-changed-to-${checked}`,
       }));
@@ -88,7 +90,7 @@ export function CollaborationPreferences() {
         await updateSetting("taskReminderNotifications", checked);
       } catch (error) {
         setTaskReminders(!checked);
-        toast.error("Failed to update setting. Please try again.");
+        toast.error(t("error"));
         console.error("Error updating setting:", error);
       }
     },
@@ -97,7 +99,7 @@ export function CollaborationPreferences() {
 
   const handleLocalTimezoneChange = useCallback(
     async (checked: boolean) => {
-      setDebugInfo((prev) => ({
+      setDebugInfo(prev => ({
         renderCount: prev.renderCount + 1,
         lastAction: `localTimezone-changed-to-${checked}`,
       }));
@@ -110,7 +112,7 @@ export function CollaborationPreferences() {
         await updateSetting("showDueDatesInLocalTimezone", checked);
       } catch (error) {
         setLocalTimezone(!checked);
-        toast.error("Failed to update setting. Please try again.");
+        toast.error(t("error"));
         console.error("Error updating setting:", error);
       }
     },
@@ -119,15 +121,15 @@ export function CollaborationPreferences() {
 
   // Update debug info on each render
   useEffect(() => {
-    setDebugInfo((prev) => ({ ...prev, renderCount: prev.renderCount + 1 }));
+    setDebugInfo(prev => ({ ...prev, renderCount: prev.renderCount + 1 }));
   }, []);
 
   if (isLoading) {
     return (
       <Card className="col-span-1 md:col-span-2">
         <CardHeader>
-          <CardTitle>Collaboration Preferences</CardTitle>
-          <CardDescription>Loading your preferences...</CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("loading")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-40 flex items-center justify-center">
@@ -141,31 +143,27 @@ export function CollaborationPreferences() {
   return (
     <Card className="col-span-1 md:col-span-2">
       <CardHeader>
-        <CardTitle>Collaboration Preferences</CardTitle>
-        <CardDescription>
-          Set your preferences for project collaboration
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Default Project Role</h3>
+            <h3 className="text-sm font-medium">{t("defaultRoleTitle")}</h3>
             <p className="text-xs text-muted-foreground">
-              When you create a new project, you'll automatically be assigned
-              the Admin role. When invited to projects, you'll be assigned the
-              role set by the project admin.
+              {t("defaultRoleDesc")}
             </p>
           </div>
 
           <Separator />
 
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Task Assignment Preferences</h3>
+            <h3 className="text-sm font-medium">{t("assignmentTitle")}</h3>
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center space-x-2">
                 <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="auto-accept" className="text-sm">
-                  Auto-accept task assignments
+                  {t("autoAccept")}
                 </Label>
               </div>
               <CustomToggle
@@ -179,7 +177,7 @@ export function CollaborationPreferences() {
               <div className="flex items-center space-x-2">
                 <Bell className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="task-reminders" className="text-sm">
-                  Receive task reminder notifications
+                  {t("taskReminders")}
                 </Label>
               </div>
               <CustomToggle
@@ -193,7 +191,7 @@ export function CollaborationPreferences() {
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="local-timezone" className="text-sm">
-                  Show due dates in my local timezone
+                  {t("localTimezone")}
                 </Label>
               </div>
               <CustomToggle

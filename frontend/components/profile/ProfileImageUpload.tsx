@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Camera, Loader2, Check, X, Trash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UploadButton } from "@/lib/uploadthing";
+import S3Upload from "@/components/S3Upload";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,6 +33,7 @@ export default function ProfileImageUpload({
   onImageUpdated,
 }: ProfileImageUploadProps) {
   const { data: session, status, update } = useSession();
+  const t = useTranslations("ProfilePage.imageUpload");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -71,7 +73,7 @@ export default function ProfileImageUpload({
   // Function to delete file from UploadThing
   const deleteFileFromUploadThing = async (fileKey: string) => {
     try {
-      const response = await fetch("/api/uploadthing/delete", {
+      const response = await fetch("/api/files/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileKey }),
@@ -90,7 +92,8 @@ export default function ProfileImageUpload({
 
   const resetState = () => {
     if (uploadedFileKey && previewImage && !fileCommitted) {
-      deleteFileFromUploadThing(uploadedFileKey);
+      // DEBUG: Commented out deletion to debug MinIO persistence
+      // deleteFileFromUploadThing(uploadedFileKey);
     }
 
     setPreviewImage(null);
@@ -135,11 +138,7 @@ export default function ProfileImageUpload({
         image: imageUrl,
       });
 
-      toast.success(
-        imageUrl
-          ? "Profile picture updated successfully!"
-          : "Profile picture removed successfully!"
-      );
+      toast.success(imageUrl ? t("success") : t("removedSuccess"));
 
       if (onImageUpdated) {
         onImageUpdated();
@@ -152,11 +151,12 @@ export default function ProfileImageUpload({
         resetState();
       }, 1000);
     } catch (err: any) {
-      toast.error(err.message || "Failed to update profile image");
+      toast.error(err.message || t("error"));
       console.error("Error updating profile image:", err);
 
       if (uploadedFileKey && !fileCommitted) {
-        deleteFileFromUploadThing(uploadedFileKey);
+        // DEBUG: Commented out deletion to debug MinIO persistence
+        // deleteFileFromUploadThing(uploadedFileKey);
         setUploadedFileKey(null);
       }
     } finally {
@@ -177,7 +177,8 @@ export default function ProfileImageUpload({
 
   const handleCancelPreview = () => {
     if (uploadedFileKey) {
-      deleteFileFromUploadThing(uploadedFileKey);
+      // DEBUG: Commented out deletion to debug MinIO persistence
+      // deleteFileFromUploadThing(uploadedFileKey);
       setUploadedFileKey(null);
     }
     setPreviewImage(null);
@@ -209,7 +210,7 @@ export default function ProfileImageUpload({
             className="object-cover"
           />
           <AvatarFallback
-            className={`${fallbackTextSize} bg-gradient-to-br from-violet-500 to-indigo-700 text-white`}
+            className={`${fallbackTextSize} bg-linear-to-br from-violet-500 to-indigo-700 text-white`}
           >
             {getInitials(userData?.name || "")}
           </AvatarFallback>
@@ -232,7 +233,7 @@ export default function ProfileImageUpload({
     <div>
       <Dialog
         open={isOpen}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           setIsOpen(open);
           if (!open) {
             resetState();
@@ -253,7 +254,7 @@ export default function ProfileImageUpload({
               </DialogTrigger>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Change profile picture</p>
+              <p>{t("changePhoto")}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -261,10 +262,10 @@ export default function ProfileImageUpload({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-center">
-              Profile Photo
+              {t("title")}
             </DialogTitle>
             <DialogDescription className="text-center text-gray-500">
-              Upload a professional profile picture
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -272,16 +273,14 @@ export default function ProfileImageUpload({
             {isLoading && !isUploading ? (
               <div className="h-40 flex flex-col items-center justify-center space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-violet-700" />
-                <p className="text-sm text-center">
-                  Saving your profile picture...
-                </p>
+                <p className="text-sm text-center">{t("saving")}</p>
               </div>
             ) : isUploading ? (
               <div className="h-40 flex flex-col items-center justify-center space-y-4">
                 <div className="w-full max-w-xs space-y-2">
                   <Progress value={uploadProgress} className="h-2 w-full" />
                   <p className="text-sm text-center text-gray-600">
-                    Uploading... {uploadProgress}%
+                    {t("uploading", { progress: uploadProgress })}
                   </p>
                 </div>
               </div>
@@ -289,27 +288,26 @@ export default function ProfileImageUpload({
               <div className="flex flex-col items-center space-y-4">
                 <div className="p-4 bg-red-50 rounded-lg text-center">
                   <h3 className="font-medium text-red-800 mb-2">
-                    Remove profile picture?
+                    {t("removeTitle")}
                   </h3>
                   <p className="text-sm text-red-600 mb-4">
-                    This will remove your current profile picture and replace it
-                    with your initials. This action cannot be undone.
+                    {t("removeDescription")}
                   </p>
                   <div className="flex space-x-4 justify-center">
                     <Button
-                      variant="outline"
+                      variant="neutral"
                       onClick={() => setConfirmationView("none")}
                       size="sm"
                       className="flex items-center px-4"
                     >
-                      Cancel
+                      {t("cancel")}
                     </Button>
                     <Button
                       onClick={handleDeleteProfileImage}
                       size="sm"
                       className="flex items-center bg-red-600 hover:bg-red-700 px-4"
                     >
-                      Remove
+                      {t("remove")}
                     </Button>
                   </div>
                 </div>
@@ -324,25 +322,25 @@ export default function ProfileImageUpload({
                   />
                 </div>
                 <p className="text-sm text-center text-gray-600">
-                  How does this look?
+                  {t("previewText")}
                 </p>
                 <div className="flex space-x-4">
                   <Button
-                    variant="outline"
+                    variant="neutral"
                     onClick={handleCancelPreview}
                     size="sm"
                     className="flex items-center border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 px-4"
                   >
                     <X className="h-4 w-4 mr-1" />
-                    Cancel
+                    {t("cancel")}
                   </Button>
                   <Button
                     onClick={handleConfirmUpload}
                     size="sm"
-                    className="flex items-center bg-violet-600 hover:bg-violet-700 px-4"
+                    className="flex items-center !bg-blue-500 hover:!bg-blue-600 px-4"
                   >
                     <Check className="h-4 w-4 mr-1" />
-                    Set as profile picture
+                    {t("setAsProfile")}
                   </Button>
                 </div>
               </div>
@@ -351,13 +349,13 @@ export default function ProfileImageUpload({
                 {hasExistingImage && (
                   <div className="w-full flex justify-end">
                     <Button
-                      variant="ghost"
+                      variant="default"
                       size="sm"
                       className="text-red-500 hover:text-red-700 hover:bg-red-50 flex items-center cursor-pointer"
                       onClick={() => setConfirmationView("delete")}
                     >
                       <Trash className="h-4 w-4 mr-1" />
-                      Remove photo
+                      {t("removePhoto")}
                     </Button>
                   </div>
                 )}
@@ -365,11 +363,11 @@ export default function ProfileImageUpload({
                   <ProfileAvatar size="medium" />
                 </div>
                 <div className="w-full max-w-xs">
-                  <UploadButton
+                  <S3Upload
                     endpoint="profileImage"
-                    onClientUploadComplete={(res) => {
+                    onUploadComplete={res => {
                       if (res && res.length > 0) {
-                        const uploadUrl = res[0].ufsUrl;
+                        const uploadUrl = res[0].url;
                         // file key for deletion
                         const fileKey = res[0].key;
 
@@ -396,7 +394,7 @@ export default function ProfileImageUpload({
                     }}
                     onUploadError={(error: Error) => {
                       console.error("Upload error:", error);
-                      toast.error(`Upload failed: ${error.message}`);
+                      toast.error(t("uploadError", { error: error.message }));
                       setIsUploading(false);
                       setUploadProgress(0);
                     }}
@@ -405,17 +403,13 @@ export default function ProfileImageUpload({
                       setUploadProgress(0);
                       setFileCommitted(false);
                     }}
-                    onUploadProgress={(progress) => {
+                    onUploadProgress={progress => {
                       setUploadProgress(progress);
                     }}
-                    appearance={{
-                      button:
-                        "bg-violet-600 hover:bg-violet-700 text-white py-2 px-4 rounded-md font-medium w-full",
-                      allowedContent: "hidden",
-                    }}
+                    className="w-full"
                   />
                   <p className="text-xs text-gray-400 mt-2 text-center">
-                    JPEG, PNG, or GIF (max. 1MB)
+                    {t("format")}
                   </p>
                 </div>
               </div>

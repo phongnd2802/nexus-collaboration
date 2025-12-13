@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 import { formatTime } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ChatMessageProps {
   message: {
@@ -23,6 +24,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   message,
   currentUserId,
 }) => {
+  const t = useTranslations("MessagesPage.chatHeader");
   const isCurrentUser = message.sender.id === currentUserId;
 
   return (
@@ -33,7 +35,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
         <Avatar className="h-8 w-8">
           <AvatarImage
             src={message.sender.image || ""}
-            alt={message.sender.name || "User"}
+            alt={message.sender.name || t("userAlt")}
           />
           <AvatarFallback className="bg-primary text-primary-foreground text-xs">
             {getInitials(message.sender.name)}

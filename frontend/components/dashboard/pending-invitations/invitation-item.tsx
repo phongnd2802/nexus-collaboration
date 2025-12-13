@@ -43,7 +43,7 @@ const InvitationItem = memo(({
         {/* Action Buttons Section */}
         <div className="flex gap-2">
           <Button
-            variant="outline"
+            variant="neutral"
             size="sm"
             className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
             onClick={() => onDecline(invitation.id)}

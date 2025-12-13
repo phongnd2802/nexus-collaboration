@@ -15,8 +15,10 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 export const ForgotPasswordForm = () => {
+  const t = useTranslations("AuthPage.forgotPassword");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -64,17 +66,17 @@ export const ForgotPasswordForm = () => {
               className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">{t("home")}</span>
             </Link>
             <div className="h-12 w-12 rounded-full bg-violet-600 dark:bg-violet-700 flex items-center justify-center mx-auto">
               <KeyRound className="h-6 w-6 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Reset your password
+            {t("title")}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            We'll send you a link to reset your password
+            {t("description")}
           </CardDescription>
         </CardHeader>
 
@@ -103,12 +105,10 @@ export const ForgotPasswordForm = () => {
                   </div>
                 </div>
                 <p className="font-medium text-lg mb-2 text-green-700 dark:text-green-300">
-                  Check your email
+                  {t("success.title")}
                 </p>
                 <p className="text-green-700/80 dark:text-green-400/90">
-                  If your email is in our system, you will receive a password
-                  reset link shortly. Please check the spam folder if you don't
-                  see it in your inbox.
+                  {t("success.description")}
                 </p>
               </div>
               <Button
@@ -116,7 +116,7 @@ export const ForgotPasswordForm = () => {
                 variant="default"
                 className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
               >
-                <Link href="/auth/signin">Return to Sign In</Link>
+                <Link href="/auth/signin">{t("returnToSignIn")}</Link>
               </Button>
             </motion.div>
           ) : (
@@ -127,10 +127,10 @@ export const ForgotPasswordForm = () => {
                   className="text-sm font-medium text-foreground flex items-center"
                 >
                   <Mail className="h-4 w-4 mr-1.5 text-violet-500 dark:text-violet-400" />
-                  Email Address
+                  {t("emailLabel")}
                 </label>
                 <p className="text-sm text-muted-foreground">
-                  Enter the email address associated with your account.
+                  {t("emailDescription")}
                 </p>
                 <Input
                   id="email"
@@ -139,8 +139,8 @@ export const ForgotPasswordForm = () => {
                   autoComplete="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
 
@@ -152,10 +152,10 @@ export const ForgotPasswordForm = () => {
                 {isLoading ? (
                   <>
                     <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-                    Sending...
+                    {t("submitting")}
                   </>
                 ) : (
-                  "Send Reset Link"
+                  t("submit")
                 )}
               </Button>
             </form>
@@ -163,14 +163,10 @@ export const ForgotPasswordForm = () => {
         </CardContent>
 
         <CardFooter className="flex justify-center pt-0">
-          <Button
-            asChild
-            variant="link"
-            className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
-          >
+          <Button asChild variant="neutral">
             <Link href="/auth/signin" className="flex items-center">
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Sign In
+              {t("signIn")}
             </Link>
           </Button>
         </CardFooter>

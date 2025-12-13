@@ -1,4 +1,4 @@
-import { format, isToday, isTomorrow } from "date-fns";
+import { format, isToday, isTomorrow, Locale } from "date-fns";
 import { Deadline } from "@/types/index";
 import {
   AlertTriangle,
@@ -12,11 +12,28 @@ import {
  * Formats a due date string into a human-readable format.
  * Returns "Today" or "Tomorrow" for near dates, otherwise full format.
  */
-export function formatDueDate(dateString: string): string {
+export function formatDueDate(
+  dateString: string,
+  locale?: Locale,
+  todayText: string = "Today",
+  tomorrowText: string = "Tomorrow"
+): string {
   const date = new Date(dateString);
-  if (isToday(date)) return "Today";
-  if (isTomorrow(date)) return "Tomorrow";
-  return format(date, "EEEE, MMMM d, yyyy");
+  if (isToday(date)) return todayText;
+  if (isTomorrow(date)) return tomorrowText;
+  let formatStr = "EEEE, MMMM d, yyyy";
+  if (locale?.code === "vi") {
+    formatStr = "EEEE, d MMMM, yyyy";
+  }
+
+  let formatted = format(date, formatStr, { locale });
+
+  // Capitalize "tháng" for Vietnamese
+  if (locale?.code === "vi") {
+    formatted = formatted.replace("tháng", "Tháng");
+  }
+
+  return formatted;
 }
 
 /**
@@ -37,7 +54,7 @@ export function getInitials(name: string | null | undefined): string {
   if (!name) return "U";
   return name
     .split(" ")
-    .map((n) => n[0])
+    .map(n => n[0])
     .join("")
     .toUpperCase();
 }
@@ -102,22 +119,19 @@ export function sortDeadlinesByDate(deadlines: Deadline[]): Deadline[] {
 export function groupDeadlinesByDate(
   deadlines: Deadline[]
 ): Record<string, Deadline[]> {
-  return deadlines.reduce(
-    (groups: Record<string, Deadline[]>, deadline) => {
-      const dueDate = deadline.dueDate;
-      if (!dueDate) return groups;
+  return deadlines.reduce((groups: Record<string, Deadline[]>, deadline) => {
+    const dueDate = deadline.dueDate;
+    if (!dueDate) return groups;
 
-      const date = new Date(dueDate);
-      const dateStr = format(date, "yyyy-MM-dd");
+    const date = new Date(dueDate);
+    const dateStr = format(date, "yyyy-MM-dd");
 
-      if (!groups[dateStr]) {
-        groups[dateStr] = [];
-      }
-      groups[dateStr].push(deadline);
-      return groups;
-    },
-    {}
-  );
+    if (!groups[dateStr]) {
+      groups[dateStr] = [];
+    }
+    groups[dateStr].push(deadline);
+    return groups;
+  }, {});
 }
 
 /**
@@ -130,5 +144,5 @@ export function filterDeadlinesByType(
   if (filterType === "all") {
     return deadlines;
   }
-  return deadlines.filter((deadline) => deadline.type === filterType);
+  return deadlines.filter(deadline => deadline.type === filterType);
 }

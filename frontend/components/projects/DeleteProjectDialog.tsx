@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslations } from "next-intl";
 
 interface DeleteProjectDialogProps {
   project: any;
@@ -26,6 +27,7 @@ export default function DeleteProjectDialog({
   isOpen,
   onOpenChange,
 }: DeleteProjectDialogProps) {
+  const t = useTranslations("deleteProjectDialog");
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const router = useRouter();
@@ -78,39 +80,34 @@ export default function DeleteProjectDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             <AlertTriangle className="h-5 w-5 mr-2" />
-            Delete Project
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="space-y-4">
-            <span>
-              This action <span className="font-bold">cannot be undone</span>.
-              This will permanently delete the project, all its tasks, files,
-              and remove all team members.
-            </span>
+            <span>{t("description")}</span>
 
             <span className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md text-amber-800 dark:text-amber-300 text-sm flex items-start mt-2">
-              <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
               <span>
-                To confirm, please type{" "}
-                <span className="font-bold">{project.name}</span> below
+                {t("confirm_text")}{" "}
+                <span className="font-bold">{project.name}</span>
               </span>
             </span>
 
             <Input
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              placeholder={`Type "${project.name}" to confirm`}
               className={confirmText === project.name ? "border-green-500" : ""}
             />
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-2 sm:space-x-2">
           <Button
-            variant="outline"
+            variant="neutral"
             onClick={() => handleOpenChange(false)}
             disabled={isDeleting}
             className="mt-3 sm:mt-0"
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={(e) => handleDeleteProject(e)}
@@ -124,12 +121,12 @@ export default function DeleteProjectDialog({
             {isDeleting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Deleting...
+                {t("deleting")}
               </>
             ) : (
               <>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete Project
+                {t("delete")}
               </>
             )}
           </Button>

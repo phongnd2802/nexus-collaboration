@@ -1,24 +1,21 @@
-/**
- * Calendar header component
- * Displays the weekday names at the top of the calendar
- */
-
 "use client";
 
 import { cn } from "@/lib/utils";
+
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
 interface CalendarHeaderProps {
   isMobile: boolean;
 }
 
-const WEEKDAYS_FULL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const WEEKDAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
-
-/**
- * Renders the weekday header row for the calendar
- */
 export function CalendarHeader({ isMobile }: CalendarHeaderProps) {
-  const weekDays = isMobile ? WEEKDAYS_SHORT : WEEKDAYS_FULL;
+  const t = useTranslations("CalendarPage.weekdays");
+  const weekDays = useMemo(() => {
+    return isMobile
+      ? t("short").split(",")
+      : t("full").split(",");
+  }, [isMobile, t]);
 
   return (
     <div className="grid grid-cols-7 border-b border-border">

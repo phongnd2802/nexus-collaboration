@@ -15,6 +15,7 @@ import { getProfileUrl } from "@/lib/profile-utils";
 import { getInitials, formatDate } from "@/lib/utils";
 import { getStatusBadge } from "@/lib/badge-utils";
 import { Project, ProjectMember } from "@/types/index";
+import { useLocale, useTranslations } from "next-intl";
 
 interface ProjectCardProps {
   project: Project;
@@ -29,10 +30,12 @@ export default function ProjectCard({
   completionPercentage,
   members,
 }: ProjectCardProps) {
+  const t = useTranslations("DashboardPage.projectCard");
+  const locale = useLocale();
   const { data: session } = useSession();
 
   const truncateDescription = (desc: string | null, maxLength = 100) => {
-    if (!desc) return "No description provided";
+    if (!desc) return t("noDescription");
     return desc.length > maxLength
       ? `${desc.substring(0, maxLength)}...`
       : desc;
@@ -42,11 +45,11 @@ export default function ProjectCard({
     <Link href={`/projects/${project.id}`} className="block group">
       <Card className="h-full transition-all hover:shadow-md hover:bg-muted/30 dark:hover:bg-muted/20">
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <CardTitle className="font-medium! text-foreground text-lg">
+          <div className="flex justify-between items-start gap-2">
+            <CardTitle className="font-medium! text-lg text-foreground line-clamp-2 overflow-hidden text-ellipsis break-all">
               {project.name}
             </CardTitle>
-            {getStatusBadge(project.status)}
+            {getStatusBadge(project.status, t)}
           </div>
           <CardDescription>
             {truncateDescription(project.description)}
@@ -54,15 +57,14 @@ export default function ProjectCard({
         </CardHeader>
 
         <CardContent>
-          <div className="flex items-center text-xs text-muted-foreground mb-3">
+          <div className="flex items-center text-xs text-muted-foreground mb-3 truncate">
             <Users className="h-3.5 w-3.5 mr-1" />
             <span>
-              {memberCount} member
-              {memberCount !== 1 ? "s" : ""}
+              {memberCount} {t("members")}
             </span>
             <span className="mx-2">•</span>
             <Calendar className="h-3.5 w-3.5 mr-1" />
-            <span>{formatDate(project.dueDate)}</span>
+            <span>{formatDate(project.dueDate, t, locale)}</span>
           </div>
 
           <div className="flex items-center justify-between pt-2">
@@ -84,7 +86,7 @@ export default function ProjectCard({
                     alt={member?.user?.name!}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-linear-to-br from-violet-600 to-violet-800 text-white">
+                  <AvatarFallback className="bg-linear-to-br from-main to-main text-white">
                     {getInitials(member.user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -101,7 +103,7 @@ export default function ProjectCard({
         <CardFooter className="pt-0 mt-auto">
           <div className="space-y-1 w-full">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Progress</span>
+              <span>{t("progress")}</span>
               <span>{completionPercentage}%</span>
             </div>
             <Progress value={completionPercentage} className="h-1.5" />

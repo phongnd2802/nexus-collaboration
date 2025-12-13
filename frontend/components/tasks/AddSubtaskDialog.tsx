@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +20,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useAddSubtask } from "@/hooks/useAddSubtask";
+import { useTranslations } from "next-intl";
 
 interface Member {
   id: string;
@@ -45,109 +45,68 @@ export default function AddSubtaskDialog({
   onSuccess,
   projectMembers,
 }: AddSubtaskDialogProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    priority: "MEDIUM",
-    assigneeId: "",
+  const t = useTranslations("TaskDetailPage");
+  const {
+    isSubmitting,
+    formData,
+    setName,
+    setPriority,
+    setAssigneeId,
+    handleSubmit,
+  } = useAddSubtask({
+    taskId,
+    onSuccess,
+    onClose,
   });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      toast.error("Please enter subtask name");
-      return;
-    }
-
-    if (!formData.assigneeId) {
-      toast.error("Please select an assignee");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch(`/api/tasks/${taskId}/subtasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create subtask");
-      }
-
-      toast.success("Subtask created successfully");
-      setFormData({
-        name: "",
-        priority: "MEDIUM",
-        assigneeId: "",
-      });
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error("Error creating subtask:", error);
-      toast.error("Failed to create subtask");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add Subtask</DialogTitle>
+          <DialogTitle>{t("addSubtask")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">
-              Subtask Name <span className="text-destructive">*</span>
+              {t("subtaskName")} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="name"
-              placeholder="Enter subtask name"
+              placeholder={t("enterSubtaskName")}
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={(e) => setName(e.target.value)}
               disabled={isSubmitting}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
+            <Label htmlFor="priority">{t("priority")}</Label>
             <Select
               value={formData.priority}
-              onValueChange={(value) =>
-                setFormData({ ...formData, priority: value })
-              }
+              onValueChange={setPriority}
               disabled={isSubmitting}
             >
               <SelectTrigger id="priority">
-                <SelectValue placeholder="Select priority" />
+                <SelectValue placeholder={t("selectPriority")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="LOW">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-blue-500" />
-                    <span>Low</span>
+                    <span>{t("LOW")}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="MEDIUM">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                    <span>Medium</span>
+                    <span>{t("MEDIUM")}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="HIGH">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-red-500" />
-                    <span>High</span>
+                    <span>{t("HIGH")}</span>
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -156,17 +115,15 @@ export default function AddSubtaskDialog({
 
           <div className="space-y-2">
             <Label htmlFor="assignee">
-              Assignee <span className="text-destructive">*</span>
+              {t("assignee")} <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.assigneeId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, assigneeId: value })
-              }
+              onValueChange={setAssigneeId}
               disabled={isSubmitting}
             >
               <SelectTrigger id="assignee">
-                <SelectValue placeholder="Select assignee" />
+                <SelectValue placeholder={t("selectAssignee")} />
               </SelectTrigger>
               <SelectContent>
                 {projectMembers.map((member) => (
@@ -189,17 +146,17 @@ export default function AddSubtaskDialog({
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="neutral"
               onClick={onClose}
               disabled={isSubmitting}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Create subtask
+              {t("createSubtask")}
             </Button>
           </DialogFooter>
         </form>
