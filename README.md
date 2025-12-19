@@ -109,7 +109,7 @@ cd ../frontend
 npm install
 ```
 
-### 2.3. Chạy Ứng dụng
+### 2.4. Chạy Ứng dụng
 Mở hai cửa sổ terminal riêng biệt.
 
 #### Chạy Backend Server:
