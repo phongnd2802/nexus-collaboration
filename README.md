@@ -1,32 +1,12 @@
 # Nexus Collaboration Platform
 
 Một nền tảng quản lý dự án và hợp tác toàn diện, được xây dựng để đơn giản hóa quy trình làm việc và giao tiếp nhóm trong thời gian thực.
-## 1. Công nghệ & Kiến trúc
 
-Dự án được xây dựng theo kiến trúc Full-Stack hiện đại, chia thành hai phần chính là Frontend và Backend, kết hợp với các dịch vụ nền tảng (Infrastructure Services).
-
-### 1.1. Technology Stack
-
-| Lớp           | Công nghệ                             | Chi tiết                                      
-=========================================================================================================
-| **Frontend**  | **Next.js 15, React 19, TypeScript**  | Framework React hiện đại, hỗ trợ SSR/SSG.       
-|               | **Next-Auth**                         | Quản lý phiên và xác thực người dùng.            
-|               | **LiveKit Client SDK**                | Tích hợp tính năng họp video/audio.           
-=========================================================================================================
-| **Backend**   | **Node.js, Express.js, TypeScript**   | Máy chủ API RESTful và Socket.io.             
-|               | **Prisma ORM**                        | Tầng truy cập dữ liệu cho PostgreSQL.         
-|               | **BullMQ, ioredis**                   | Hệ thống hàng đợi (Queue System) cho các tác vụ nền (ví dụ: gửi email, nhắc nhở).      
-=========================================================================================================
-| **Hạ tầng**   | **PostgreSQL 17**                     | Cơ sở dữ liệu quan hệ chính.                  
-|               | **Redis 7**                           | Dùng làm Cache và Message Broker cho BullMQ và Socket.IO.                                 
-|               | **MinIO**                             | Lưu trữ đối tượng tương thích S3 cho tệp tin và ảnh đại diện.                             
-|               | **LiveKit Server**                    | Dịch vụ hội nghị video/audio thời gian thực.  
-
-## 2. Các Tính năng Chính
+## 1 Các Tính năng Chính
 
 Dự án hỗ trợ một loạt các tính năng phức tạp để tạo nên một nền tảng hợp tác toàn diện:
 
-### 2.1. Quản lý Dự án và Công việc (Project & Task Management)
+### 1.1. Quản lý Dự án và Công việc (Project & Task Management)
 
 * **Quản lý Dự án (Project):** Tạo, cập nhật thông tin, và theo dõi trạng thái dự án (`IN_PROGRESS`, `AT_RISK`, `COMPLETED`).
 * **Quản lý Task:** Gán Task cho người dùng (`assigneeId`), đặt độ ưu tiên (`LOW`, `MEDIUM`, `HIGH`), và quản lý trạng thái (`TODO`, `IN_PROGRESS`, `DONE`).
@@ -35,25 +15,25 @@ Dự án hỗ trợ một loạt các tính năng phức tạp để tạo nên 
 * **Quản lý Tệp tin:** Upload và quản lý tệp tin liên quan đến Project và Task (sử dụng MinIO/S3).
 * **Lập lịch & Nhắc nhở:** Hệ thống lập lịch nhắc nhở tự động cho các Task hoặc Project sắp đến hạn.
 
-### 2.2. Giao tiếp Thời gian thực (Real-time Communication)
+### 1.2. Giao tiếp Thời gian thực (Real-time Communication)
 
 * **Hội nghị Video:** Tích hợp **LiveKit** để tạo phòng họp video/audio trực tiếp cho các thành viên trong dự án/rooms/[roomName]/page.tsx].
 * **Chat Dự án (Team Chat):** Kênh chat chung cho từng dự án (sử dụng Socket.IO).
 * **Tin nhắn Trực tiếp (Direct Message):** Giao tiếp riêng tư 1-1 giữa hai người dùng.
 
-### 2.3. Quản lý Tài khoản & Bảo mật
+### 1.3. Quản lý Tài khoản & Bảo mật
 
 * **Xác thực:** Hỗ trợ đăng ký/đăng nhập bằng email/mật khẩu và quản lý hồ sơ người dùng/profile/page.tsx, backend/prisma/schema.prisma].
 * **Tùy chỉnh Cài đặt:** Người dùng có thể tùy chỉnh các thiết lập thông báo qua Email và In-App.
 
-## 3. Hướng dẫn Set Up Project
+## 2. Hướng dẫn Set Up Project
 
-### 3.1. Điều kiện tiên quyết (Prerequisites)
+### 2.1. Điều kiện tiên quyết (Prerequisites)
 
 * **Docker & Docker Compose**
 * **Node.js (LTS)** và **npm** (hoặc yarn/pnpm)
 
-### 3.2. Khởi tạo Môi trường Docker
+### 2.2. Khởi tạo Môi trường Docker
 
 Khởi động các dịch vụ nền tảng (PostgreSQL, Redis, MinIO, LiveKit):
 
@@ -61,7 +41,7 @@ Khởi động các dịch vụ nền tảng (PostgreSQL, Redis, MinIO, LiveKit)
 docker compose up -d
 ```
 
-### 3.2. Khởi tạo Môi trường Docker
+### 2.2. Khởi tạo Môi trường Docker
 Tạo tệp .env trong thư mục backend và tệp .env.local trong thư mục frontend.
 
 ## A. Cấu hình Backend (backend/.env)
@@ -107,7 +87,7 @@ NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
 NEXT_PUBLIC_MINIO_BUCKET_NAME=nexus-files
 ```
 
-### 3.4. Khởi tạo Database và Cài đặt Dependencies
+### 2.4. Khởi tạo Database và Cài đặt Dependencies
 #### Cài đặt Dependencies cho Backend:
 
 ```Bash
@@ -129,7 +109,7 @@ cd ../frontend
 npm install
 ```
 
-### 3.5. Chạy Ứng dụng
+### 2.5. Chạy Ứng dụng
 Mở hai cửa sổ terminal riêng biệt.
 
 #### Chạy Backend Server:
