@@ -87,7 +87,7 @@ NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
 NEXT_PUBLIC_MINIO_BUCKET_NAME=nexus-files
 ```
 
-### 2.4. Khởi tạo Database và Cài đặt Dependencies
+### 2.3. Khởi tạo Database và Cài đặt Dependencies
 #### Cài đặt Dependencies cho Backend:
 
 ```Bash
@@ -109,7 +109,7 @@ cd ../frontend
 npm install
 ```
 
-### 2.5. Chạy Ứng dụng
+### 2.3. Chạy Ứng dụng
 Mở hai cửa sổ terminal riêng biệt.
 
 #### Chạy Backend Server:
