@@ -253,7 +253,7 @@ export function CustomPreJoin({
       {defaults?.username ? (
         <div className="flex items-center gap-2 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-base border-2 border-border">
           <User className="w-5 h-5 text-neutral-500" />
-          <span className="font-medium">{username}</span>
+          <span className="font-medium text-black dark:text-white">{username}</span>
         </div>
       ) : (
         <Input

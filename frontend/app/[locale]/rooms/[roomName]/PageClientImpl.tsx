@@ -2,10 +2,10 @@
 
 import React from "react";
 import { decodePassphrase } from "@/lib/utils";
-import { DebugMode } from "@/lib/Debug";
+// import { DebugMode } from "@/lib/Debug";
 import { KeyboardShortcuts } from "@/lib/KeyboardShortcuts";
 import { RecordingIndicator } from "@/lib/RecordingIndicator";
-import { SettingsMenu } from "@/lib/SettingsMenu";
+// import { SettingsMenu } from "@/lib/SettingsMenu";
 import { ConnectionDetails } from "@/lib/types";
 import {
   formatChatMessageLinks,
@@ -270,9 +270,9 @@ function VideoConferenceComponent(props: {
         <KeyboardShortcuts />
         <VideoConference
           chatMessageFormatter={formatChatMessageLinks}
-          SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+          // SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
         />
-        <DebugMode />
+        {/* <DebugMode /> */}
         <RecordingIndicator />
       </RoomContext.Provider>
     </div>
