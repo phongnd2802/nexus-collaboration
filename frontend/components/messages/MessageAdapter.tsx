@@ -61,8 +61,10 @@ const MessageAdapter: React.FC<MessageAdapterProps> = ({
         )}
         <div
           className={cn(
-            "px-4 py-2 rounded-lg",
-            isCurrentUser ? "bg-primary text-primary-foreground" : "bg-muted"
+            "px-4 py-2 rounded-xl",
+            isCurrentUser
+              ? "bg-[#111827] text-white shadow-sm"
+              : "bg-[#F9FAFB] text-black border border-[#E5E7EB]"
           )}
         >
           <p className="text-sm">{message.content}</p>

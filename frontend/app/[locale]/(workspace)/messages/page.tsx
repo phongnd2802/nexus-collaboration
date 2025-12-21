@@ -25,9 +25,7 @@ export default function MessagesPage() {
           {t("title")}
         </h1>
         {!isMobile && (
-          <p className="text-muted-foreground mt-1">
-            {t("description")}
-          </p>
+          <p className="text-muted-foreground mt-1">{t("description")}</p>
         )}
       </div>
       <Suspense
