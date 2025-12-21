@@ -42,7 +42,7 @@ const MessageAdapter: React.FC<MessageAdapterProps> = ({
             src={message.user.image || ""}
             alt={message.user.name || t("userAlt")}
           />
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+          <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-xs">
             {getInitials(message.user.name)}
           </AvatarFallback>
         </Avatar>

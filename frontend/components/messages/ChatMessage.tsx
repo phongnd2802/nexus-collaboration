@@ -37,7 +37,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             src={message.sender.image || ""}
             alt={message.sender.name || t("userAlt")}
           />
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+          <AvatarFallback className="bg-linear-to-br from-violet-500 to-indigo-700 text-white text-xs">
             {getInitials(message.sender.name)}
           </AvatarFallback>
         </Avatar>
