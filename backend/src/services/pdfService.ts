@@ -323,7 +323,7 @@ export class PdfService {
     const linkData = links.map(l => {
       const url = `${
         process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-      }/projects/${task.projectId}?taskId=${l.task.id}`;
+      }/tasks/${l.task.id}`;
       return [
         { text: l.task.title, link: url },
         l.task.priority ? t(`priority_${l.task.priority}`) : t("no_priority"),
