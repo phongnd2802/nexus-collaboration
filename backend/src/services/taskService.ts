@@ -334,6 +334,25 @@ export async function updateTask(
       }
     }
 
+    // If task is being moved to DONE, check if all subtasks are completed
+    if (status === TaskStatus.DONE) {
+      const subtasks = await prisma.subtask.findMany({
+        where: { taskId },
+      });
+
+      const hasIncompleteSubtasks = subtasks.some(
+        subtask => subtask.status !== TaskStatus.DONE
+      );
+
+      if (hasIncompleteSubtasks) {
+        throw new AppError(
+          400,
+          "INCOMPLETE_SUBTASKS",
+          "Cannot mark task as done. All subtasks must be completed first."
+        );
+      }
+    }
+
     const updated = await prisma.$transaction(async tx => {
       const updatedTask = await tx.task.update({
         where: { id: taskId },
@@ -419,7 +438,7 @@ export async function updateTask(
     }
   }
 
-  // If task is being moved to DONE, check if all subtasks are completed
+  let finalStatus: TaskStatus | undefined = status ?? undefined;
   if (status === TaskStatus.DONE) {
     const subtasks = await prisma.subtask.findMany({
       where: { taskId },
@@ -430,11 +449,7 @@ export async function updateTask(
     );
 
     if (hasIncompleteSubtasks) {
-      throw new AppError(
-        400,
-        "INCOMPLETE_SUBTASKS",
-        "Cannot mark task as done. All subtasks must be completed first."
-      );
+      finalStatus = undefined;
     }
   }
 
@@ -447,7 +462,7 @@ export async function updateTask(
         assigneeId: assigneeId ?? undefined,
         dueDate: computedDue,
         priority: priority ?? undefined,
-        status: status ?? undefined,
+        status: finalStatus,
       },
       include: {
         creator: { select: { id: true, name: true, image: true } },

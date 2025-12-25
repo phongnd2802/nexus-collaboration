@@ -203,25 +203,38 @@ export class PdfService {
     const labelWidth = 100;
 
     const drawField = (label: string, value: string, link?: string) => {
+      const valueWidth =
+        doc.page.width - infoX - labelWidth - doc.page.margins.right;
+
       doc
         .fontSize(10)
         .font("NotoSans-Bold")
         .text(label + ":", infoX, infoY, { width: labelWidth });
       doc.font("NotoSans");
+
+      // Calculate the actual height of the value text
+      const textHeight = doc.heightOfString(value, { width: valueWidth });
+
       if (link) {
         doc
           .fillColor("blue")
-          .text(value, infoX + labelWidth, infoY, { link, underline: true })
+          .text(value, infoX + labelWidth, infoY, {
+            link,
+            underline: true,
+            width: valueWidth,
+          })
           .fillColor("black");
       } else {
-        doc.text(value, infoX + labelWidth, infoY);
+        doc.text(value, infoX + labelWidth, infoY, { width: valueWidth });
       }
-      infoY += 15;
+
+      // Use the actual text height (minimum 15px for single line)
+      infoY += Math.max(textHeight, 15) + 5;
     };
 
     const taskUrl = `${
       process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    }/projects/${task.projectId}?taskId=${task.id}`;
+    }/tasks/${task.id}`;
 
     drawField(t("title"), task.title, taskUrl);
     drawField(t("description"), task.description || t("no_description"));
