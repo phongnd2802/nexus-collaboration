@@ -256,16 +256,19 @@ export async function createTask(
     return { newTask };
   });
 
-  // Schedule reminders nếu có dueDate
+  // Schedule reminders nếu có dueDate (dựa trên priority)
   if (result.newTask.dueDate) {
-    await upsertTaskReminders(result.newTask.id, result.newTask.dueDate).catch(
-      err => {
-        console.error(
-          `Failed to schedule reminders for task ${result.newTask.id}:`,
-          err
-        );
-      }
-    );
+    const taskPriority = priority ?? TaskPriority.MEDIUM;
+    await upsertTaskReminders(
+      result.newTask.id,
+      result.newTask.dueDate,
+      taskPriority
+    ).catch(err => {
+      console.error(
+        `Failed to schedule reminders for task ${result.newTask.id}:`,
+        err
+      );
+    });
   }
 
   return result.newTask;
@@ -465,17 +468,22 @@ export async function updateTask(
     return { updatedTask: updated, cascadedTasks };
   });
 
-  // Update reminders nếu dueDate thay đổi
-  if (computedDue) {
-    await upsertTaskReminders(updatedTask.updatedTask.id, computedDue).catch(
-      err => {
-        console.error(
-          `Failed to update reminders for task ${updatedTask.updatedTask.id}:`,
-          err
-        );
-      }
-    );
-  } else if (task.dueDate && !computedDue) {
+  // Update reminders nếu dueDate hoặc priority thay đổi
+  const finalDueDate = computedDue ?? updatedTask.updatedTask.dueDate;
+  const finalPriority = priority ?? updatedTask.updatedTask.priority;
+
+  if (finalDueDate) {
+    await upsertTaskReminders(
+      updatedTask.updatedTask.id,
+      finalDueDate,
+      finalPriority
+    ).catch(err => {
+      console.error(
+        `Failed to update reminders for task ${updatedTask.updatedTask.id}:`,
+        err
+      );
+    });
+  } else if (task.dueDate && computedDue === null) {
     // Nếu xóa dueDate => xóa reminders
     await deleteReminders("task", updatedTask.updatedTask.id).catch(err => {
       console.error(

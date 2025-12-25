@@ -92,7 +92,7 @@ const SubtaskItem = memo(function SubtaskItem({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(100px,200px)_minmax(80px,90px)_minmax(130px,170px)_minmax(90px,100px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
+    <div className="grid grid-cols-[minmax(100px,200px)_minmax(80px,90px)_minmax(100px,145px)_minmax(70px,120px)_auto] gap-3 items-center py-2 hover:bg-muted/50 rounded-md transition-colors text-left">
       {/* Name - Editable on click */}
       <div className="flex items-center gap-2 min-w-0">
         {editingNameId === subtask.id ? (
