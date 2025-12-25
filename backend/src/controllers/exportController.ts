@@ -93,11 +93,6 @@ export const exportProjectPdf = async (
       return;
     }
 
-    // You might need a project-level permission check here
-    // For now assuming if they can view the project, they can export (filtered)
-    // const canView = await canViewProject(projectId, userId);
-    // if (!canView) { ... }
-
     const whereClause: any = { projectId };
     if (filter === "assignee") {
       whereClause.assigneeId = userId;
