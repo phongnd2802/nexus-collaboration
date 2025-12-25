@@ -10,8 +10,8 @@ export async function createTaskLink(req: Request, res: Response) {
     const userId =
       (req.headers["x-user-id"] as string) || (req.query.userId as string);
 
-    const sourceTaskId = relationship === "BLOCKS" ? taskId : linkedTaskId;
-    const targetTaskId = relationship === "BLOCKS" ? linkedTaskId : taskId;
+    const sourceTaskId = taskId;
+    const targetTaskId = linkedTaskId;
     const linkRelationship =
       relationship === "BLOCKS"
         ? TaskRelationship.BLOCKS

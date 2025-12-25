@@ -86,6 +86,12 @@
         "weak": "Mật khẩu yếu",
         "medium": "Mật khẩu trung bình",
         "strong": "Mật khẩu mạnh"
+      },
+      "emailVerification": {
+        "title": "Kiểm tra email của bạn",
+        "linkSent": "Liên kết xác minh đã được gửi đến",
+        "clickToActivate": "Nhấp vào liên kết để kích hoạt tài khoản của bạn.",
+        "verifyBeforeSignIn": "Xác minh email trước khi đăng nhập."
       }
     },
     "forgotPassword": {
@@ -132,6 +138,33 @@
         "strong": "Mật khẩu mạnh"
       },
       "home": "Trang chủ"
+    },
+    "verifyEmail": {
+      "home": "Trang chủ",
+      "title": "Xác minh Email",
+      "description": "Xác minh địa chỉ email để kích hoạt tài khoản của bạn",
+      "verifying": "Đang xác minh email của bạn...",
+      "success": {
+        "title": "Email đã được xác minh thành công!",
+        "description": "Email của bạn đã được xác minh. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.",
+        "goToSignIn": "Đi đến Đăng nhập"
+      },
+      "alreadyVerified": {
+        "title": "Email đã được xác minh",
+        "description": "Địa chỉ email của bạn đã được xác minh. Bạn có thể đăng nhập vào tài khoản ngay bây giờ."
+      },
+      "error": {
+        "resendHint": "Nếu bạn cần gửi lại liên kết xác minh mới, hãy nhập email của bạn bên dưới:",
+        "sending": "Đang gửi...",
+        "resendButton": "Gửi lại email xác minh",
+        "resendSuccess": "Email xác minh đã được gửi! Vui lòng kiểm tra hộp thư của bạn."
+      },
+      "waiting": {
+        "title": "Kiểm tra email của bạn",
+        "description": "Chúng tôi đã gửi một liên kết xác minh đến địa chỉ email của bạn. Vui lòng kiểm tra hộp thư và nhấp vào liên kết để xác minh tài khoản.",
+        "resendHint": "Nếu bạn không nhận được email, hãy kiểm tra thư mục spam hoặc nhập email để yêu cầu liên kết xác minh mới:"
+      },
+      "backToSignIn": "Quay lại Đăng nhập"
     }
   },
   "DashboardPage": {
@@ -328,6 +361,11 @@
       "isTyping": "{name} đang nhập...",
       "startConversation": "Bắt đầu cuộc trò chuyện"
     }
+  },
+  "LanguageSwitcher": {
+    "label": "Ngôn ngữ",
+    "en": "EN",
+    "vi": "VI"
   },
   "TasksPage": {
     "header": {
@@ -909,6 +947,7 @@
     "description": "Mời thành viên vào dự án",
     "cancel": "Hủy",
     "inviting": "Đang mời",
+    "sending": "Đang gửi...",
     "invite": "Mời",
     "placeholder": "Nhập email",
     "noUsersFound": "Không tìm thấy người dùng",

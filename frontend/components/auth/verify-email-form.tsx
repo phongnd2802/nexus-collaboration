@@ -3,11 +3,25 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import Link from "next/link";
-import { AlertCircle, ArrowLeft, CheckCircle, KeyRound, Loader2, Mail } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle,
+  KeyRound,
+  Loader2,
+  Mail,
+} from "lucide-react";
 import { Button } from "../ui/button";
-
+import { useTranslations } from "next-intl";
 
 export const VerifyEmailForm = () => {
   const [isVerifying, setIsVerifying] = useState(false);
@@ -18,6 +32,7 @@ export const VerifyEmailForm = () => {
   const [resendSuccess, setResendSuccess] = useState(false);
   const [emailAlreadyVerified, setEmailAlreadyVerified] = useState(false);
 
+  const t = useTranslations("AuthPage.verifyEmail");
   const router = useRouter();
   const searchParams = useSearchParams();
   const code = searchParams?.get("code") || "";
@@ -125,17 +140,17 @@ export const VerifyEmailForm = () => {
               className="absolute left-0 top-0 inline-flex items-center text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">{t("home")}</span>
             </Link>
             <div className="h-12 w-12 rounded-full bg-violet-600 dark:bg-violet-700 flex items-center justify-center mx-auto">
               <KeyRound className="h-6 w-6 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Email Verification
+            {t("title")}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Verify your email address to activate your account
+            {t("description")}
           </CardDescription>
         </CardHeader>
 
@@ -145,9 +160,7 @@ export const VerifyEmailForm = () => {
               <div className="flex justify-center">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-600 dark:border-violet-400"></div>
               </div>
-              <p className="mt-4 text-muted-foreground">
-                Verifying your email...
-              </p>
+              <p className="mt-4 text-muted-foreground">{t("verifying")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-6">
@@ -167,13 +180,12 @@ export const VerifyEmailForm = () => {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    If you need us to send a new verification link, enter your
-                    email below:
+                    {t("error.resendHint")}
                   </p>
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     className="w-full px-3 py-2 border border-input rounded-md text-sm shadow-sm placeholder-muted-foreground focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                   />
@@ -187,17 +199,17 @@ export const VerifyEmailForm = () => {
                   {isResending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
+                      {t("error.sending")}
                     </>
                   ) : (
-                    "Resend Verification Email"
+                    t("error.resendButton")
                   )}
                 </Button>
 
                 {resendSuccess && (
                   <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-green-600 dark:text-green-400 text-sm mt-4">
                     <CheckCircle className="h-5 w-5 inline mr-2" />
-                    Verification email sent! Please check your inbox.
+                    {t("error.resendSuccess")}
                   </div>
                 )}
               </div>
@@ -215,18 +227,17 @@ export const VerifyEmailForm = () => {
                 </div>
               </motion.div>
               <div className="text-green-600 dark:text-green-400 font-medium mb-2">
-                Email verified successfully!
+                {t("success.title")}
               </div>
               <p className="text-muted-foreground mb-6">
-                Your email has been verified. You'll be redirected to the sign
-                in page shortly.
+                {t("success.description")}
               </p>
               <Button
                 asChild
                 variant="default"
                 className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
               >
-                <Link href="/auth/signin">Go to Sign In</Link>
+                <Link href="/auth/signin">{t("success.goToSignIn")}</Link>
               </Button>
             </div>
           ) : emailAlreadyVerified ? (
@@ -237,18 +248,17 @@ export const VerifyEmailForm = () => {
                 </div>
               </div>
               <p className="font-medium text-lg mb-2 text-green-600 dark:text-green-400">
-                Email already verified
+                {t("alreadyVerified.title")}
               </p>
               <p className="text-muted-foreground mb-4">
-                Your email address is already verified. You can now sign in to
-                your account.
+                {t("alreadyVerified.description")}
               </p>
               <Button
                 asChild
                 variant="default"
                 className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-700 dark:hover:bg-violet-800 text-white"
               >
-                <Link href="/auth/signin">Go to Sign In</Link>
+                <Link href="/auth/signin">{t("success.goToSignIn")}</Link>
               </Button>
             </div>
           ) : (
@@ -260,22 +270,20 @@ export const VerifyEmailForm = () => {
                   </div>
                 </div>
                 <p className="font-medium text-lg mb-2 text-violet-700 dark:text-violet-300">
-                  Check your email
+                  {t("waiting.title")}
                 </p>
                 <p className="text-violet-700/80 dark:text-violet-400/90 mb-4">
-                  We've sent a verification link to your email address. Please
-                  check your inbox and click the link to verify your account.
+                  {t("waiting.description")}
                 </p>
                 <div className="space-y-6 mt-6">
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
-                      If you didn't receive the email, check your spam folder or
-                      enter your email to request a new verification link:
+                      {t("waiting.resendHint")}
                     </p>
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full px-3 py-2 border border-input rounded-md text-sm shadow-sm placeholder-muted-foreground focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                     />
@@ -289,17 +297,17 @@ export const VerifyEmailForm = () => {
                     {isResending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending...
+                        {t("error.sending")}
                       </>
                     ) : (
-                      "Resend Verification Email"
+                      t("error.resendButton")
                     )}
                   </Button>
 
                   {resendSuccess && (
                     <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-green-600 dark:text-green-400 text-sm mt-4">
                       <CheckCircle className="h-5 w-5 inline mr-2" />
-                      Verification email sent! Please check your inbox.
+                      {t("error.resendSuccess")}
                     </div>
                   )}
                 </div>
@@ -309,17 +317,14 @@ export const VerifyEmailForm = () => {
         </CardContent>
 
         <CardFooter className="flex justify-center pt-0">
-          <Button
-            asChild
-            variant="neutral"
-          >
+          <Button asChild variant="neutral">
             <Link href="/auth/signin" className="flex items-center">
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Sign In
+              {t("backToSignIn")}
             </Link>
           </Button>
         </CardFooter>
       </Card>
     </motion.div>
   );
-}
+};

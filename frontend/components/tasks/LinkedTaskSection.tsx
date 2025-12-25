@@ -87,7 +87,7 @@ export default function LinkedTaskSection({
         ) : (
           <div className="space-y-2">
             {/* Header */}
-            <div className="grid grid-cols-[minmax(110px,152px)_minmax(60px,72px)_minmax(104px,152px)_minmax(81px,90px)_minmax(120px,120px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
+            <div className="grid grid-cols-[minmax(80px,110px)_minmax(60px,86px)_minmax(60px,115px)_minmax(70px,90px)_minmax(120px,120px)_auto] gap-3 text-xs font-medium text-muted-foreground pb-2 border-b text-left">
               <div>{t("name")}</div>
               <div>{t("priority")}</div>
               <div>{t("assignee")}</div>

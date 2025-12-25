@@ -129,17 +129,17 @@ export const SignUpForm = () => {
                 </div>
               </div>
               <div className="text-2xl font-bold text-foreground mb-2">
-                Check your email
+                {t("emailVerification.title")}
               </div>
               <p className="text-muted-foreground mb-6">
-                Verification link sent to{" "}
+                {t("emailVerification.linkSent")}{" "}
                 <span className="font-medium">{registeredEmail}</span>.{" "}
-                <br></br> Click the link to activate your account.
+                <br></br> {t("emailVerification.clickToActivate")}
               </p>
               <div className="bg-main dark:bg-main p-4 rounded-lg text-sm mb-6">
                 <p className="text-white">
                   <AlertCircle className="inline h-4 w-4 mr-2" />
-                  Verify your email before you can sign in.
+                  {t("emailVerification.verifyBeforeSignIn")}
                 </p>
               </div>
             </div>

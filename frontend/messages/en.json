@@ -86,6 +86,12 @@
         "weak": "Weak password",
         "medium": "Medium password",
         "strong": "Strong password"
+      },
+      "emailVerification": {
+        "title": "Check your email",
+        "linkSent": "Verification link sent to",
+        "clickToActivate": "Click the link to activate your account.",
+        "verifyBeforeSignIn": "Verify your email before you can sign in."
       }
     },
     "forgotPassword": {
@@ -132,6 +138,33 @@
         "strong": "Strong password"
       },
       "home": "Home"
+    },
+    "verifyEmail": {
+      "home": "Home",
+      "title": "Email Verification",
+      "description": "Verify your email address to activate your account",
+      "verifying": "Verifying your email...",
+      "success": {
+        "title": "Email verified successfully!",
+        "description": "Your email has been verified. You'll be redirected to the sign in page shortly.",
+        "goToSignIn": "Go to Sign In"
+      },
+      "alreadyVerified": {
+        "title": "Email already verified",
+        "description": "Your email address is already verified. You can now sign in to your account."
+      },
+      "error": {
+        "resendHint": "If you need us to send a new verification link, enter your email below:",
+        "sending": "Sending...",
+        "resendButton": "Resend Verification Email",
+        "resendSuccess": "Verification email sent! Please check your inbox."
+      },
+      "waiting": {
+        "title": "Check your email",
+        "description": "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.",
+        "resendHint": "If you didn't receive the email, check your spam folder or enter your email to request a new verification link:"
+      },
+      "backToSignIn": "Back to Sign In"
     }
   },
   "DashboardPage": {
@@ -693,6 +726,7 @@
     "description": "Invite members to the project",
     "cancel": "Cancel",
     "inviting": "Inviting...",
+    "sending": "Sending...",
     "invite": "Invite",
     "placeholder": "Enter email",
     "noUsersFound": "No users found",

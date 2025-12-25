@@ -337,7 +337,7 @@ model ReminderLog {
   id           String    @id @default(cuid())
   entityType   String    // "task" hoặc "project"
   entityId     String    // ID của task hoặc project
-  threshold    Int       // Thời gian trước deadline (phút): 1440=24h, 180=3h, 60=1h
+  threshold    Int       // Thời gian trước deadline (phút): 1440=24h, 720=12h, 180=3h, 60=1h
   fireAt       DateTime  // Thời điểm cần gửi reminder
   sentAt       DateTime? // NULL = chưa gửi, NOT NULL = đã gửi
   jobId        String?   // BullMQ job ID để hủy job nếu cần
