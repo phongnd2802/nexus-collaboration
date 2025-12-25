@@ -63,9 +63,11 @@ export const exportTaskPdf = async (
     const lang = (req.query.lang as string) || "en";
     const pdfBuffer = await PdfService.generateTaskPdf(task, lang);
 
+    const filename = `${task.title}_${task.project.name}.pdf`;
+    const encodedFilename = encodeURIComponent(filename);
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${task.title}_${task.project.name}.pdf"`,
+      "Content-Disposition": `attachment; filename="export.pdf"; filename*=UTF-8''${encodedFilename}`,
       "Content-Length": pdfBuffer.length,
     });
 
@@ -152,9 +154,11 @@ export const exportProjectPdf = async (
 
     const pdfBuffer = await PdfService.generateProjectPdf(tasks, lang);
 
+    const filename = `Project-${projectName}-Export.pdf`;
+    const encodedFilename = encodeURIComponent(filename);
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="Project-${projectName}-Export.pdf"`,
+      "Content-Disposition": `attachment; filename="export.pdf"; filename*=UTF-8''${encodedFilename}`,
       "Content-Length": pdfBuffer.length,
     });
 
