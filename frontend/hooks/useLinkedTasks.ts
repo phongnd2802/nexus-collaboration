@@ -55,7 +55,7 @@ export function useLinkedTasks({
       } else {
         // For other fields (priority, assignee, status), update the actual task
         // We need to get the actual task ID from linkedTask object
-        const linkedTask = linkedTasks.find((lt) => lt.id === linkedTaskId);
+        const linkedTask = linkedTasks.find(lt => lt.id === linkedTaskId);
         if (!linkedTask) return;
 
         const response = await fetch(
@@ -87,10 +87,6 @@ export function useLinkedTasks({
   };
 
   const handleDeleteLinkedTask = async (linkedTaskId: string) => {
-    if (!confirm("Are you sure you want to remove this linked task?")) {
-      return;
-    }
-
     try {
       const response = await fetch(
         `/api/tasks/${taskId}/links/${linkedTaskId}`,

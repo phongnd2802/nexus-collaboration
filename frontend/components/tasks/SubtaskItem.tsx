@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Check, Pencil, Trash2 } from "lucide-react";
@@ -11,6 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getInitials } from "@/lib/utils";
 import { getPriorityBadge } from "@/lib/badge-utils";
 
@@ -65,6 +75,9 @@ const SubtaskItem = memo(function SubtaskItem({
   taskStatus,
 }: SubtaskItemProps) {
   const t = useTranslations("TaskDetailPage");
+  const tCommon = useTranslations("Common");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "TODO":
@@ -99,8 +112,8 @@ const SubtaskItem = memo(function SubtaskItem({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Input
               value={editingName}
-              onChange={(e) => setEditingName(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => setEditingName(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === "Enter") {
                   onNameSave(subtask.id);
                 } else if (e.key === "Escape") {
@@ -140,7 +153,7 @@ const SubtaskItem = memo(function SubtaskItem({
       <div className="flex justify-start">
         <Select
           value={subtask.priority}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(subtask.id, "priority", value)
           }
           disabled={!canEdit}
@@ -162,7 +175,7 @@ const SubtaskItem = memo(function SubtaskItem({
       <div className="min-w-0 flex justify-start">
         <Select
           value={subtask.assigneeId}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(subtask.id, "assigneeId", value)
           }
           disabled={!canEdit}
@@ -184,7 +197,7 @@ const SubtaskItem = memo(function SubtaskItem({
           </SelectTrigger>
 
           <SelectContent>
-            {projectMembers.map((member) => (
+            {projectMembers.map(member => (
               <SelectItem key={member.id} value={member.id}>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-5 w-5">
@@ -205,7 +218,7 @@ const SubtaskItem = memo(function SubtaskItem({
       <div className="flex justify-start">
         <Select
           value={subtask.status}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(subtask.id, "status", value)
           }
           disabled={!canEdit}
@@ -261,7 +274,7 @@ const SubtaskItem = memo(function SubtaskItem({
             variant="neutral"
             size="sm"
             className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete(subtask.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -269,6 +282,33 @@ const SubtaskItem = memo(function SubtaskItem({
         {/* Empty space to maintain layout when delete button is hidden */}
         {(!canEdit || taskStatus === "DONE") && <div className="h-8 w-8" />}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tCommon("confirmDelete")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tCommon("deleteSubtaskConfirmation")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(subtask.id);
+                setIsDeleteDialogOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {tCommon("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });

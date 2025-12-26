@@ -1111,5 +1111,12 @@
       "passphraseHint": "Share this passphrase securely with other participants",
       "currentParticipants": "{count} people currently in this meeting"
     }
+  },
+  "Common": {
+    "confirmDelete": "Confirm Delete",
+    "deleteSubtaskConfirmation": "Are you sure you want to delete this subtask? This action cannot be undone.",
+    "deleteLinkedTaskConfirmation": "Are you sure you want to remove this linked task? This action cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete"
   }
 }

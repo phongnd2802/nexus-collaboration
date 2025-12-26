@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getInitials } from "@/lib/utils";
 import { getPriorityBadge } from "@/lib/badge-utils";
 
@@ -55,6 +65,9 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
   taskStatus,
 }: LinkedTaskItemProps) {
   const t = useTranslations("DashboardPage.taskCard");
+  const tCommon = useTranslations("Common");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "TODO":
@@ -98,7 +111,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
       <div className="flex items-center justify-start">
         <Select
           value={linkedTask.priority}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(linkedTask.id, "priority", value)
           }
           disabled={!canEdit}
@@ -122,7 +135,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
       <div className="min-w-0 flex items-center justify-start">
         <Select
           value={linkedTask.assigneeId}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(linkedTask.id, "assigneeId", value)
           }
           disabled={!canEdit}
@@ -143,7 +156,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {projectMembers.map((member) => (
+            {projectMembers.map(member => (
               <SelectItem key={member.id} value={member.id}>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-5 w-5">
@@ -164,7 +177,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
       <div className="flex items-center justify-start">
         <Select
           value={linkedTask.status}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(linkedTask.id, "status", value)
           }
           disabled={!canEdit}
@@ -216,7 +229,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
       <div className="flex items-center justify-start">
         <Select
           value={linkedTask.relationship}
-          onValueChange={(value) =>
+          onValueChange={value =>
             canEdit && onUpdate(linkedTask.id, "relationship", value)
           }
           disabled={!canEdit}
@@ -242,7 +255,7 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
             variant="neutral"
             size="sm"
             className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete(linkedTask.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -250,6 +263,33 @@ const LinkedTaskItem = memo(function LinkedTaskItem({
         {/* Empty space to maintain layout when delete button is hidden */}
         {(!canEdit || taskStatus === "DONE") && <div className="h-8 w-8" />}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tCommon("confirmDelete")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tCommon("deleteLinkedTaskConfirmation")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(linkedTask.id);
+                setIsDeleteDialogOpen(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {tCommon("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });
