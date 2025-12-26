@@ -1332,5 +1332,12 @@
       "passphraseHint": "Chia sẻ cụm mật khẩu này một cách an toàn với những người tham gia khác",
       "currentParticipants": "{count} người hiện đang trong cuộc họp này"
     }
+  },
+  "Common": {
+    "confirmDelete": "Xác nhận xóa",
+    "deleteSubtaskConfirmation": "Bạn có chắc chắn muốn xóa công việc con này? Hành động này không thể hoàn tác.",
+    "deleteLinkedTaskConfirmation": "Bạn có chắc chắn muốn xóa liên kết công việc này? Hành động này không thể hoàn tác.",
+    "cancel": "Hủy",
+    "delete": "Xóa"
   }
 }

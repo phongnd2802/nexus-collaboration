@@ -70,7 +70,9 @@ export default function SubtaskSection({
     <Card className="shadow-xs">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">{t("subtask")}</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            {t("subtask")}
+          </CardTitle>
           {canEdit && taskStatus !== "DONE" && (
             <Button
               variant="default"
@@ -85,7 +87,7 @@ export default function SubtaskSection({
       </CardHeader>
       <CardContent>
         {subtasks.length === 0 ? (
-          <p className="text-muted-foreground py-8">
+          <p className="text-muted-foreground py-8 text-center">
             {t("noSubtasks")}
           </p>
         ) : (
@@ -97,7 +99,7 @@ export default function SubtaskSection({
               <div>{t("status")}</div>
               <div></div>
             </div>
-            {subtasks.map((subtask) => (
+            {subtasks.map(subtask => (
               <SubtaskItem
                 key={subtask.id}
                 subtask={subtask}

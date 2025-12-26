@@ -67,7 +67,7 @@ export function useSubtasks({
   const handleNameSave = async (subtaskId: string) => {
     if (
       editingName.trim() &&
-      editingName !== subtasks.find((s) => s.id === subtaskId)?.name
+      editingName !== subtasks.find(s => s.id === subtaskId)?.name
     ) {
       await handleUpdateSubtask(subtaskId, "name", editingName.trim());
     }
@@ -76,10 +76,6 @@ export function useSubtasks({
   };
 
   const handleDeleteSubtask = async (subtaskId: string) => {
-    if (!confirm("Are you sure you want to delete this subtask?")) {
-      return;
-    }
-
     try {
       const response = await fetch(
         `/api/tasks/${taskId}/subtasks/${subtaskId}`,
