@@ -75,6 +75,20 @@ export class AuthService {
       // Create default user settings
       await this.createDefaultUserSettings(user.id);
 
+      if (!(user as any).emailVerified) {
+        const tokenResult = await this.db.raw(
+          'SELECT email_verification_token FROM "users" WHERE id = $1',
+          [user.id],
+        );
+        const token = (tokenResult as any)?.rows?.[0]?.email_verification_token;
+        if (token) {
+          const verificationLink = `${verificationUrl}?token=${encodeURIComponent(token)}`;
+          await this.sendVerificationEmail(user.email, verificationLink);
+        } else {
+          this.logger.warn(`No email verification token found for user ${user.id}`);
+        }
+      }
+
       return {
         message: 'Registration successful',
         user: {
@@ -688,10 +702,19 @@ export class AuthService {
 
   async resendEmailVerification(dto: ResendEmailVerificationDto) {
     try {
-      // Use the database's resendEmailVerification method
-      // This handles everything: checking if user exists, generating token, sending email
-      // TODO: implement email verification resend (was: this.db.client.auth.resendEmailVerification(dto.email))
-      await this.db.raw('SELECT 1', []);
+      // Re-issue a token; if the user exists and isn't verified, email it.
+      const result = await this.db.auth.resendEmailVerification(dto.email);
+      if (result?.success && result?.token) {
+        let baseUrl = process.env.FRONTEND_URL || 'http://localhost:5175';
+        if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+          baseUrl = `http://${baseUrl}`;
+        }
+        const normalizedBase = baseUrl.replace(/\/$/, '');
+        const verificationLink = `${normalizedBase}/verify-email?token=${encodeURIComponent(
+          result.token,
+        )}`;
+        await this.sendVerificationEmail(dto.email, verificationLink);
+      }
 
       return {
         success: true,
@@ -709,98 +732,34 @@ export class AuthService {
     }
   }
 
-  // ==================== OAuth Methods ====================
+  private async sendVerificationEmail(to: string, verificationLink: string): Promise<void> {
+    const html = `<!doctype html>
+<html>
+  <body style="font-family:system-ui,sans-serif;max-width:600px;margin:40px auto;padding:0 20px;color:#1a1a1a;">
+    <h2 style="color:#2563eb;">Verify your email</h2>
+    <p>Thanks for signing up for Nexus. Click the button below to verify your email address.</p>
+    <p style="text-align:center;margin:32px 0;">
+      <a href="${verificationLink}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;">Verify email</a>
+    </p>
+    <p style="color:#666;font-size:14px;">If the button doesn't work, copy and paste this link into your browser:</p>
+    <p style="word-break:break-all;color:#2563eb;font-size:14px;">${verificationLink}</p>
+    <hr style="border:0;border-top:1px solid #eee;margin:32px 0;" />
+    <p style="color:#999;font-size:12px;">If you didn't request this email, you can safely ignore it.</p>
+  </body>
+</html>`;
+    const text = `Verify your email: ${verificationLink}\n\nIf you didn't request this, you can ignore this email.`;
 
-  /**
-   * Generate GitHub OAuth authorization URL using database
-   */
-  async getGitHubAuthUrl(frontendUrl: string): Promise<string> {
     try {
-      // Ensure the redirect URL includes the callback path
-      const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'http://localhost:5175';
-      const redirectUrl = baseUrl.endsWith('/auth/callback') ? baseUrl : `${baseUrl}/auth/callback`;
-      return await this.db /* TODO: replace authClient */.auth
-        .getOAuthUrl('github', redirectUrl);
-    } catch (error) {
-      this.logger.error('Failed to get GitHub OAuth URL:', error);
-      throw new BadRequestException('GitHub OAuth is not available');
-    }
-  }
-
-  /**
-   * Generate Google OAuth authorization URL using database
-   */
-  async getGoogleAuthUrl(frontendUrl: string): Promise<string> {
-    try {
-      // Ensure the redirect URL includes the callback path
-      const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'http://localhost:5175';
-      const redirectUrl = baseUrl.endsWith('/auth/callback') ? baseUrl : `${baseUrl}/auth/callback`;
-      return await this.db /* TODO: replace authClient */.auth
-        .getOAuthUrl('google', redirectUrl);
-    } catch (error) {
-      this.logger.error('Failed to get Google OAuth URL:', error);
-      throw new BadRequestException('Google OAuth is not available');
-    }
-  }
-
-  /**
-   * Generate Apple OAuth authorization URL using database
-   */
-  async getAppleAuthUrl(frontendUrl: string): Promise<string> {
-    try {
-      // Ensure the redirect URL includes the callback path
-      const baseUrl = frontendUrl || process.env.FRONTEND_URL || 'http://localhost:5175';
-      const redirectUrl = baseUrl.endsWith('/auth/callback') ? baseUrl : `${baseUrl}/auth/callback`;
-      return await this.db /* TODO: replace authClient */.auth
-        .getOAuthUrl('apple', redirectUrl);
-    } catch (error) {
-      this.logger.error('Failed to get Apple OAuth URL:', error);
-      throw new BadRequestException('Apple OAuth is not available');
-    }
-  }
-
-  /**
-   * Process OAuth token from database
-   * This is called by frontend after receiving database token from OAuth redirect
-   *
-   * database's job: Create/authenticate user in database database, return tokens and user info
-   * Nexus's job: Just pass through database's tokens (no own JWT generation needed)
-   */
-  async exchangeOAuthToken(authToken: string, userId: string, email: string) {
-    try {
-      this.logger.log(`Processing OAuth for user: ${email}`);
-
-      // Ensure user has default settings
-      await this.ensureUserSettings(userId);
-
-      // Get user profile from database for additional info
-      let name = email.split('@')[0];
-      let username = email.split('@')[0];
-
-      try {
-        const userProfile = await this.db.getUserById(userId);
-        if (userProfile) {
-          const metadata = userProfile.metadata || {};
-          name = metadata.name || userProfile.name || (userProfile as any).fullName || name;
-          username = userProfile.username || metadata.username || username;
-        }
-      } catch (e) {
-        this.logger.warn('Could not fetch user profile for OAuth user');
+      const result = await this.db.sendEmail(to, 'Verify your email address', html, text);
+      if (!result?.success) {
+        this.logger.error(
+          `Failed to send verification email to ${to}: ${result?.error || 'unknown error'}`,
+        );
       }
-
-      return {
-        token: authToken, // Use database token directly (frontend expects "token")
-        access_token: authToken, // Also include access_token for compatibility
-        user: {
-          id: userId,
-          email: email,
-          name: name,
-          username: username,
-        },
-      };
-    } catch (error) {
-      this.logger.error('Failed to process OAuth token:', error);
-      throw new BadRequestException('OAuth processing failed');
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to send verification email to ${to}: ${error?.message || 'unknown error'}`,
+      );
     }
   }
 

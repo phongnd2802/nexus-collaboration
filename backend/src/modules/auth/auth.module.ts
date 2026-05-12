@@ -11,6 +11,8 @@ import {
   MAGIC_LINK_EMAIL_SENDER,
   MagicLinkEmailSender,
 } from './sso/magic-link.service';
+import { OAuthController } from './oauth/oauth.controller';
+import { OAuthService } from './oauth/oauth.service';
 import { getEmailConfig, sendEmailFn } from '../database/email-helpers';
 
 /**
@@ -46,12 +48,13 @@ const magicLinkEmailSenderProvider = {
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController, SsoController],
+  controllers: [AuthController, SsoController, OAuthController],
   providers: [
     AuthService,
     JwtAuthGuard,
     SsoRegistryService,
     MagicLinkService,
+    OAuthService,
     magicLinkEmailSenderProvider,
   ],
   exports: [AuthService, JwtModule, JwtAuthGuard, ConfigModule, SsoRegistryService],
