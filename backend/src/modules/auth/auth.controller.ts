@@ -13,9 +13,6 @@ import {
   UploadedFile,
   BadRequestException,
   Query,
-  Res,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -24,10 +21,8 @@ import {
   ApiBearerAuth,
   ApiConsumes,
   ApiBody,
-  ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { Response } from 'express';
 import * as multer from 'multer';
 import { AuthService } from './auth.service';
 import {
@@ -42,7 +37,6 @@ import {
   ResendEmailVerificationDto,
   DeleteAccountDto,
 } from './dto/auth.dto';
-import { OAuthCallbackDto } from './dto/oauth.dto';
 import {
   SubmitDeletionFeedbackDto,
   UpdateDeletionFeedbackDto,
@@ -184,97 +178,6 @@ export class AuthController {
   async resendEmailVerification(@Body() dto: ResendEmailVerificationDto) {
     return await this.authService.resendEmailVerification(dto);
   }
-
-  // ==================== OAuth Endpoints ====================
-
-  /**
-   * Helper to get frontend URL from query parameter
-   */
-  private getFrontendUrl(req: any): string {
-    // Get from query parameter
-    const frontendUrl = req.query?.frontendUrl || req.query?.returnUrl;
-
-    if (frontendUrl) {
-      return frontendUrl;
-    }
-
-    // Default to environment variable or localhost
-    return process.env.FRONTEND_URL || 'http://localhost:5175';
-  }
-
-  /**
-   * Decode frontend URL from OAuth state parameter
-   */
-  private decodeFrontendUrlFromState(state?: string): string {
-    if (state) {
-      try {
-        const decoded = Buffer.from(state, 'base64').toString('utf-8');
-        // State format: randomState|frontendUrl
-        if (decoded.includes('|')) {
-          const [, frontendUrl] = decoded.split('|');
-          if (frontendUrl) {
-            return frontendUrl;
-          }
-        }
-      } catch (e) {
-        // Ignore decoding errors
-      }
-    }
-    return process.env.FRONTEND_URL || 'http://localhost:5175';
-  }
-
-  @Get('oauth/github')
-  @HttpCode(HttpStatus.FOUND)
-  @ApiOperation({ summary: 'Initiate GitHub OAuth flow via OAuth' })
-  @ApiQuery({
-    name: 'frontendUrl',
-    required: false,
-    description: 'Frontend URL for redirect after auth',
-  })
-  async githubOAuth(@Request() req, @Res() res: Response) {
-    const frontendUrl = this.getFrontendUrl(req);
-    const authUrl = await this.authService.getGitHubAuthUrl(frontendUrl);
-    return res.redirect(authUrl);
-  }
-
-  @Get('oauth/google')
-  @HttpCode(HttpStatus.FOUND)
-  @ApiOperation({ summary: 'Initiate Google OAuth flow via OAuth' })
-  @ApiQuery({
-    name: 'frontendUrl',
-    required: false,
-    description: 'Frontend URL for redirect after auth',
-  })
-  async googleOAuth(@Request() req, @Res() res: Response) {
-    const frontendUrl = this.getFrontendUrl(req);
-    const authUrl = await this.authService.getGoogleAuthUrl(frontendUrl);
-    return res.redirect(authUrl);
-  }
-
-  @Get('oauth/apple')
-  @HttpCode(HttpStatus.FOUND)
-  @ApiOperation({ summary: 'Initiate Apple OAuth flow via OAuth' })
-  @ApiQuery({
-    name: 'frontendUrl',
-    required: false,
-    description: 'Frontend URL for redirect after auth',
-  })
-  async appleOAuth(@Request() req, @Res() res: Response) {
-    const frontendUrl = this.getFrontendUrl(req);
-    const authUrl = await this.authService.getAppleAuthUrl(frontendUrl);
-    return res.redirect(authUrl);
-  }
-
-  @Post('oauth/exchange')
-  @ApiOperation({ summary: 'Exchange OAuth token for Nexus JWT' })
-  async exchangeOAuthToken(@Body() dto: { authToken: string; userId: string; email: string }) {
-    return await this.authService.exchangeOAuthToken(dto.authToken, dto.userId, dto.email);
-  }
-
-  // NOTE: OAuth callback is handled by database backend
-  // GitHub/Google/Apple redirects to: http://localhost:3000/api/v1/tenant-auth/social/{provider}/callback
-  // database backend exchanges code for tokens and redirects to Nexus frontend with tokens
-  // Nexus frontend receives tokens and exchanges them for Nexus JWT
 
   @Delete('account')
   @UseGuards(JwtAuthGuard)
