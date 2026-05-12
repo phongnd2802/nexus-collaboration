@@ -139,57 +139,35 @@ export function NotionStyleNoteEditor({
       }
     },
     onContentChanged: async (data) => {
-      // Content changed notification from non-Yjs client (e.g., Flutter)
+      // Content changed notification from another client (Flutter interop)
+      // NOTE: quill.root.innerHTML direct DOM manipulation has been removed.
+      // Setting innerHTML directly corrupts Quill's internal state (Delta model
+      // no longer matches DOM), causing Quill to enter an inconsistent state
+      // where a "0" character appears at the cursor position and subsequent
+      // keystrokes overwrite it.
+      //
+      // Web clients rely on Yjs incremental sync (note:update) for real-time
+      // collaboration. The note:content-changed protocol is reserved for
+      // Flutter interop where direct API sync is needed.
+      //
+      // To re-enable Flutter interop, use quill.setContents(delta, 'api')
+      // instead of quill.root.innerHTML = ... to properly update Quill state.
       console.log('[Collaboration] Content changed by:', data.userName)
-      toast({
-        title: 'Content updated',
-        description: `${data.userName} made changes`,
-      })
 
-      // Fetch the latest content directly from API and update Quill
-      // This is needed because Flutter uses direct API sync, not Yjs
+      // Update refs from API so auto-save uses the latest content as baseline
       try {
         if (note.workspaceId) {
           const { notesApi } = await import('../../lib/api/notes-api')
           const refreshedNote = await notesApi.getNoteByWorkspace(note.workspaceId, note.id)
           if (refreshedNote?.content) {
-            console.log('[Collaboration] Fetched updated content from API')
-
-            // Update local state
-            setContent(refreshedNote.content)
             contentValueRef.current = refreshedNote.content
-
-            // Update Quill editor directly (bypass Yjs for Flutter interop)
-            try {
-              const quill = quillRef.current?.getEditor()
-              if (quill) {
-                const currentSelection = quill.getSelection()
-                quill.root.innerHTML = refreshedNote.content
-                // Try to restore cursor position
-                if (currentSelection) {
-                  try {
-                    const length = quill.getLength()
-                    const newIndex = Math.min(currentSelection.index, length > 0 ? length - 1 : 0)
-                    quill.setSelection(newIndex, 0)
-                  } catch (e) {
-                    // Ignore if selection can't be restored
-                  }
-                }
-                console.log('[Collaboration] Updated Quill editor with API content')
-              }
-            } catch (e) {
-              console.warn('[Collaboration] Could not update Quill:', e)
-            }
-
-            // Mark as saved since we just synced with API
-            setHasUnsavedChanges(false)
           }
         }
       } catch (error) {
         console.error('[Collaboration] Failed to fetch updated content:', error)
       }
 
-      // Also trigger parent refresh if provided
+      // Trigger parent refresh to update sidebar and note metadata
       if (onRefresh) {
         onRefresh()
       }
@@ -715,12 +693,17 @@ export function NotionStyleNoteEditor({
         })
       }
 
-      // Notify other clients (including Flutter) that content has been saved
-      // This allows them to fetch the latest content from the API
-      if (isNoteShared && isCollaborationConnected) {
-        notifyContentChanged()
-        console.log('[Collaboration] Notified Flutter clients of content change')
-      }
+      // NOTE: notifyContentChanged() is disabled for web-web sync.
+      // Web clients use Yjs incremental sync (note:update) for real-time
+      // collaboration. The note:content-changed protocol triggers the
+      // onContentChanged callback which previously used quill.root.innerHTML
+      // (destructive DOM manipulation) causing Quill state corruption.
+      // This is reserved for Flutter interop only.
+      //
+      // if (isNoteShared && isCollaborationConnected) {
+      //   notifyContentChanged()
+      //   console.log('[Collaboration] Notified Flutter clients of content change')
+      // }
     } catch (error) {
       console.error('Failed to auto-save note:', error)
       toast({

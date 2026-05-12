@@ -451,59 +451,41 @@ export function useNoteCollaboration({
       });
     });
 
-    // Delta event (from Flutter clients for real-time character-by-character sync)
-    // Flutter sends full document deltas, we replace the editor content
-    socket.on('note:delta', (data: { noteId: string; userId: string; userName: string; socketId?: string; delta: any[]; fullContent?: string; timestamp: string }) => {
-      console.log('[NoteCollaboration] Delta received from Flutter:', data.userName, 'ops:', data.delta?.length);
-      if (data.noteId !== noteId) return;
-
-      // Filter out our own emissions to prevent applying our own changes
-      // This is important because backend now broadcasts to ALL clients including sender
-      if (data.socketId && data.socketId === socketIdRef.current) {
-        console.log('[NoteCollaboration] Ignoring own delta');
-        return;
-      }
-
-      // Apply the delta directly to Quill (bypassing Yjs for Flutter interop)
-      if (quillRef.current && data.delta) {
-        try {
-          const quill = quillRef.current;
-
-          // Store current selection
-          const currentSelection = quill.getSelection();
-          const currentIndex = currentSelection?.index || 0;
-
-          // Create a Delta object from the received operations
-          const Delta = Quill.import('delta');
-          const delta = new Delta(data.delta);
-
-          console.log('[NoteCollaboration] Applying Flutter delta to Quill');
-
-          // Replace the entire content with the new delta
-          // Use setContents for full document replacement
-          quill.setContents(delta, 'api');
-
-          // Restore cursor position
-          const length = quill.getLength();
-          const newIndex = Math.min(currentIndex, length > 0 ? length - 1 : 0);
-          quill.setSelection(newIndex, 0, 'api');
-
-          console.log('[NoteCollaboration] Flutter delta applied successfully');
-        } catch (e) {
-          console.error('[NoteCollaboration] Failed to apply Flutter delta:', e);
-
-          // Fallback: if delta application fails and we have full content, reload from API
-          if (data.fullContent) {
-            console.log('[NoteCollaboration] Falling back to full content sync');
-            callbacksRef.current.onContentChanged?.({
-              userId: data.userId,
-              userName: data.userName,
-              timestamp: data.timestamp,
-            });
-          }
-        }
-      }
-    });
+    // NOTE: Delta event handler (note:delta) is disabled for web clients.
+    // Web clients use Yjs sync (note:update) exclusively for real-time collaboration.
+    // The note:delta protocol with quill.setContents() is reserved for Flutter interop only.
+    // Applying full-document replacements alongside incremental Yjs CRDT sync
+    // causes the QuillBinding to lose sync state, resulting in text appearing
+    // with newlines between each character.
+    //
+    // To re-enable for Flutter interop, uncomment the handler below.
+    //
+    // socket.on('note:delta', (data: { noteId: string; userId: string; userName: string; socketId?: string; delta: any[]; fullContent?: string; timestamp: string }) => {
+    //   if (data.noteId !== noteId) return;
+    //   if (data.socketId && data.socketId === socketIdRef.current) return;
+    //   if (quillRef.current && data.delta) {
+    //     try {
+    //       const quill = quillRef.current;
+    //       const currentSelection = quill.getSelection();
+    //       const currentIndex = currentSelection?.index || 0;
+    //       const Delta = Quill.import('delta');
+    //       const delta = new Delta(data.delta);
+    //       quill.setContents(delta, 'api');
+    //       const length = quill.getLength();
+    //       const newIndex = Math.min(currentIndex, length > 0 ? length - 1 : 0);
+    //       quill.setSelection(newIndex, 0, 'api');
+    //     } catch (e) {
+    //       console.error('[NoteCollaboration] Failed to apply Flutter delta:', e);
+    //       if (data.fullContent) {
+    //         callbacksRef.current.onContentChanged?.({
+    //           userId: data.userId,
+    //           userName: data.userName,
+    //           timestamp: data.timestamp,
+    //         });
+    //       }
+    //     }
+    //   }
+    // });
 
     // Sync request event (Flutter client wants our current content)
     socket.on('note:sync-request', (data: { noteId: string; requesterId: string; requesterName: string }) => {
@@ -663,30 +645,30 @@ export function useNoteCollaboration({
         }
       };
 
-      // Set up delta sending for Flutter clients
-      // When user types, send the full document delta so Flutter can replace its content
-      let lastSentContent = '';
-      const handleTextChange = (delta: any, oldDelta: any, source: string) => {
-        // Only send user-initiated changes, not programmatic ones
-        if (source === 'user' && socketRef.current?.connected && quillRef.current) {
-          // Get full document contents
-          const fullDelta = quillRef.current.getContents();
-          const fullDeltaJson = JSON.stringify(fullDelta.ops);
-
-          // Skip if content hasn't changed
-          if (fullDeltaJson === lastSentContent) return;
-          lastSentContent = fullDeltaJson;
-
-          console.log('[NoteCollaboration] Sending full delta to Flutter clients:', fullDelta.ops.length, 'ops');
-          socketRef.current.emit('note:delta', {
-            noteId,
-            delta: fullDelta.ops,
-          });
-        }
-      };
+      // NOTE: Delta sending (note:delta) is disabled for web clients.
+      // Web clients use Yjs sync (note:update) exclusively for real-time collaboration.
+      // The note:delta protocol is reserved for Flutter interop only.
+      // Keeping the delta sending active alongside Yjs sync causes conflicts:
+      // Yjs does incremental CRDT sync while delta replays the full document,
+      // and quill.setContents() can interfere with QuillBinding state,
+      // causing each character to appear on a new line.
+      //
+      // To re-enable for Flutter interop, uncomment the delta sending below
+      // and ensure only non-Yjs clients (Flutter) receive and apply deltas.
+      //
+      // let lastSentContent = '';
+      // const handleTextChange = (delta: any, oldDelta: any, source: string) => {
+      //   if (source === 'user' && socketRef.current?.connected && quillRef.current) {
+      //     const fullDelta = quillRef.current.getContents();
+      //     const fullDeltaJson = JSON.stringify(fullDelta.ops);
+      //     if (fullDeltaJson === lastSentContent) return;
+      //     lastSentContent = fullDeltaJson;
+      //     socketRef.current.emit('note:delta', { noteId, delta: fullDelta.ops });
+      //   }
+      // };
 
       quill.on('selection-change', handleSelectionChange);
-      quill.on('text-change', handleTextChange);
+      // quill.on('text-change', handleTextChange); // Disabled: conflicts with Yjs QuillBinding sync
     }
   }, [noteId]);
 
