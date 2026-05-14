@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { useIntl } from 'react-intl';
 import {
   MessageSquare,
   FileText,
@@ -39,6 +40,7 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ results, searchType, isLoading, searchQuery: _searchQuery, workspaceId: _workspaceId }: SearchResultsProps) {
+  const intl = useIntl();
   const [_viewMode, _setViewMode] = useState<'list' | 'grid'>('list');
 
   const getResultIcon = (type: string) => {
@@ -232,24 +234,24 @@ export function SearchResults({ results, searchType, isLoading, searchQuery: _se
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Star className="h-5 w-5 text-yellow-600" />
-                <h3 className="font-semibold">Search Tips</h3>
+                <h3 className="font-semibold">{intl.formatMessage({ id: 'modules.search.tips.title' })}</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="font-medium mb-1">Use quotes for exact phrases</p>
-                  <p className="text-muted-foreground">"product launch"</p>
+                  <p className="font-medium mb-1">{intl.formatMessage({ id: 'modules.search.tips.useQuotes' })}</p>
+                  <p className="text-muted-foreground">{intl.formatMessage({ id: 'modules.search.tips.useQuotesExample' })}</p>
                 </div>
                 <div>
-                  <p className="font-medium mb-1">Filter by file type</p>
-                  <p className="text-muted-foreground">type:pdf budget</p>
+                  <p className="font-medium mb-1">{intl.formatMessage({ id: 'modules.search.tips.filterByType' })}</p>
+                  <p className="text-muted-foreground">{intl.formatMessage({ id: 'modules.search.tips.filterByTypeExample' })}</p>
                 </div>
                 <div>
-                  <p className="font-medium mb-1">Search by author</p>
-                  <p className="text-muted-foreground">from:john design</p>
+                  <p className="font-medium mb-1">{intl.formatMessage({ id: 'modules.search.tips.searchByAuthor' })}</p>
+                  <p className="text-muted-foreground">{intl.formatMessage({ id: 'modules.search.tips.searchByAuthorExample' })}</p>
                 </div>
                 <div>
-                  <p className="font-medium mb-1">Use AI for context</p>
-                  <p className="text-muted-foreground">Enable AI mode for smarter results</p>
+                  <p className="font-medium mb-1">{intl.formatMessage({ id: 'modules.search.tips.useAI' })}</p>
+                  <p className="text-muted-foreground">{intl.formatMessage({ id: 'modules.search.tips.useAIDescription' })}</p>
                 </div>
               </div>
             </CardContent>

@@ -1176,10 +1176,10 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
           <FileText className="h-16 w-16 mb-4 opacity-50" />
           <h3 className="text-lg font-medium mb-2">
-            {intl.formatMessage({ id: 'modules.notes.emptyState.title', defaultMessage: 'Get started with Notes' })}
+            {intl.formatMessage({ id: 'modules.notes.notesView.getStarted', defaultMessage: 'Get started with Notes' })}
           </h3>
           <p className="text-center mb-6 max-w-md">
-            {intl.formatMessage({ id: 'modules.notes.emptyState.description', defaultMessage: 'Create your first note to capture ideas, take meeting notes, or write documentation.' })}
+            {intl.formatMessage({ id: 'modules.notes.notesView.getStartedDescription', defaultMessage: 'Create your first note to capture ideas, take meeting notes, or write documentation.' })}
           </p>
           <div className="flex gap-3">
             <Button
@@ -1187,14 +1187,14 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
               className="btn-gradient-primary border-0"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.notes.buttons.newNote', defaultMessage: 'New Note' })}
+              {intl.formatMessage({ id: 'modules.notes.notesView.newNote', defaultMessage: 'New Note' })}
             </Button>
             <Button
               variant="outline"
               onClick={() => setIsFileImportOpen(true)}
             >
               <Upload className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.notes.buttons.import', defaultMessage: 'Import' })}
+              {intl.formatMessage({ id: 'modules.notes.notesView.import', defaultMessage: 'Import' })}
             </Button>
           </div>
         </div>
