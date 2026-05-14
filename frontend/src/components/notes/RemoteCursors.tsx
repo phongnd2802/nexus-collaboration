@@ -116,7 +116,7 @@ export function RemoteCursors({ cursors, users, editorRef, getQuillInstance, cur
             />
 
             {/* Selection highlight */}
-            {cursor.length && cursor.length > 0 && (
+            {(cursor.length ?? 0) > 0 && (
               <div
                 className="cursor-selection absolute top-0 opacity-30"
                 style={{
