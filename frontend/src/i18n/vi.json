@@ -2881,6 +2881,17 @@
  "save":  "Lưu"
 },
  "suggestions":  "Đề xuất",
+ "tips": {
+   "title":  "Mẹo tìm kiếm",
+   "useQuotes":  "Sử dụng dấu ngoặc kép cho cụm từ chính xác",
+   "useQuotesExample":  "\"ra mắt sản phẩm\"",
+   "filterByType":  "Lọc theo loại tệp",
+   "filterByTypeExample":  "loại:pdf ngân sách",
+   "searchByAuthor":  "Tìm kiếm theo tác giả",
+   "searchByAuthorExample":  "từ:john thiết kế",
+   "useAI":  "Sử dụng AI để tìm kiếm ngữ cảnh",
+   "useAIDescription":  "Bật chế độ AI để có kết quả thông minh hơn"
+ },
  "recentSearches":  "TÌM KIẾM GẦN ĐÂY",
  "noRecentSearches":  "Không có tìm kiếm gần đây",
  "savedSearches":  "TÌM KIẾM ĐÃ LƯU",

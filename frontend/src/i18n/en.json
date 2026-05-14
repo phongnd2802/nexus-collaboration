@@ -2881,6 +2881,17 @@
         "save": "Save"
       },
       "suggestions": "Suggestions",
+      "tips": {
+        "title": "Search Tips",
+        "useQuotes": "Use quotes for exact phrases",
+        "useQuotesExample": "\"product launch\"",
+        "filterByType": "Filter by file type",
+        "filterByTypeExample": "type:pdf budget",
+        "searchByAuthor": "Search by author",
+        "searchByAuthorExample": "from:john design",
+        "useAI": "Use AI for context",
+        "useAIDescription": "Enable AI mode for smarter results"
+      },
       "recentSearches": "RECENT SEARCHES",
       "noRecentSearches": "No recent searches",
       "savedSearches": "SAVED SEARCHES",
