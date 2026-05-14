@@ -225,6 +225,7 @@
   },
   "navigation": {
     "home": "Home",
+    "aiChat": "AI Chat",
     "products": "Products",
     "features": "Features",
     "pricing": "Pricing",

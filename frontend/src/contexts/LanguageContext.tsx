@@ -11,6 +11,7 @@ import ptMessages from '../i18n/pt.json';
 import arMessages from '../i18n/ar.json';
 import hiMessages from '../i18n/hi.json';
 import ruMessages from '../i18n/ru.json';
+import viMessages from '../i18n/vi.json';
 
 // Helper function to flatten nested messages
 const flattenMessages = (nestedMessages: any, prefix = ''): Record<string, string> => {
@@ -55,6 +56,7 @@ const messages = {
   ar: flattenMessages(arMessages),
   hi: flattenMessages(hiMessages),
   ru: flattenMessages(ruMessages),
+  vi: flattenMessages(viMessages),
 };
 
 // Validate that key messages exist
@@ -73,7 +75,7 @@ if (Object.keys(messages.en).length < 10) {
 
 export type SupportedLocale = keyof typeof messages;
 
-export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'ja', 'zh', 'ko', 'es', 'fr', 'de', 'pt', 'ar', 'hi', 'ru'];
+export const SUPPORTED_LOCALES: SupportedLocale[] = ['en', 'ja', 'zh', 'ko', 'es', 'fr', 'de', 'pt', 'ar', 'hi', 'ru', 'vi'];
 
 export const LOCALE_LABELS: Record<SupportedLocale, string> = {
   en: 'English',
@@ -87,6 +89,7 @@ export const LOCALE_LABELS: Record<SupportedLocale, string> = {
   ar: 'العربية',
   hi: 'हिन्दी',
   ru: 'Русский',
+  vi: 'Tiếng Việt',
 };
 
 interface LanguageContextType {
