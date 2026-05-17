@@ -60,7 +60,7 @@ export function BrowseConversationsModal({
         setConversations(conversationsData);
       } catch (error) {
         console.error('Failed to fetch conversations:', error);
-        toast.error('Failed to load conversations');
+        toast.error(intl.formatMessage({ id: 'modules.chat.browseConversations.failedLoad', defaultMessage: 'Failed to load conversations' }));
       } finally {
         setLoading(false);
       }

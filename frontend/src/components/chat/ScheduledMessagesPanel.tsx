@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ interface ScheduledMessagesPanelProps {
 }
 
 export function ScheduledMessagesPanel({ open, onClose, workspaceId }: ScheduledMessagesPanelProps) {
+  const intl = useIntl();
   const queryClient = useQueryClient();
   const [editingMessage, setEditingMessage] = useState<ScheduledMessage | null>(null);
   const [cancellingMessageId, setCancellingMessageId] = useState<string | null>(null);
@@ -58,10 +60,10 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
         workspaceId,
         messageId: cancellingMessageId,
       });
-      toast.success('Scheduled message cancelled');
+      toast.success(intl.formatMessage({ id: 'modules.chat.scheduledMessages.cancelledSuccess', defaultMessage: 'Scheduled message cancelled' }));
       queryClient.invalidateQueries({ queryKey: ['scheduled-messages', workspaceId] });
     } catch (error) {
-      toast.error('Failed to cancel scheduled message');
+      toast.error(intl.formatMessage({ id: 'modules.chat.scheduledMessages.cancelFailed', defaultMessage: 'Failed to cancel scheduled message' }));
       console.error('Failed to cancel scheduled message:', error);
     } finally {
       setCancellingMessageId(null);
@@ -71,13 +73,13 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">Pending</Badge>;
+        return <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">{intl.formatMessage({ id: 'modules.chat.scheduledMessages.status.pending', defaultMessage: 'Pending' })}</Badge>;
       case 'sent':
-        return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Sent</Badge>;
+        return <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">{intl.formatMessage({ id: 'modules.chat.scheduledMessages.status.sent', defaultMessage: 'Sent' })}</Badge>;
       case 'cancelled':
-        return <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20">Cancelled</Badge>;
+        return <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20">{intl.formatMessage({ id: 'modules.chat.scheduledMessages.status.cancelled', defaultMessage: 'Cancelled' })}</Badge>;
       case 'failed':
-        return <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">Failed</Badge>;
+        return <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">{intl.formatMessage({ id: 'modules.chat.scheduledMessages.status.failed', defaultMessage: 'Failed' })}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -98,7 +100,7 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
           <DialogHeader className="p-6 pb-4 border-b border-border">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Clock className="h-6 w-6" />
-              Scheduled Messages
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.title', defaultMessage: 'Scheduled Messages' })}
             </DialogTitle>
           </DialogHeader>
 
@@ -107,7 +109,9 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
                 <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Loading scheduled messages...</p>
+                <p className="text-muted-foreground">
+                  {intl.formatMessage({ id: 'modules.chat.scheduledMessages.loading', defaultMessage: 'Loading scheduled messages...' })}
+                </p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
@@ -115,10 +119,10 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
                   <Clock className="w-16 h-16 text-destructive/50" />
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">
-                  Failed to load scheduled messages
+                  {intl.formatMessage({ id: 'modules.chat.scheduledMessages.loadFailed', defaultMessage: 'Failed to load scheduled messages' })}
                 </h3>
                 <p className="text-muted-foreground max-w-md">
-                  {error instanceof Error ? error.message : 'An error occurred'}
+                  {error instanceof Error ? error.message : intl.formatMessage({ id: 'common.error', defaultMessage: 'An error occurred' })}
                 </p>
               </div>
             ) : scheduledMessages.length === 0 ? (
@@ -127,10 +131,13 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
                   <Clock className="w-16 h-16 text-muted-foreground/50" />
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">
-                  No scheduled messages
+                  {intl.formatMessage({ id: 'modules.chat.scheduledMessages.empty', defaultMessage: 'No scheduled messages' })}
                 </h3>
                 <p className="text-muted-foreground max-w-md">
-                  Schedule messages to send them at a specific time. Click the clock icon when composing a message.
+                  {intl.formatMessage({
+                    id: 'modules.chat.scheduledMessages.emptyDescription',
+                    defaultMessage: 'Schedule messages to send them at a specific time. Click the clock icon when composing a message.',
+                  })}
                 </p>
               </div>
             ) : (
@@ -161,7 +168,13 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           <span>
-                            Scheduled for {format(new Date(message.scheduledAt), 'MMM d, yyyy')} at {format(new Date(message.scheduledAt), 'h:mm a')}
+                            {intl.formatMessage(
+                              { id: 'modules.chat.scheduledMessages.scheduledFor', defaultMessage: 'Scheduled for {date} at {time}' },
+                              {
+                                date: format(new Date(message.scheduledAt), 'MMM d, yyyy'),
+                                time: format(new Date(message.scheduledAt), 'h:mm a'),
+                              }
+                            )}
                           </span>
                           <span className="text-muted-foreground/70">
                             ({formatDistanceToNow(new Date(message.scheduledAt), { addSuffix: true })})
@@ -180,14 +193,14 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => setEditingMessage(message)}>
                               <Pencil className="h-4 w-4 mr-2" />
-                              Edit
+                              {intl.formatMessage({ id: 'common.edit', defaultMessage: 'Edit' })}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setCancellingMessageId(message.id)}
                               className="text-destructive focus:text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
-                              Cancel
+                              {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -204,13 +217,18 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
                 {scheduledMessages.length > 0 ? (
-                  <span>{scheduledMessages.length} pending {scheduledMessages.length === 1 ? 'message' : 'messages'}</span>
+                  <span>
+                    {intl.formatMessage(
+                      { id: 'modules.chat.scheduledMessages.pendingCount', defaultMessage: '{count} pending {count, plural, one {message} other {messages}}' },
+                      { count: scheduledMessages.length }
+                    )}
+                  </span>
                 ) : (
-                  <span>No pending messages</span>
+                  <span>{intl.formatMessage({ id: 'modules.chat.scheduledMessages.noPending', defaultMessage: 'No pending messages' })}</span>
                 )}
               </div>
               <Button onClick={onClose} variant="default">
-                Close
+                {intl.formatMessage({ id: 'common.close', defaultMessage: 'Close' })}
               </Button>
             </div>
           </div>
@@ -231,13 +249,17 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
       <AlertDialog open={!!cancellingMessageId} onOpenChange={() => setCancellingMessageId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel scheduled message?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.cancelTitle', defaultMessage: 'Cancel scheduled message?' })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The message will not be sent.
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.cancelDescription', defaultMessage: 'This action cannot be undone. The message will not be sent.' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep scheduled</AlertDialogCancel>
+            <AlertDialogCancel>
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.keepScheduled', defaultMessage: 'Keep scheduled' })}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancelMessage}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -245,10 +267,10 @@ export function ScheduledMessagesPanel({ open, onClose, workspaceId }: Scheduled
               {cancelMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Cancelling...
+                  {intl.formatMessage({ id: 'modules.chat.scheduledMessages.cancelling', defaultMessage: 'Cancelling...' })}
                 </>
               ) : (
-                'Cancel message'
+                intl.formatMessage({ id: 'modules.chat.scheduledMessages.cancelMessage', defaultMessage: 'Cancel message' })
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

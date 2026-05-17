@@ -582,7 +582,14 @@ const ChatPage: React.FC = () => {
       });
 
       toast.dismiss();
-      toast.success(`${callType === 'video' ? 'Video' : 'Audio'} call started!`);
+      toast.success(intl.formatMessage(
+        { id: 'modules.chat.calls.callStarted', defaultMessage: '{type} call started!' },
+        {
+          type: callType === 'video'
+            ? intl.formatMessage({ id: 'modules.chat.calls.videoCall', defaultMessage: 'Video call' })
+            : intl.formatMessage({ id: 'modules.chat.calls.audioCall', defaultMessage: 'Audio call' })
+        }
+      ));
 
       // Open call in new window (same as VideoView)
       const callUrl = `/call/${workspaceId}/${call.id}`;
@@ -1122,8 +1129,8 @@ const ChatPage: React.FC = () => {
 
   const handlePinMessage = async (messageId: string) => {
     if (!workspaceId || !selectedChatId || selectedChatType !== 'conversation') {
-      toast.error('Cannot pin message', {
-        description: 'Pin is only available in direct messages'
+      toast.error(intl.formatMessage({ id: 'modules.chat.pin.cannotPin', defaultMessage: 'Cannot pin message' }), {
+        description: intl.formatMessage({ id: 'modules.chat.pin.dmOnly', defaultMessage: 'Pin is only available in direct messages' })
       });
       return;
     }
@@ -1139,12 +1146,12 @@ const ChatPage: React.FC = () => {
         messageId
       });
 
-      toast.success('Message pinned');
+      toast.success(intl.formatMessage({ id: 'modules.chat.pin.pinned', defaultMessage: 'Message pinned' }));
     } catch (err: any) {
       // Revert optimistic update on error
       setPinnedMessages(new Set());
-      toast.error('Failed to pin message', {
-        description: err.message || 'Please try again'
+      toast.error(intl.formatMessage({ id: 'modules.chat.pin.failedPin', defaultMessage: 'Failed to pin message' }), {
+        description: err.message || intl.formatMessage({ id: 'common.pleaseTryAgain', defaultMessage: 'Please try again' })
       });
     }
   };
@@ -1165,10 +1172,10 @@ const ChatPage: React.FC = () => {
         messageId
       });
 
-      toast.success('Message unpinned');
+      toast.success(intl.formatMessage({ id: 'modules.chat.pin.unpinned', defaultMessage: 'Message unpinned' }));
     } catch (err: any) {
-      toast.error('Failed to unpin message', {
-        description: err.message || 'Please try again'
+      toast.error(intl.formatMessage({ id: 'modules.chat.pin.failedUnpin', defaultMessage: 'Failed to unpin message' }), {
+        description: err.message || intl.formatMessage({ id: 'common.pleaseTryAgain', defaultMessage: 'Please try again' })
       });
     }
   };
@@ -1185,7 +1192,7 @@ const ChatPage: React.FC = () => {
         messageId
       });
 
-      toast.success('Message bookmarked');
+      toast.success(intl.formatMessage({ id: 'modules.chat.bookmarks.messageBookmarked', defaultMessage: 'Message bookmarked' }));
     } catch (err: any) {
       // Revert optimistic update on error
       setBookmarkedMessages(prev => {
@@ -1193,8 +1200,8 @@ const ChatPage: React.FC = () => {
         newSet.delete(messageId);
         return newSet;
       });
-      toast.error('Failed to bookmark message', {
-        description: err.message || 'Please try again'
+      toast.error(intl.formatMessage({ id: 'modules.chat.bookmarks.failedBookmark', defaultMessage: 'Failed to bookmark message' }), {
+        description: err.message || intl.formatMessage({ id: 'common.pleaseTryAgain', defaultMessage: 'Please try again' })
       });
     }
   };
@@ -1215,12 +1222,12 @@ const ChatPage: React.FC = () => {
         messageId
       });
 
-      toast.success('Bookmark removed');
+      toast.success(intl.formatMessage({ id: 'modules.chat.bookmarks.removed', defaultMessage: 'Bookmark removed' }));
     } catch (err: any) {
       // Revert optimistic update on error
       setBookmarkedMessages(prev => new Set([...prev, messageId]));
-      toast.error('Failed to remove bookmark', {
-        description: err.message || 'Please try again'
+      toast.error(intl.formatMessage({ id: 'modules.chat.bookmarks.failedRemove', defaultMessage: 'Failed to remove bookmark' }), {
+        description: err.message || intl.formatMessage({ id: 'common.pleaseTryAgain', defaultMessage: 'Please try again' })
       });
     }
   };
@@ -1269,7 +1276,7 @@ const ChatPage: React.FC = () => {
           setEventPreviewData(eventData);
         } catch (error) {
           console.error('Failed to fetch event:', error);
-          toast.error('Failed to load event details');
+          toast.error(intl.formatMessage({ id: 'modules.chat.linkedContent.failedLoadEvent', defaultMessage: 'Failed to load event details' }));
           setEventPreviewOpen(false);
         } finally {
           setEventPreviewLoading(false);
@@ -1284,7 +1291,7 @@ const ChatPage: React.FC = () => {
           setFilePreviewData(fileData);
         } catch (error) {
           console.error('Failed to fetch file:', error);
-          toast.error('Failed to load file details');
+          toast.error(intl.formatMessage({ id: 'modules.chat.linkedContent.failedLoadFile', defaultMessage: 'Failed to load file details' }));
           setFilePreviewOpen(false);
         } finally {
           setFilePreviewLoading(false);
@@ -1295,18 +1302,18 @@ const ChatPage: React.FC = () => {
         if (content.driveFileUrl) {
           window.open(content.driveFileUrl, '_blank', 'noopener,noreferrer');
         } else {
-          toast.error('Drive file URL not available');
+          toast.error(intl.formatMessage({ id: 'modules.chat.linkedContent.driveUrlUnavailable', defaultMessage: 'Drive file URL not available' }));
         }
         break;
       default:
         console.log('Unknown content type:', content.type);
     }
-  }, [workspaceId, navigate]);
+  }, [workspaceId, navigate, intl]);
 
   // Handle downloading attachment files using the files API
   const handleDownloadAttachment = useCallback(async (attachmentId: string, fileName: string) => {
     if (!workspaceId) {
-      toast.error('Workspace not found');
+      toast.error(intl.formatMessage({ id: 'common.workspaceNotFound', defaultMessage: 'Workspace not found' }));
       return;
     }
 
@@ -1327,11 +1334,11 @@ const ChatPage: React.FC = () => {
       console.log(`✅ Downloaded: ${fileName}`);
     } catch (error) {
       console.error('Failed to download attachment:', error);
-      toast.error('Failed to download file', {
-        description: 'Please try again'
+      toast.error(intl.formatMessage({ id: 'modules.chat.attachments.failedDownload', defaultMessage: 'Failed to download file' }), {
+        description: intl.formatMessage({ id: 'common.pleaseTryAgain', defaultMessage: 'Please try again' })
       });
     }
-  }, [workspaceId]);
+  }, [workspaceId, intl]);
 
   const handleSendThreadReply = async (content: string, files: File[]) => {
     if (!threadParentMessage || !selectedChatId || !selectedChatType || !workspaceId) return;
@@ -1379,7 +1386,7 @@ const ChatPage: React.FC = () => {
       // Don't add message here - let WebSocket handle it to prevent duplicates
     } catch (err) {
       console.error('Failed to send thread reply:', err);
-      toast.error('Failed to send thread reply. Please try again.');
+      toast.error(intl.formatMessage({ id: 'modules.chat.thread.sendFailed', defaultMessage: 'Failed to send thread reply. Please try again.' }));
     }
   };
 
@@ -1446,7 +1453,7 @@ const ChatPage: React.FC = () => {
         .map(msg => `[${msg.user.name}] ${msg.body.replace(/<[^>]*>/g, '')}`)
         .join('\n\n');
       await navigator.clipboard.writeText(formatted);
-      toast.success('Messages copied to clipboard');
+      toast.success(intl.formatMessage({ id: 'modules.chat.selection.copiedClipboard', defaultMessage: 'Messages copied to clipboard' }));
       return;
     }
 
@@ -1465,12 +1472,15 @@ const ChatPage: React.FC = () => {
             return Promise.resolve();
           })
         );
-        toast.success(`Bookmarked ${selectedMsgs.length} messages`);
+        toast.success(intl.formatMessage(
+          { id: 'modules.chat.selection.bookmarkedCount', defaultMessage: 'Bookmarked {count} messages' },
+          { count: selectedMsgs.length }
+        ));
         setSelectedMessageIds(new Set());
         setSelectionMode(false);
       } catch (err) {
         console.error('Failed to bookmark messages:', err);
-        toast.error('Failed to bookmark some messages');
+        toast.error(intl.formatMessage({ id: 'modules.chat.selection.failedBookmarkSome', defaultMessage: 'Failed to bookmark some messages' }));
       }
       return;
     }
@@ -1542,17 +1552,17 @@ const ChatPage: React.FC = () => {
           break;
         }
         default:
-          throw new Error('Unknown AI action');
+          throw new Error(intl.formatMessage({ id: 'modules.chat.ai.unknownAction', defaultMessage: 'Unknown AI action' }));
       }
 
       setAIActionResult(aiContent);
     } catch (err) {
       console.error('AI action failed:', err);
-      setAIActionError(err instanceof Error ? err.message : 'Failed to process with AI');
+      setAIActionError(err instanceof Error ? err.message : intl.formatMessage({ id: 'modules.chat.ai.failedProcess', defaultMessage: 'Failed to process with AI' }));
     } finally {
       setAIActionLoading(false);
     }
-  }, [getSelectedMessages, workspaceId, bookmarkedMessages, bookmarkMutation]);
+  }, [getSelectedMessages, workspaceId, bookmarkedMessages, bookmarkMutation, intl]);
 
   // Handle creating a note from AI result
   const handleCreateNoteFromAI = useCallback(async (content: string, title: string) => {
@@ -1561,13 +1571,13 @@ const ChatPage: React.FC = () => {
     try {
       // Create note directly via API
       const note = await notesApi.createNote(workspaceId, {
-        title: title || 'AI Generated Note',
+        title: title || intl.formatMessage({ id: 'modules.chat.ai.generatedNoteTitle', defaultMessage: 'AI Generated Note' }),
         content: content,
       });
 
-      toast.success('Note created successfully!', {
+      toast.success(intl.formatMessage({ id: 'modules.chat.ai.noteCreated', defaultMessage: 'Note created successfully!' }), {
         action: {
-          label: 'View Note',
+          label: intl.formatMessage({ id: 'modules.chat.ai.viewNote', defaultMessage: 'View Note' }),
           onClick: () => navigate(`/workspaces/${workspaceId}/notes/${note.id}`),
         },
       });
@@ -1577,10 +1587,10 @@ const ChatPage: React.FC = () => {
       setSelectionMode(false);
     } catch (err) {
       console.error('Failed to create note:', err);
-      toast.error('Failed to create note');
+      toast.error(intl.formatMessage({ id: 'modules.chat.ai.failedCreateNote', defaultMessage: 'Failed to create note' }));
       throw err; // Re-throw so the modal knows it failed
     }
-  }, [workspaceId, navigate]);
+  }, [workspaceId, navigate, intl]);
 
   // Handle custom prompt submission
   const handleCustomPromptSubmit = useCallback(async (prompt: string) => {
@@ -2124,7 +2134,7 @@ const ChatPage: React.FC = () => {
               } else {
                 // Chat doesn't exist - redirect to chat home
                 console.error('❌ Chat not found in either conversations or channels, redirecting...');
-                toast.error('Chat not found');
+                toast.error(intl.formatMessage({ id: 'modules.chat.errors.chatNotFound', defaultMessage: 'Chat not found' }));
                 // Clear selection state
                 setSelectedChatId(null);
                 setSelectedChatType(null);
@@ -2134,13 +2144,13 @@ const ChatPage: React.FC = () => {
               }
             }).catch((err) => {
               console.error('Failed to fetch channels:', err);
-              toast.error('Failed to load chat');
+              toast.error(intl.formatMessage({ id: 'modules.chat.errors.failedLoadChat', defaultMessage: 'Failed to load chat' }));
               navigate(`/workspaces/${workspaceId}/chat`, { replace: true });
             });
           }
         }).catch((err) => {
           console.error('Failed to fetch conversations:', err);
-          toast.error('Failed to load chat');
+          toast.error(intl.formatMessage({ id: 'modules.chat.errors.failedLoadChat', defaultMessage: 'Failed to load chat' }));
           navigate(`/workspaces/${workspaceId}/chat`, { replace: true });
         });
       }
@@ -2917,7 +2927,10 @@ const ChatPage: React.FC = () => {
                     variant={selectionMode ? "secondary" : "ghost"}
                     size="icon"
                     className={`h-9 w-9 rounded-md ${selectionMode ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400' : 'hover:bg-muted'}`}
-                    title={selectionMode ? "Exit selection mode" : "Select messages"}
+                    title={intl.formatMessage({
+                      id: selectionMode ? 'modules.chat.selection.exitSelectionMode' : 'modules.chat.selection.selectMessages',
+                      defaultMessage: selectionMode ? 'Exit selection mode' : 'Select messages',
+                    })}
                     onClick={handleToggleSelectionMode}
                   >
                     <CheckSquare className="w-5 h-5" />
@@ -2935,7 +2948,7 @@ const ChatPage: React.FC = () => {
                     variant="ghost"
                     size="icon"
                     className="h-9 w-9 rounded-md hover:bg-muted"
-                    title="Scheduled Messages"
+                    title={intl.formatMessage({ id: 'modules.chat.scheduledMessages.title', defaultMessage: 'Scheduled Messages' })}
                     onClick={() => setShowScheduledMessagesPanel(true)}
                   >
                     <Clock className="w-5 h-5" />
@@ -2961,10 +2974,10 @@ const ChatPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium text-yellow-700 dark:text-yellow-300">
-                        Pinned message
+                        {intl.formatMessage({ id: 'modules.chat.pin.pinnedMessage', defaultMessage: 'Pinned message' })}
                       </span>
                       <span className="text-xs text-yellow-600 dark:text-yellow-400">
-                        • {(pinnedMessageData.data as any).sender?.full_name || (pinnedMessageData.data as any).sender?.username || pinnedMessageData.data.user?.name || 'Unknown'}
+                        • {(pinnedMessageData.data as any).sender?.full_name || (pinnedMessageData.data as any).sender?.username || pinnedMessageData.data.user?.name || intl.formatMessage({ id: 'common.unknown', defaultMessage: 'Unknown' })}
                       </span>
                     </div>
                     <div
@@ -3042,7 +3055,9 @@ const ChatPage: React.FC = () => {
                 {loadingMessagesFromQuery && messageOffset === 0 ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                    <span className="ml-2 text-muted-foreground">Loading messages...</span>
+                    <span className="ml-2 text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.chat.page.loadingMessages', defaultMessage: 'Loading messages...' })}
+                    </span>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -3050,13 +3065,15 @@ const ChatPage: React.FC = () => {
                     {isLoadingMore && hasMoreMessages && (
                       <div className="flex items-center justify-center py-4">
                         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                        <span className="ml-2 text-sm text-muted-foreground">Loading older messages...</span>
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          {intl.formatMessage({ id: 'modules.chat.page.loadingOlderMessages', defaultMessage: 'Loading older messages...' })}
+                        </span>
                       </div>
                     )}
 
                     {!hasMoreMessages && messages.length > 0 && (
                       <div className="text-center py-2 text-xs text-muted-foreground">
-                        No more messages
+                        {intl.formatMessage({ id: 'modules.chat.page.noMoreMessages', defaultMessage: 'No more messages' })}
                       </div>
                     )}
 
@@ -3197,7 +3214,8 @@ const ChatPage: React.FC = () => {
                       <CornerUpRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground">
-                          Replying to <span className="font-medium text-foreground">{replyingTo.user.name}</span>
+                          {intl.formatMessage({ id: 'modules.chat.messages.replyingTo', defaultMessage: 'Replying to' })}{' '}
+                          <span className="font-medium text-foreground">{replyingTo.user.name}</span>
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {stripHtml(replyingTo.body)}
@@ -3281,12 +3299,12 @@ const ChatPage: React.FC = () => {
           const contentHtml = editor?.root?.innerHTML || '';
 
           if (!content) {
-            toast.error('Please enter a message to schedule');
+            toast.error(intl.formatMessage({ id: 'modules.chat.schedule.enterMessage', defaultMessage: 'Please enter a message to schedule' }));
             return;
           }
 
           if (!workspaceId) {
-            toast.error('Workspace not found');
+            toast.error(intl.formatMessage({ id: 'common.workspaceNotFound', defaultMessage: 'Workspace not found' }));
             return;
           }
 
@@ -3304,7 +3322,10 @@ const ChatPage: React.FC = () => {
               },
             });
 
-            toast.success(`Message scheduled for ${date.toLocaleString()}`);
+            toast.success(intl.formatMessage(
+              { id: 'modules.chat.schedule.scheduledForDate', defaultMessage: 'Message scheduled for {date}' },
+              { date: intl.formatDate(date, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }) }
+            ));
             // Clear input after scheduling
             if (editor) {
               editor.setText('');
@@ -3312,7 +3333,7 @@ const ChatPage: React.FC = () => {
             setShowScheduleModal(false);
           } catch (error) {
             console.error('Failed to schedule message:', error);
-            toast.error('Failed to schedule message');
+            toast.error(intl.formatMessage({ id: 'modules.chat.schedule.failedSchedule', defaultMessage: 'Failed to schedule message' }));
           }
         }}
       />

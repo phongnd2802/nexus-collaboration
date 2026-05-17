@@ -17,7 +17,6 @@ import { FiltersDialog } from './FiltersDialog'
 import { SettingsDialog } from './SettingsDialog'
 import { ScheduleMeetingModal } from './ScheduleMeetingModal'
 import { AnalyticsDashboard } from './AnalyticsDashboard'
-import { SchedulingAssistant } from './SchedulingAssistant'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -45,7 +44,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false)
   const [openRoomDialog, setOpenRoomDialog] = useState(false)
   const [showScheduleMeetingModal, setShowScheduleMeetingModal] = useState(false)
-  const [showSchedulingAssistant, setShowSchedulingAssistant] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [newEventDate, setNewEventDate] = useState<Date | null>(null)
   const [newEventHour, setNewEventHour] = useState<number | null>(null)
@@ -530,7 +528,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
         onCreateEvent={() => handleCreateEvent()}
         onShowFilters={() => setShowFiltersDialog(true)}
         onShowSettings={() => setShowSettingsDialog(true)}
-        onShowSchedulingAssistant={() => setShowSchedulingAssistant(true)}
         onShowAnalytics={() => setShowAnalytics(!showAnalytics)}
         showAnalytics={showAnalytics}
       />
@@ -573,16 +570,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
         openRoomDialog={openRoomDialog}
       />
 
-      {/* Scheduling Assistant - AI Schedule */}
-      <SchedulingAssistant
-        open={showSchedulingAssistant}
-        onClose={() => setShowSchedulingAssistant(false)}
-        onEventScheduled={(eventId) => {
-          console.log('Event scheduled:', eventId)
-          toast.success(intl.formatMessage({ id: 'modules.calendar.main.eventScheduledSuccess' }))
-        }}
-      />
-      
       {/* Schedule Meeting Modal - Disabled to prevent fetch errors */}
       {/* eslint-disable-next-line no-constant-binary-expression */}
       {false && (

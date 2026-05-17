@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
 import { toast } from 'sonner'
-import { PanelLeft, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import {
   useAIChatConversations,
   useAIChatMessages,
@@ -56,6 +56,15 @@ export function AIChatPage() {
     localStorage.setItem(SIDEBAR_KEY, String(sidebarOpen))
   }, [sidebarOpen])
 
+  useEffect(() => {
+    const handleSidebarToggle = () => {
+      setSidebarOpen(prev => !prev)
+    }
+
+    window.addEventListener('nexus:toggle-ai-chat-sidebar', handleSidebarToggle)
+    return () => window.removeEventListener('nexus:toggle-ai-chat-sidebar', handleSidebarToggle)
+  }, [])
+
   const prevMessagesRef = useRef<string>('')
 
   useEffect(() => {
@@ -78,9 +87,9 @@ export function AIChatPage() {
       setConversationId(result.sessionId)
       setLocalMessages([])
     } catch {
-      toast.error('Failed to create conversation')
+      toast.error(intl.formatMessage({ id: 'modules.aiChat.errors.createConversation', defaultMessage: 'Failed to create conversation' }))
     }
-  }, [workspaceId, createConversation])
+  }, [workspaceId, createConversation, intl])
 
   const handleSelectConversation = useCallback((id: string) => {
     setConversationId(id)
@@ -117,7 +126,7 @@ export function AIChatPage() {
           sessionId = result.sessionId
           setConversationId(sessionId)
         } catch {
-          toast.error('Failed to create conversation')
+          toast.error(intl.formatMessage({ id: 'modules.aiChat.errors.createConversation', defaultMessage: 'Failed to create conversation' }))
           return
         }
       }
@@ -191,7 +200,7 @@ export function AIChatPage() {
               abortRef.current = null
             },
             onError: (error: string) => {
-              toast.error(error || 'Something went wrong')
+              toast.error(error || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
               setIsStreaming(false)
               setIsThinking(false)
               setStreamingContent('')
@@ -202,7 +211,7 @@ export function AIChatPage() {
         )
       } catch (err: any) {
         if (err.name !== 'AbortError') {
-          toast.error(err?.message || 'Something went wrong')
+          toast.error(err?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
         }
         setIsStreaming(false)
         setIsThinking(false)
@@ -210,7 +219,7 @@ export function AIChatPage() {
         abortRef.current = null
       }
     },
-    [workspaceId, conversationId, isStreaming, model, streamingContent, createConversation]
+    [workspaceId, conversationId, isStreaming, model, streamingContent, createConversation, intl]
   )
 
   const handleStop = useCallback(() => {
@@ -259,35 +268,36 @@ export function AIChatPage() {
         }
       `}</style>
 
-      {sidebarOpen && (
-        <AIChatSidebar
-          conversations={conversations}
-          activeId={conversationId}
-          onSelect={handleSelectConversation}
-          onNew={handleNewConversation}
-          onDelete={handleDeleteConversation}
-          onRename={handleRenameConversation}
-          isLoading={conversationsLoading}
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(false)}
-        />
-      )}
+      <aside
+        className={`bg-card/80 backdrop-blur-xl border-r border-border flex flex-col overflow-hidden transition-all duration-300 z-40 ${
+          sidebarOpen ? 'w-60' : 'w-0 pointer-events-none'
+        }`}
+        aria-hidden={!sidebarOpen}
+      >
+        <div
+          className={`h-full w-60 flex-shrink-0 transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <AIChatSidebar
+            conversations={conversations}
+            activeId={conversationId}
+            onSelect={handleSelectConversation}
+            onNew={handleNewConversation}
+            onDelete={handleDeleteConversation}
+            onRename={handleRenameConversation}
+            isLoading={conversationsLoading}
+          />
+        </div>
+      </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center gap-3 px-4 pt-3 pb-1 h-[44px] flex-shrink-0">
-          {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-lg text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
-              title="Open sidebar"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </button>
-          )}
           {hasConversation && (
             <div className="flex-1 min-w-0">
               <p className="text-[13px] text-[#73726C] truncate font-medium">
-                {conversations.find(c => c.id === conversationId)?.title || 'New conversation'}
+                {conversations.find(c => c.id === conversationId)?.title ||
+                  intl.formatMessage({ id: 'modules.aiChat.sidebar.newConversation', defaultMessage: 'New conversation' })}
               </p>
             </div>
           )}
@@ -316,7 +326,9 @@ export function AIChatPage() {
                   <Sparkles className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-[15px] text-[#73726C]">Thinking</span>
+                  <span className="text-[15px] text-[#73726C]">
+                    {intl.formatMessage({ id: 'modules.aiChat.status.thinking', defaultMessage: 'Thinking' })}
+                  </span>
                   <span className="flex gap-0.5">
                     <span className="w-1 h-1 rounded-full bg-[#D97757] animate-[thinkingPulse_1.4s_ease-in-out_infinite]" />
                     <span className="w-1 h-1 rounded-full bg-[#D97757] animate-[thinkingPulse_1.4s_ease-in-out_0.2s_infinite]" />

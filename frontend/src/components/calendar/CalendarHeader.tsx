@@ -2,7 +2,7 @@ import { useRef, useCallback } from 'react'
 import { useIntl } from 'react-intl'
 import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { ChevronLeft, ChevronRight, Calendar, Plus, Search, Filter, MoreHorizontal, Brain, BarChart3, Upload, Download, Printer, X, FilterX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, Plus, Search, Filter, MoreHorizontal, BarChart3, Download, Printer, X, FilterX } from 'lucide-react'
 import type { CalendarView } from '../../types/calendar'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { formatCalendarViewTitle } from '../../lib/calendar-utils'
@@ -17,7 +17,6 @@ interface CalendarHeaderProps {
   onCreateEvent: () => void
   onShowFilters: () => void
   onShowSettings: () => void
-  onShowSchedulingAssistant: () => void
   onShowAnalytics: () => void
   showAnalytics: boolean
 }
@@ -26,7 +25,6 @@ export function CalendarHeader({
   onCreateEvent,
   onShowFilters,
   onShowSettings,
-  onShowSchedulingAssistant,
   onShowAnalytics,
   showAnalytics
 }: CalendarHeaderProps) {
@@ -45,8 +43,6 @@ export function CalendarHeader({
     events,
     categories
   } = useCalendarStore()
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const VIEW_OPTIONS: { value: CalendarView; label: string }[] = [
     { value: 'day', label: intl.formatMessage({ id: 'modules.calendar.header.viewDay' }) },
@@ -102,54 +98,7 @@ export function CalendarHeader({
     }, 300)
   }, [updateFilters])
 
-  const handleImportCalendar = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const fileType = file.name.split('.').pop()?.toLowerCase()
-
-    if (fileType !== 'ics' && fileType !== 'csv' && fileType !== 'json') {
-      toast.error(intl.formatMessage({ id: 'modules.calendar.header.importInvalidFileType' }))
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      try {
-        const content = e.target?.result as string
-        
-        if (fileType === 'json') {
-          const importedData = JSON.parse(content)
-          if (importedData.events && Array.isArray(importedData.events)) {
-            toast.success(intl.formatMessage({ id: 'modules.calendar.header.importSuccessEvents' }, { count: importedData.events.length }))
-          } else {
-            toast.error(intl.formatMessage({ id: 'modules.calendar.header.importInvalidJson' }))
-          }
-        } else if (fileType === 'ics') {
-          const eventCount = (content.match(/BEGIN:VEVENT/g) || []).length
-          toast.success(intl.formatMessage({ id: 'modules.calendar.header.importSuccessIcs' }, { count: eventCount }))
-        } else if (fileType === 'csv') {
-          const lines = content.split('\n').filter(line => line.trim())
-          const eventCount = Math.max(0, lines.length - 1)
-          toast.success(intl.formatMessage({ id: 'modules.calendar.header.importSuccessCsv' }, { count: eventCount }))
-        }
-      } catch (error) {
-        toast.error(intl.formatMessage({ id: 'modules.calendar.header.importError' }))
-        console.error('Import error:', error)
-      }
-    }
-
-    reader.readAsText(file)
-    if (event.target) {
-      event.target.value = ''
-    }
-  }
-
-  const handleExportCalendar = (format: 'ics' | 'csv' | 'json') => {
+  const handleExportCalendar = (format: 'csv' | 'json') => {
     try {
       let content = ''
       let filename = `calendar-export-${formatDate(new Date(), 'yyyy-MM-dd')}`
@@ -168,10 +117,6 @@ export function CalendarHeader({
         content = JSON.stringify(exportData, null, 2)
         filename += '.json'
         mimeType = 'application/json'
-      } else if (format === 'ics') {
-        content = generateICSContent(events)
-        filename += '.ics'
-        mimeType = 'text/calendar'
       } else if (format === 'csv') {
         content = generateCSVContent(events, categories)
         filename += '.csv'
@@ -213,32 +158,6 @@ export function CalendarHeader({
         printWindow.close()
       }
     }
-  }
-
-  const generateICSContent = (events: any[]) => {
-    const icsEvents = events.map(event => {
-      const startDate = formatDate(new Date(event.startTime), "yyyyMMdd'T'HHmmss")
-      const endDate = formatDate(new Date(event.endTime), "yyyyMMdd'T'HHmmss")
-      
-      return `BEGIN:VEVENT
-UID:${event.id}@nexusapp.io
-DTSTART:${startDate}
-DTEND:${endDate}
-SUMMARY:${event.title}
-DESCRIPTION:${event.description || ''}
-LOCATION:${typeof event.location === 'string' ? event.location : event.location?.name || ''}
-STATUS:${event.status.toUpperCase()}
-PRIORITY:${event.priority === 'urgent' ? 1 : event.priority === 'high' ? 2 : event.priority === 'normal' ? 3 : 4}
-END:VEVENT`
-    }).join('\n')
-
-    return `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Nexus//Calendar//EN
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-${icsEvents}
-END:VCALENDAR`
   }
 
   const generateCSVContent = (events: any[], categories: any[]) => {
@@ -407,16 +326,6 @@ END:VCALENDAR`
 
         {/* Actions */}
         <Button
-          variant="outline"
-          size="sm"
-          onClick={onShowSchedulingAssistant}
-          className="hidden lg:flex items-center gap-2 flex-shrink-0"
-        >
-          <Brain className="h-4 w-4" />
-          <span className="hidden xl:inline">{intl.formatMessage({ id: 'modules.calendar.header.aiSchedule' })}</span>
-        </Button>
-
-        <Button
           variant={showAnalytics ? "default" : "outline"}
           size="sm"
           onClick={onShowAnalytics}
@@ -500,19 +409,6 @@ END:VCALENDAR`
                 {intl.formatMessage({ id: 'modules.calendar.header.clearFilters' })}
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onShowSchedulingAssistant} className="lg:hidden">
-              <Brain className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.aiSchedule' })}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleImportCalendar}>
-              <Upload className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.importCalendar' })}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleExportCalendar('ics')}>
-              <Download className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.exportAsIcs' })}
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExportCalendar('csv')}>
               <Download className="h-4 w-4 mr-2" />
               {intl.formatMessage({ id: 'modules.calendar.header.exportAsCsv' })}
@@ -529,15 +425,6 @@ END:VCALENDAR`
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
-      {/* Hidden file input for import */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        accept=".ics,.csv,.json"
-        onChange={handleFileImport}
-      />
     </div>
   )
 }

@@ -835,26 +835,26 @@ Please provide a friendly, concise summary of what was done for the user.`;
         get_overdue_tasks: 'Fetching overdue tasks',
         get_upcoming_events: 'Fetching upcoming events',
       },
-      ja: {
-        create_task: 'タスクを作成中',
-        list_tasks: 'タスクを取得中',
-        update_task: 'タスクを更新中',
-        create_calendar_event: 'イベントを作成中',
-        list_calendar_events: 'イベントを取得中',
-        create_note: 'ノートを作成中',
-        update_note: 'ノートを更新中',
-        search_notes: 'ノートを検索中',
-        send_channel_message: 'メッセージを送信中',
-        send_direct_message: 'メッセージを送信中',
-        list_channels: 'チャンネルを取得中',
-        list_workspace_members: 'メンバーを取得中',
-        get_current_date_time: '現在時刻を取得中',
-        list_projects: 'プロジェクトを取得中',
-        create_project: 'プロジェクトを作成中',
-        get_daily_summary: '今日のサマリーを生成中',
-        get_focus_recommendations: '集中すべきことを分析中',
-        get_overdue_tasks: '期限切れのタスクを取得中',
-        get_upcoming_events: '今後のイベントを取得中',
+      vi: {
+        create_task: '\u0110ang t\u1ea1o t\u00e1c v\u1ee5',
+        list_tasks: '\u0110ang l\u1ea5y t\u00e1c v\u1ee5',
+        update_task: '\u0110ang c\u1eadp nh\u1eadt t\u00e1c v\u1ee5',
+        create_calendar_event: '\u0110ang t\u1ea1o s\u1ef1 ki\u1ec7n',
+        list_calendar_events: '\u0110ang l\u1ea5y s\u1ef1 ki\u1ec7n',
+        create_note: '\u0110ang t\u1ea1o ghi ch\u00fa',
+        update_note: '\u0110ang c\u1eadp nh\u1eadt ghi ch\u00fa',
+        search_notes: '\u0110ang t\u00ecm ghi ch\u00fa',
+        send_channel_message: '\u0110ang g\u1eedi tin nh\u1eafn',
+        send_direct_message: '\u0110ang g\u1eedi tin nh\u1eafn',
+        list_channels: '\u0110ang l\u1ea5y k\u00eanh',
+        list_workspace_members: '\u0110ang l\u1ea5y th\u00e0nh vi\u00ean',
+        get_current_date_time: '\u0110ang l\u1ea5y th\u1eddi gian hi\u1ec7n t\u1ea1i',
+        list_projects: '\u0110ang l\u1ea5y d\u1ef1 \u00e1n',
+        create_project: '\u0110ang t\u1ea1o d\u1ef1 \u00e1n',
+        get_daily_summary: '\u0110ang t\u1ea1o t\u00f3m t\u1eaft h\u00f4m nay',
+        get_focus_recommendations: '\u0110ang ph\u00e2n t\u00edch vi\u1ec7c c\u1ea7n t\u1eadp trung',
+        get_overdue_tasks: '\u0110ang l\u1ea5y t\u00e1c v\u1ee5 qu\u00e1 h\u1ea1n',
+        get_upcoming_events: '\u0110ang l\u1ea5y s\u1ef1 ki\u1ec7n s\u1eafp t\u1edbi',
       },
     };
 
@@ -871,9 +871,9 @@ Please provide a friendly, concise summary of what was done for the user.`;
         completed: 'completed',
         failed: 'failed',
       },
-      ja: {
-        completed: '完了',
-        failed: '失敗',
+      vi: {
+        completed: 'ho\u00e0n t\u1ea5t',
+        failed: 'th\u1ea5t b\u1ea1i',
       },
     };
 
@@ -887,15 +887,7 @@ Please provide a friendly, concise summary of what was done for the user.`;
   private getLanguageInstructions(language: string): string {
     const instructions: Record<string, string> = {
       en: 'IMPORTANT: Respond to the user in English.',
-      ja: 'IMPORTANT: ユーザーには必ず日本語で応答してください。すべての回答、説明、メッセージは日本語で記述する必要があります。',
-      es: 'IMPORTANTE: Responde al usuario en español.',
-      fr: "IMPORTANT: Répondez à l'utilisateur en français.",
-      de: 'WICHTIG: Antworten Sie dem Benutzer auf Deutsch.',
-      zh: '重要提示：请用中文回复用户。',
-      ko: '중요: 사용자에게 한국어로 응답하세요.',
-      ar: 'مهم: الرد على المستخدم بالعربية.',
-      pt: 'IMPORTANTE: Responda ao usuário em português.',
-      ru: 'ВАЖНО: Отвечайте пользователю на русском языке.',
+      vi: 'IMPORTANT: Lu\u00f4n tr\u1ea3 l\u1eddi ng\u01b0\u1eddi d\u00f9ng b\u1eb1ng ti\u1ebfng Vi\u1ec7t. T\u1ea5t c\u1ea3 c\u00e2u tr\u1ea3 l\u1eddi, gi\u1ea3i th\u00edch v\u00e0 tin nh\u1eafn ph\u1ea3i \u0111\u01b0\u1ee3c vi\u1ebft b\u1eb1ng ti\u1ebfng Vi\u1ec7t.',
     };
 
     return instructions[language] || instructions['en'];
@@ -907,15 +899,7 @@ Please provide a friendly, concise summary of what was done for the user.`;
   private getAnalyzingMessage(language: string = 'en'): string {
     const translations: Record<string, string> = {
       en: 'Analyzing your request...',
-      ja: 'リクエストを分析中...',
-      es: 'Analizando su solicitud...',
-      fr: 'Analyse de votre demande...',
-      de: 'Ihre Anfrage wird analysiert...',
-      zh: '正在分析您的请求...',
-      ko: '요청을 분석하는 중...',
-      ar: 'تحليل طلبك...',
-      pt: 'Analisando sua solicitação...',
-      ru: 'Анализ вашего запроса...',
+      vi: '\u0110ang ph\u00e2n t\u00edch y\u00eau c\u1ea7u c\u1ee7a b\u1ea1n...',
     };
 
     return translations[language] || translations['en'];

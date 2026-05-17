@@ -95,7 +95,7 @@ export class AutoPilotController {
 
     // Get user language from Accept-Language header or default to 'en'
     const acceptLanguage = req.headers['accept-language'] || 'en';
-    const userLanguage = acceptLanguage.split(',')[0].split('-')[0]; // Extract primary language code (e.g., 'ja' from 'ja-JP')
+    const userLanguage = acceptLanguage.split(',')[0].split('-')[0]; // Extract primary language code (e.g., 'vi' from 'vi-VN')
     this.logger.log(`[AutoPilot] User language detected: ${userLanguage}`);
 
     // Set SSE headers

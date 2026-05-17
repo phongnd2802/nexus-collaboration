@@ -8,20 +8,11 @@ import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import enMessages from '../../i18n/en.json';
-import jaMessages from '../../i18n/ja.json';
-import zhMessages from '../../i18n/zh.json';
-import koMessages from '../../i18n/ko.json';
-import esMessages from '../../i18n/es.json';
-import frMessages from '../../i18n/fr.json';
-import deMessages from '../../i18n/de.json';
-import ptMessages from '../../i18n/pt.json';
-import arMessages from '../../i18n/ar.json';
-import hiMessages from '../../i18n/hi.json';
-import ruMessages from '../../i18n/ru.json';
+import viMessages from '../../i18n/vi.json';
 
 const allLocaleMessages: Record<string, any> = {
-  en: enMessages, ja: jaMessages, zh: zhMessages, ko: koMessages, es: esMessages,
-  fr: frMessages, de: deMessages, pt: ptMessages, ar: arMessages, hi: hiMessages, ru: ruMessages,
+  en: enMessages,
+  vi: viMessages,
 };
 import {
   MessageSquare,

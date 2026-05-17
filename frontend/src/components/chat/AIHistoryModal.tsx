@@ -53,13 +53,15 @@ export function AIHistoryModal({ open, onClose }: AIHistoryModalProps) {
                   className="p-4 border border-border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-foreground">Conversation Title</h4>
+                    <h4 className="font-medium text-foreground">
+                      {intl.formatMessage({ id: 'modules.chat.aiHistory.conversationTitle', defaultMessage: 'Conversation Title' })}
+                    </h4>
                     <span className="text-xs text-muted-foreground">
                       {new Date().toLocaleDateString()}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    Conversation preview...
+                    {intl.formatMessage({ id: 'modules.chat.aiHistory.conversationPreview', defaultMessage: 'Conversation preview...' })}
                   </p>
                 </div>
               ))}

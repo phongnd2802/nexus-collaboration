@@ -209,8 +209,8 @@ export class LangChainSuggestionsService {
     const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
 
     const languageInstruction =
-      userLanguage === 'ja'
-        ? 'IMPORTANT: Respond in Japanese. All titles, descriptions, action labels, and recommendations must be in Japanese (日本語).'
+      userLanguage === 'vi'
+        ? 'IMPORTANT: Respond in Vietnamese. All titles, descriptions, action labels, and recommendations must be in Vietnamese (Ti?ng Vi?t).'
         : 'Respond in English.';
 
     const systemPrompt = `You are an intelligent productivity assistant analyzing a user's workspace to provide actionable suggestions.
@@ -411,8 +411,8 @@ RULES:
 
     try {
       const languageInstruction =
-        userLanguage === 'ja'
-          ? '\n\nIMPORTANT: Respond in Japanese. All text fields (title, description, actionLabel, recommendation) must be in Japanese (日本語).'
+        userLanguage === 'vi'
+          ? '\n\nIMPORTANT: Respond in Vietnamese. All text fields (title, description, actionLabel, recommendation) must be in Vietnamese (Ti?ng Vi?t).'
           : '';
 
       let prompt = '';

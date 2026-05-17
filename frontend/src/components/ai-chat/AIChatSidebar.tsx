@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useIntl } from 'react-intl'
 import {
   Plus,
   Search,
@@ -7,7 +8,6 @@ import {
   MessageSquareText,
   ChevronDown,
   ChevronRight,
-  PanelLeftClose,
 } from 'lucide-react'
 
 interface Conversation {
@@ -17,6 +17,8 @@ interface Conversation {
   updatedAt: string
 }
 
+type DateGroup = 'today' | 'yesterday' | 'last7Days' | 'last30Days' | 'older'
+
 interface AIChatSidebarProps {
   conversations: Conversation[]
   activeId: string | null
@@ -25,22 +27,20 @@ interface AIChatSidebarProps {
   onDelete: (id: string) => void
   onRename: (id: string, title: string) => void
   isLoading?: boolean
-  isOpen: boolean
-  onToggle: () => void
 }
 
-function getDateGroup(dateStr: string): string {
+function getDateGroup(dateStr: string): DateGroup {
   const date = new Date(dateStr)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const itemDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const dayDiff = Math.floor((today.getTime() - itemDay.getTime()) / 86400000)
 
-  if (dayDiff === 0) return 'Today'
-  if (dayDiff === 1) return 'Yesterday'
-  if (dayDiff <= 7) return 'Last 7 days'
-  if (dayDiff <= 30) return 'Last 30 days'
-  return 'Older'
+  if (dayDiff === 0) return 'today'
+  if (dayDiff === 1) return 'yesterday'
+  if (dayDiff <= 7) return 'last7Days'
+  if (dayDiff <= 30) return 'last30Days'
+  return 'older'
 }
 
 function groupConversations(conversations: Conversation[]) {
@@ -48,17 +48,19 @@ function groupConversations(conversations: Conversation[]) {
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )
 
-  const groups: Record<string, Conversation[]> = {}
+  const groups: Partial<Record<DateGroup, Conversation[]>> = {}
   for (const c of sorted) {
     const group = getDateGroup(c.updatedAt)
-    if (!groups[group]) groups[group] = []
-    groups[group].push(c)
+    const groupItems = groups[group] ?? []
+    groupItems.push(c)
+    groups[group] = groupItems
   }
 
-  const order = ['Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Older']
-  return order
-    .filter(key => groups[key]?.length > 0)
-    .map(key => ({ label: key, items: groups[key] }))
+  const order: DateGroup[] = ['today', 'yesterday', 'last7Days', 'last30Days', 'older']
+  return order.flatMap(key => {
+    const items = groups[key] ?? []
+    return items.length > 0 ? [{ label: key, items }] : []
+  })
 }
 
 export function AIChatSidebar({
@@ -69,14 +71,15 @@ export function AIChatSidebar({
   onDelete,
   onRename,
   isLoading,
-  isOpen,
-  onToggle,
 }: AIChatSidebarProps) {
+  const intl = useIntl()
   const [searchTerm, setSearchTerm] = useState('')
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    Today: true,
-    Yesterday: true,
-    'Last 7 days': true,
+  const [expandedGroups, setExpandedGroups] = useState<Record<DateGroup, boolean>>({
+    today: true,
+    yesterday: true,
+    last7Days: true,
+    last30Days: true,
+    older: true,
   })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -95,7 +98,7 @@ export function AIChatSidebar({
 
   const groups = groupConversations(filtered)
 
-  const toggleGroup = (label: string) => {
+  const toggleGroup = (label: DateGroup) => {
     setExpandedGroups(prev => ({ ...prev, [label]: !prev[label] }))
   }
 
@@ -121,21 +124,14 @@ export function AIChatSidebar({
   }
 
   return (
-    <div className="w-[260px] flex-shrink-0 border-r border-[rgba(31,30,29,0.08)] bg-[#FAF9F5] flex flex-col h-full">
+    <div className="w-full min-w-60 bg-[#FAF9F5] flex flex-col h-full">
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-[rgba(31,30,29,0.08)]">
         <button
           onClick={onNew}
           className="flex items-center justify-center gap-2 h-[36px] px-4 rounded-[9.6px] bg-[#1F1E1D] text-white text-[14px] font-normal hover:bg-[#0A0A0A] transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New chat
-        </button>
-        <button
-          onClick={onToggle}
-          className="p-2 rounded-lg text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
-          title="Close sidebar"
-        >
-          <PanelLeftClose className="h-4 w-4" />
+          {intl.formatMessage({ id: 'modules.aiChat.sidebar.newChat', defaultMessage: 'New chat' })}
         </button>
       </div>
 
@@ -145,7 +141,7 @@ export function AIChatSidebar({
           <input
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Search conversations"
+            placeholder={intl.formatMessage({ id: 'modules.aiChat.sidebar.searchPlaceholder', defaultMessage: 'Search conversations' })}
             className="w-full h-9 pl-8 pr-3 rounded-[9.6px] border border-[rgba(31,30,29,0.12)] bg-white text-[13px] text-[#1F1E1D] placeholder-[#73726C] outline-none focus:border-[rgba(31,30,29,0.3)] transition-colors"
           />
         </div>
@@ -162,7 +158,9 @@ export function AIChatSidebar({
           <div className="flex flex-col items-center justify-center h-full text-center p-6 mt-4">
             <MessageSquareText className="h-8 w-8 text-[#73726C] mb-3 opacity-40" />
             <p className="text-[14px] text-[#73726C] leading-[20px]">
-              {searchTerm ? 'No conversations found' : 'No conversations yet'}
+              {searchTerm
+                ? intl.formatMessage({ id: 'modules.aiChat.sidebar.noResults', defaultMessage: 'No conversations found' })
+                : intl.formatMessage({ id: 'modules.aiChat.sidebar.empty', defaultMessage: 'No conversations yet' })}
             </p>
           </div>
         ) : (
@@ -179,7 +177,10 @@ export function AIChatSidebar({
                     <ChevronRight className="h-3 w-3 text-[#73726C]" />
                   )}
                   <span className="text-[11px] font-medium text-[#73726C] uppercase tracking-wider">
-                    {group.label}
+                    {intl.formatMessage({
+                      id: `modules.aiChat.sidebar.groups.${group.label}`,
+                      defaultMessage: group.label,
+                    })}
                   </span>
                 </button>
 
@@ -216,7 +217,7 @@ export function AIChatSidebar({
                               />
                             ) : (
                               <p className="text-[13px] text-[#1F1E1D] truncate leading-[18px]">
-                                {conv.title || 'New conversation'}
+                                {conv.title || intl.formatMessage({ id: 'modules.aiChat.sidebar.newConversation', defaultMessage: 'New conversation' })}
                               </p>
                             )}
                           </div>

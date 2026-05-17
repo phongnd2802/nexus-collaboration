@@ -3,53 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum LanguageCode {
   ENGLISH = 'en',
-  SPANISH = 'es',
-  FRENCH = 'fr',
-  GERMAN = 'de',
-  ITALIAN = 'it',
-  PORTUGUESE = 'pt',
-  RUSSIAN = 'ru',
-  CHINESE_SIMPLIFIED = 'zh-cn',
-  CHINESE_TRADITIONAL = 'zh-tw',
-  JAPANESE = 'ja',
-  KOREAN = 'ko',
-  ARABIC = 'ar',
-  HINDI = 'hi',
-  DUTCH = 'nl',
-  SWEDISH = 'sv',
-  NORWEGIAN = 'no',
-  DANISH = 'da',
-  FINNISH = 'fi',
-  POLISH = 'pl',
-  CZECH = 'cs',
-  HUNGARIAN = 'hu',
-  ROMANIAN = 'ro',
-  BULGARIAN = 'bg',
-  CROATIAN = 'hr',
-  SERBIAN = 'sr',
-  SLOVAK = 'sk',
-  SLOVENIAN = 'sl',
-  LATVIAN = 'lv',
-  LITHUANIAN = 'lt',
-  ESTONIAN = 'et',
-  GREEK = 'el',
-  TURKISH = 'tr',
-  HEBREW = 'he',
-  THAI = 'th',
   VIETNAMESE = 'vi',
-  INDONESIAN = 'id',
-  MALAY = 'ms',
-  FILIPINO = 'fil',
-  UKRAINIAN = 'uk',
-  BENGALI = 'bn',
-  TAMIL = 'ta',
-  TELUGU = 'te',
-  MARATHI = 'mr',
-  GUJARATI = 'gu',
-  KANNADA = 'kn',
-  MALAYALAM = 'ml',
-  PUNJABI = 'pa',
-  URDU = 'ur',
 }
 
 export enum TranslationStyle {
@@ -94,7 +48,7 @@ export class TranslateTextDto {
   @ApiProperty({
     description: 'Target language code',
     enum: LanguageCode,
-    example: LanguageCode.SPANISH,
+    example: LanguageCode.VIETNAMESE,
   })
   @IsEnum(LanguageCode)
   target_language: LanguageCode;
@@ -177,7 +131,7 @@ export class BatchTranslateDto {
   @ApiProperty({
     description: 'Target language code',
     enum: LanguageCode,
-    example: LanguageCode.SPANISH,
+    example: LanguageCode.VIETNAMESE,
   })
   @IsEnum(LanguageCode)
   target_language: LanguageCode;

@@ -1152,24 +1152,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>{intl.formatMessage({ id: 'modules.calendar.eventDialog.form.description' })}</FormLabel>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={generateDescriptionSuggestions}
-                          disabled={isGeneratingDescription || descriptionMutation.isPending || !form.getValues('title')}
-                          className="h-8 px-2 text-xs"
-                        >
-                          {(isGeneratingDescription || descriptionMutation.isPending) ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <Sparkles className="h-3 w-3 mr-1" />
-                          )}
-                          {intl.formatMessage({ id: 'modules.calendar.eventDialog.form.aiSuggest' })}
-                        </Button>
-                      </div>
+                      <FormLabel>{intl.formatMessage({ id: 'modules.calendar.eventDialog.form.description' })}</FormLabel>
                       <FormControl>
                         <RichTextEditor
                           value={field.value || ''}

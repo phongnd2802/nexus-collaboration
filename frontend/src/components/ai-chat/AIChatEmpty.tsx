@@ -17,33 +17,66 @@ import { useIntl } from 'react-intl'
 
 interface SuggestionChip {
   icon: React.ElementType
-  label: string
-  prompt: string
+  labelKey: string
+  defaultLabel: string
+  promptKey: string
+  defaultPrompt: string
 }
 
 const SUGGESTIONS: SuggestionChip[] = [
-  { icon: Code2, label: 'Code', prompt: 'Write a REST API endpoint in TypeScript with validation' },
-  { icon: Pencil, label: 'Write', prompt: 'Draft a professional email to request a meeting' },
-  { icon: GraduationCap, label: 'Learn', prompt: 'Explain how neural networks work in simple terms' },
-  { icon: Coffee, label: 'Life stuff', prompt: 'Give me tips for staying productive while working from home' },
-  { icon: Sparkles, label: 'Surprise me', prompt: 'Surprise me with something interesting about science' },
+  {
+    icon: Code2,
+    labelKey: 'modules.aiChat.suggestions.code',
+    defaultLabel: 'Code',
+    promptKey: 'modules.aiChat.suggestionPrompts.code',
+    defaultPrompt: 'Write a REST API endpoint in TypeScript with validation',
+  },
+  {
+    icon: Pencil,
+    labelKey: 'modules.aiChat.suggestions.write',
+    defaultLabel: 'Write',
+    promptKey: 'modules.aiChat.suggestionPrompts.write',
+    defaultPrompt: 'Draft a professional email to request a meeting',
+  },
+  {
+    icon: GraduationCap,
+    labelKey: 'modules.aiChat.suggestions.learn',
+    defaultLabel: 'Learn',
+    promptKey: 'modules.aiChat.suggestionPrompts.learn',
+    defaultPrompt: 'Explain how neural networks work in simple terms',
+  },
+  {
+    icon: Coffee,
+    labelKey: 'modules.aiChat.suggestions.lifeStuff',
+    defaultLabel: 'Life stuff',
+    promptKey: 'modules.aiChat.suggestionPrompts.lifeStuff',
+    defaultPrompt: 'Give me tips for staying productive while working from home',
+  },
+  {
+    icon: Sparkles,
+    labelKey: 'modules.aiChat.suggestions.surpriseMe',
+    defaultLabel: 'Surprise me',
+    promptKey: 'modules.aiChat.suggestionPrompts.surpriseMe',
+    defaultPrompt: 'Surprise me with something interesting about science',
+  },
 ]
 
 const MODES = [
-  { id: 'auto', label: 'Auto', icon: Sparkles },
-  { id: 'thinking', label: 'Thinking', icon: Brain },
-  { id: 'fast', label: 'Fast', icon: Zap },
+  { id: 'auto', labelKey: 'modules.aiChat.modes.auto', defaultLabel: 'Auto', icon: Sparkles },
+  { id: 'thinking', labelKey: 'modules.aiChat.modes.thinking', defaultLabel: 'Thinking', icon: Brain },
+  { id: 'fast', labelKey: 'modules.aiChat.modes.fast', defaultLabel: 'Fast', icon: Zap },
 ]
 
-function getGreeting(name: string): string {
+function getGreetingKey(): string {
   const hour = new Date().getHours()
-  if (hour >= 5 && hour < 12) return 'Good morning'
-  if (hour >= 12 && hour < 17) return 'Good afternoon'
-  if (hour >= 17 && hour < 21) return 'Good evening'
-  return 'Good night'
+  if (hour >= 5 && hour < 12) return 'modules.aiChat.greetings.morning'
+  if (hour >= 12 && hour < 17) return 'modules.aiChat.greetings.afternoon'
+  if (hour >= 17 && hour < 21) return 'modules.aiChat.greetings.evening'
+  return 'modules.aiChat.greetings.night'
 }
 
 function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: (id: string) => void }) {
+  const intl = useIntl()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -74,7 +107,7 @@ function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: 
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#3D3D3A] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors outline-none select-none"
       >
         <ActiveIcon className="h-3.5 w-3.5 text-[#73726C]" />
-        {currentMode.label}
+        {intl.formatMessage({ id: currentMode.labelKey, defaultMessage: currentMode.defaultLabel })}
         <ChevronDown className={`h-3 w-3 text-[#73726C] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -93,7 +126,9 @@ function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: 
                 }`}
               >
                 <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-[#D97757]' : 'text-[#73726C]'}`} />
-                <span className="flex-1">{mode.label}</span>
+                <span className="flex-1">
+                  {intl.formatMessage({ id: mode.labelKey, defaultMessage: mode.defaultLabel })}
+                </span>
                 {isActive && <Check className="h-4 w-4 text-[#D97757] flex-shrink-0" />}
               </button>
             )
@@ -153,8 +188,8 @@ export function AIChatEmpty({ onSend, isStreaming, onStop, model, onModelChange 
     onSend(prompt)
   }, [isStreaming, onSend])
 
-  const firstName = user?.name?.split(' ')[0] || 'there'
-  const greeting = getGreeting(user?.name || '')
+  const firstName = user?.name?.split(' ')[0] || intl.formatMessage({ id: 'modules.aiChat.greetings.fallbackName', defaultMessage: 'there' })
+  const greeting = intl.formatMessage({ id: getGreetingKey(), defaultMessage: 'Hello' })
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 px-4 py-12">
@@ -203,18 +238,18 @@ export function AIChatEmpty({ onSend, isStreaming, onStop, model, onModelChange 
         <div className="flex items-center justify-center gap-1.5 mt-4 flex-wrap">
           {SUGGESTIONS.map(s => (
             <button
-              key={s.label}
-              onClick={() => handleSuggestionClick(s.prompt)}
+              key={s.labelKey}
+              onClick={() => handleSuggestionClick(intl.formatMessage({ id: s.promptKey, defaultMessage: s.defaultPrompt }))}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[rgba(31,30,29,0.12)] bg-white text-[13px] text-[#1F1E1D] hover:border-[rgba(31,30,29,0.25)] hover:bg-[#FAF9F5] transition-all duration-200"
             >
               <s.icon className="h-3.5 w-3.5 text-[#73726C]" />
-              {s.label}
+              {intl.formatMessage({ id: s.labelKey, defaultMessage: s.defaultLabel })}
             </button>
           ))}
         </div>
 
         <p className="text-center text-[12px] text-[#73726C] mt-3">
-          Nexus can make mistakes. Please double-check responses.
+          {intl.formatMessage({ id: 'modules.aiChat.disclaimer', defaultMessage: 'Nexus can make mistakes. Please double-check responses.' })}
         </p>
       </div>
     </div>

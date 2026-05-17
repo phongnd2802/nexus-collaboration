@@ -8,6 +8,7 @@ import { Badge } from '../ui/badge';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import youtubeApi, { type YoutubeVideo } from '../../lib/api/youtube-api';
 import { toast } from 'sonner';
+import { useIntl } from 'react-intl';
 
 interface YoutubeVideoPickerModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
   onClose,
   onSelect,
 }) => {
+  const intl = useIntl();
   const { currentWorkspace } = useWorkspace();
   const [searchQuery, setSearchQuery] = useState('');
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
@@ -59,7 +61,7 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
       const { authUrl } = await youtubeApi.getAuthUrl(currentWorkspace.id, window.location.href);
       window.location.href = authUrl;
     } catch (error) {
-      toast.error('Failed to connect YouTube');
+      toast.error(intl.formatMessage({ id: 'modules.chat.youtube.failedConnect', defaultMessage: 'Failed to connect YouTube' }));
     }
   };
 
@@ -71,7 +73,7 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
       const result = await youtubeApi.searchVideos(currentWorkspace.id, query, { limit: 12 });
       setVideos(result.items || []);
     } catch (error) {
-      toast.error('Failed to search videos');
+      toast.error(intl.formatMessage({ id: 'modules.chat.youtube.failedSearch', defaultMessage: 'Failed to search videos' }));
       setVideos([]);
     } finally {
       setIsSearching(false);
@@ -103,7 +105,7 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Play className="w-5 h-5 text-red-600" />
-            Share YouTube Video
+            {intl.formatMessage({ id: 'modules.chat.youtube.shareVideo', defaultMessage: 'Share YouTube Video' })}
           </DialogTitle>
         </DialogHeader>
 
@@ -114,10 +116,14 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
         ) : !isConnected ? (
           <div className="text-center py-12">
             <Play className="w-16 h-16 mx-auto mb-4 text-red-600" />
-            <h3 className="text-lg font-semibold mb-2">Connect YouTube</h3>
-            <p className="text-gray-600 mb-6">Connect your YouTube account to search and share videos in chat</p>
+            <h3 className="text-lg font-semibold mb-2">
+              {intl.formatMessage({ id: 'modules.chat.youtube.connectTitle', defaultMessage: 'Connect YouTube' })}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {intl.formatMessage({ id: 'modules.chat.youtube.connectDescription', defaultMessage: 'Connect your YouTube account to search and share videos in chat' })}
+            </p>
             <Button onClick={handleConnect} className="bg-red-600 hover:bg-red-700">
-              Connect YouTube
+              {intl.formatMessage({ id: 'modules.chat.youtube.connectButton', defaultMessage: 'Connect YouTube' })}
             </Button>
           </div>
         ) : (
@@ -128,12 +134,14 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search YouTube videos..."
+                placeholder={intl.formatMessage({ id: 'modules.chat.youtube.searchPlaceholder', defaultMessage: 'Search YouTube videos...' })}
                 className="flex-1"
               />
               <Button onClick={() => handleSearch()} disabled={isSearching}>
                 <Search className="w-4 h-4 mr-2" />
-                {isSearching ? 'Searching...' : 'Search'}
+                {isSearching
+                  ? intl.formatMessage({ id: 'modules.chat.search.searching', defaultMessage: 'Searching...' })
+                  : intl.formatMessage({ id: 'common.search', defaultMessage: 'Search' })}
               </Button>
             </div>
 
@@ -145,7 +153,7 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
                 </div>
               ) : videos.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  <p>No videos found. Try searching for something!</p>
+                  <p>{intl.formatMessage({ id: 'modules.chat.youtube.noVideos', defaultMessage: 'No videos found. Try searching for something!' })}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
@@ -175,7 +183,12 @@ export const YoutubeVideoPickerModal: React.FC<YoutubeVideoPickerModalProps> = (
                         <p className="text-xs text-gray-600 line-clamp-1">{video.snippet.channelTitle}</p>
                         {video.statistics && (
                           <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                            <span>{formatViewCount(video.statistics.viewCount)} views</span>
+                            <span>
+                              {intl.formatMessage(
+                                { id: 'modules.chat.youtube.views', defaultMessage: '{count} views' },
+                                { count: formatViewCount(video.statistics.viewCount) }
+                              )}
+                            </span>
                             {video.statistics.likeCount && (
                               <span className="flex items-center gap-1">
                                 <ThumbsUp className="w-3 h-3" />

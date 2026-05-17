@@ -25,7 +25,16 @@
     "tryAgain": "Try Again",
     "exploreFeatures": "Explore Features",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "clear": "Clear",
+    "date": "Date",
+    "time": "Time",
+    "unknown": "Unknown",
+    "workspaceNotFound": "Workspace not found",
+    "pleaseTryAgain": "Please try again"
   },
   "support": {
     "title": "Help & Support",
@@ -616,7 +625,9 @@
         "loadingChannels": "Loading channels...",
         "noChannelSelected": "Select a channel or conversation to start messaging",
         "emptyState": "No messages yet. Start the conversation!",
-        "searchPlaceholder": "Search messages..."
+        "searchPlaceholder": "Search messages...",
+        "noMoreMessages": "No more messages",
+        "loadingOlderMessages": "Loading older messages..."
       },
       "channels": {
         "title": "CHANNELS",
@@ -682,7 +693,9 @@
         "images": "Images",
         "videos": "Videos",
         "audio": "Audio Recordings",
-        "documents": "Documents"
+        "documents": "Documents",
+        "memberRemoved": "Member removed from channel",
+        "failedRemoveMember": "Failed to remove member"
       },
       "messages": {
         "typeMessage": "Type a message...",
@@ -700,7 +713,11 @@
         "edited": "edited",
         "deleted": "Message deleted",
         "replyingTo": "Replying to",
-        "cancelReply": "Cancel reply"
+        "replyingToName": "Replying to {name}",
+        "cancelReply": "Cancel reply",
+        "replyingToMessage": "Replying to message",
+        "encryptedTooltip": "This message is end-to-end encrypted",
+        "readByCount": "Read by {count} {count, plural, one {person} other {people}}"
       },
       "input": {
         "placeholder": "Type a message...",
@@ -710,14 +727,52 @@
         "mention": "Mention someone",
         "aiMode": "AI mode",
         "schedule": "Schedule message",
-        "recording": "Recording..."
+        "recording": "Recording...",
+        "selectedFiles": "Selected files ({count})",
+        "toolbar": {
+          "bold": "Bold (Ctrl+B)",
+          "italic": "Italic (Ctrl+I)",
+          "underline": "Underline (Ctrl+U)",
+          "strikethrough": "Strikethrough",
+          "bulletList": "Bullet List",
+          "orderedList": "Ordered List",
+          "blockquote": "Blockquote",
+          "codeBlock": "Code Block",
+          "addLink": "Add Link",
+          "uploadFile": "Upload File",
+          "attachFromDrive": "Attach from Google Drive",
+          "shareYoutube": "Share YouTube Video",
+          "addEmoji": "Add Emoji",
+          "addGif": "Add GIF",
+          "createPoll": "Create Poll",
+          "scheduleMessage": "Schedule Message"
+        },
+        "linkDialog": {
+          "title": "Insert Link",
+          "description": "Add a URL and optional display text for your link.",
+          "url": "URL",
+          "displayText": "Display Text (optional)",
+          "displayTextPlaceholder": "Click here",
+          "emptyHint": "If left empty, the URL will be shown as the link text.",
+          "insert": "Insert Link"
+        },
+        "processing": "Processing...",
+        "askAi": "Ask AI",
+        "sending": "Sending..."
       },
       "thread": {
         "title": "Thread",
         "replies": "replies",
         "noReplies": "No replies yet. Start the conversation!",
         "viewThread": "View thread",
-        "closeThread": "Close thread"
+        "closeThread": "Close thread",
+        "originalMessage": "Original Message",
+        "startThread": "Start a thread",
+        "startThreadDescription": "Reply to this message to start a conversation.",
+        "replyCount": "{count} {count, plural, one {reply} other {replies}}",
+        "lastReply": "Last reply {time}",
+        "loadMoreReplies": "Load more replies",
+        "filesToSend": "Files to send:"
       },
       "members": {
         "title": "Members",
@@ -775,7 +830,9 @@
         "loadFailed": "Failed to load messages",
         "sendFailed": "Failed to send message",
         "deleteFailed": "Failed to delete message",
-        "createChannelFailed": "Failed to create channel"
+        "createChannelFailed": "Failed to create channel",
+        "chatNotFound": "Chat not found",
+        "failedLoadChat": "Failed to load chat"
       },
       "success": {
         "messageSent": "Message sent",
@@ -784,6 +841,7 @@
       },
       "header": {
         "generalDiscussions": "General discussions",
+        "teamDiscussionsAndUpdates": "Team discussions and general updates",
         "directMessage": "Direct Message"
       },
       "search": {
@@ -812,7 +870,8 @@
         "conversationNotFound": "Conversation not found",
         "noParticipantFound": "No other participant found in conversation",
         "failedStartAudioCall": "Failed to start audio call",
-        "failedStartVideoCall": "Failed to start video call. Please try again."
+        "failedStartVideoCall": "Failed to start video call. Please try again.",
+        "callStarted": "{type} call started!"
       },
       "pinnedMessages": {
         "title": "Bookmarked messages",
@@ -821,12 +880,50 @@
       },
       "selection": {
         "selected": "{count} selected",
-        "deleteSelected": "Delete"
+        "deleteSelected": "Delete",
+        "selectMessages": "Select messages",
+        "exitSelectionMode": "Exit selection mode",
+        "copiedClipboard": "Messages copied to clipboard",
+        "bookmarkedCount": "Bookmarked {count} messages",
+        "failedBookmarkSome": "Failed to bookmark some messages"
       },
       "messageTime": {
         "justNow": "Just now",
         "minutesAgo": "{count}m ago",
-        "hoursAgo": "{count}h ago"
+        "hoursAgo": "{count}h ago",
+        "daysAgo": "{count}d ago"
+      },
+      "scheduledMessages": {
+        "title": "Scheduled Messages",
+        "loading": "Loading scheduled messages...",
+        "loadFailed": "Failed to load scheduled messages",
+        "empty": "No scheduled messages",
+        "emptyDescription": "Schedule messages to send them at a specific time. Click the clock icon when composing a message.",
+        "scheduledFor": "Scheduled for {date} at {time}",
+        "pendingCount": "{count} pending {count, plural, one {message} other {messages}}",
+        "noPending": "No pending messages",
+        "cancelTitle": "Cancel scheduled message?",
+        "cancelDescription": "This action cannot be undone. The message will not be sent.",
+        "keepScheduled": "Keep scheduled",
+        "cancelling": "Cancelling...",
+        "cancelMessage": "Cancel message",
+        "cancelledSuccess": "Scheduled message cancelled",
+        "cancelFailed": "Failed to cancel scheduled message",
+        "status": {
+          "pending": "Pending",
+          "sent": "Sent",
+          "cancelled": "Cancelled",
+          "failed": "Failed"
+        },
+        "contentRequired": "Message content is required",
+        "selectDateTime": "Please select a date and time",
+        "mustBeFuture": "Scheduled time must be in the future",
+        "updatedSuccess": "Scheduled message updated",
+        "updateFailed": "Failed to update scheduled message",
+        "editTitle": "Edit Scheduled Message",
+        "sendingTo": "Sending to",
+        "message": "Message",
+        "scheduleTime": "Schedule Time"
       },
       "aiHistory": {
         "title": "AI Conversation History",
@@ -873,7 +970,8 @@
         "empty": "No conversations yet",
         "tryDifferent": "Try a different search term",
         "startNew": "Start a new conversation to begin chatting",
-        "count": "{count} conversation{plural}"
+        "count": "{count} conversation{plural}",
+        "failedLoad": "Failed to load conversations"
       },
       "messageActionsMenu": {
         "copiedClipboard": "Message copied to clipboard",
@@ -890,8 +988,231 @@
         "reactWith": "React with {emoji}",
         "replyToMessage": "Reply to message",
         "moreActions": "More actions",
-        "createNote": "Create Note"
+        "createNote": "Create Note",
+        "forwardOpened": "Forward message dialog opened",
+        "creatingNote": "Creating note from message...",
+        "creatingProject": "Creating project from message...",
+        "generatingEmail": "Generating email from message...",
+        "organization": "Organization",
+        "bookmarkMessage": "Bookmark message",
+        "sharing": "Sharing",
+        "forwardMessage": "Forward message",
+        "copyMessageLink": "Copy message link",
+        "copyMessageText": "Copy message text",
+        "aiSummarize": "AI Summarize",
+        "createProject": "Create Project",
+        "generateEmail": "Generate Email",
+        "unmuteNotifications": "Unmute notifications",
+        "muteNotifications": "Mute notifications",
+        "messageActions": "Message actions"
+      },
+      "pin": {
+        "cannotPin": "Cannot pin message",
+        "dmOnly": "Pin is only available in direct messages",
+        "pinned": "Message pinned",
+        "failedPin": "Failed to pin message",
+        "unpinned": "Message unpinned",
+        "failedUnpin": "Failed to unpin message",
+        "pinnedMessage": "Pinned message"
+      },
+      "bookmarks": {
+        "messageBookmarked": "Message bookmarked",
+        "failedBookmark": "Failed to bookmark message",
+        "removed": "Bookmark removed",
+        "failedRemove": "Failed to remove bookmark"
+      },
+      "linkedContent": {
+        "failedLoadEvent": "Failed to load event details",
+        "failedLoadFile": "Failed to load file details",
+        "driveUrlUnavailable": "Drive file URL not available"
+      },
+      "attachments": {
+        "failedDownload": "Failed to download file"
+      },
+      "ai": {
+        "unknownAction": "Unknown AI action",
+        "failedProcess": "Failed to process with AI",
+        "generatedNoteTitle": "AI Generated Note",
+        "noteCreated": "Note created successfully!",
+        "viewNote": "View Note",
+        "failedCreateNote": "Failed to create note"
+      },
+      "schedule": {
+        "title": "Schedule message",
+        "enterMessage": "Please enter a message to schedule",
+        "failedSchedule": "Failed to schedule message",
+        "scheduledForDate": "Message scheduled for {date}",
+        "chooseTime": "Choose a time",
+        "customTimeDivider": "OR PICK A CUSTOM TIME",
+        "quick": {
+          "in30Minutes": "In 30 minutes",
+          "in1Hour": "In 1 hour",
+          "in2Hours": "In 2 hours",
+          "tomorrow9am": "Tomorrow 9 AM",
+          "quickSchedule": "Quick schedule",
+          "nextDay": "Next day"
+        }
+      },
+      "drivePicker": {
+        "title": "Select from Google Drive",
+        "description": "Browse and select files to share in the conversation",
+        "notConnected": "Google Drive is not connected",
+        "askAdmin": "Ask your workspace admin to connect Google Drive in Apps settings",
+        "searchPlaceholder": "Search files...",
+        "searchResultsFor": "Search results for \"{query}\"",
+        "noFiles": "No files found",
+        "folder": "Folder",
+        "modifiedDate": "Modified {date}",
+        "selectedCount": "Selected ({count})",
+        "attachCount": "Attach{countText}"
+      },
+      "youtube": {
+        "shareVideo": "Share YouTube Video",
+        "connectTitle": "Connect YouTube",
+        "connectDescription": "Connect your YouTube account to search and share videos in chat",
+        "connectButton": "Connect YouTube",
+        "searchPlaceholder": "Search YouTube videos...",
+        "noVideos": "No videos found. Try searching for something!",
+        "views": "{count} views",
+        "failedConnect": "Failed to connect YouTube",
+        "failedSearch": "Failed to search videos"
+      },
+      "aiToolbar": {
+        "aiActions": "AI Actions",
+        "aiActionsWithCount": "AI Actions ({count} {count, plural, one {message} other {messages}})",
+        "createNote": "Create Note",
+        "createNoteDescription": "Turn messages into a formatted note",
+        "summarize": "Summarize",
+        "summarizeDescription": "Get a concise summary",
+        "translate": "Translate",
+        "translateDescription": "Translate to another language",
+        "extractTasks": "Extract Tasks",
+        "extractTasksDescription": "Find action items in messages",
+        "customPrompt": "Custom AI Prompt",
+        "customPromptDescription": "Ask AI anything about these messages",
+        "createEmail": "Create Email",
+        "email": "Email",
+        "copyFormatted": "Copy Formatted",
+        "saveAll": "Save All",
+        "languages": {
+          "en": "English",
+          "vi": "Vietnamese"
+        }
+      },
+      "aiResult": {
+        "createNote": "Create Note",
+        "summary": "Summary",
+        "translation": "Translation",
+        "savedMessages": "Saved Messages",
+        "extractedTasks": "Extracted Tasks",
+        "emailDraft": "Email Draft",
+        "formattedMessages": "Formatted Messages",
+        "aiResponse": "AI Response",
+        "aiAction": "AI Action",
+        "selectedMessagesCount": "Selected Messages ({count})",
+        "askAiLabel": "Ask AI about these messages:",
+        "customPromptPlaceholder": "e.g., 'What are the key decisions made?', 'Find any deadlines mentioned', 'Rewrite as meeting minutes'...",
+        "customPromptHint": "AI will analyze the selected messages based on your prompt",
+        "mayTakeMoment": "This may take a moment",
+        "failedProcess": "Failed to process",
+        "noteTitle": "Note Title:",
+        "noteTitlePlaceholder": "Enter a title for your note...",
+        "viewSourceMessages": "View source messages ({count})",
+        "customPromptDescription": "Enter a custom prompt to analyze the selected messages",
+        "resultsDescription": "Results from processing {count} selected {count, plural, one {message} other {messages}}",
+        "sendToAi": "Send to AI",
+        "saveAsNote": "Save as Note",
+        "messageSummary": "Message Summary",
+        "translatedMessages": "Translated Messages",
+        "loading": {
+          "summarize": "Summarizing messages...",
+          "translate": "Translating messages...",
+          "extractTasks": "Extracting action items...",
+          "createNote": "Creating note...",
+          "createEmail": "Drafting email...",
+          "customPrompt": "Processing your request...",
+          "processingMessages": "Processing {count} messages..."
+        }
+      },
+      "gif": {
+        "notConfigured": "GIPHY not configured",
+        "addApiKey": "Add VITE_GIPHY_API_KEY to .env",
+        "searchPlaceholder": "Search GIFs..."
+      },
+      "mentions": {
+        "mentionUser": "Mention user",
+        "mentionChannel": "Mention channel",
+        "useAtToMentionUsers": "Use {symbol} to mention users"
+      },
+      "reactions": {
+        "quickReactions": "Quick Reactions",
+        "moreReactions": "More Reactions"
       }
+    },
+    "aiChat": {
+      "sidebar": {
+        "newChat": "New chat",
+        "newConversation": "New conversation",
+        "searchPlaceholder": "Search conversations",
+        "noResults": "No conversations found",
+        "empty": "No conversations yet",
+        "groups": {
+          "today": "Today",
+          "yesterday": "Yesterday",
+          "last7Days": "Last 7 days",
+          "last30Days": "Last 30 days",
+          "older": "Older"
+        }
+      },
+      "greetings": {
+        "morning": "Good morning",
+        "afternoon": "Good afternoon",
+        "evening": "Good evening",
+        "night": "Good night",
+        "fallbackName": "there"
+      },
+      "placeholder": "How can Nexus help you today?",
+      "input": {
+        "placeholder": "Ask anything...",
+        "dropFiles": "Drop files to attach",
+        "attachFiles": "Attach files",
+        "stopGenerating": "Stop generating",
+        "sendMessage": "Send message"
+      },
+      "modes": {
+        "auto": "Auto",
+        "thinking": "Thinking",
+        "fast": "Fast"
+      },
+      "suggestions": {
+        "code": "Code",
+        "write": "Write",
+        "learn": "Learn",
+        "lifeStuff": "Life stuff",
+        "surpriseMe": "Surprise me"
+      },
+      "suggestionPrompts": {
+        "code": "Write a REST API endpoint in TypeScript with validation",
+        "write": "Draft a professional email to request a meeting",
+        "learn": "Explain how neural networks work in simple terms",
+        "lifeStuff": "Give me tips for staying productive while working from home",
+        "surpriseMe": "Surprise me with something interesting about science"
+      },
+      "messages": {
+        "startConversation": "Start a conversation"
+      },
+      "message": {
+        "copy": "Copy",
+        "regenerate": "Regenerate"
+      },
+      "status": {
+        "thinking": "Thinking"
+      },
+      "errors": {
+        "createConversation": "Failed to create conversation",
+        "generic": "Something went wrong"
+      },
+      "disclaimer": "Nexus can make mistakes. Please double-check responses."
     },
     "projects": {
       "title": "Projects",
@@ -3443,11 +3764,7 @@
       },
       "languages": {
         "en": "English",
-        "ja": "Japanese (日本語)",
-        "es": "Spanish (Español)",
-        "fr": "French (Français)",
-        "de": "German (Deutsch)",
-        "zh": "Chinese (中文)"
+        "vi": "Vietnamese"
       },
       "fields": {
         "fields": "Fields",
@@ -7186,6 +7503,11 @@
         "directMessage": "Direct Message",
         "due": "Due",
         "daysOverdue": "{count} {count, plural, one {day} other {days}} overdue"
+      },
+      "weeklyReport": {
+        "title": "Weekly Report Available",
+        "description": "{count} tasks completed last week",
+        "actionLabel": "View Report"
       }
     }
   },

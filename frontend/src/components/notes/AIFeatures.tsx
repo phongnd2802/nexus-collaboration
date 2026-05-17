@@ -29,7 +29,7 @@ export function AIFeatures({ onAIResponseReceived, noteContent = '' }: AIFeature
   const [aiResponse, setAiResponse] = useState('')
   const [isProcessingAI, setIsProcessingAI] = useState(false)
   const [copiedText, setCopiedText] = useState('')
-  const [selectedLanguage, setSelectedLanguage] = useState('es')
+  const [selectedLanguage, setSelectedLanguage] = useState('vi')
   const [textToTranslate, setTextToTranslate] = useState(noteContent)
   const [translationResult, setTranslationResult] = useState('')
   const [isTranslating, setIsTranslating] = useState(false)
@@ -115,20 +115,8 @@ This response can be customized further based on specific requirements or additi
       
       // Mock translation based on selected language
       const languageNames: Record<string, string> = {
-        es: 'Spanish',
-        fr: 'French',
-        de: 'German',
-        it: 'Italian',
-        pt: 'Portuguese',
-        ru: 'Russian',
-        ja: 'Japanese',
-        ko: 'Korean',
-        zh: 'Chinese',
-        ar: 'Arabic',
-        hi: 'Hindi',
-        nl: 'Dutch',
-        sv: 'Swedish',
-        pl: 'Polish'
+        en: 'English',
+        vi: 'Vietnamese'
       }
       
       const mockTranslation = `[Translated to ${languageNames[selectedLanguage] || selectedLanguage}]
@@ -176,20 +164,8 @@ Alternative suggestions available for complex phrases.`
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="es">🇪🇸 Spanish</SelectItem>
-              <SelectItem value="fr">🇫🇷 French</SelectItem>
-              <SelectItem value="de">🇩🇪 German</SelectItem>
-              <SelectItem value="it">🇮🇹 Italian</SelectItem>
-              <SelectItem value="pt">🇵🇹 Portuguese</SelectItem>
-              <SelectItem value="ru">🇷🇺 Russian</SelectItem>
-              <SelectItem value="ja">🇯🇵 Japanese</SelectItem>
-              <SelectItem value="ko">🇰🇷 Korean</SelectItem>
-              <SelectItem value="zh">🇨🇳 Chinese</SelectItem>
-              <SelectItem value="ar">🇸🇦 Arabic</SelectItem>
-              <SelectItem value="hi">🇮🇳 Hindi</SelectItem>
-              <SelectItem value="nl">🇳🇱 Dutch</SelectItem>
-              <SelectItem value="sv">🇸🇪 Swedish</SelectItem>
-              <SelectItem value="pl">🇵🇱 Polish</SelectItem>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="vi">Vietnamese</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -59,16 +59,16 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bookmark className="h-6 w-6" />
-              Bookmarked Messages
+              {intl.formatMessage({ id: 'modules.chat.modals.bookmarkedMessages.title', defaultMessage: 'Bookmarked Messages' })}
             </DialogTitle>
           </DialogHeader>
           <div className="py-8 text-center">
             <p className="text-muted-foreground">
-              Please open a channel or conversation to view bookmarks.
+              {intl.formatMessage({ id: 'modules.chat.bookmarkModal.pleaseOpenChat', defaultMessage: 'Please open a channel or conversation to view bookmarks.' })}
             </p>
           </div>
           <div className="flex justify-end">
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>{intl.formatMessage({ id: 'common.close', defaultMessage: 'Close' })}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -82,7 +82,7 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
         <DialogHeader className="p-6 pb-4 border-b border-border">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Bookmark className="h-6 w-6" />
-            Bookmarked Messages
+            {intl.formatMessage({ id: 'modules.chat.modals.bookmarkedMessages.title', defaultMessage: 'Bookmarked Messages' })}
           </DialogTitle>
         </DialogHeader>
 
@@ -91,7 +91,9 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
               <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Loading bookmarked messages...</p>
+              <p className="text-muted-foreground">
+                {intl.formatMessage({ id: 'modules.chat.bookmarkModal.loadingBookmarks', defaultMessage: 'Loading bookmarked messages...' })}
+              </p>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
@@ -99,10 +101,10 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
                 <X className="w-16 h-16 text-destructive/50" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                Failed to load bookmarks
+                {intl.formatMessage({ id: 'modules.chat.bookmarkModal.failedLoadBookmarks', defaultMessage: 'Failed to load bookmarks' })}
               </h3>
               <p className="text-muted-foreground max-w-md">
-                {error instanceof Error ? error.message : 'An error occurred'}
+                {error instanceof Error ? error.message : intl.formatMessage({ id: 'modules.chat.bookmarkModal.errorOccurred', defaultMessage: 'An error occurred' })}
               </p>
             </div>
           ) : bookmarkedMessages.length === 0 ? (
@@ -111,10 +113,10 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
                 <Bookmark className="w-16 h-16 text-muted-foreground/50" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                No bookmarks yet
+                {intl.formatMessage({ id: 'modules.chat.bookmarkModal.noBookmarksYet', defaultMessage: 'No bookmarks yet' })}
               </h3>
               <p className="text-muted-foreground max-w-md">
-                Bookmark messages to save them for later reference
+                {intl.formatMessage({ id: 'modules.chat.bookmarkModal.saveForLater', defaultMessage: 'Bookmark messages to save them for later reference' })}
               </p>
             </div>
           ) : (
@@ -147,7 +149,12 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
                       {message.bookmarked_at && (
                         <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                           <Bookmark className="h-3 w-3" />
-                          <span>Bookmarked {formatDistanceToNow(new Date(message.bookmarked_at), { addSuffix: true })}</span>
+                          <span>
+                            {intl.formatMessage(
+                              { id: 'modules.chat.bookmarkModal.bookmarkedTime', defaultMessage: 'Bookmarked {time}' },
+                              { time: formatDistanceToNow(new Date(message.bookmarked_at), { addSuffix: true }) }
+                            )}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -163,13 +170,18 @@ export function BookmarkedMessagesModal({ open, onClose, workspaceId, conversati
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
               {total > 0 ? (
-                <span>{total} bookmarked {total === 1 ? 'message' : 'messages'}</span>
+                <span>
+                  {intl.formatMessage(
+                    { id: 'modules.chat.bookmarkModal.total', defaultMessage: '{count} bookmarked {count, plural, one {message} other {messages}}' },
+                    { count: total }
+                  )}
+                </span>
               ) : (
-                <span>No bookmarks</span>
+                <span>{intl.formatMessage({ id: 'modules.chat.bookmarkModal.noBookmarks', defaultMessage: 'No bookmarks' })}</span>
               )}
             </div>
             <Button onClick={onClose} variant="default">
-              Close
+              {intl.formatMessage({ id: 'common.close', defaultMessage: 'Close' })}
             </Button>
           </div>
         </div>

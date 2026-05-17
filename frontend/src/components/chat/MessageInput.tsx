@@ -47,6 +47,7 @@ import { ContentMentionMenu } from '@/components/ui/content-mention-menu'
 import { Badge } from '@/components/ui/badge'
 import { GifPicker } from '@/components/chat/GifPicker'
 import type { IGif } from '@giphy/js-types'
+import { useIntl } from 'react-intl'
 
 // Lazy load the Quill editor
 const ReactQuill = lazy(() => import('react-quill-new'))
@@ -247,6 +248,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
   showPollButton = true,
   onOpenPollCreator,
 }, ref) => {
+  const intl = useIntl()
   // ============================================================================
   // STATE
   // ============================================================================
@@ -991,7 +993,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('bold')
               }}
               className="h-7 w-7 p-0"
-              title="Bold (Ctrl+B)"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.bold', defaultMessage: 'Bold (Ctrl+B)' })}
               disabled={disabled}
             >
               <Bold className="h-4 w-4" />
@@ -1004,7 +1006,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('italic')
               }}
               className="h-7 w-7 p-0"
-              title="Italic (Ctrl+I)"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.italic', defaultMessage: 'Italic (Ctrl+I)' })}
               disabled={disabled}
             >
               <Italic className="h-4 w-4" />
@@ -1017,7 +1019,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('underline')
               }}
               className="h-7 w-7 p-0"
-              title="Underline (Ctrl+U)"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.underline', defaultMessage: 'Underline (Ctrl+U)' })}
               disabled={disabled}
             >
               <Underline className="h-4 w-4" />
@@ -1030,7 +1032,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('strike')
               }}
               className="h-7 w-7 p-0"
-              title="Strikethrough"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.strikethrough', defaultMessage: 'Strikethrough' })}
               disabled={disabled}
             >
               <Strikethrough className="h-4 w-4" />
@@ -1049,7 +1051,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('list', 'bullet')
               }}
               className="h-7 w-7 p-0"
-              title="Bullet List"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.bulletList', defaultMessage: 'Bullet List' })}
               disabled={disabled}
             >
               <List className="h-4 w-4" />
@@ -1062,7 +1064,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('list', 'ordered')
               }}
               className="h-7 w-7 p-0"
-              title="Ordered List"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.orderedList', defaultMessage: 'Ordered List' })}
               disabled={disabled}
             >
               <ListOrdered className="h-4 w-4" />
@@ -1075,7 +1077,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('blockquote')
               }}
               className="h-7 w-7 p-0"
-              title="Blockquote"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.blockquote', defaultMessage: 'Blockquote' })}
               disabled={disabled}
             >
               <Quote className="h-4 w-4" />
@@ -1088,7 +1090,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 applyFormat('code-block')
               }}
               className="h-7 w-7 p-0"
-              title="Code Block"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.codeBlock', defaultMessage: 'Code Block' })}
               disabled={disabled}
             >
               <Code2 className="h-4 w-4" />
@@ -1101,7 +1103,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 insertLink()
               }}
               className="h-7 w-7 p-0"
-              title="Add Link"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.addLink', defaultMessage: 'Add Link' })}
               disabled={disabled}
             >
               <Link2 className="h-4 w-4" />
@@ -1117,7 +1119,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
               size="sm"
               onClick={handleFileUpload}
               className="h-7 w-7 p-0"
-              title="Upload File"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.uploadFile', defaultMessage: 'Upload File' })}
               disabled={disabled}
             >
               <Paperclip className="h-4 w-4" />
@@ -1131,7 +1133,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
               size="sm"
               onClick={onOpenDrivePicker}
               className="h-7 w-7 p-0"
-              title="Attach from Google Drive"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.attachFromDrive', defaultMessage: 'Attach from Google Drive' })}
               disabled={disabled}
             >
               <HardDrive className="h-4 w-4" />
@@ -1145,7 +1147,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
               size="sm"
               onClick={onOpenYoutubePicker}
               className="h-7 w-7 p-0"
-              title="Share YouTube Video"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.shareYoutube', defaultMessage: 'Share YouTube Video' })}
               disabled={disabled}
             >
               <Video className="h-4 w-4 text-red-600" />
@@ -1156,7 +1158,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
           {showEmojiPicker && (
             <DropdownMenu open={showEmojiDropdown} onOpenChange={setShowEmojiDropdown}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Add Emoji" disabled={disabled}>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title={intl.formatMessage({ id: 'modules.chat.input.toolbar.addEmoji', defaultMessage: 'Add Emoji' })} disabled={disabled}>
                   <Smile className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -1180,7 +1182,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
           {showGifPicker && (
             <DropdownMenu open={showGifDropdown} onOpenChange={setShowGifDropdown}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Add GIF" disabled={disabled}>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title={intl.formatMessage({ id: 'modules.chat.input.toolbar.addGif', defaultMessage: 'Add GIF' })} disabled={disabled}>
                   <ImagePlay className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -1197,7 +1199,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
               size="sm"
               onClick={onOpenPollCreator}
               className="h-7 w-7 p-0"
-              title="Create Poll"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.createPoll', defaultMessage: 'Create Poll' })}
               disabled={disabled}
             >
               <BarChart2 className="h-4 w-4" />
@@ -1211,7 +1213,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
               size="sm"
               onClick={onScheduleMessage}
               className="h-7 w-7 p-0"
-              title="Schedule Message"
+              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.scheduleMessage', defaultMessage: 'Schedule Message' })}
               disabled={disabled}
             >
               <Clock className="h-4 w-4" />
@@ -1274,7 +1276,10 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
       {selectedFiles.length > 0 && (
         <div className="mb-3 p-3 bg-muted/50 dark:bg-muted/20 rounded-lg border border-border">
           <div className="text-xs font-medium text-muted-foreground mb-2">
-            Selected files ({selectedFiles.length})
+            {intl.formatMessage(
+              { id: 'modules.chat.input.selectedFiles', defaultMessage: 'Selected files ({count})' },
+              { count: selectedFiles.length }
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedFiles.map((file, index) => (
@@ -1408,23 +1413,23 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
             isProcessingAI ? (
               <>
                 <div className="animate-spin h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent" />
-                Processing...
+                {intl.formatMessage({ id: 'modules.chat.input.processing', defaultMessage: 'Processing...' })}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                Ask AI
+                {intl.formatMessage({ id: 'modules.chat.input.askAi', defaultMessage: 'Ask AI' })}
               </>
             )
           ) : isSending ? (
             <>
               <div className="animate-spin h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent" />
-              Sending...
+              {intl.formatMessage({ id: 'modules.chat.input.sending', defaultMessage: 'Sending...' })}
             </>
           ) : (
             <>
               <Send className="h-4 w-4 mr-2" />
-              Send
+              {intl.formatMessage({ id: 'modules.chat.messages.send', defaultMessage: 'Send' })}
             </>
           )}
         </Button>
@@ -1573,15 +1578,15 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Link2 className="h-5 w-5" />
-              Insert Link
+              {intl.formatMessage({ id: 'modules.chat.input.linkDialog.title', defaultMessage: 'Insert Link' })}
             </DialogTitle>
             <DialogDescription>
-              Add a URL and optional display text for your link.
+              {intl.formatMessage({ id: 'modules.chat.input.linkDialog.description', defaultMessage: 'Add a URL and optional display text for your link.' })}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="link-url">URL</Label>
+              <Label htmlFor="link-url">{intl.formatMessage({ id: 'modules.chat.input.linkDialog.url', defaultMessage: 'URL' })}</Label>
               <Input
                 id="link-url"
                 placeholder="https://example.com"
@@ -1597,10 +1602,10 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="link-text">Display Text (optional)</Label>
+              <Label htmlFor="link-text">{intl.formatMessage({ id: 'modules.chat.input.linkDialog.displayText', defaultMessage: 'Display Text (optional)' })}</Label>
               <Input
                 id="link-text"
-                placeholder="Click here"
+                placeholder={intl.formatMessage({ id: 'modules.chat.input.linkDialog.displayTextPlaceholder', defaultMessage: 'Click here' })}
                 value={linkText}
                 onChange={(e) => setLinkText(e.target.value)}
                 onKeyDown={(e) => {
@@ -1611,7 +1616,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 }}
               />
               <p className="text-xs text-muted-foreground">
-                If left empty, the URL will be shown as the link text.
+                {intl.formatMessage({ id: 'modules.chat.input.linkDialog.emptyHint', defaultMessage: 'If left empty, the URL will be shown as the link text.' })}
               </p>
             </div>
           </div>
@@ -1625,13 +1630,13 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                 setSavedSelection(null)
               }}
             >
-              Cancel
+              {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
             </Button>
             <Button
               onClick={handleInsertLink}
               disabled={!linkUrl.trim()}
             >
-              Insert Link
+              {intl.formatMessage({ id: 'modules.chat.input.linkDialog.insert', defaultMessage: 'Insert Link' })}
             </Button>
           </DialogFooter>
         </DialogContent>

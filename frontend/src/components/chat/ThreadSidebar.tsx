@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useIntl } from 'react-intl'
 import {
   X,
   Send,
@@ -123,6 +124,7 @@ export function ThreadSidebar({
   onDelete,
   onDownloadAttachment,
 }: ThreadSidebarProps) {
+  const intl = useIntl()
   // ============================================================================
   // STATE
   // ============================================================================
@@ -340,10 +342,29 @@ export function ThreadSidebar({
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / 60000)
 
-    if (minutes < 1) return 'Just now'
-    if (minutes < 60) return `${minutes}m ago`
-    if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`
-    return date.toLocaleDateString()
+    if (minutes < 1) {
+      return intl.formatMessage({ id: 'modules.chat.messageTime.justNow', defaultMessage: 'Just now' })
+    }
+    if (minutes < 60) {
+      return intl.formatMessage(
+        { id: 'modules.chat.messageTime.minutesAgo', defaultMessage: '{count}m ago' },
+        { count: minutes }
+      )
+    }
+    if (minutes < 1440) {
+      return intl.formatMessage(
+        { id: 'modules.chat.messageTime.hoursAgo', defaultMessage: '{count}h ago' },
+        { count: Math.floor(minutes / 60) }
+      )
+    }
+    const days = Math.floor(minutes / 1440)
+    if (days < 7) {
+      return intl.formatMessage(
+        { id: 'modules.chat.messageTime.daysAgo', defaultMessage: '{count}d ago' },
+        { count: days }
+      )
+    }
+    return intl.formatDate(date, { month: 'short', day: 'numeric' })
   }
 
   const emojis = ['😀', '😂', '😍', '🤔', '👍', '❤️', '🎉', '🔥', '👏', '💯', '🚀', '✨']
@@ -366,7 +387,9 @@ export function ThreadSidebar({
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <CornerUpRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          <h2 className="font-semibold text-lg">Thread</h2>
+          <h2 className="font-semibold text-lg">
+            {intl.formatMessage({ id: 'modules.chat.thread.title', defaultMessage: 'Thread' })}
+          </h2>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
           <X className="h-4 w-4" />
@@ -377,7 +400,7 @@ export function ThreadSidebar({
       <div className="p-4 border-b border-border bg-muted/30 dark:bg-muted/10">
         <Badge variant="outline" className="mb-3">
           <MessageSquare className="h-3 w-3 mr-1" />
-          Original Message
+          {intl.formatMessage({ id: 'modules.chat.thread.originalMessage', defaultMessage: 'Original Message' })}
         </Badge>
 
         <MessageItem
@@ -394,16 +417,21 @@ export function ThreadSidebar({
         {threadMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
             <CornerUpRight className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-medium text-muted-foreground mb-2">Start a thread</h3>
+            <h3 className="font-medium text-muted-foreground mb-2">
+              {intl.formatMessage({ id: 'modules.chat.thread.startThread', defaultMessage: 'Start a thread' })}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Reply to this message to start a conversation.
+              {intl.formatMessage({ id: 'modules.chat.thread.startThreadDescription', defaultMessage: 'Reply to this message to start a conversation.' })}
             </p>
           </div>
         ) : (
           <div className="px-4 py-4 space-y-3">
             <Badge variant="secondary" className="mb-3">
               <MessageSquare className="h-3 w-3 mr-1" />
-              {threadMessages.length} {threadMessages.length === 1 ? 'Reply' : 'Replies'}
+              {intl.formatMessage(
+                { id: 'modules.chat.thread.replyCount', defaultMessage: '{count} {count, plural, one {reply} other {replies}}' },
+                { count: threadMessages.length }
+              )}
             </Badge>
 
             {threadMessages.map((message) => (
@@ -429,7 +457,9 @@ export function ThreadSidebar({
                   onClick={onLoadMore}
                   disabled={isLoadingMore}
                 >
-                  {isLoadingMore ? 'Loading...' : 'Load more replies'}
+                  {isLoadingMore
+                    ? intl.formatMessage({ id: 'common.loading', defaultMessage: 'Loading...' })
+                    : intl.formatMessage({ id: 'modules.chat.thread.loadMoreReplies', defaultMessage: 'Load more replies' })}
                 </Button>
               </div>
             )}
@@ -441,7 +471,9 @@ export function ThreadSidebar({
       {selectedFiles.length > 0 && (
         <div className="border-t border-border bg-muted/20 dark:bg-muted/10 p-4">
           <div className="space-y-2 max-h-32 overflow-y-auto">
-            <div className="text-xs text-muted-foreground mb-2">Files to send:</div>
+            <div className="text-xs text-muted-foreground mb-2">
+              {intl.formatMessage({ id: 'modules.chat.thread.filesToSend', defaultMessage: 'Files to send:' })}
+            </div>
             {selectedFiles.map((file, index) => (
               <FilePreview key={index} file={file} onRemove={() => removeFile(index)} />
             ))}
@@ -575,7 +607,7 @@ export function ThreadSidebar({
                   handleSendReply()
                 }
               }}
-              placeholder="Reply in thread..."
+              placeholder={intl.formatMessage({ id: 'modules.chat.input.placeholderThread', defaultMessage: 'Reply in thread...' })}
               className="min-h-[44px] max-h-[300px] resize-none text-sm overflow-hidden"
               rows={1}
             />
@@ -588,7 +620,7 @@ export function ThreadSidebar({
             className="h-11 px-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shrink-0"
           >
             <Send className="h-4 w-4 mr-2" />
-            Send
+            {intl.formatMessage({ id: 'modules.chat.messages.send', defaultMessage: 'Send' })}
           </Button>
         </div>
       </div>

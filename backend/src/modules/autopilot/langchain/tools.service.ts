@@ -263,7 +263,7 @@ export class AgentToolsService {
           'Help me write a project proposal',
           'Improve this text to be more professional',
           'Summarize this document',
-          'Translate this to Spanish',
+          'Translate this to Vietnamese',
           'Translate this email to Bengali',
         ],
       },
@@ -4202,7 +4202,7 @@ Format each idea as:
           targetLanguage: z
             .string()
             .describe(
-              'The language to translate to (e.g., "Spanish", "French", "Japanese", "Arabic", "Bengali", "Hindi")',
+              'The language to translate to (English or Vietnamese)',
             ),
           sourceLanguage: z
             .string()

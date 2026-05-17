@@ -111,3 +111,7 @@ frontend/src-tauri/target/
 
 # Legacy
 frontend-nextjs-old/
+AGENTS.md
+.agents
+.claude
+outputs

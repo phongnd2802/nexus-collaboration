@@ -53,17 +53,7 @@ import { EmailAIResultModal, type EmailAIAction } from './EmailAIResultModal';
 // Supported languages for translation
 const TRANSLATION_LANGUAGES = [
   { code: 'english', name: 'English' },
-  { code: 'spanish', name: 'Spanish' },
-  { code: 'french', name: 'French' },
-  { code: 'german', name: 'German' },
-  { code: 'italian', name: 'Italian' },
-  { code: 'portuguese', name: 'Portuguese' },
-  { code: 'chinese', name: 'Chinese' },
-  { code: 'japanese', name: 'Japanese' },
-  { code: 'korean', name: 'Korean' },
-  { code: 'arabic', name: 'Arabic' },
-  { code: 'hindi', name: 'Hindi' },
-  { code: 'bengali', name: 'Bengali' },
+  { code: 'vietnamese', name: 'Vietnamese' },
 ];
 
 interface EmailDetailProps {

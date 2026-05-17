@@ -688,9 +688,9 @@ const ProfileSettings: React.FC = () => {
                         🇺🇸 {LOCALE_LABELS.en}
                       </span>
                     </SelectItem>
-                    <SelectItem value="ja">
+                    <SelectItem value="vi">
                       <span className="flex items-center gap-2">
-                        🇯🇵 {LOCALE_LABELS.ja}
+                        🇻🇳 {LOCALE_LABELS.vi}
                       </span>
                     </SelectItem>
                   </SelectContent>

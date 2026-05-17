@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import { AIChatMessage } from './AIChatMessage'
 import { Loader2, Sparkles } from 'lucide-react'
+import { useIntl } from 'react-intl'
 
 interface Message {
   id: string
@@ -18,6 +19,7 @@ interface AIChatMessagesProps {
 }
 
 export function AIChatMessages({ messages, isStreaming, streamingContent, isLoading, onRegenerate }: AIChatMessagesProps) {
+  const intl = useIntl()
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const isAutoScrollRef = useRef(true)
@@ -47,7 +49,9 @@ export function AIChatMessages({ messages, isStreaming, streamingContent, isLoad
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <Sparkles className="h-8 w-8 text-[#73726C] mx-auto mb-3" />
-          <p className="text-[15px] text-[#73726C]">Start a conversation</p>
+          <p className="text-[15px] text-[#73726C]">
+            {intl.formatMessage({ id: 'modules.aiChat.messages.startConversation', defaultMessage: 'Start a conversation' })}
+          </p>
         </div>
       </div>
     )

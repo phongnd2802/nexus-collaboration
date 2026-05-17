@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { Square, Paperclip, X, ArrowUp, Zap, Brain, Sparkles, ChevronDown, Check } from 'lucide-react'
+import { useIntl } from 'react-intl'
 
 interface AttachedFile {
   id: string
@@ -19,12 +20,13 @@ interface AIChatInputProps {
 }
 
 const MODES = [
-  { id: 'auto', label: 'Auto', icon: Sparkles },
-  { id: 'thinking', label: 'Thinking', icon: Brain },
-  { id: 'fast', label: 'Fast', icon: Zap },
+  { id: 'auto', labelKey: 'modules.aiChat.modes.auto', defaultLabel: 'Auto', icon: Sparkles },
+  { id: 'thinking', labelKey: 'modules.aiChat.modes.thinking', defaultLabel: 'Thinking', icon: Brain },
+  { id: 'fast', labelKey: 'modules.aiChat.modes.fast', defaultLabel: 'Fast', icon: Zap },
 ]
 
 function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: (id: string) => void }) {
+  const intl = useIntl()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -55,7 +57,7 @@ function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: 
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#3D3D3A] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors outline-none select-none"
       >
         <ActiveIcon className="h-3.5 w-3.5 text-[#73726C]" />
-        {currentMode.label}
+        {intl.formatMessage({ id: currentMode.labelKey, defaultMessage: currentMode.defaultLabel })}
         <ChevronDown className={`h-3 w-3 text-[#73726C] transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -74,7 +76,9 @@ function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: 
                 }`}
               >
                 <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-[#D97757]' : 'text-[#73726C]'}`} />
-                <span className="flex-1">{mode.label}</span>
+                <span className="flex-1">
+                  {intl.formatMessage({ id: mode.labelKey, defaultMessage: mode.defaultLabel })}
+                </span>
                 {isActive && <Check className="h-4 w-4 text-[#D97757] flex-shrink-0" />}
               </button>
             )
@@ -86,6 +90,7 @@ function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: 
 }
 
 export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange, disabled, value: externalValue, onChange }: AIChatInputProps) {
+  const intl = useIntl()
   const isControlled = externalValue !== undefined && onChange !== undefined
   const [internalValue, setInternalValue] = useState('')
   const value = isControlled ? externalValue! : internalValue
@@ -179,7 +184,9 @@ export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange,
     >
       {isDragging && (
         <div className="absolute inset-0 bg-[#D97757]/5 border-2 border-dashed border-[#D97757] rounded-xl z-10 flex items-center justify-center m-2">
-          <p className="text-[14px] font-medium text-[#1F1E1D]">Drop files to attach</p>
+          <p className="text-[14px] font-medium text-[#1F1E1D]">
+            {intl.formatMessage({ id: 'modules.aiChat.input.dropFiles', defaultMessage: 'Drop files to attach' })}
+          </p>
         </div>
       )}
 
@@ -212,7 +219,7 @@ export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange,
             value={value}
             onChange={e => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything..."
+            placeholder={intl.formatMessage({ id: 'modules.aiChat.input.placeholder', defaultMessage: 'Ask anything...' })}
             disabled={disabled}
             rows={1}
             className="w-full bg-transparent text-[16px] leading-[24px] text-[#141413] placeholder-[rgba(61,61,58,0.6)] outline-none px-5 pt-4 pb-2 resize-none max-h-[200px]"
@@ -231,7 +238,7 @@ export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange,
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 rounded-lg text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
-                title="Attach files"
+                title={intl.formatMessage({ id: 'modules.aiChat.input.attachFiles', defaultMessage: 'Attach files' })}
               >
                 <Paperclip className="h-4 w-4" />
               </button>
@@ -244,7 +251,7 @@ export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange,
                 <button
                   onClick={onStop}
                   className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#E01E5A] text-white hover:bg-[#c71a4e] transition-colors"
-                  title="Stop generating"
+                  title={intl.formatMessage({ id: 'modules.aiChat.input.stopGenerating', defaultMessage: 'Stop generating' })}
                 >
                   <Square className="h-3.5 w-3.5 fill-current" />
                 </button>
@@ -253,7 +260,7 @@ export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange,
                   onClick={handleSend}
                   disabled={!value.trim() || disabled}
                   className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] active:scale-[0.98] disabled:bg-[#3D3D3A] disabled:text-[#73726C] disabled:cursor-not-allowed transition-all"
-                  title="Send message"
+                  title={intl.formatMessage({ id: 'modules.aiChat.input.sendMessage', defaultMessage: 'Send message' })}
                 >
                   <ArrowUp className="h-4 w-4" />
                 </button>
@@ -263,7 +270,7 @@ export function AIChatInput({ onSend, onStop, isStreaming, model, onModelChange,
         </div>
 
         <p className="text-center text-[12px] text-[#73726C] mt-2">
-          Nexus can make mistakes. Please double-check responses.
+          {intl.formatMessage({ id: 'modules.aiChat.disclaimer', defaultMessage: 'Nexus can make mistakes. Please double-check responses.' })}
         </p>
       </div>
     </div>
