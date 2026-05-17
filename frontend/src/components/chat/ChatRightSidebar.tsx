@@ -60,7 +60,7 @@ interface ChatRightSidebarProps {
 
 export function ChatRightSidebar({
   channelName = 'general',
-  channelDescription = 'Team discussions and general updates',
+  channelDescription,
   isPrivate = false,
   memberCount = 5,
   onSettingsClick,
@@ -76,6 +76,12 @@ export function ChatRightSidebar({
   const { currentWorkspace } = useWorkspace();
   const { openMemberProfile } = useMemberProfile();
   const updateChannelMutation = useUpdateChannel();
+  const displayChannelDescription =
+    channelDescription ||
+    intl.formatMessage({
+      id: 'modules.chat.header.teamDiscussionsAndUpdates',
+      defaultMessage: 'Team discussions and general updates',
+    });
 
   // Fetch workspace members to get full member data
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '');
@@ -109,15 +115,15 @@ export function ChatRightSidebar({
         },
       });
 
-      toast.success('Member removed from channel');
+      toast.success(intl.formatMessage({ id: 'modules.chat.rightSidebar.memberRemoved', defaultMessage: 'Member removed from channel' }));
     } catch (error) {
       console.error('Failed to remove member:', error);
-      toast.error('Failed to remove member');
+      toast.error(intl.formatMessage({ id: 'modules.chat.rightSidebar.failedRemoveMember', defaultMessage: 'Failed to remove member' }));
     }
   };
   const handleDownload = async (fileId: string, fileName: string) => {
     if (!workspaceId) {
-      toast.error('Workspace not found');
+      toast.error(intl.formatMessage({ id: 'common.workspaceNotFound', defaultMessage: 'Workspace not found' }));
       return;
     }
 
@@ -138,8 +144,8 @@ export function ChatRightSidebar({
       console.log(`✅ Downloaded: ${fileName}`);
     } catch (error) {
       console.error('Failed to download file:', error);
-      toast.error('Failed to download file', {
-        description: 'Please try again'
+      toast.error(intl.formatMessage({ id: 'modules.chat.attachments.failedDownload', defaultMessage: 'Failed to download file' }), {
+        description: intl.formatMessage({ id: 'common.pleaseTryAgain', defaultMessage: 'Please try again' })
       });
     }
   };
@@ -268,9 +274,9 @@ export function ChatRightSidebar({
         </div>
 
         {/* Show description only for channels, not conversations */}
-        {chatType === 'channel' && channelDescription && (
+        {chatType === 'channel' && displayChannelDescription && (
           <div className="text-sm text-muted-foreground mb-4">
-            {channelDescription}
+            {displayChannelDescription}
           </div>
         )}
 

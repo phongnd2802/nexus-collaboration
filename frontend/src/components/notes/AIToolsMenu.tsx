@@ -38,30 +38,8 @@ interface AIToolsMenuProps {
 }
 
 const TRANSLATION_LANGUAGES = [
-  { code: 'en', flag: '🇺🇸', name: 'English' },
-  { code: 'es', flag: '🇪🇸', name: 'Spanish' },
-  { code: 'fr', flag: '🇫🇷', name: 'French' },
-  { code: 'de', flag: '🇩🇪', name: 'German' },
-  { code: 'zh-cn', flag: '🇨🇳', name: 'Chinese (Simplified)' },
-  { code: 'zh-tw', flag: '🇹🇼', name: 'Chinese (Traditional)' },
-  { code: 'ja', flag: '🇯🇵', name: 'Japanese' },
-  { code: 'ko', flag: '🇰🇷', name: 'Korean' },
-  { code: 'pt', flag: '🇵🇹', name: 'Portuguese' },
-  { code: 'it', flag: '🇮🇹', name: 'Italian' },
-  { code: 'ru', flag: '🇷🇺', name: 'Russian' },
-  { code: 'ar', flag: '🇸🇦', name: 'Arabic' },
-  { code: 'hi', flag: '🇮🇳', name: 'Hindi' },
-  { code: 'nl', flag: '🇳🇱', name: 'Dutch' },
-  { code: 'sv', flag: '🇸🇪', name: 'Swedish' },
-  { code: 'no', flag: '🇳🇴', name: 'Norwegian' },
-  { code: 'da', flag: '🇩🇰', name: 'Danish' },
-  { code: 'fi', flag: '🇫🇮', name: 'Finnish' },
-  { code: 'pl', flag: '🇵🇱', name: 'Polish' },
-  { code: 'tr', flag: '🇹🇷', name: 'Turkish' },
-  { code: 'he', flag: '🇮🇱', name: 'Hebrew' },
-  { code: 'th', flag: '🇹🇭', name: 'Thai' },
-  { code: 'vi', flag: '🇻🇳', name: 'Vietnamese' },
-  { code: 'uk', flag: '🇺🇦', name: 'Ukrainian' },
+  { code: 'en', flag: 'US', name: 'English' },
+  { code: 'vi', flag: 'VN', name: 'Vietnamese' },
 ]
 
 export function AIToolsMenu({

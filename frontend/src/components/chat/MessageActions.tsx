@@ -20,6 +20,7 @@ import {
   PinOff
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useIntl } from 'react-intl'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -96,6 +97,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   currentUserId,
   showQuickActions = true
 }) => {
+  const intl = useIntl()
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   // Check if current user is the message author
@@ -107,9 +109,9 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(message.body)
-      toast.success('Message copied to clipboard')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.copiedClipboard', defaultMessage: 'Message copied to clipboard' }))
     } catch (error) {
-      toast.error('Failed to copy message')
+      toast.error(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.failedCopyMessage', defaultMessage: 'Failed to copy message' }))
     }
   }
 
@@ -118,45 +120,45 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
       onCopyLink()
       const messageLink = `${window.location.origin}${window.location.pathname}#message-${message.id}`
       await navigator.clipboard.writeText(messageLink)
-      toast.success('Message link copied to clipboard')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.copiedLinkClipboard', defaultMessage: 'Message link copied to clipboard' }))
     } catch (error) {
-      toast.error('Failed to copy message link')
+      toast.error(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.failedCopyLink', defaultMessage: 'Failed to copy message link' }))
     }
   }
 
   const handlePin = () => {
     if (isPinned) {
       onUnpin()
-      toast.success('Message unpinned')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.unpinned', defaultMessage: 'Message unpinned' }))
     } else {
       onPin()
-      toast.success('Message pinned')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.pinned', defaultMessage: 'Message pinned' }))
     }
   }
 
   const handleBookmark = () => {
     if (isBookmarked) {
       onUnbookmark()
-      toast.success('Bookmark removed')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.bookmarkRemoved', defaultMessage: 'Bookmark removed' }))
     } else {
       onBookmark()
-      toast.success('Message bookmarked')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.bookmarked', defaultMessage: 'Message bookmarked' }))
     }
   }
 
   const handleMute = () => {
     if (isMuted) {
       onUnmute()
-      toast.success('Notifications unmuted')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.notificationsUnmuted', defaultMessage: 'Notifications unmuted' }))
     } else {
       onMute()
-      toast.success('Notifications muted')
+      toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.notificationsMuted', defaultMessage: 'Notifications muted' }))
     }
   }
 
   const handleReply = () => {
     onReply()
-    toast.success('Replying to message')
+    toast.success(intl.formatMessage({ id: 'modules.chat.messages.replyingToMessage', defaultMessage: 'Replying to message' }))
   }
 
   const handleEdit = () => {
@@ -164,35 +166,35 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
   }
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
+    if (window.confirm(intl.formatMessage({ id: 'modules.chat.deleteMessage.description', defaultMessage: 'Are you sure you want to delete this message? This action cannot be undone.' }))) {
       onDelete()
-      toast.success('Message deleted')
+      toast.success(intl.formatMessage({ id: 'modules.chat.success.messageDeleted', defaultMessage: 'Message deleted' }))
     }
   }
 
   const handleForward = () => {
     onForward()
-    toast.success('Forward message dialog opened')
+    toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.forwardOpened', defaultMessage: 'Forward message dialog opened' }))
   }
 
   const handleAISummarize = () => {
     onAISummarize()
-    toast.loading('AI is summarizing...')
+    toast.loading(intl.formatMessage({ id: 'modules.chat.aiResult.loading.summarize', defaultMessage: 'Summarizing messages...' }))
   }
 
   const handleAICreateNote = () => {
     onAICreateNote()
-    toast.success('Creating note from message...')
+    toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.creatingNote', defaultMessage: 'Creating note from message...' }))
   }
 
   const handleAICreateProject = () => {
     onAICreateProject()
-    toast.success('Creating project from message...')
+    toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.creatingProject', defaultMessage: 'Creating project from message...' }))
   }
 
   const handleAICreateEmail = () => {
     onAICreateEmail()
-    toast.success('Generating email from message...')
+    toast.success(intl.formatMessage({ id: 'modules.chat.messageActionsMenu.generatingEmail', defaultMessage: 'Generating email from message...' }))
   }
 
   return (
@@ -208,13 +210,15 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-7 w-7 p-0 hover:bg-muted dark:hover:bg-gray-700"
-                  title="Add reaction"
+                  title={intl.formatMessage({ id: 'modules.chat.messageActionsMenu.addReaction', defaultMessage: 'Add reaction' })}
                 >
                   <SmilePlus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-auto p-2">
-                <DropdownMenuLabel className="text-xs">Quick reactions</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs">
+                  {intl.formatMessage({ id: 'modules.chat.reactions.quickReactions', defaultMessage: 'Quick reactions' })}
+                </DropdownMenuLabel>
                 <div className="flex items-center gap-1 pt-1">
                   {quickEmojis.map((emoji) => (
                     <button
@@ -226,7 +230,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
                         setShowEmojiPicker(false)
                       }}
                       className="p-1.5 hover:bg-muted dark:hover:bg-gray-700 rounded text-lg transition-colors"
-                      title={`React with ${emoji}`}
+                      title={intl.formatMessage({ id: 'modules.chat.messageActionsMenu.reactWith', defaultMessage: 'React with {emoji}' }, { emoji })}
                     >
                       {emoji}
                     </button>
@@ -241,7 +245,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
               size="sm"
               className="h-7 w-7 p-0 hover:bg-muted dark:hover:bg-gray-700"
               onClick={handleReply}
-              title="Reply to message"
+              title={intl.formatMessage({ id: 'modules.chat.messageActionsMenu.replyToMessage', defaultMessage: 'Reply to message' })}
             >
               <CornerUpRight className="h-4 w-4" />
             </Button>
@@ -255,7 +259,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0 hover:bg-muted dark:hover:bg-gray-700"
-              title="More actions"
+              title={intl.formatMessage({ id: 'modules.chat.messageActionsMenu.moreActions', defaultMessage: 'More actions' })}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -263,19 +267,19 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
           <DropdownMenuContent align="end" className="w-56">
             {/* Organization Actions */}
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Organization
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.organization', defaultMessage: 'Organization' })}
             </DropdownMenuLabel>
 
             <DropdownMenuItem onClick={handlePin}>
               {isPinned ? (
                 <>
                   <PinOff className="mr-2 h-4 w-4" />
-                  Unpin message
+                  {intl.formatMessage({ id: 'modules.chat.messages.unpin', defaultMessage: 'Unpin message' })}
                 </>
               ) : (
                 <>
                   <Pin className="mr-2 h-4 w-4" />
-                  Pin message
+                  {intl.formatMessage({ id: 'modules.chat.messages.pin', defaultMessage: 'Pin message' })}
                 </>
               )}
             </DropdownMenuItem>
@@ -284,12 +288,12 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
               {isBookmarked ? (
                 <>
                   <BookmarkCheck className="mr-2 h-4 w-4" />
-                  Remove bookmark
+                  {intl.formatMessage({ id: 'modules.chat.messages.unbookmark', defaultMessage: 'Remove bookmark' })}
                 </>
               ) : (
                 <>
                   <Bookmark className="mr-2 h-4 w-4" />
-                  Bookmark message
+                  {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.bookmarkMessage', defaultMessage: 'Bookmark message' })}
                 </>
               )}
             </DropdownMenuItem>
@@ -298,49 +302,49 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
 
             {/* Sharing Actions */}
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Sharing
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.sharing', defaultMessage: 'Sharing' })}
             </DropdownMenuLabel>
 
             <DropdownMenuItem onClick={handleForward}>
               <Forward className="mr-2 h-4 w-4" />
-              Forward message
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.forwardMessage', defaultMessage: 'Forward message' })}
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleCopyLink}>
               <Link className="mr-2 h-4 w-4" />
-              Copy message link
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.copyMessageLink', defaultMessage: 'Copy message link' })}
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleCopy}>
               <Copy className="mr-2 h-4 w-4" />
-              Copy message text
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.copyMessageText', defaultMessage: 'Copy message text' })}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             {/* AI Actions */}
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              AI Actions
+              {intl.formatMessage({ id: 'modules.chat.aiToolbar.aiActions', defaultMessage: 'AI Actions' })}
             </DropdownMenuLabel>
 
             <DropdownMenuItem onClick={handleAISummarize}>
               <Sparkles className="mr-2 h-4 w-4 text-purple-500" />
-              AI Summarize
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.aiSummarize', defaultMessage: 'AI Summarize' })}
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleAICreateNote}>
               <FileText className="mr-2 h-4 w-4 text-blue-500" />
-              Create Note
+              {intl.formatMessage({ id: 'modules.chat.aiToolbar.createNote', defaultMessage: 'Create Note' })}
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleAICreateProject}>
               <FolderPlus className="mr-2 h-4 w-4 text-green-500" />
-              Create Project
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.createProject', defaultMessage: 'Create Project' })}
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleAICreateEmail}>
               <Mail className="mr-2 h-4 w-4 text-orange-500" />
-              Generate Email
+              {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.generateEmail', defaultMessage: 'Generate Email' })}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -350,12 +354,12 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
               {isMuted ? (
                 <>
                   <Volume2 className="mr-2 h-4 w-4" />
-                  Unmute notifications
+                  {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.unmuteNotifications', defaultMessage: 'Unmute notifications' })}
                 </>
               ) : (
                 <>
                   <VolumeX className="mr-2 h-4 w-4" />
-                  Mute notifications
+                  {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.muteNotifications', defaultMessage: 'Mute notifications' })}
                 </>
               )}
             </DropdownMenuItem>
@@ -365,12 +369,12 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Message actions
+                  {intl.formatMessage({ id: 'modules.chat.messageActionsMenu.messageActions', defaultMessage: 'Message actions' })}
                 </DropdownMenuLabel>
 
                 <DropdownMenuItem onClick={handleEdit}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit message
+                  {intl.formatMessage({ id: 'modules.chat.messages.edit', defaultMessage: 'Edit message' })}
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -378,7 +382,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
                   className="text-destructive focus:text-destructive dark:text-red-400 dark:focus:text-red-300"
                 >
                   <Trash className="mr-2 h-4 w-4" />
-                  Delete message
+                  {intl.formatMessage({ id: 'modules.chat.messages.delete', defaultMessage: 'Delete message' })}
                 </DropdownMenuItem>
               </>
             )}

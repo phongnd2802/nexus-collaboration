@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
-import { format, isToday, isTomorrow, addDays, startOfDay, endOfDay, isWithinInterval, addHours, isAfter, isBefore, parse } from 'date-fns'
+import { useMemo, useState, useEffect } from 'react'
+import { format, isToday, isTomorrow, addDays, startOfDay, endOfDay, isWithinInterval, addHours, isAfter, isBefore } from 'date-fns'
 import { useIntl } from 'react-intl'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '../ui/button'
@@ -10,15 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '../ui/input'
 import { Label } from '@/components/ui/label'
 import { useCalendarStore, useAnalyticsStore } from '../../stores/calendarStore'
-import type { CalendarEvent, CreateEventRequest } from '../../types/calendar'
-import { SmartEventDialog } from './SmartEventDialog'
+import type { CalendarEvent } from '../../types/calendar'
 import { QuickMeetingDialog } from './QuickMeetingDialog'
-import { useMeetingRooms, useRoomBookings, calendarApi, calendarKeys } from '../../lib/api/calendar-api'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMeetingRooms, useRoomBookings } from '../../lib/api/calendar-api'
 import { useWorkspace } from '../../contexts/WorkspaceContext'
-import { googleDriveApi } from '@/lib/api/google-drive-api'
-import { GoogleDriveExportModal } from '../files/GoogleDriveExportModal'
-import { GoogleDriveICSImportModal } from './GoogleDriveICSImportModal'
 import { toast } from 'sonner'
 import {
   Calendar,
@@ -31,13 +26,7 @@ import {
   Coffee,
   Video,
   Settings,
-  Sparkles,
   Plus,
-  Download,
-  Upload,
-  Loader2,
-  FileUp,
-  CloudDownload
 } from 'lucide-react'
 
 // Component for individual meeting room with booking status
@@ -237,376 +226,9 @@ export function CalendarRightSidebar() {
   const { events, categories, conflicts } = useCalendarStore()
   const { setShowAnalytics } = useAnalyticsStore()
   const { currentWorkspace } = useWorkspace()
-  const [showSmartEventDialog, setShowSmartEventDialog] = useState(false)
   const [showQuickMeetingDialog, setShowQuickMeetingDialog] = useState(false)
 
-  // Export state
-  const [isGoogleDriveConnected, setIsGoogleDriveConnected] = useState(false)
-  const [showDriveExportModal, setShowDriveExportModal] = useState(false)
-  const [isExportingToDrive, setIsExportingToDrive] = useState(false)
-
-  // Import state
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const [showDriveImportModal, setShowDriveImportModal] = useState(false)
-  const [isImportingFromDrive, setIsImportingFromDrive] = useState(false)
-
-  // Check Google Drive connection
-  useEffect(() => {
-    const checkDriveConnection = async () => {
-      if (!currentWorkspace?.id) return
-      try {
-        const connection = await googleDriveApi.getConnection(currentWorkspace.id)
-        setIsGoogleDriveConnected(connection?.isActive || false)
-      } catch {
-        setIsGoogleDriveConnected(false)
-      }
-    }
-    checkDriveConnection()
-  }, [currentWorkspace?.id])
-
-  // Generate ICS content from events
-  const generateICSContent = (eventsToExport: CalendarEvent[]): string => {
-    const formatICSDate = (date: Date) => {
-      return format(date, "yyyyMMdd'T'HHmmss")
-    }
-
-    const escapeICSText = (text: string) => {
-      return text
-        .replace(/\\/g, '\\\\')
-        .replace(/;/g, '\\;')
-        .replace(/,/g, '\\,')
-        .replace(/\n/g, '\\n')
-    }
-
-    let icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Nexus//Calendar//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH'
-    ]
-
-    eventsToExport.forEach(event => {
-      const eventLines = [
-        'BEGIN:VEVENT',
-        `UID:${event.id}@nexusapp.io`,
-        `DTSTAMP:${formatICSDate(new Date())}`,
-        `DTSTART:${formatICSDate(new Date(event.startTime))}`,
-        `DTEND:${formatICSDate(new Date(event.endTime))}`,
-        `SUMMARY:${escapeICSText(event.title)}`
-      ]
-
-      if (event.description) {
-        eventLines.push(`DESCRIPTION:${escapeICSText(event.description)}`)
-      }
-
-      if (event.location) {
-        const locationStr = typeof event.location === 'string'
-          ? event.location
-          : event.location?.name || ''
-        if (locationStr) {
-          eventLines.push(`LOCATION:${escapeICSText(locationStr)}`)
-        }
-      }
-
-      if (event.attendees && event.attendees.length > 0) {
-        event.attendees.forEach(attendee => {
-          const email = typeof attendee === 'string' ? attendee : attendee?.email
-          if (email) {
-            eventLines.push(`ATTENDEE:mailto:${email}`)
-          }
-        })
-      }
-
-      eventLines.push('END:VEVENT')
-      icsContent = icsContent.concat(eventLines)
-    })
-
-    icsContent.push('END:VCALENDAR')
-    return icsContent.join('\r\n')
-  }
-
-  // Export to device (download)
-  const handleExportToDevice = () => {
-    if (events.length === 0) {
-      toast.error(intl.formatMessage({ id: 'modules.calendar.export.noEvents', defaultMessage: 'No events to export' }))
-      return
-    }
-
-    const icsContent = generateICSContent(events)
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `nexus-calendar-${format(new Date(), 'yyyy-MM-dd')}.ics`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-
-    toast.success(intl.formatMessage({ id: 'modules.calendar.export.success', defaultMessage: 'Calendar exported successfully' }))
-  }
-
-  // Export to Google Drive
-  const handleExportToDrive = async (targetFolderId?: string) => {
-    if (!currentWorkspace?.id) return
-
-    if (events.length === 0) {
-      toast.error(intl.formatMessage({ id: 'modules.calendar.export.noEvents', defaultMessage: 'No events to export' }))
-      return
-    }
-
-    setIsExportingToDrive(true)
-
-    try {
-      const icsContent = generateICSContent(events)
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-      const fileName = `nexus-calendar-${format(new Date(), 'yyyy-MM-dd')}.ics`
-      const file = new File([blob], fileName, { type: 'text/calendar' })
-
-      await googleDriveApi.uploadFile(currentWorkspace.id, file, {
-        parentId: targetFolderId,
-        description: `Calendar exported from Nexus on ${new Date().toISOString()}`
-      })
-
-      toast.success(intl.formatMessage({ id: 'modules.calendar.export.driveSuccess', defaultMessage: 'Calendar exported to Google Drive' }))
-      setShowDriveExportModal(false)
-    } catch (error) {
-      console.error('Failed to export calendar to Google Drive:', error)
-      toast.error(intl.formatMessage({ id: 'modules.calendar.export.driveFailed', defaultMessage: 'Failed to export to Google Drive' }))
-    } finally {
-      setIsExportingToDrive(false)
-    }
-  }
-
-  // Parse ICS file content
-  const parseICSContent = (content: string): Partial<CreateEventRequest>[] => {
-    const events: Partial<CreateEventRequest>[] = []
-
-    // Split into individual events
-    const eventBlocks = content.split('BEGIN:VEVENT')
-
-    for (let i = 1; i < eventBlocks.length; i++) {
-      const block = eventBlocks[i].split('END:VEVENT')[0]
-      const lines = block.split(/\r?\n/)
-
-      const event: Partial<CreateEventRequest> = {}
-      let currentKey = ''
-      let currentValue = ''
-
-      for (const line of lines) {
-        // Handle line continuations (lines starting with space or tab)
-        if (line.startsWith(' ') || line.startsWith('\t')) {
-          currentValue += line.substring(1)
-          continue
-        }
-
-        // Process previous key-value pair
-        if (currentKey && currentValue) {
-          processICSField(event, currentKey, currentValue)
-        }
-
-        // Parse new key-value pair
-        const colonIndex = line.indexOf(':')
-        if (colonIndex > 0) {
-          currentKey = line.substring(0, colonIndex).split(';')[0] // Remove parameters
-          currentValue = line.substring(colonIndex + 1)
-        }
-      }
-
-      // Process last key-value pair
-      if (currentKey && currentValue) {
-        processICSField(event, currentKey, currentValue)
-      }
-
-      // Only add if we have required fields
-      if (event.title && event.start_time && event.end_time) {
-        events.push(event)
-      }
-    }
-
-    return events
-  }
-
-  // Process individual ICS field
-  const processICSField = (event: Partial<CreateEventRequest>, key: string, value: string) => {
-    // Unescape ICS text
-    const unescapeICS = (text: string) => {
-      return text
-        .replace(/\\n/g, '\n')
-        .replace(/\\,/g, ',')
-        .replace(/\\;/g, ';')
-        .replace(/\\\\/g, '\\')
-    }
-
-    // Parse ICS date format (YYYYMMDDTHHMMSS or YYYYMMDD)
-    const parseICSDate = (dateStr: string): Date | null => {
-      try {
-        // Remove timezone suffix if present
-        const cleanDate = dateStr.replace(/Z$/, '')
-
-        if (cleanDate.length === 8) {
-          // All-day event: YYYYMMDD
-          return parse(cleanDate, 'yyyyMMdd', new Date())
-        } else if (cleanDate.length >= 15) {
-          // Date with time: YYYYMMDDTHHMMSS
-          return parse(cleanDate.substring(0, 15), "yyyyMMdd'T'HHmmss", new Date())
-        }
-        return null
-      } catch {
-        return null
-      }
-    }
-
-    switch (key.toUpperCase()) {
-      case 'SUMMARY':
-        event.title = unescapeICS(value)
-        break
-      case 'DESCRIPTION':
-        event.description = unescapeICS(value)
-        break
-      case 'DTSTART':
-        const startDate = parseICSDate(value)
-        if (startDate) {
-          event.start_time = startDate.toISOString()
-          // Check if all-day event
-          if (value.length === 8) {
-            event.all_day = true
-          }
-        }
-        break
-      case 'DTEND':
-        const endDate = parseICSDate(value)
-        if (endDate) {
-          event.end_time = endDate.toISOString()
-        }
-        break
-      case 'LOCATION':
-        event.location = unescapeICS(value)
-        break
-    }
-  }
-
-  // Handle file import
-  const handleImportICS = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !currentWorkspace?.id) return
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-
-    if (!file.name.toLowerCase().endsWith('.ics')) {
-      toast.error(intl.formatMessage({ id: 'modules.calendar.import.invalidFile', defaultMessage: 'Please select a valid .ics file' }))
-      return
-    }
-
-    setIsImporting(true)
-
-    try {
-      const content = await file.text()
-      const parsedEvents = parseICSContent(content)
-
-      if (parsedEvents.length === 0) {
-        toast.error(intl.formatMessage({ id: 'modules.calendar.import.noEvents', defaultMessage: 'No valid events found in the file' }))
-        return
-      }
-
-      // Create events in calendar
-      let successCount = 0
-      let failCount = 0
-
-      for (const eventData of parsedEvents) {
-        try {
-          await calendarApi.createEvent(currentWorkspace.id, eventData as CreateEventRequest)
-          successCount++
-        } catch (error) {
-          console.error('Failed to create event:', eventData.title, error)
-          failCount++
-        }
-      }
-
-      if (successCount > 0) {
-        toast.success(intl.formatMessage(
-          { id: 'modules.calendar.import.success', defaultMessage: '{count} event(s) imported successfully' },
-          { count: successCount }
-        ))
-        // Refresh the calendar events
-        queryClient.invalidateQueries({ queryKey: calendarKeys.events() })
-        queryClient.invalidateQueries({ queryKey: calendarKeys.upcoming() })
-      }
-
-      if (failCount > 0) {
-        toast.warning(intl.formatMessage(
-          { id: 'modules.calendar.import.partialFail', defaultMessage: '{count} event(s) failed to import' },
-          { count: failCount }
-        ))
-      }
-    } catch (error) {
-      console.error('Failed to import ICS file:', error)
-      toast.error(intl.formatMessage({ id: 'modules.calendar.import.failed', defaultMessage: 'Failed to import calendar file' }))
-    } finally {
-      setIsImporting(false)
-    }
-  }
-
-  // Handle import from Google Drive
-  const handleImportFromDrive = async (content: string, fileName: string) => {
-    if (!currentWorkspace?.id) return
-
-    setIsImportingFromDrive(true)
-
-    try {
-      const parsedEvents = parseICSContent(content)
-
-      if (parsedEvents.length === 0) {
-        toast.error(intl.formatMessage({ id: 'modules.calendar.import.noEvents', defaultMessage: 'No valid events found in the file' }))
-        setShowDriveImportModal(false)
-        return
-      }
-
-      // Create events in calendar
-      let successCount = 0
-      let failCount = 0
-
-      for (const eventData of parsedEvents) {
-        try {
-          await calendarApi.createEvent(currentWorkspace.id, eventData as CreateEventRequest)
-          successCount++
-        } catch (error) {
-          console.error('Failed to create event:', eventData.title, error)
-          failCount++
-        }
-      }
-
-      if (successCount > 0) {
-        toast.success(intl.formatMessage(
-          { id: 'modules.calendar.import.success', defaultMessage: '{count} event(s) imported successfully' },
-          { count: successCount }
-        ))
-        // Refresh the calendar events
-        queryClient.invalidateQueries({ queryKey: calendarKeys.events() })
-        queryClient.invalidateQueries({ queryKey: calendarKeys.upcoming() })
-      }
-
-      if (failCount > 0) {
-        toast.warning(intl.formatMessage(
-          { id: 'modules.calendar.import.partialFail', defaultMessage: '{count} event(s) failed to import' },
-          { count: failCount }
-        ))
-      }
-
-      setShowDriveImportModal(false)
-    } catch (error) {
-      console.error('Failed to import ICS from Google Drive:', error)
-      toast.error(intl.formatMessage({ id: 'modules.calendar.import.failed', defaultMessage: 'Failed to import calendar file' }))
-    } finally {
-      setIsImportingFromDrive(false)
-    }
-  }
+  
 
   // Fetch meeting rooms from API
   const { data: meetingRooms = [], isLoading: roomsLoading } = useMeetingRooms(currentWorkspace?.id)
@@ -1008,15 +630,6 @@ export function CalendarRightSidebar() {
         <h3 className="text-lg font-semibold mb-3">{intl.formatMessage({ id: 'modules.calendar.rightSidebar.quickActions' })}</h3>
 
         <div className="grid grid-cols-1 gap-2">
-          <Button
-            variant="outline"
-            className="justify-start"
-            size="sm"
-            onClick={() => setShowSmartEventDialog(true)}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {intl.formatMessage({ id: 'modules.calendar.rightSidebar.smartEventCreator' })}
-          </Button>
           {/* <Button
             variant="outline"
             className="justify-start"
@@ -1035,113 +648,14 @@ export function CalendarRightSidebar() {
             <TrendingUp className="h-4 w-4 mr-2" />
             {intl.formatMessage({ id: 'modules.calendar.rightSidebar.viewAnalytics' })}
           </Button>
-
-          {/* Export to Device */}
-          <Button
-            variant="outline"
-            className="justify-start"
-            size="sm"
-            onClick={handleExportToDevice}
-            disabled={events.length === 0}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {intl.formatMessage({ id: 'modules.calendar.rightSidebar.exportToDevice', defaultMessage: 'Export to Device (.ics)' })}
-          </Button>
-
-          {/* Export to Google Drive - only show when connected */}
-          {isGoogleDriveConnected && (
-            <Button
-              variant="outline"
-              className="justify-start"
-              size="sm"
-              onClick={() => setShowDriveExportModal(true)}
-              disabled={events.length === 0 || isExportingToDrive}
-            >
-              {isExportingToDrive ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4 mr-2" />
-              )}
-              {intl.formatMessage({ id: 'modules.calendar.rightSidebar.exportToDrive', defaultMessage: 'Export to Drive (.ics)' })}
-            </Button>
-          )}
-
-          {/* Import from Device */}
-          <Button
-            variant="outline"
-            className="justify-start"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isImporting}
-          >
-            {isImporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <FileUp className="h-4 w-4 mr-2" />
-            )}
-            {intl.formatMessage({ id: 'modules.calendar.rightSidebar.importFromDevice', defaultMessage: 'Import from Device (.ics)' })}
-          </Button>
-
-          {/* Import from Google Drive - only show when connected */}
-          {isGoogleDriveConnected && (
-            <Button
-              variant="outline"
-              className="justify-start"
-              size="sm"
-              onClick={() => setShowDriveImportModal(true)}
-              disabled={isImportingFromDrive}
-            >
-              {isImportingFromDrive ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <CloudDownload className="h-4 w-4 mr-2" />
-              )}
-              {intl.formatMessage({ id: 'modules.calendar.rightSidebar.importFromDrive', defaultMessage: 'Import from Drive (.ics)' })}
-            </Button>
-          )}
-
-          {/* Hidden file input for import */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".ics"
-            className="hidden"
-            onChange={handleImportICS}
-          />
         </div>
       </div>
-
-      {/* Smart Event Dialog */}
-      <SmartEventDialog 
-        open={showSmartEventDialog} 
-        onClose={() => setShowSmartEventDialog(false)} 
-      />
 
       {/* Quick Meeting Dialog */}
       <QuickMeetingDialog
         open={showQuickMeetingDialog}
         onClose={() => setShowQuickMeetingDialog(false)}
       />
-
-      {/* Google Drive Export Modal */}
-      <GoogleDriveExportModal
-        isOpen={showDriveExportModal}
-        onClose={() => setShowDriveExportModal(false)}
-        onExport={handleExportToDrive}
-        fileName={`nexus-calendar-${format(new Date(), 'yyyy-MM-dd')}.ics`}
-        isExporting={isExportingToDrive}
-      />
-
-      {/* Google Drive ICS Import Modal */}
-      {currentWorkspace?.id && (
-        <GoogleDriveICSImportModal
-          isOpen={showDriveImportModal}
-          onClose={() => setShowDriveImportModal(false)}
-          onImport={handleImportFromDrive}
-          workspaceId={currentWorkspace.id}
-          isImporting={isImportingFromDrive}
-        />
-      )}
 
     </div>
   )

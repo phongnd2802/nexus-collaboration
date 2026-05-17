@@ -613,11 +613,7 @@ export default function FormBuilderPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="ja">Japanese (日本語)</SelectItem>
-                  <SelectItem value="es">Spanish (Español)</SelectItem>
-                  <SelectItem value="fr">French (Français)</SelectItem>
-                  <SelectItem value="de">German (Deutsch)</SelectItem>
-                  <SelectItem value="zh">Chinese (中文)</SelectItem>
+                  <SelectItem value="vi">Vietnamese (Ti?ng Vi?t)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

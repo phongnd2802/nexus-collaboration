@@ -1381,7 +1381,7 @@ export function WhiteboardPage() {
             theme={isDarkMode ? 'dark' : 'light'}
             isCollaborating={isCollabConnected}
             gridModeEnabled={showGrid}
-            langCode={intl.locale === 'ja' ? 'ja-JP' : 'en'}
+            langCode={intl.locale === 'vi' ? 'vi-VN' : 'en'}
             UIOptions={{
               canvasActions: {
                 loadScene: false,

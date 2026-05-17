@@ -22,8 +22,13 @@ const ModernCTA: React.FC = () => {
   // Get features from locale
   const getFeatures = () => {
     const en = ['Free 14-day trial', 'No credit card required', 'Cancel anytime', 'Setup in 5 minutes'];
-    const ja = ['14日間無料トライアル', 'クレジットカード不要', 'いつでもキャンセル可能', '5分でセットアップ'];
-    const locale = intl.locale === 'ja' ? ja : en;
+    const vi = [
+      'D\u00f9ng th\u1eed mi\u1ec5n ph\u00ed 14 ng\u00e0y',
+      'Kh\u00f4ng c\u1ea7n th\u1ebb t\u00edn d\u1ee5ng',
+      'H\u1ee7y b\u1ea5t c\u1ee9 l\u00fac n\u00e0o',
+      'Thi\u1ebft l\u1eadp trong 5 ph\u00fat',
+    ];
+    const locale = intl.locale === 'vi' ? vi : en;
     return locale;
   };
 

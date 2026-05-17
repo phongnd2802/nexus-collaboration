@@ -94,7 +94,8 @@ export type SuggestionType =
   | 'unread_message'
   | 'note_update'
   | 'overdue_task'
-  | 'upcoming_deadline';
+  | 'upcoming_deadline'
+  | 'weekly_report_ready';
 
 export type SuggestionPriority = 'high' | 'medium' | 'low';
 

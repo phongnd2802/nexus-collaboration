@@ -37,17 +37,7 @@ export enum SummaryLength {
 
 export enum Language {
   ENGLISH = 'en',
-  SPANISH = 'es',
-  FRENCH = 'fr',
-  GERMAN = 'de',
-  ITALIAN = 'it',
-  PORTUGUESE = 'pt',
-  RUSSIAN = 'ru',
-  CHINESE = 'zh',
-  JAPANESE = 'ja',
-  KOREAN = 'ko',
-  ARABIC = 'ar',
-  HINDI = 'hi',
+  VIETNAMESE = 'vi',
 }
 
 export class SummarizeContentDto {

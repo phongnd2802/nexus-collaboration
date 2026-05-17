@@ -47,15 +47,15 @@ interface AIActionResultModalProps {
   error?: string | null;
 }
 
-const ACTION_CONFIG: Record<AIAction, { icon: React.ComponentType<{ className?: string }>; title: string; color: string }> = {
-  create_note: { icon: FileText, title: 'Create Note', color: 'text-emerald-500' },
-  summarize: { icon: MessageSquareText, title: 'Summary', color: 'text-green-500' },
-  translate: { icon: Languages, title: 'Translation', color: 'text-orange-500' },
-  save_bookmark: { icon: FileText, title: 'Saved Messages', color: 'text-yellow-500' },
-  extract_tasks: { icon: ListChecks, title: 'Extracted Tasks', color: 'text-cyan-500' },
-  create_email: { icon: Mail, title: 'Email Draft', color: 'text-red-500' },
-  copy_formatted: { icon: Copy, title: 'Formatted Messages', color: 'text-gray-500' },
-  custom_prompt: { icon: Wand2, title: 'AI Response', color: 'text-teal-500' },
+const ACTION_CONFIG: Record<AIAction, { icon: React.ComponentType<{ className?: string }>; titleId: string; defaultTitle: string; color: string }> = {
+  create_note: { icon: FileText, titleId: 'modules.chat.aiResult.createNote', defaultTitle: 'Create Note', color: 'text-emerald-500' },
+  summarize: { icon: MessageSquareText, titleId: 'modules.chat.aiResult.summary', defaultTitle: 'Summary', color: 'text-green-500' },
+  translate: { icon: Languages, titleId: 'modules.chat.aiResult.translation', defaultTitle: 'Translation', color: 'text-orange-500' },
+  save_bookmark: { icon: FileText, titleId: 'modules.chat.aiResult.savedMessages', defaultTitle: 'Saved Messages', color: 'text-yellow-500' },
+  extract_tasks: { icon: ListChecks, titleId: 'modules.chat.aiResult.extractedTasks', defaultTitle: 'Extracted Tasks', color: 'text-cyan-500' },
+  create_email: { icon: Mail, titleId: 'modules.chat.aiResult.emailDraft', defaultTitle: 'Email Draft', color: 'text-red-500' },
+  copy_formatted: { icon: Copy, titleId: 'modules.chat.aiResult.formattedMessages', defaultTitle: 'Formatted Messages', color: 'text-gray-500' },
+  custom_prompt: { icon: Wand2, titleId: 'modules.chat.aiResult.aiResponse', defaultTitle: 'AI Response', color: 'text-teal-500' },
 };
 
 export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
@@ -91,7 +91,7 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
     if (!result || !onCreateNote) return;
     setIsSaving(true);
     try {
-      await onCreateNote(result, noteTitle || 'AI Generated Note');
+      await onCreateNote(result, noteTitle || intl.formatMessage({ id: 'modules.chat.ai.generatedNoteTitle', defaultMessage: 'AI Generated Note' }));
       onClose();
     } finally {
       setIsSaving(false);
@@ -112,7 +112,10 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
           <div className="bg-muted/50 rounded-lg p-4">
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
               <MessageSquareText className="w-4 h-4" />
-              Selected Messages ({selectedMessages.length})
+              {intl.formatMessage(
+                { id: 'modules.chat.aiResult.selectedMessagesCount', defaultMessage: 'Selected Messages ({count})' },
+                { count: selectedMessages.length }
+              )}
             </h4>
             <ScrollArea className="max-h-32">
               <div className="space-y-2 text-sm text-muted-foreground">
@@ -127,18 +130,20 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Ask AI about these messages:</label>
+            <label className="text-sm font-medium">
+              {intl.formatMessage({ id: 'modules.chat.aiResult.askAiLabel', defaultMessage: 'Ask AI about these messages:' })}
+            </label>
             <Textarea
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="e.g., 'What are the key decisions made?', 'Find any deadlines mentioned', 'Rewrite as meeting minutes'..."
+              placeholder={intl.formatMessage({ id: 'modules.chat.aiResult.customPromptPlaceholder', defaultMessage: "e.g., 'What are the key decisions made?', 'Find any deadlines mentioned', 'Rewrite as meeting minutes'..." })}
               className="min-h-[100px] resize-none"
             />
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Sparkles className="w-3 h-3" />
-            <span>AI will analyze the selected messages based on your prompt</span>
+            <span>{intl.formatMessage({ id: 'modules.chat.aiResult.customPromptHint', defaultMessage: 'AI will analyze the selected messages based on your prompt' })}</span>
           </div>
         </div>
       );
@@ -173,13 +178,16 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
 
           {/* Loading text with gradient */}
           <p className="mt-6 text-base font-medium bg-gradient-to-r from-emerald-600 via-cyan-600 to-yellow-600 bg-clip-text text-transparent animate-pulse">
-            {action === 'summarize' && 'Summarizing messages...'}
-            {action === 'translate' && 'Translating messages...'}
-            {action === 'extract_tasks' && 'Extracting action items...'}
-            {action === 'create_note' && 'Creating note...'}
-            {action === 'create_email' && 'Drafting email...'}
-            {action === 'custom_prompt' && 'Processing your request...'}
-            {!action && `Processing ${selectedMessages.length} messages...`}
+            {action === 'summarize' && intl.formatMessage({ id: 'modules.chat.aiResult.loading.summarize', defaultMessage: 'Summarizing messages...' })}
+            {action === 'translate' && intl.formatMessage({ id: 'modules.chat.aiResult.loading.translate', defaultMessage: 'Translating messages...' })}
+            {action === 'extract_tasks' && intl.formatMessage({ id: 'modules.chat.aiResult.loading.extractTasks', defaultMessage: 'Extracting action items...' })}
+            {action === 'create_note' && intl.formatMessage({ id: 'modules.chat.aiResult.loading.createNote', defaultMessage: 'Creating note...' })}
+            {action === 'create_email' && intl.formatMessage({ id: 'modules.chat.aiResult.loading.createEmail', defaultMessage: 'Drafting email...' })}
+            {action === 'custom_prompt' && intl.formatMessage({ id: 'modules.chat.aiResult.loading.customPrompt', defaultMessage: 'Processing your request...' })}
+            {!action && intl.formatMessage(
+              { id: 'modules.chat.aiResult.loading.processingMessages', defaultMessage: 'Processing {count} messages...' },
+              { count: selectedMessages.length }
+            )}
           </p>
 
           {/* Animated dots */}
@@ -189,7 +197,9 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
             <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-bounce" style={{ animationDelay: '300ms' }} />
           </div>
 
-          <p className="text-xs text-muted-foreground mt-3">This may take a moment</p>
+          <p className="text-xs text-muted-foreground mt-3">
+            {intl.formatMessage({ id: 'modules.chat.aiResult.mayTakeMoment', defaultMessage: 'This may take a moment' })}
+          </p>
         </div>
       );
     }
@@ -201,7 +211,9 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
           <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
             <X className="w-8 h-8 text-red-500" />
           </div>
-          <p className="mt-4 font-medium text-red-600 dark:text-red-400">Failed to process</p>
+          <p className="mt-4 font-medium text-red-600 dark:text-red-400">
+            {intl.formatMessage({ id: 'modules.chat.aiResult.failedProcess', defaultMessage: 'Failed to process' })}
+          </p>
           <p className="text-sm text-muted-foreground mt-1 text-center max-w-xs">{error}</p>
         </div>
       );
@@ -223,12 +235,14 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
           {/* Note title input for create_note action */}
           {action === 'create_note' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Note Title:</label>
+              <label className="text-sm font-medium">
+                {intl.formatMessage({ id: 'modules.chat.aiResult.noteTitle', defaultMessage: 'Note Title:' })}
+              </label>
               <input
                 type="text"
                 value={noteTitle}
                 onChange={(e) => setNoteTitle(e.target.value)}
-                placeholder="Enter a title for your note..."
+                placeholder={intl.formatMessage({ id: 'modules.chat.aiResult.noteTitlePlaceholder', defaultMessage: 'Enter a title for your note...' })}
                 className="w-full px-3 py-2 rounded-md border bg-background text-sm"
               />
             </div>
@@ -238,7 +252,10 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
           <details className="group">
             <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground flex items-center gap-2">
               <MessageSquareText className="w-4 h-4" />
-              View source messages ({selectedMessages.length})
+              {intl.formatMessage(
+                { id: 'modules.chat.aiResult.viewSourceMessages', defaultMessage: 'View source messages ({count})' },
+                { count: selectedMessages.length }
+              )}
             </summary>
             <div className="mt-2 space-y-2 pl-6 border-l-2 border-muted">
               {selectedMessages.map((msg) => (
@@ -264,12 +281,17 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Icon className={cn('w-5 h-5', config?.color)} />
-            {config?.title || 'AI Action'}
+            {config
+              ? intl.formatMessage({ id: config.titleId, defaultMessage: config.defaultTitle })
+              : intl.formatMessage({ id: 'modules.chat.aiResult.aiAction', defaultMessage: 'AI Action' })}
           </DialogTitle>
           <DialogDescription>
             {action === 'custom_prompt' && !result
-              ? 'Enter a custom prompt to analyze the selected messages'
-              : `Results from processing ${selectedMessages.length} selected message${selectedMessages.length !== 1 ? 's' : ''}`}
+              ? intl.formatMessage({ id: 'modules.chat.aiResult.customPromptDescription', defaultMessage: 'Enter a custom prompt to analyze the selected messages' })
+              : intl.formatMessage(
+                  { id: 'modules.chat.aiResult.resultsDescription', defaultMessage: 'Results from processing {count} selected {count, plural, one {message} other {messages}}' },
+                  { count: selectedMessages.length }
+                )}
           </DialogDescription>
         </DialogHeader>
 
@@ -286,7 +308,7 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
               className="gap-2"
             >
               <Send className="w-4 h-4" />
-              Send to AI
+              {intl.formatMessage({ id: 'modules.chat.aiResult.sendToAi', defaultMessage: 'Send to AI' })}
             </Button>
           )}
 
@@ -301,12 +323,12 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
                 {copied ? (
                   <>
                     <Check className="w-4 h-4 text-green-500" />
-                    Copied!
+                    {intl.formatMessage({ id: 'common.copied', defaultMessage: 'Copied!' })}
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4" />
-                    Copy
+                    {intl.formatMessage({ id: 'common.copy', defaultMessage: 'Copy' })}
                   </>
                 )}
               </Button>
@@ -322,7 +344,7 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
                   ) : (
                     <FileText className="w-4 h-4" />
                   )}
-                  Save as Note
+                  {intl.formatMessage({ id: 'modules.chat.aiResult.saveAsNote', defaultMessage: 'Save as Note' })}
                 </Button>
               )}
 
@@ -330,10 +352,10 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
                 <Button
                   variant="outline"
                   onClick={() => {
-                    let title = 'AI Generated Note';
-                    if (action === 'summarize') title = 'Message Summary';
-                    else if (action === 'extract_tasks') title = 'Extracted Tasks';
-                    else if (action === 'translate') title = 'Translated Messages';
+                    let title = intl.formatMessage({ id: 'modules.chat.ai.generatedNoteTitle', defaultMessage: 'AI Generated Note' });
+                    if (action === 'summarize') title = intl.formatMessage({ id: 'modules.chat.aiResult.messageSummary', defaultMessage: 'Message Summary' });
+                    else if (action === 'extract_tasks') title = intl.formatMessage({ id: 'modules.chat.aiResult.extractedTasks', defaultMessage: 'Extracted Tasks' });
+                    else if (action === 'translate') title = intl.formatMessage({ id: 'modules.chat.aiResult.translatedMessages', defaultMessage: 'Translated Messages' });
                     setNoteTitle(title);
                     handleCreateNote();
                   }}
@@ -345,14 +367,14 @@ export const AIActionResultModal: React.FC<AIActionResultModalProps> = ({
                   ) : (
                     <FileText className="w-4 h-4" />
                   )}
-                  Save as Note
+                  {intl.formatMessage({ id: 'modules.chat.aiResult.saveAsNote', defaultMessage: 'Save as Note' })}
                 </Button>
               )}
             </>
           )}
 
           <Button variant="ghost" onClick={onClose}>
-            Close
+            {intl.formatMessage({ id: 'common.close', defaultMessage: 'Close' })}
           </Button>
         </DialogFooter>
       </DialogContent>

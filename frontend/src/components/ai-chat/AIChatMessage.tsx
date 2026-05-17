@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { User, Bot, Copy, RefreshCw, Check } from 'lucide-react'
 import { MarkdownRenderer } from './MarkdownRenderer'
+import { useIntl } from 'react-intl'
 
 interface AIChatMessageProps {
   id: string
@@ -12,6 +13,7 @@ interface AIChatMessageProps {
 }
 
 export function AIChatMessage({ role, content, timestamp, isStreaming, onRegenerate }: AIChatMessageProps) {
+  const intl = useIntl()
   const [copied, setCopied] = useState(false)
   const isUser = role === 'user'
 
@@ -64,6 +66,7 @@ export function AIChatMessage({ role, content, timestamp, isStreaming, onRegener
                 <button
                   onClick={handleCopy}
                   className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
+                  title={intl.formatMessage({ id: 'modules.aiChat.message.copy', defaultMessage: 'Copy' })}
                 >
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 </button>
@@ -71,6 +74,7 @@ export function AIChatMessage({ role, content, timestamp, isStreaming, onRegener
                   <button
                     onClick={onRegenerate}
                     className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
+                    title={intl.formatMessage({ id: 'modules.aiChat.message.regenerate', defaultMessage: 'Regenerate' })}
                   >
                     <RefreshCw className="h-3 w-3" />
                   </button>

@@ -6,6 +6,7 @@ import { Search, Loader2, ImageOff } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useDebouncedCallback } from 'use-debounce'
+import { useIntl } from 'react-intl'
 
 // Initialize GIPHY client with API key
 const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || ''
@@ -17,6 +18,7 @@ export interface GifPickerProps {
 }
 
 export function GifPicker({ onSelect, width = 300 }: GifPickerProps) {
+  const intl = useIntl()
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -57,8 +59,12 @@ export function GifPicker({ onSelect, width = 300 }: GifPickerProps) {
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
         <ImageOff className="h-8 w-8 mb-2" />
-        <p className="text-sm font-medium">GIPHY not configured</p>
-        <p className="text-xs mt-1">Add VITE_GIPHY_API_KEY to .env</p>
+        <p className="text-sm font-medium">
+          {intl.formatMessage({ id: 'modules.chat.gif.notConfigured', defaultMessage: 'GIPHY not configured' })}
+        </p>
+        <p className="text-xs mt-1">
+          {intl.formatMessage({ id: 'modules.chat.gif.addApiKey', defaultMessage: 'Add VITE_GIPHY_API_KEY to .env' })}
+        </p>
       </div>
     )
   }
@@ -71,7 +77,7 @@ export function GifPicker({ onSelect, width = 300 }: GifPickerProps) {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search GIFs..."
+            placeholder={intl.formatMessage({ id: 'modules.chat.gif.searchPlaceholder', defaultMessage: 'Search GIFs...' })}
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8 h-8 text-sm"

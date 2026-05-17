@@ -198,10 +198,21 @@ export function AgenticSuggestions() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-medium text-foreground truncate">{suggestion.title}</h4>
+                <h4 className="font-medium text-foreground truncate">
+                  {suggestion.type === 'weekly_report_ready'
+                    ? intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.title' })
+                    : suggestion.title}
+                </h4>
                 {getPriorityBadge(suggestion.priority)}
               </div>
-              <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {suggestion.type === 'weekly_report_ready' && suggestion.metadata?.analytics?.currentValue !== undefined
+                  ? intl.formatMessage(
+                      { id: 'dashboard.suggestions.weeklyReport.description' },
+                      { count: suggestion.metadata.analytics.currentValue }
+                    )
+                  : suggestion.description}
+              </p>
 
               {/* Additional metadata for task balance */}
               {suggestion.type === 'task_balance' && suggestion.metadata && (
@@ -323,7 +334,9 @@ export function AgenticSuggestions() {
                 ) : (
                   <ArrowRight className="h-4 w-4 mr-1" />
                 )}
-                {suggestion.actionLabel}
+                {suggestion.type === 'weekly_report_ready'
+                  ? intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.actionLabel' })
+                  : suggestion.actionLabel}
               </Button>
             )}
           </div>

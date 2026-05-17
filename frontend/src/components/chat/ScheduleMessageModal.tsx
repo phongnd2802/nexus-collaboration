@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Clock, X } from 'lucide-react';
+import { useIntl } from 'react-intl';
 
 interface ScheduleMessageModalProps {
   open: boolean;
@@ -17,15 +18,16 @@ interface ScheduleMessageModalProps {
 }
 
 export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMessageModalProps) {
+  const intl = useIntl();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [customDate, setCustomDate] = useState('');
   const [customTime, setCustomTime] = useState('');
 
   const quickScheduleOptions = [
-    { id: '30min', title: 'In 30 minutes', subtitle: 'Quick schedule', minutes: 30 },
-    { id: '1hour', title: 'In 1 hour', subtitle: 'Quick schedule', minutes: 60 },
-    { id: '2hours', title: 'In 2 hours', subtitle: 'Quick schedule', minutes: 120 },
-    { id: 'tomorrow', title: 'Tomorrow 9 AM', subtitle: 'Next day', getDate: () => {
+    { id: '30min', title: intl.formatMessage({ id: 'modules.chat.schedule.quick.in30Minutes', defaultMessage: 'In 30 minutes' }), subtitle: intl.formatMessage({ id: 'modules.chat.schedule.quick.quickSchedule', defaultMessage: 'Quick schedule' }), minutes: 30 },
+    { id: '1hour', title: intl.formatMessage({ id: 'modules.chat.schedule.quick.in1Hour', defaultMessage: 'In 1 hour' }), subtitle: intl.formatMessage({ id: 'modules.chat.schedule.quick.quickSchedule', defaultMessage: 'Quick schedule' }), minutes: 60 },
+    { id: '2hours', title: intl.formatMessage({ id: 'modules.chat.schedule.quick.in2Hours', defaultMessage: 'In 2 hours' }), subtitle: intl.formatMessage({ id: 'modules.chat.schedule.quick.quickSchedule', defaultMessage: 'Quick schedule' }), minutes: 120 },
+    { id: 'tomorrow', title: intl.formatMessage({ id: 'modules.chat.schedule.quick.tomorrow9am', defaultMessage: 'Tomorrow 9 AM' }), subtitle: intl.formatMessage({ id: 'modules.chat.schedule.quick.nextDay', defaultMessage: 'Next day' }), getDate: () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(9, 0, 0, 0);
@@ -65,7 +67,7 @@ export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMess
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Clock className="h-6 w-6" />
-            Schedule message
+            {intl.formatMessage({ id: 'modules.chat.schedule.title', defaultMessage: 'Schedule message' })}
           </DialogTitle>
         </DialogHeader>
 
@@ -73,7 +75,9 @@ export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMess
         <div className="px-6 pb-6 space-y-6">
           {/* Quick Schedule Options */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold">Choose a time</h3>
+            <h3 className="text-lg font-semibold">
+              {intl.formatMessage({ id: 'modules.chat.schedule.chooseTime', defaultMessage: 'Choose a time' })}
+            </h3>
             <div className="grid grid-cols-2 gap-3">
               {quickScheduleOptions.map((option) => (
                 <button
@@ -95,7 +99,7 @@ export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMess
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-background text-muted-foreground">
-                OR PICK A CUSTOM TIME
+                {intl.formatMessage({ id: 'modules.chat.schedule.customTimeDivider', defaultMessage: 'OR PICK A CUSTOM TIME' })}
               </span>
             </div>
           </div>
@@ -104,7 +108,9 @@ export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMess
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date" className="text-base font-semibold">Date</Label>
+                <Label htmlFor="date" className="text-base font-semibold">
+                  {intl.formatMessage({ id: 'common.date', defaultMessage: 'Date' })}
+                </Label>
                 <Input
                   id="date"
                   type="date"
@@ -114,7 +120,9 @@ export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMess
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="time" className="text-base font-semibold">Time</Label>
+                <Label htmlFor="time" className="text-base font-semibold">
+                  {intl.formatMessage({ id: 'common.time', defaultMessage: 'Time' })}
+                </Label>
                 <Input
                   id="time"
                   type="time"
@@ -133,14 +141,14 @@ export function ScheduleMessageModal({ open, onClose, onSchedule }: ScheduleMess
               onClick={onClose}
               className="px-8"
             >
-              Cancel
+              {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
             </Button>
             <Button
               onClick={handleCustomSchedule}
               disabled={!customDate || !customTime}
               className="px-8 btn-gradient-primary"
             >
-              Schedule message
+              {intl.formatMessage({ id: 'modules.chat.schedule.title', defaultMessage: 'Schedule message' })}
             </Button>
           </div>
         </div>

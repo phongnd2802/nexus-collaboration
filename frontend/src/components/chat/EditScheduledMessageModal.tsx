@@ -15,6 +15,7 @@ import type { ScheduledMessage } from '@/lib/api/chat-api';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useIntl } from 'react-intl';
 
 interface EditScheduledMessageModalProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function EditScheduledMessageModal({
   workspaceId,
   message,
 }: EditScheduledMessageModalProps) {
+  const intl = useIntl();
   const queryClient = useQueryClient();
   const updateMutation = useUpdateScheduledMessage();
 
@@ -51,12 +53,12 @@ export function EditScheduledMessageModal({
     e.preventDefault();
 
     if (!content.trim()) {
-      toast.error('Message content is required');
+      toast.error(intl.formatMessage({ id: 'modules.chat.scheduledMessages.contentRequired', defaultMessage: 'Message content is required' }));
       return;
     }
 
     if (!date || !time) {
-      toast.error('Please select a date and time');
+      toast.error(intl.formatMessage({ id: 'modules.chat.scheduledMessages.selectDateTime', defaultMessage: 'Please select a date and time' }));
       return;
     }
 
@@ -67,7 +69,7 @@ export function EditScheduledMessageModal({
 
     // Validate it's in the future
     if (newScheduledAt <= new Date()) {
-      toast.error('Scheduled time must be in the future');
+      toast.error(intl.formatMessage({ id: 'modules.chat.scheduledMessages.mustBeFuture', defaultMessage: 'Scheduled time must be in the future' }));
       return;
     }
 
@@ -80,11 +82,11 @@ export function EditScheduledMessageModal({
           scheduledAt: newScheduledAt.toISOString(),
         },
       });
-      toast.success('Scheduled message updated');
+      toast.success(intl.formatMessage({ id: 'modules.chat.scheduledMessages.updatedSuccess', defaultMessage: 'Scheduled message updated' }));
       queryClient.invalidateQueries({ queryKey: ['scheduled-messages', workspaceId] });
       onClose();
     } catch (error) {
-      toast.error('Failed to update scheduled message');
+      toast.error(intl.formatMessage({ id: 'modules.chat.scheduledMessages.updateFailed', defaultMessage: 'Failed to update scheduled message' }));
       console.error('Failed to update scheduled message:', error);
     }
   };
@@ -103,7 +105,7 @@ export function EditScheduledMessageModal({
         <DialogHeader className="p-6 pb-4 border-b border-border">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Clock className="h-6 w-6" />
-            Edit Scheduled Message
+            {intl.formatMessage({ id: 'modules.chat.scheduledMessages.editTitle', defaultMessage: 'Edit Scheduled Message' })}
           </DialogTitle>
         </DialogHeader>
 
@@ -113,10 +115,10 @@ export function EditScheduledMessageModal({
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             {getDestinationIcon(message.destinationType)}
             <span className="text-sm">
-              Sending to{' '}
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.sendingTo', defaultMessage: 'Sending to' })}{' '}
               <span className="font-medium">
                 {message.destinationType === 'channel' ? '#' : ''}
-                {message.destinationName || 'Unknown'}
+                {message.destinationName || intl.formatMessage({ id: 'common.unknown', defaultMessage: 'Unknown' })}
               </span>
             </span>
           </div>
@@ -124,13 +126,13 @@ export function EditScheduledMessageModal({
           {/* Message Content */}
           <div className="space-y-2">
             <Label htmlFor="content" className="text-base font-semibold">
-              Message
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.message', defaultMessage: 'Message' })}
             </Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={intl.formatMessage({ id: 'modules.chat.messages.typeMessage', defaultMessage: 'Type a message...' })}
               className="min-h-[120px] resize-none"
             />
           </div>
@@ -139,12 +141,12 @@ export function EditScheduledMessageModal({
           <div className="space-y-4">
             <Label className="text-base font-semibold flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Schedule Time
+              {intl.formatMessage({ id: 'modules.chat.scheduledMessages.scheduleTime', defaultMessage: 'Schedule Time' })}
             </Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-sm text-muted-foreground">
-                  Date
+                  {intl.formatMessage({ id: 'common.date', defaultMessage: 'Date' })}
                 </Label>
                 <Input
                   id="date"
@@ -157,7 +159,7 @@ export function EditScheduledMessageModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="time" className="text-sm text-muted-foreground">
-                  Time
+                  {intl.formatMessage({ id: 'common.time', defaultMessage: 'Time' })}
                 </Label>
                 <Input
                   id="time"
@@ -173,7 +175,7 @@ export function EditScheduledMessageModal({
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <Button type="button" variant="outline" onClick={onClose} className="px-6">
-              Cancel
+              {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
             </Button>
             <Button
               type="submit"
@@ -183,10 +185,10 @@ export function EditScheduledMessageModal({
               {updateMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
+                  {intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' })}
                 </>
               ) : (
-                'Save Changes'
+                intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })
               )}
             </Button>
           </div>

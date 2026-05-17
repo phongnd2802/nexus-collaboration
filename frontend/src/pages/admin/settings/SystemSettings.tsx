@@ -252,14 +252,7 @@ const SystemSettings: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
-                      <SelectItem value="it">Italian</SelectItem>
-                      <SelectItem value="pt">Portuguese</SelectItem>
-                      <SelectItem value="ja">Japanese</SelectItem>
-                      <SelectItem value="ko">Korean</SelectItem>
-                      <SelectItem value="zh">Chinese</SelectItem>
+                      <SelectItem value="vi">Vietnamese</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -30,6 +30,7 @@ import {
 import { cn } from '@/lib/utils'
 import { googleDriveApi, type GoogleDriveFile } from '@/lib/api/google-drive-api'
 import type { AttachedContent } from './MessageInput'
+import { useIntl } from 'react-intl'
 
 interface ChatDrivePickerModalProps {
   open: boolean
@@ -63,6 +64,7 @@ export function ChatDrivePickerModal({
   onOpenChange,
   onSelectFiles,
 }: ChatDrivePickerModalProps) {
+  const intl = useIntl()
   const { workspaceId } = useParams<{ workspaceId: string }>()
 
   const [isLoading, setIsLoading] = useState(true)
@@ -217,10 +219,10 @@ export function ChatDrivePickerModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HardDrive className="h-5 w-5" />
-            Select from Google Drive
+            {intl.formatMessage({ id: 'modules.chat.drivePicker.title', defaultMessage: 'Select from Google Drive' })}
           </DialogTitle>
           <DialogDescription>
-            Browse and select files to share in the conversation
+            {intl.formatMessage({ id: 'modules.chat.drivePicker.description', defaultMessage: 'Browse and select files to share in the conversation' })}
           </DialogDescription>
         </DialogHeader>
 
@@ -231,9 +233,11 @@ export function ChatDrivePickerModal({
         ) : !isConnected ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <HardDrive className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-2">Google Drive is not connected</p>
+            <p className="text-muted-foreground mb-2">
+              {intl.formatMessage({ id: 'modules.chat.drivePicker.notConnected', defaultMessage: 'Google Drive is not connected' })}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Ask your workspace admin to connect Google Drive in Apps settings
+              {intl.formatMessage({ id: 'modules.chat.drivePicker.askAdmin', defaultMessage: 'Ask your workspace admin to connect Google Drive in Apps settings' })}
             </p>
           </div>
         ) : (
@@ -243,7 +247,7 @@ export function ChatDrivePickerModal({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search files..."
+                  placeholder={intl.formatMessage({ id: 'modules.chat.drivePicker.searchPlaceholder', defaultMessage: 'Search files...' })}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -251,7 +255,7 @@ export function ChatDrivePickerModal({
                 />
               </div>
               <Button onClick={handleSearch} variant="secondary">
-                Search
+                {intl.formatMessage({ id: 'common.search', defaultMessage: 'Search' })}
               </Button>
             </div>
 
@@ -291,7 +295,10 @@ export function ChatDrivePickerModal({
             {isSearching && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                 <Search className="h-4 w-4" />
-                Search results for "{searchQuery}"
+                {intl.formatMessage(
+                  { id: 'modules.chat.drivePicker.searchResultsFor', defaultMessage: 'Search results for "{query}"' },
+                  { query: searchQuery }
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -302,7 +309,7 @@ export function ChatDrivePickerModal({
                   }}
                   className="h-6 px-2 text-xs"
                 >
-                  Clear
+                  {intl.formatMessage({ id: 'common.clear', defaultMessage: 'Clear' })}
                 </Button>
               </div>
             )}
@@ -317,7 +324,7 @@ export function ChatDrivePickerModal({
                 ) : files.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                     <Folder className="h-12 w-12 mb-2 opacity-50" />
-                    <p>No files found</p>
+                    <p>{intl.formatMessage({ id: 'modules.chat.drivePicker.noFiles', defaultMessage: 'No files found' })}</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
@@ -359,10 +366,13 @@ export function ChatDrivePickerModal({
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{file.name}</div>
                             <div className="text-xs text-muted-foreground">
-                              {isFolder ? 'Folder' : formatFileSize(file.size)}
+                              {isFolder ? intl.formatMessage({ id: 'modules.chat.drivePicker.folder', defaultMessage: 'Folder' }) : formatFileSize(file.size)}
                               {file.modifiedTime && (
                                 <span className="ml-2">
-                                  Modified {new Date(file.modifiedTime).toLocaleDateString()}
+                                  {intl.formatMessage(
+                                    { id: 'modules.chat.drivePicker.modifiedDate', defaultMessage: 'Modified {date}' },
+                                    { date: intl.formatDate(new Date(file.modifiedTime)) }
+                                  )}
                                 </span>
                               )}
                             </div>
@@ -383,7 +393,10 @@ export function ChatDrivePickerModal({
             {selectedFiles.length > 0 && (
               <div className="mt-4 p-3 bg-muted/50 rounded-md">
                 <div className="text-sm font-medium mb-2">
-                  Selected ({selectedFiles.length})
+                  {intl.formatMessage(
+                    { id: 'modules.chat.drivePicker.selectedCount', defaultMessage: 'Selected ({count})' },
+                    { count: selectedFiles.length }
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedFiles.map(file => (
@@ -414,14 +427,17 @@ export function ChatDrivePickerModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={selectedFiles.length === 0}
           >
             <Check className="h-4 w-4 mr-2" />
-            Attach {selectedFiles.length > 0 && `(${selectedFiles.length})`}
+            {intl.formatMessage(
+              { id: 'modules.chat.drivePicker.attachCount', defaultMessage: 'Attach{countText}' },
+              { countText: selectedFiles.length > 0 ? ` (${selectedFiles.length})` : '' }
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

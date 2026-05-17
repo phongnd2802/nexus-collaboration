@@ -67,18 +67,11 @@ interface MessageSelectionAIToolbarProps {
 
 const TRANSLATE_LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'it', name: 'Italian' },
-  { code: 'pt', name: 'Portuguese' },
-  { code: 'zh', name: 'Chinese' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'ar', name: 'Arabic' },
-  { code: 'hi', name: 'Hindi' },
-  { code: 'ru', name: 'Russian' },
+  { code: 'vi', name: 'Vietnamese' },
 ];
+
+const translateLanguageName = (intl: ReturnType<typeof useIntl>, code: string, name: string) =>
+  intl.formatMessage({ id: `modules.chat.aiToolbar.languages.${code}`, defaultMessage: name });
 
 export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps> = ({
   selectedMessages,
@@ -116,14 +109,19 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
             ) : (
               <Sparkles className="w-4 h-4" />
             )}
-            <span className="hidden sm:inline">AI Actions</span>
+            <span className="hidden sm:inline">
+              {intl.formatMessage({ id: 'modules.chat.aiToolbar.aiActions', defaultMessage: 'AI Actions' })}
+            </span>
             <ChevronDown className="w-3 h-3 ml-0.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56 max-h-[50vh] overflow-y-auto">
           <DropdownMenuLabel className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-blue-500" />
-            AI Actions ({messageCount} {messageCount === 1 ? 'message' : 'messages'})
+            {intl.formatMessage(
+              { id: 'modules.chat.aiToolbar.aiActionsWithCount', defaultMessage: 'AI Actions ({count} {count, plural, one {message} other {messages}})' },
+              { count: messageCount }
+            )}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
@@ -135,9 +133,9 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           >
             <FileText className="w-4 h-4 text-blue-500" />
             <div className="flex flex-col">
-              <span>Create Note</span>
+              <span>{intl.formatMessage({ id: 'modules.chat.aiToolbar.createNote', defaultMessage: 'Create Note' })}</span>
               <span className="text-xs text-muted-foreground">
-                Turn messages into a formatted note
+                {intl.formatMessage({ id: 'modules.chat.aiToolbar.createNoteDescription', defaultMessage: 'Turn messages into a formatted note' })}
               </span>
             </div>
             {activeAction === 'create_note' && (
@@ -153,9 +151,9 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           >
             <MessageSquareText className="w-4 h-4 text-green-500" />
             <div className="flex flex-col">
-              <span>Summarize</span>
+              <span>{intl.formatMessage({ id: 'modules.chat.aiToolbar.summarize', defaultMessage: 'Summarize' })}</span>
               <span className="text-xs text-muted-foreground">
-                Get a concise summary
+                {intl.formatMessage({ id: 'modules.chat.aiToolbar.summarizeDescription', defaultMessage: 'Get a concise summary' })}
               </span>
             </div>
             {activeAction === 'summarize' && (
@@ -168,9 +166,9 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
             <DropdownMenuSubTrigger className="gap-2 cursor-pointer">
               <Languages className="w-4 h-4 text-orange-500" />
               <div className="flex flex-col">
-                <span>Translate</span>
+                <span>{intl.formatMessage({ id: 'modules.chat.aiToolbar.translate', defaultMessage: 'Translate' })}</span>
                 <span className="text-xs text-muted-foreground">
-                  Translate to another language
+                  {intl.formatMessage({ id: 'modules.chat.aiToolbar.translateDescription', defaultMessage: 'Translate to another language' })}
                 </span>
               </div>
             </DropdownMenuSubTrigger>
@@ -182,7 +180,7 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
                   disabled={isProcessing}
                   className="cursor-pointer"
                 >
-                  {lang.name}
+                  {translateLanguageName(intl, lang.code, lang.name)}
                   {activeAction === 'translate' && (
                     <Loader2 className="w-4 h-4 animate-spin ml-auto" />
                   )}
@@ -201,9 +199,9 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           >
             <ListChecks className="w-4 h-4 text-purple-500" />
             <div className="flex flex-col">
-              <span>Extract Tasks</span>
+              <span>{intl.formatMessage({ id: 'modules.chat.aiToolbar.extractTasks', defaultMessage: 'Extract Tasks' })}</span>
               <span className="text-xs text-muted-foreground">
-                Find action items in messages
+                {intl.formatMessage({ id: 'modules.chat.aiToolbar.extractTasksDescription', defaultMessage: 'Find action items in messages' })}
               </span>
             </div>
             {activeAction === 'extract_tasks' && (
@@ -219,9 +217,9 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           >
             <Wand2 className="w-4 h-4 text-indigo-500" />
             <div className="flex flex-col">
-              <span>Custom AI Prompt</span>
+              <span>{intl.formatMessage({ id: 'modules.chat.aiToolbar.customPrompt', defaultMessage: 'Custom AI Prompt' })}</span>
               <span className="text-xs text-muted-foreground">
-                Ask AI anything about these messages
+                {intl.formatMessage({ id: 'modules.chat.aiToolbar.customPromptDescription', defaultMessage: 'Ask AI anything about these messages' })}
               </span>
             </div>
             {activeAction === 'custom_prompt' && (
@@ -240,10 +238,10 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           onClick={() => handleAction('create_email')}
           disabled={isProcessing}
           className="gap-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50"
-          title="Create Email"
+          title={intl.formatMessage({ id: 'modules.chat.aiToolbar.createEmail', defaultMessage: 'Create Email' })}
         >
           <Mail className="w-4 h-4" />
-          <span className="hidden lg:inline">Email</span>
+          <span className="hidden lg:inline">{intl.formatMessage({ id: 'modules.chat.aiToolbar.email', defaultMessage: 'Email' })}</span>
         </Button>
 
         <Button
@@ -252,10 +250,10 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           onClick={() => handleAction('copy_formatted')}
           disabled={isProcessing}
           className="gap-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-950/50"
-          title="Copy Formatted"
+          title={intl.formatMessage({ id: 'modules.chat.aiToolbar.copyFormatted', defaultMessage: 'Copy Formatted' })}
         >
           <Copy className="w-4 h-4" />
-          <span className="hidden lg:inline">Copy</span>
+          <span className="hidden lg:inline">{intl.formatMessage({ id: 'common.copy', defaultMessage: 'Copy' })}</span>
         </Button>
 
         <Button
@@ -264,10 +262,10 @@ export const MessageSelectionAIToolbar: React.FC<MessageSelectionAIToolbarProps>
           onClick={() => handleAction('save_bookmark')}
           disabled={isProcessing}
           className="gap-1.5 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-950/50"
-          title="Save All"
+          title={intl.formatMessage({ id: 'modules.chat.aiToolbar.saveAll', defaultMessage: 'Save All' })}
         >
           <BookmarkPlus className="w-4 h-4" />
-          <span className="hidden lg:inline">Bookmark</span>
+          <span className="hidden lg:inline">{intl.formatMessage({ id: 'modules.chat.messages.bookmark', defaultMessage: 'Bookmark' })}</span>
         </Button>
       </div>
     </div>

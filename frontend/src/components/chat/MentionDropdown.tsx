@@ -3,6 +3,7 @@ import { AtSign, Hash, Lock, Users } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useIntl } from 'react-intl'
 
 // ============================================================================
 // TYPES
@@ -56,6 +57,7 @@ export function MentionDropdown({
   selectedIndex = 0,
   className,
 }: MentionDropdownProps) {
+  const intl = useIntl()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Filter users based on search query
@@ -120,7 +122,7 @@ export function MentionDropdown({
       <div className="p-2 border-b border-border bg-muted/30 dark:bg-muted/20">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <AtSign className="h-3 w-3" />
-          <span>Mention user</span>
+          <span>{intl.formatMessage({ id: 'modules.chat.mentions.mentionUser', defaultMessage: 'Mention user' })}</span>
         </div>
       </div>
 
@@ -191,7 +193,9 @@ export function MentionDropdown({
                       ? 'bg-green-500 dark:bg-green-400'
                       : 'bg-gray-400 dark:bg-gray-600'
                   )}
-                  title={user.isOnline ? 'Online' : 'Offline'}
+                  title={user.isOnline
+                    ? intl.formatMessage({ id: 'modules.chat.members.online', defaultMessage: 'Online' })
+                    : intl.formatMessage({ id: 'modules.chat.members.offline', defaultMessage: 'Offline' })}
                 />
               </div>
             )}
@@ -202,7 +206,10 @@ export function MentionDropdown({
       {/* Footer */}
       <div className="p-2 border-t border-border bg-muted/30 dark:bg-muted/20">
         <div className="text-xs text-muted-foreground">
-          Use <kbd className="px-1 py-0.5 bg-muted rounded text-xs">@</kbd> to mention users
+          {intl.formatMessage(
+            { id: 'modules.chat.mentions.useAtToMentionUsers', defaultMessage: 'Use {symbol} to mention users' },
+            { symbol: <kbd className="px-1 py-0.5 bg-muted rounded text-xs">@</kbd> }
+          )}
         </div>
       </div>
     </div>
@@ -239,6 +246,7 @@ export function ChannelMentionDropdown({
   selectedIndex = 0,
   className,
 }: ChannelMentionDropdownProps) {
+  const intl = useIntl()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Filter channels based on search query
@@ -297,7 +305,7 @@ export function ChannelMentionDropdown({
       <div className="p-2 border-b border-border bg-muted/30 dark:bg-muted/20">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Hash className="h-3 w-3" />
-          <span>Mention channel</span>
+          <span>{intl.formatMessage({ id: 'modules.chat.mentions.mentionChannel', defaultMessage: 'Mention channel' })}</span>
         </div>
       </div>
 

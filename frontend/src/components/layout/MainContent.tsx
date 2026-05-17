@@ -65,6 +65,14 @@ export function MainContent({
   const config = viewConfigs[currentView] || { titleKey: 'pageTitle.view', icon: FileIcon }
   const title = intl.formatMessage({ id: config.titleKey, defaultMessage: 'View' })
   const IconComponent = config.icon
+  const handleLeftSidebarToggle = () => {
+    if (currentView === 'ai-chat') {
+      window.dispatchEvent(new Event('nexus:toggle-ai-chat-sidebar'))
+      return
+    }
+
+    onToggleSidebar('left')
+  }
 
   // For whiteboard and budget, render full-screen content without header
   if (isWhiteboardPage || isBudgetPage) {
@@ -87,7 +95,7 @@ export function MainContent({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onToggleSidebar('left')}
+              onClick={handleLeftSidebarToggle}
               className="text-muted-foreground hover:text-foreground"
             >
               <Menu className="h-4 w-4" />

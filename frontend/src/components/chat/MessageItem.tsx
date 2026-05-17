@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useIntl } from 'react-intl'
 import { CornerUpRight, Download, MoreVertical, Pencil, Trash2, Reply, Smile, Loader2, FileText, Calendar, FolderOpen, ExternalLink, Check, HardDrive, BarChart2, Video, Lock } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -177,6 +178,7 @@ export function MessageItem({
   onDownloadAttachment,
   className,
 }: MessageItemProps) {
+  const intl = useIntl()
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.body)
   const [isHovered, setIsHovered] = useState(false)
@@ -201,16 +203,33 @@ export function MessageItem({
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / 60000)
 
-    if (minutes < 1) return 'just now'
-    if (minutes < 60) return `${minutes}m ago`
+    if (minutes < 1) {
+      return intl.formatMessage({ id: 'modules.chat.messageTime.justNow', defaultMessage: 'Just now' })
+    }
+    if (minutes < 60) {
+      return intl.formatMessage(
+        { id: 'modules.chat.messageTime.minutesAgo', defaultMessage: '{count}m ago' },
+        { count: minutes }
+      )
+    }
 
     const hours = Math.floor(minutes / 60)
-    if (hours < 24) return `${hours}h ago`
+    if (hours < 24) {
+      return intl.formatMessage(
+        { id: 'modules.chat.messageTime.hoursAgo', defaultMessage: '{count}h ago' },
+        { count: hours }
+      )
+    }
 
     const days = Math.floor(hours / 24)
-    if (days < 7) return `${days}d ago`
+    if (days < 7) {
+      return intl.formatMessage(
+        { id: 'modules.chat.messageTime.daysAgo', defaultMessage: '{count}d ago' },
+        { count: days }
+      )
+    }
 
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    return intl.formatDate(date, { month: 'short', day: 'numeric' })
   }
 
   // Download handler for attachments
@@ -320,7 +339,7 @@ export function MessageItem({
             </span>
             <span className="text-xs text-muted-foreground">
               {formatTime(message.timestamp)}
-              {message.isEdited && ' (edited)'}
+              {message.isEdited && ` (${intl.formatMessage({ id: 'modules.chat.messages.edited', defaultMessage: 'edited' })})`}
             </span>
 
             {/* Message Actions Dropdown - moved here */}
@@ -342,13 +361,13 @@ export function MessageItem({
               <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onReply?.(message)}>
                   <Reply className="h-4 w-4 mr-2" />
-                  Reply
+                  {intl.formatMessage({ id: 'modules.chat.messages.reply', defaultMessage: 'Reply' })}
                 </DropdownMenuItem>
                 {currentUserId === message.user.id && (
                   <>
                     <DropdownMenuItem onClick={() => setIsEditing(true)}>
                       <Pencil className="h-4 w-4 mr-2" />
-                      Edit
+                      {intl.formatMessage({ id: 'common.edit', defaultMessage: 'Edit' })}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -356,32 +375,32 @@ export function MessageItem({
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                     </DropdownMenuItem>
                   </>
                 )}
                 <DropdownMenuSeparator />
                 {isPinned ? (
                   <DropdownMenuItem onClick={() => onUnpin?.(message.id)}>
-                    Unpin Message
+                    {intl.formatMessage({ id: 'modules.chat.messages.unpin', defaultMessage: 'Unpin message' })}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem onClick={() => onPin?.(message.id)}>
-                    Pin Message
+                    {intl.formatMessage({ id: 'modules.chat.messages.pin', defaultMessage: 'Pin message' })}
                   </DropdownMenuItem>
                 )}
                 {isBookmarked ? (
                   <DropdownMenuItem onClick={() => onUnbookmark?.(message.id)}>
-                    Remove Bookmark
+                    {intl.formatMessage({ id: 'modules.chat.messages.unbookmark', defaultMessage: 'Remove bookmark' })}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem onClick={() => onBookmark?.(message.id)}>
-                    Bookmark
+                    {intl.formatMessage({ id: 'modules.chat.messages.bookmark', defaultMessage: 'Bookmark' })}
                   </DropdownMenuItem>
                 )}
                 {onForward && (
                   <DropdownMenuItem onClick={() => onForward(message)}>
-                    Forward
+                    {intl.formatMessage({ id: 'modules.chat.messages.forward', defaultMessage: 'Forward' })}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -408,7 +427,7 @@ export function MessageItem({
                     </span>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>This message is end-to-end encrypted</p>
+                    <p>{intl.formatMessage({ id: 'modules.chat.messages.encryptedTooltip', defaultMessage: 'This message is end-to-end encrypted' })}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Algorithm: {(message as any).encryptionMetadata?.algorithm || 'x25519-xsalsa20-poly1305'}
                     </p>
@@ -423,7 +442,10 @@ export function MessageItem({
         {parentMessage && (
           <div className="mb-2 pl-3 border-l-2 border-muted-foreground/30 dark:border-muted-foreground/20">
             <div className="text-xs text-muted-foreground mb-1">
-              Replying to {parentMessage.user.name}
+              {intl.formatMessage(
+                { id: 'modules.chat.messages.replyingToName', defaultMessage: 'Replying to {name}' },
+                { name: parentMessage.user.name }
+              )}
             </div>
             <div className="text-xs text-muted-foreground line-clamp-2">
               {stripHtml(parentMessage.body)}
@@ -831,7 +853,9 @@ export function MessageItem({
                   >
                     <div className="space-y-3">
                       <div>
-                        <h4 className="text-sm font-medium mb-2">Quick Reactions</h4>
+                        <h4 className="text-sm font-medium mb-2">
+                          {intl.formatMessage({ id: 'modules.chat.reactions.quickReactions', defaultMessage: 'Quick Reactions' })}
+                        </h4>
                         <div className="grid grid-cols-8 gap-1">
                           {quickEmojis.map((emoji) => (
                             <button
@@ -841,7 +865,7 @@ export function MessageItem({
                                 setShowEmojiPicker(false)
                               }}
                               className="h-10 w-10 flex items-center justify-center text-2xl rounded-md hover:bg-muted transition-colors"
-                              title={`React with ${emoji}`}
+                              title={intl.formatMessage({ id: 'modules.chat.messageActionsMenu.reactWith', defaultMessage: 'React with {emoji}' }, { emoji })}
                             >
                               {emoji}
                             </button>
@@ -850,7 +874,9 @@ export function MessageItem({
                       </div>
 
                       <div className="pt-2 border-t">
-                        <h4 className="text-sm font-medium mb-2">More Reactions</h4>
+                        <h4 className="text-sm font-medium mb-2">
+                          {intl.formatMessage({ id: 'modules.chat.reactions.moreReactions', defaultMessage: 'More Reactions' })}
+                        </h4>
                         <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
                           {['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
                             '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
@@ -867,7 +893,7 @@ export function MessageItem({
                                 setShowEmojiPicker(false)
                               }}
                               className="h-10 w-10 flex items-center justify-center text-2xl rounded-md hover:bg-muted transition-colors"
-                              title={`React with ${emoji}`}
+                              title={intl.formatMessage({ id: 'modules.chat.messageActionsMenu.reactWith', defaultMessage: 'React with {emoji}' }, { emoji })}
                             >
                               {emoji}
                             </button>
@@ -890,11 +916,17 @@ export function MessageItem({
               >
                 <CornerUpRight className="h-3 w-3 mr-1" />
                 <span className="font-medium">
-                  {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
+                  {intl.formatMessage(
+                    { id: 'modules.chat.thread.replyCount', defaultMessage: '{count} {count, plural, one {reply} other {replies}}' },
+                    { count: threadCount }
+                  )}
                 </span>
                 {threadReplies.length > 0 && (
                   <span className="ml-2 text-muted-foreground">
-                    Last reply {formatTime(new Date(threadReplies[threadReplies.length - 1].timestamp))}
+                    {intl.formatMessage(
+                      { id: 'modules.chat.thread.lastReply', defaultMessage: 'Last reply {time}' },
+                      { time: formatTime(new Date(threadReplies[threadReplies.length - 1].timestamp)) }
+                    )}
                   </span>
                 )}
               </Button>
@@ -903,7 +935,10 @@ export function MessageItem({
             {/* Read Receipts */}
             {message.read_by_count !== undefined && message.read_by_count > 0 && message.user.id === currentUserId && (
               <div className="mt-1 text-xs text-muted-foreground">
-                Read by {message.read_by_count} {message.read_by_count === 1 ? 'person' : 'people'}
+                {intl.formatMessage(
+                  { id: 'modules.chat.messages.readByCount', defaultMessage: 'Read by {count} {count, plural, one {person} other {people}}' },
+                  { count: message.read_by_count }
+                )}
               </div>
             )}
           </>
