@@ -108,7 +108,7 @@ frontend/src-tauri/target/
 # Local development
 .local/
 .cache/
-
+docs
 # Legacy
 frontend-nextjs-old/
 AGENTS.md

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Search,
-  Users,
   Clock,
   LayoutGrid,
   List as ListIcon,
@@ -19,7 +18,6 @@ import {
   Settings,
   Filter,
   Trash2,
-  DollarSign
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -180,9 +178,7 @@ export function UnifiedTaskView({
     { value: 'board', label: intl.formatMessage({ id: 'tasks.boardView' }), icon: LayoutGrid },
     { value: 'list', label: intl.formatMessage({ id: 'tasks.listView' }), icon: ListIcon },
     { value: 'timeline', label: intl.formatMessage({ id: 'tasks.timelineView' }), icon: Clock },
-    { value: 'gantt', label: intl.formatMessage({ id: 'tasks.ganttChart' }), icon: TrendingUp },
-    { value: 'team', label: intl.formatMessage({ id: 'tasks.teamView' }), icon: Users },
-    { value: 'budgets', label: 'Budgets', icon: DollarSign }
+    { value: 'gantt', label: intl.formatMessage({ id: 'tasks.ganttChart' }), icon: TrendingUp }
   ]
   const projectTypePreset = getProjectTypePreset(project?.type)
   const enabledViewSet = new Set(projectTypePreset.enabledViews)

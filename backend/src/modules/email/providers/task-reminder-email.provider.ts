@@ -12,8 +12,6 @@ const priorityLabels: Record<string, string> = {
   low: 'Thấp',
 };
 
-const HEADER_IMG = 'https://cdn.nexusapp.io/email/logo.png';
-
 export interface TaskReminderEmailData {
   assigneeName: string;
   taskTitle: string;

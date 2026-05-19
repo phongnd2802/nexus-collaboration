@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EmailProviderService } from './email.service';
-import { SendEmailInput } from './providers';
-import { buildTaskReminderEmail, TaskReminderEmailData } from './templates';
+import { buildTaskReminderEmail, SendEmailInput, TaskReminderEmailData } from './providers';
 
 export interface SendTaskReminderOptions {
   to: string;

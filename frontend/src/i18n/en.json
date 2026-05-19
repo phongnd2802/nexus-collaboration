@@ -7729,7 +7729,8 @@
     "taskDeleted": "Task Deleted",
     "taskDeletedSuccess": "\"{title}\" has been deleted successfully.",
     "deleting": "Deleting...",
-    "tasksCount": "{count} tasks"
+    "tasksCount": "{count} tasks",
+    "upcomingTasks": "Upcoming Tasks"
   },
   "settings": {
     "profile": {
