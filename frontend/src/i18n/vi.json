@@ -7729,7 +7729,8 @@
     "taskDeleted": "Nhiệm vụ đã xóa",
     "taskDeletedSuccess": "\"{title}\" đã được xóa thành công.",
     "deleting": "Đang xóa...",
-    "tasksCount": "{count} nhiệm vụ"
+    "tasksCount": "{count} nhiệm vụ",
+    "upcomingTasks": "Nhiệm vụ sắp tới"
   },
   "settings": {
     "profile": {

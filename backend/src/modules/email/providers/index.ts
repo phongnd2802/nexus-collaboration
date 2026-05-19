@@ -79,3 +79,4 @@ export { PostmarkProvider } from './postmark.provider';
 export { MailgunProvider } from './mailgun.provider';
 export { SesProvider } from './ses.provider';
 export { NoneEmailProvider } from './none.provider';
+export { buildTaskReminderEmail, TaskReminderEmailData } from './task-reminder-email.provider';

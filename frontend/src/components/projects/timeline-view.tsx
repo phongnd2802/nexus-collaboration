@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useIntl } from 'react-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,8 +32,8 @@ interface TimelineViewProps {
 }
 
 export function TimelineView({ tasks, onAddTask }: TimelineViewProps) {
+  const intl = useIntl()
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [zoomLevel, setZoomLevel] = useState<'day' | 'week' | 'month'>('day')
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
@@ -112,7 +113,7 @@ export function TimelineView({ tasks, onAddTask }: TimelineViewProps) {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <div className="px-3 py-1 text-sm font-medium">
-              {format(currentMonth, 'MMMM yyyy')}
+              {intl.formatDate(currentMonth, { month: 'long', year: 'numeric' })}
             </div>
             <Button
               variant="outline"
@@ -127,30 +128,7 @@ export function TimelineView({ tasks, onAddTask }: TimelineViewProps) {
               onClick={() => setCurrentMonth(new Date())}
               className="ml-2"
             >
-              Today
-            </Button>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant={zoomLevel === 'day' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setZoomLevel('day')}
-            >
-              Day
-            </Button>
-            <Button
-              variant={zoomLevel === 'week' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setZoomLevel('week')}
-            >
-              Week
-            </Button>
-            <Button
-              variant={zoomLevel === 'month' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setZoomLevel('month')}
-            >
-              Month
+              {intl.formatMessage({ id: 'modules.calendar.dayView.today', defaultMessage: 'Today' })}
             </Button>
           </div>
         </div>
@@ -180,9 +158,17 @@ export function TimelineView({ tasks, onAddTask }: TimelineViewProps) {
             <DragDropContext onDragEnd={onDragEnd}>
               <div className="grid grid-cols-7 gap-2">
                 {/* Day Headers */}
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
-                    {day}
+                {[
+                  { id: 'modules.calendar.monthView.sunShort', defaultMessage: 'Sun' },
+                  { id: 'modules.calendar.monthView.monShort', defaultMessage: 'Mon' },
+                  { id: 'modules.calendar.monthView.tueShort', defaultMessage: 'Tue' },
+                  { id: 'modules.calendar.monthView.wedShort', defaultMessage: 'Wed' },
+                  { id: 'modules.calendar.monthView.thuShort', defaultMessage: 'Thu' },
+                  { id: 'modules.calendar.monthView.friShort', defaultMessage: 'Fri' },
+                  { id: 'modules.calendar.monthView.satShort', defaultMessage: 'Sat' }
+                ].map(day => (
+                  <div key={day.id} className="p-2 text-center text-sm font-medium text-muted-foreground">
+                    {intl.formatMessage({ id: day.id, defaultMessage: day.defaultMessage })}
                   </div>
                 ))}
 
@@ -308,7 +294,7 @@ export function TimelineView({ tasks, onAddTask }: TimelineViewProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
-                  Upcoming Tasks
+                  {intl.formatMessage({ id: 'tasks.upcomingTasks', defaultMessage: 'Upcoming Tasks' })}
                 </CardTitle>
               </CardHeader>
               <CardContent>
