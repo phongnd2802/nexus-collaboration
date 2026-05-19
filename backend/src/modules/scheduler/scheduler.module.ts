@@ -3,8 +3,10 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationSchedulerService } from './notification-scheduler.service';
 import { RecordingProcessorService } from './recording-processor.service';
 import { ScheduledMessageProcessorService } from './scheduled-message-processor.service';
+import { TaskReminderService } from './task-reminder.service';
 import { SchedulerController } from './scheduler.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EmailProviderModule } from '../email/email.module';
 import { VideoCallsModule } from '../video-calls/video-calls.module';
 import { ChatModule } from '../chat/chat.module';
 
@@ -12,6 +14,7 @@ import { ChatModule } from '../chat/chat.module';
   imports: [
     ScheduleModule.forRoot(),
     forwardRef(() => NotificationsModule),
+    EmailProviderModule,
     forwardRef(() => VideoCallsModule),
     forwardRef(() => ChatModule),
   ],
@@ -20,11 +23,13 @@ import { ChatModule } from '../chat/chat.module';
     NotificationSchedulerService,
     RecordingProcessorService,
     ScheduledMessageProcessorService,
+    TaskReminderService,
   ],
   exports: [
     NotificationSchedulerService,
     RecordingProcessorService,
     ScheduledMessageProcessorService,
+    TaskReminderService,
   ],
 })
 export class SchedulerModule {}

@@ -37,6 +37,20 @@ import type { Task } from '@/lib/api/projects-api'
 import { format, isAfter, isToday } from 'date-fns'
 import { getAssigneeInitials, getAssigneeName } from '@/utils/task-helpers'
 
+const stripHtml = (html: string): string => {
+  if (!html) return ''
+  try {
+    const preprocessed = html
+      .replace(/<\/p>/gi, ' ')
+      .replace(/<\/div>/gi, ' ')
+      .replace(/<br\s*\/?>/gi, ' ')
+    const doc = new DOMParser().parseFromString(preprocessed, 'text/html')
+    return (doc.body.textContent || '').trim().replace(/\s+/g, ' ')
+  } catch (e) {
+    return html.replace(/<[^>]*>/g, ' ').trim().replace(/\s+/g, ' ')
+  }
+}
+
 // Per-task custom field type
 interface TaskCustomField {
   id: string
@@ -347,7 +361,7 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
                         </div>
                         <p className="font-medium line-clamp-1">{task.title}</p>
                         {task.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{stripHtml(task.description)}</p>
                         )}
                       </div>
                     </TableCell>

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { EmailProviderService } from './email.service';
+import { EmailTemplatesService } from './email-templates.service';
 
 /**
  * Email module — exposes the pluggable EmailProviderService for all transactional
@@ -14,7 +15,7 @@ import { EmailProviderService } from './email.service';
  * when the admin Integrations page needs it.
  */
 @Module({
-  providers: [EmailProviderService],
-  exports: [EmailProviderService],
+  providers: [EmailProviderService, EmailTemplatesService],
+  exports: [EmailProviderService, EmailTemplatesService],
 })
 export class EmailProviderModule {}

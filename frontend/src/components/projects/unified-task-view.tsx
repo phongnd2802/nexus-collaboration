@@ -58,6 +58,7 @@ import { CreateTaskModal } from './create-task-modal'
 import { TaskDetailModal } from './task-detail-modal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
+import { canTransitionStatus, getProjectTypePreset, type ProjectViewName } from '@/lib/project-type-presets'
 
 interface UnifiedTaskViewProps {
   projectId: string
@@ -175,7 +176,7 @@ export function UnifiedTaskView({
     }
   }, [project?.id, tasks.length])
 
-  const viewOptions = [
+  const allViewOptions = [
     { value: 'board', label: intl.formatMessage({ id: 'tasks.boardView' }), icon: LayoutGrid },
     { value: 'list', label: intl.formatMessage({ id: 'tasks.listView' }), icon: ListIcon },
     { value: 'timeline', label: intl.formatMessage({ id: 'tasks.timelineView' }), icon: Clock },
@@ -183,6 +184,17 @@ export function UnifiedTaskView({
     { value: 'team', label: intl.formatMessage({ id: 'tasks.teamView' }), icon: Users },
     { value: 'budgets', label: 'Budgets', icon: DollarSign }
   ]
+  const projectTypePreset = getProjectTypePreset(project?.type)
+  const enabledViewSet = new Set(projectTypePreset.enabledViews)
+  const viewOptions = allViewOptions.filter((option) =>
+    enabledViewSet.has(option.value as ProjectViewName)
+  )
+
+  useEffect(() => {
+    if (!enabledViewSet.has(currentView as ProjectViewName)) {
+      setCurrentView(projectTypePreset.defaultView)
+    }
+  }, [currentView, projectTypePreset.defaultView, project?.type])
 
   const getCurrentViewName = () => {
     const view = viewOptions.find(v => v.value === currentView)
@@ -370,6 +382,15 @@ export function UnifiedTaskView({
 
     const newStatus = destination.droppableId
     const oldStatus = source.droppableId
+
+    if (!canTransitionStatus(project?.type, oldStatus, newStatus)) {
+      toast({
+        title: 'Invalid transition',
+        description: 'This status change is not allowed for this project type.',
+        variant: 'destructive'
+      })
+      return
+    }
 
     // IMMEDIATELY update optimistic state - this prevents any flicker
     setOptimisticStatusChanges(prev => ({

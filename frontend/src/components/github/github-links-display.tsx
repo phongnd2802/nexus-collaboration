@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useIntl } from 'react-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,7 @@ export function GitHubLinksDisplay({
   compact = false,
   showAddButton = true,
 }: GitHubLinksDisplayProps) {
+  const intl = useIntl();
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [syncingLinkId, setSyncingLinkId] = useState<string | null>(null);
   const [unlinkingId, setUnlinkingId] = useState<string | null>(null);
@@ -148,7 +150,7 @@ export function GitHubLinksDisplay({
               }}
             >
               <Plus className="w-3 h-3 mr-1" />
-              Link
+              {intl.formatMessage({ id: 'github.link', defaultMessage: 'Liên kết' })}
             </Button>
             <GitHubLinkModal
               open={linkModalOpen}
@@ -170,7 +172,7 @@ export function GitHubLinksDisplay({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
           <Github className="w-4 h-4" />
-          GitHub Links
+          {intl.formatMessage({ id: 'github.links', defaultMessage: 'Liên kết GitHub' })}
         </h3>
         {showAddButton && (
           <Button
@@ -180,14 +182,14 @@ export function GitHubLinksDisplay({
             className="h-7 text-xs"
           >
             <Plus className="w-3 h-3 mr-1" />
-            Link Issue/PR
+            {intl.formatMessage({ id: 'github.linkIssuePR', defaultMessage: 'Liên kết Issue/PR' })}
           </Button>
         )}
       </div>
 
       {links.length === 0 ? (
         <div className="text-sm text-muted-foreground py-2">
-          No GitHub issues or PRs linked to this task.
+          {intl.formatMessage({ id: 'github.noLinks', defaultMessage: 'Không có GitHub issues hoặc PRs nào được liên kết với tác vụ này.' })}
         </div>
       ) : (
         <div className="space-y-2">

@@ -47,6 +47,7 @@ import {
   FolderOpen
 } from 'lucide-react'
 import { projectService, projectKeys } from '@/lib/api/projects-api'
+import { getDefaultKanbanStagesForType, mapApiProjectTypeToUi, mapUiProjectTypeToApi } from '@/lib/project-type-presets'
 import { fileApi } from '@/lib/api/files-api'
 import { calendarApi } from '@/lib/api/calendar-api'
 import { useGenerateDescriptionSuggestions } from '@/lib/api/ai-api'
@@ -68,6 +69,29 @@ interface CreateProjectModalProps {
 
 export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectCreated, project, initialName }: CreateProjectModalProps) {
   const intl = useIntl()
+  const stageColorToTailwind = (hexColor?: string) => {
+    const map: Record<string, string> = {
+      '#3B82F6': 'bg-blue-500',
+      '#EAB308': 'bg-yellow-500',
+      '#22C55E': 'bg-green-500',
+      '#EF4444': 'bg-red-500',
+      '#A855F7': 'bg-purple-500',
+      '#F97316': 'bg-orange-500',
+      '#EC4899': 'bg-pink-500',
+      '#6366F1': 'bg-indigo-500',
+      '#14B8A6': 'bg-teal-500',
+      '#06B6D4': 'bg-cyan-500'
+    }
+    return map[hexColor || ''] || 'bg-blue-500'
+  }
+
+  const getDefaultStatusColumns = (type: string = 'kanban') =>
+    getDefaultKanbanStagesForType(type).map(stage => ({
+      id: stage.id,
+      name: stage.name,
+      color: stageColorToTailwind(stage.color)
+    }))
+
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
@@ -76,17 +100,15 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     type: '' as ProjectType | '',
     leadId: '',
     defaultAssigneeIds: [] as string[],
-    statusColumns: [
-      { id: '1', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.toDo', defaultMessage: 'To Do' }), color: 'bg-blue-500' },
-      { id: '2', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.inProgress', defaultMessage: 'In Progress' }), color: 'bg-yellow-500' },
-      { id: '3', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.done', defaultMessage: 'Done' }), color: 'bg-green-500' }
-    ]
+    statusColumns: getDefaultStatusColumns('kanban')
   })
   const [attachments, setAttachments] = useState<RichTextAttachment[]>([])
   const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false)
   const [descriptionSuggestions, setDescriptionSuggestions] = useState<string[]>([])
   const [showDescriptionSuggestions, setShowDescriptionSuggestions] = useState(false)
   const isEditMode = !!project
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [draggableRowId, setDraggableRowId] = useState<string | null>(null)
 
   // State for attachment preview dialogs
   const [filePreviewOpen, setFilePreviewOpen] = useState(false)
@@ -217,16 +239,6 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         '#06B6D4': 'bg-cyan-500'
       }
 
-      // Map API project type to UI enum
-      // Backend returns: kanban, scrum, bug_tracking, feature, research
-      const typeMap: Record<string, ProjectType> = {
-        'kanban': 'KANBAN' as ProjectType,
-        'scrum': 'SCRUM' as ProjectType,
-        'bug_tracking': 'BUG_TRACKING' as ProjectType,
-        'feature': 'FEATURE_DEVELOPMENT' as ProjectType,
-        'research': 'RESEARCH' as ProjectType
-      }
-
       // Convert kanban_stages to status columns
       const statusColumns = project.kanban_stages?.length > 0
         ? project.kanban_stages.map((stage: any) => ({
@@ -234,11 +246,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
             name: stage.name,
             color: hexToTailwind[stage.color] || 'bg-blue-500'
           }))
-        : [
-            { id: '1', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.toDo', defaultMessage: 'To Do' }), color: 'bg-blue-500' },
-            { id: '2', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.inProgress', defaultMessage: 'In Progress' }), color: 'bg-yellow-500' },
-            { id: '3', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.done', defaultMessage: 'Done' }), color: 'bg-green-500' }
-          ]
+        : getDefaultStatusColumns(project.type || 'kanban')
 
       // Convert API attachments to UI format
       // Attachments are now enriched with full details from the backend
@@ -324,7 +332,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         name: project.name || '',
         description: project.description || '',
         key: project.key || generateProjectKey(project.name || ''),
-        type: typeMap[project.type] || '' as ProjectType | '',
+        type: mapApiProjectTypeToUi(project.type),
         leadId: project.collaborative_data?.project_lead || project.lead_id || '',
         defaultAssigneeIds: project.collaborative_data?.default_assignee_ids || [],
         statusColumns
@@ -358,16 +366,6 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         'bg-indigo-500': '#6366F1',
         'bg-teal-500': '#14B8A6',
         'bg-cyan-500': '#06B6D4'
-      }
-
-      // Map project type from UI enum to API format (snake_case)
-      // Backend accepts: kanban, scrum, bug_tracking, feature, research
-      const typeMap: Record<string, 'kanban' | 'scrum' | 'bug_tracking' | 'feature' | 'research'> = {
-        'KANBAN': 'kanban',
-        'SCRUM': 'scrum',
-        'BUG_TRACKING': 'bug_tracking',
-        'FEATURE_DEVELOPMENT': 'feature',
-        'RESEARCH': 'research'
       }
 
       // Prepare kanban stages from status columns
@@ -404,7 +402,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         const updatePayload = {
           name: data.name,
           description: data.description,
-          type: data.type ? typeMap[data.type] : 'kanban',
+          type: mapUiProjectTypeToApi(data.type),
           status: project.status || 'active',
           priority: (project.priority || 'medium') as 'low' | 'medium' | 'high' | 'critical',
           lead_id: data.leadId,
@@ -419,7 +417,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         const createPayload = {
           name: data.name,
           description: data.description,
-          type: data.type ? typeMap[data.type] : 'kanban',
+          type: mapUiProjectTypeToApi(data.type),
           status: 'active' as const,
           priority: 'medium' as const,
           lead_id: data.leadId,
@@ -611,6 +609,41 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     }))
   }
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    
+    // Add a visual drag class or styling if desired
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.4'
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+
+    const newStatusColumns = [...formData.statusColumns]
+    const draggedItem = newStatusColumns[draggedIndex]
+    newStatusColumns.splice(draggedIndex, 1)
+    newStatusColumns.splice(index, 0, draggedItem)
+    
+    setDraggedIndex(index)
+    setFormData(prev => ({
+      ...prev,
+      statusColumns: newStatusColumns
+    }))
+  }
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setDraggedIndex(null)
+    setDraggableRowId(null)
+    
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1'
+    }
+  }
+
   const generateAIDescription = async () => {
     // Validate that project name is filled
     if (!formData.name.trim()) {
@@ -717,11 +750,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       type: '' as ProjectType | '',
       leadId: '',
       defaultAssigneeIds: [],
-      statusColumns: [
-        { id: '1', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.toDo', defaultMessage: 'To Do' }), color: 'bg-blue-500' },
-        { id: '2', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.inProgress', defaultMessage: 'In Progress' }), color: 'bg-yellow-500' },
-        { id: '3', name: intl.formatMessage({ id: 'modules.projects.createProject.status.defaults.done', defaultMessage: 'Done' }), color: 'bg-green-500' }
-      ]
+      statusColumns: getDefaultStatusColumns('kanban')
     })
   }
 
@@ -823,31 +852,6 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
                     <Label htmlFor="description">
                       {intl.formatMessage({ id: 'modules.projects.createProject.labels.description', defaultMessage: 'Description' })}
                     </Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={generateAIDescription}
-                      disabled={
-                        aiDescriptionLoading ||
-                        !formData.name.trim()
-                      }
-                      className="text-xs"
-                    >
-                      {aiDescriptionLoading ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          {intl.formatMessage({ id: 'modules.projects.createProject.ai.generating', defaultMessage: 'Generating...' })}
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          {formData.description.trim()
-                            ? intl.formatMessage({ id: 'modules.projects.createProject.ai.fixWithAI', defaultMessage: 'Fix with AI' })
-                            : intl.formatMessage({ id: 'modules.projects.createProject.ai.createWithAI', defaultMessage: 'Create with AI' })}
-                        </>
-                      )}
-                    </Button>
                   </div>
                   <RichTextEditor
                     value={formData.description}
@@ -942,9 +946,25 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
 
               <div className="space-y-3">
                 {formData.statusColumns.map((column, index) => (
-                  <div key={column.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div
+                    key={column.id}
+                    className={cn(
+                      "flex items-center gap-3 p-3 border rounded-lg bg-background transition-all",
+                      draggedIndex === index && "border-primary/50 bg-accent/30"
+                    )}
+                    draggable={draggableRowId === column.id}
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                  >
                     <div className="flex items-center gap-2">
-                      <GripVertical className="w-4 h-4 text-muted-foreground" />
+                      <div
+                        onMouseEnter={() => setDraggableRowId(column.id)}
+                        onMouseLeave={() => setDraggableRowId(null)}
+                        className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
+                      >
+                        <GripVertical className="w-4 h-4 text-muted-foreground" />
+                      </div>
                       <span className="text-sm font-medium">{index + 1}.</span>
                     </div>
 
@@ -1047,7 +1067,13 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
                         ? 'ring-2 ring-primary ' + option.color
                         : 'hover:shadow-md ' + option.color
                     }`}
-                    onClick={() => setFormData(prev => ({ ...prev, type: option.type }))}
+                    onClick={() =>
+                      setFormData(prev => ({
+                        ...prev,
+                        type: option.type,
+                        statusColumns: getDefaultStatusColumns(mapUiProjectTypeToApi(option.type))
+                      }))
+                    }
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
