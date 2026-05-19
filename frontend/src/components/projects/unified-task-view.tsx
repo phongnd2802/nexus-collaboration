@@ -144,7 +144,7 @@ export function UnifiedTaskView({
       assignees: apiTask.assignees || (apiTask.assigned_to ? [apiTask.assigned_to] : []),
       assignee: apiTask.assigned_to ? { id: apiTask.assigned_to, email: apiTask.assigned_to, name: apiTask.assigned_to } : undefined,
       assigneeId: apiTask.assigned_to,
-      dueDate: apiTask.due_date,
+      dueDate: apiTask.due_date || apiTask.dueDate,
       estimatedHours: apiTask.estimated_hours ? parseFloat(apiTask.estimated_hours) : undefined,
       actualHours: apiTask.actual_hours ? parseFloat(apiTask.actual_hours) : undefined,
       tags: apiTask.labels || [],
@@ -152,9 +152,9 @@ export function UnifiedTaskView({
       subtasks: [], // Will be populated when subtasks are available from API
       dependencies: [],
       comments: [],
-      createdAt: apiTask.created_at,
-      updatedAt: apiTask.updated_at,
-      completedAt: apiTask.completed_at,
+      createdAt: apiTask.createdAt || apiTask.created_at,
+      updatedAt: apiTask.updatedAt || apiTask.updated_at,
+      completedAt: apiTask.completedAt || apiTask.completed_at,
       parentTaskId: apiTask.parent_task_id, // Add parent task relationship
       // Include updated_by_user and created_by_user from backend
       updated_by_user: apiTask.updated_by_user,
@@ -1261,15 +1261,40 @@ export function UnifiedTaskView({
         )}
 
         {currentView === 'list' && (
-          <TaskListView tasks={filteredTasks} onTaskClick={handleViewTask} />
+          <TaskListView
+            tasks={filteredTasks}
+            onTaskClick={handleViewTask}
+            kanbanStages={kanbanColumns.map((col) => ({
+              id: col.status,
+              name: col.title,
+              color: col.color
+            }))}
+          />
         )}
 
         {currentView === 'timeline' && (
-          <TimelineView tasks={filteredTasks} onAddTask={handleAddTask} />
+          <TimelineView
+            tasks={filteredTasks}
+            workspaceId={workspaceId}
+            projectId={projectId}
+            onTaskClick={handleViewTask}
+            onAddTask={handleAddTask}
+          />
         )}
 
         {currentView === 'gantt' && (
-          <GanttView tasks={filteredTasks} onAddTask={handleAddTask} />
+          <GanttView
+            tasks={filteredTasks}
+            workspaceId={workspaceId}
+            projectId={projectId}
+            onAddTask={handleAddTask}
+            onTaskClick={handleViewTask}
+            kanbanStages={kanbanColumns.map((col) => ({
+              id: col.status,
+              name: col.title,
+              color: col.color
+            }))}
+          />
         )}
 
         {currentView === 'team' && (

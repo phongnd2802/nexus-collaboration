@@ -34,6 +34,103 @@ export function AgenticSuggestions() {
 
   const suggestions = suggestionsData?.suggestions || []
 
+  const getLocalizedActionLabel = (suggestion: Suggestion) => {
+    if (suggestion.type === 'weekly_report_ready') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.actionLabel' })
+    }
+
+    if (suggestion.type === 'task_balance') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewProject', defaultMessage: 'View Project' })
+    }
+
+    if (suggestion.type === 'meeting') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.joinMeeting', defaultMessage: 'Join Meeting' })
+    }
+    if (suggestion.type === 'unread_message') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewMessages', defaultMessage: 'View Messages' })
+    }
+    if (suggestion.type === 'note_update') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.openNote', defaultMessage: 'Open Note' })
+    }
+    if (suggestion.type === 'overdue_task' || suggestion.type === 'upcoming_deadline') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewTask', defaultMessage: 'View Task' })
+    }
+    if (suggestion.type === 'weekly_report_ready') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.actionLabel' })
+    }
+
+    if (suggestion.actionLabel) {
+      const normalized = suggestion.actionLabel.trim().toLowerCase()
+      if (normalized === 'view project') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewProject', defaultMessage: 'View Project' })
+      }
+      if (normalized === 'view report') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.actionLabel' })
+      }
+      if (normalized === 'view messages') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewMessages', defaultMessage: 'View Messages' })
+      }
+      if (normalized === 'open note') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.openNote', defaultMessage: 'Open Note' })
+      }
+      if (normalized === 'view task') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewTask', defaultMessage: 'View Task' })
+      }
+      if (normalized === 'join meeting') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.joinMeeting', defaultMessage: 'Join Meeting' })
+      }
+    }
+
+    return suggestion.actionLabel
+  }
+
+  const getLocalizedSuggestionTitle = (suggestion: Suggestion) => {
+    if (suggestion.type === 'weekly_report_ready') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.title' })
+    }
+
+    if (suggestion.type === 'task_balance') {
+      return intl.formatMessage(
+        { id: 'dashboard.suggestions.taskBalance.title', defaultMessage: 'Task Imbalance in {projectName}' },
+        { projectName: suggestion.metadata?.projectName || intl.formatMessage({ id: 'projects.viewProject', defaultMessage: 'Project' }) }
+      )
+    }
+
+    return suggestion.title
+  }
+
+  const getLocalizedSuggestionDescription = (suggestion: Suggestion) => {
+    if (suggestion.type === 'weekly_report_ready' && suggestion.metadata?.analytics?.currentValue !== undefined) {
+      return intl.formatMessage(
+        { id: 'dashboard.suggestions.weeklyReport.description' },
+        { count: suggestion.metadata.analytics.currentValue }
+      )
+    }
+
+    if (suggestion.type === 'task_balance' && suggestion.metadata?.overloaded && suggestion.metadata?.underloaded) {
+      const overloadedCount = Number(suggestion.metadata.overloaded.taskCount || 0)
+      const underloadedCount = Number(suggestion.metadata.underloaded.taskCount || 0)
+      const idealCount = Math.max(1, Math.round((overloadedCount + underloadedCount) / 2))
+
+      return intl.formatMessage(
+        {
+          id: 'dashboard.suggestions.taskBalance.description',
+          defaultMessage:
+            '{overloadedName} has {overloadedCount} tasks while {underloadedName} has {underloadedCount}. Ideal is ~{idealCount} tasks per member.'
+        },
+        {
+          overloadedName: suggestion.metadata.overloaded.userName || '-',
+          overloadedCount,
+          underloadedName: suggestion.metadata.underloaded.userName || '-',
+          underloadedCount,
+          idealCount
+        }
+      )
+    }
+
+    return suggestion.description
+  }
+
   // Handle action click
   const handleAction = (suggestion: Suggestion) => {
     if (!workspaceId) return
@@ -199,19 +296,12 @@ export function AgenticSuggestions() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h4 className="font-medium text-foreground truncate">
-                  {suggestion.type === 'weekly_report_ready'
-                    ? intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.title' })
-                    : suggestion.title}
+                  {getLocalizedSuggestionTitle(suggestion)}
                 </h4>
                 {getPriorityBadge(suggestion.priority)}
               </div>
               <p className="text-sm text-muted-foreground">
-                {suggestion.type === 'weekly_report_ready' && suggestion.metadata?.analytics?.currentValue !== undefined
-                  ? intl.formatMessage(
-                      { id: 'dashboard.suggestions.weeklyReport.description' },
-                      { count: suggestion.metadata.analytics.currentValue }
-                    )
-                  : suggestion.description}
+                {getLocalizedSuggestionDescription(suggestion)}
               </p>
 
               {/* Additional metadata for task balance */}
@@ -334,9 +424,7 @@ export function AgenticSuggestions() {
                 ) : (
                   <ArrowRight className="h-4 w-4 mr-1" />
                 )}
-                {suggestion.type === 'weekly_report_ready'
-                  ? intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.actionLabel' })
-                  : suggestion.actionLabel}
+                {getLocalizedActionLabel(suggestion)}
               </Button>
             )}
           </div>

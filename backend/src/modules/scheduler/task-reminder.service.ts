@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+﻿import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DatabaseService } from '../database/database.service';
 import { EmailTemplatesService } from '../email/email-templates.service';
@@ -6,22 +6,21 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto';
 
 interface ReminderWindow {
-  milliseconds: number;
+  minMsExclusive: number;
+  maxMsInclusive: number;
   label: string;
 }
 
 const REMINDER_WINDOWS: ReminderWindow[] = [
-  { milliseconds: 3 * 24 * 60 * 60 * 1000, label: '3 ngày' },
-  { milliseconds: 1 * 24 * 60 * 60 * 1000, label: '1 ngày' },
-  { milliseconds: 12 * 60 * 60 * 1000, label: '12 giờ' },
-  { milliseconds: 3 * 60 * 60 * 1000, label: '3 giờ' },
-  { milliseconds: 1 * 60 * 60 * 1000, label: '1 giờ' },
+  { minMsExclusive: 1 * 24 * 60 * 60 * 1000, maxMsInclusive: 3 * 24 * 60 * 60 * 1000, label: '3 ngày' },
+  { minMsExclusive: 12 * 60 * 60 * 1000, maxMsInclusive: 1 * 24 * 60 * 60 * 1000, label: '1 ngày' },
+  { minMsExclusive: 3 * 60 * 60 * 1000, maxMsInclusive: 12 * 60 * 60 * 1000, label: '12 giờ' },
+  { minMsExclusive: 1 * 60 * 60 * 1000, maxMsInclusive: 3 * 60 * 60 * 1000, label: '3 giờ' },
+  { minMsExclusive: 0, maxMsInclusive: 1 * 60 * 60 * 1000, label: '1 giờ' },
 ];
 
 const COMPLETED_STATUSES = ['done', 'completed', 'cancelled'];
-
-const HALF_INTERVAL_MS = 2.5 * 60 * 1000;
-const DEDUP_WINDOW_MS = 30 * 60 * 1000;
+const MAX_LOOKAHEAD_MS = 3 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class TaskReminderService {
@@ -51,38 +50,76 @@ export class TaskReminderService {
       const now = new Date();
       this.logger.log(`[TaskReminder] Checking task reminders at ${now.toISOString()}`);
 
-      for (const window of REMINDER_WINDOWS) {
-        await this.processReminderWindow(now, window);
-      }
-    } catch (error) {
+      await this.processReminderBuckets(now);
+    } catch (error: any) {
       this.logger.error(`[TaskReminder] Error: ${error.message}`, error.stack);
     } finally {
       this.isProcessing = false;
     }
   }
 
-  private async processReminderWindow(now: Date, window: ReminderWindow): Promise<void> {
-    const windowStart = new Date(now.getTime() + window.milliseconds - HALF_INTERVAL_MS);
-    const windowEnd = new Date(now.getTime() + window.milliseconds + HALF_INTERVAL_MS);
-
-    const tasks = await this.findTasksDueInWindow(windowStart, windowEnd);
-
-    if (tasks.length === 0) return;
-
+  private async processReminderBuckets(now: Date): Promise<void> {
+    const tasks = await this.findUpcomingTasks(now);
     this.logger.log(
-      `[TaskReminder] Found ${tasks.length} task(s) due within ${window.label}`,
+      `[TaskReminder] Found ${tasks.length} upcoming task(s) matching query`,
     );
 
+    if (tasks.length === 0) {
+      await this.logUnmatchedTasks(now);
+      return;
+    }
+
     for (const task of tasks) {
+      const dueAt = new Date(task.due_date).getTime();
+      const remainingMs = dueAt - now.getTime();
+      const window = REMINDER_WINDOWS.find(
+        (w) => remainingMs > w.minMsExclusive && remainingMs <= w.maxMsInclusive,
+      );
+
+      if (!window) {
+        this.logger.debug(
+          `[TaskReminder] Task "${task.title}" (id=${task.id}) due=${task.due_date} remainingMs=${remainingMs} — no matching window, skipping`,
+        );
+        continue;
+      }
       await this.processTaskReminder(task, window);
     }
   }
 
-  private async findTasksDueInWindow(
-    windowStart: Date,
-    windowEnd: Date,
-  ): Promise<any[]> {
+  private async logUnmatchedTasks(now: Date): Promise<void> {
     try {
+      const end = new Date(now.getTime() + MAX_LOOKAHEAD_MS);
+      const result = await this.db.query(
+        `SELECT t.id, t.title, t.due_date, t.status, t.assigned_to, t.project_id
+         FROM tasks t
+         WHERE t.due_date IS NOT NULL
+           AND t.due_date >= $1
+           AND t.due_date <= $2`,
+        [now.toISOString(), end.toISOString()],
+      );
+      const allTasks = result.rows || [];
+      if (allTasks.length === 0) {
+        this.logger.log(
+          `[TaskReminder] No tasks with due_date in [${now.toISOString()}, ${end.toISOString()}] at all`,
+        );
+        return;
+      }
+      for (const t of allTasks) {
+        const reasons: string[] = [];
+        if (COMPLETED_STATUSES.includes(t.status)) reasons.push(`status=${t.status}`);
+        if (!t.assigned_to) reasons.push('assigned_to IS NULL');
+        this.logger.warn(
+          `[TaskReminder] Task "${t.title}" (id=${t.id}) due=${t.due_date} status=${t.status} assigned_to=${JSON.stringify(t.assigned_to)} — excluded: ${reasons.length ? reasons.join(', ') : 'JOIN projects failed or unknown'}`,
+        );
+      }
+    } catch (error: any) {
+      this.logger.error(`[TaskReminder] logUnmatchedTasks error: ${error.message}`);
+    }
+  }
+
+  private async findUpcomingTasks(now: Date): Promise<any[]> {
+    try {
+      const end = new Date(now.getTime() + MAX_LOOKAHEAD_MS);
       const result = await this.db.query(
         `SELECT t.*, p.name AS project_name, p.workspace_id
          FROM tasks t
@@ -92,10 +129,10 @@ export class TaskReminderService {
            AND t.due_date <= $2
            AND t.status NOT IN ($3, $4, $5)
            AND t.assigned_to IS NOT NULL`,
-        [windowStart.toISOString(), windowEnd.toISOString(), ...COMPLETED_STATUSES],
+        [now.toISOString(), end.toISOString(), ...COMPLETED_STATUSES],
       );
       return result.rows || [];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[TaskReminder] Query error: ${error.message}`, error.stack);
       return [];
     }
@@ -130,8 +167,8 @@ export class TaskReminderService {
           continue;
         }
 
-        const preferenceOk = await this.checkNotificationPreferences(assigneeId);
-        if (!preferenceOk) continue;
+        const prefOk = await this.checkNotificationPreferences(assigneeId);
+        if (!prefOk.email && !prefOk.in_app) continue;
 
         const baseUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:5173';
         const taskUrl = `${baseUrl}/workspaces/${task.workspace_id}/projects/${task.project_id}`;
@@ -140,14 +177,17 @@ export class TaskReminderService {
           timeStyle: 'short',
         });
 
-        await this.sendTaskReminderEmail(user, task, window, taskUrl, dueDate);
-
-        await this.createTaskReminderNotification(task, assigneeId, window, taskUrl, dueDate);
+        if (prefOk.email) {
+          await this.sendTaskReminderEmail(user, task, window, taskUrl, dueDate);
+        }
+        if (prefOk.in_app) {
+          await this.createTaskReminderNotification(task, assigneeId, window, taskUrl, dueDate);
+        }
 
         this.logger.log(
-          `[TaskReminder] Sent ${window.label} reminder for "${task.title}" to user ${assigneeId}`,
+          `[TaskReminder] Sent ${window.label} reminder for "${task.title}" to user ${assigneeId} (email=${prefOk.email}, in_app=${prefOk.in_app})`,
         );
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(
           `[TaskReminder] Error processing task=${task.id} user=${assigneeId}: ${error.message}`,
           error.stack,
@@ -162,41 +202,39 @@ export class TaskReminderService {
     remindBefore: string,
   ): Promise<boolean> {
     try {
-      const since = new Date(Date.now() - DEDUP_WINDOW_MS).toISOString();
       const result = await this.db.query(
         `SELECT id FROM notifications
          WHERE user_id = $1
            AND type = $2
            AND entity_type = 'task'
            AND entity_id = $3
-           AND created_at >= $4
-           AND data->>'remind_before' = $5
+           AND data->>'remind_before' = $4
          LIMIT 1`,
-        [userId, NotificationType.REMINDER, taskId, since, remindBefore],
+        [userId, NotificationType.REMINDER, taskId, remindBefore],
       );
       return (result.rows?.length || 0) > 0;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[TaskReminder] Dedup error: ${error.message}`);
       return false;
     }
   }
 
-  private async checkNotificationPreferences(userId: string): Promise<boolean> {
+  private async checkNotificationPreferences(
+    userId: string,
+  ): Promise<{ email: boolean; in_app: boolean }> {
     try {
       const prefs = await this.notificationsService.getNotificationPreferences(userId);
 
-      if (prefs.metadata?.doNotDisturb) return false;
+      if (prefs.metadata?.doNotDisturb) return { email: false, in_app: false };
 
       const reminderPrefs = prefs.types?.['reminder'] || prefs.types?.[NotificationType.REMINDER];
-      if (reminderPrefs && reminderPrefs.email === false && reminderPrefs.in_app === false) {
-        return false;
-      }
 
-      if (!prefs.global.email && !prefs.global.in_app) return false;
-
-      return true;
+      return {
+        email: reminderPrefs ? reminderPrefs.email !== false : prefs.global.email !== false,
+        in_app: reminderPrefs ? reminderPrefs.in_app !== false : prefs.global.in_app !== false,
+      };
     } catch {
-      return true;
+      return { email: true, in_app: true };
     }
   }
 
@@ -259,7 +297,7 @@ export class TaskReminderService {
           priority: task.priority,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `[TaskReminder] In-app notification error: ${error.message}`,
         error.stack,

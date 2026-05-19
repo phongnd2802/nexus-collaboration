@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useIntl } from 'react-intl'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -23,8 +23,6 @@ import {
   ChevronDown,
   ChevronUp,
   MoreHorizontal,
-  MessageSquare,
-  Paperclip,
   ArrowUp,
   ArrowDown,
   Minus,
@@ -32,10 +30,10 @@ import {
   Edit,
   Trash2
 } from 'lucide-react'
-import { TaskType } from '@/types/tasks'
 import type { Task } from '@/lib/api/projects-api'
-import { format, isAfter, isToday } from 'date-fns'
-import { getAssigneeInitials, getAssigneeName } from '@/utils/task-helpers'
+import { isAfter, isToday } from 'date-fns'
+import { getAssigneeName } from '@/utils/task-helpers'
+import { useWorkspace } from '@/contexts/WorkspaceContext'
 
 const stripHtml = (html: string): string => {
   if (!html) return ''
@@ -63,15 +61,27 @@ interface TaskCustomField {
 interface TaskListViewProps {
   tasks: Task[]
   onTaskClick?: (task: Task) => void
+  kanbanStages?: Array<{ id: string; name: string; color: string }>
 }
 
 type SortField = 'title' | 'status' | 'priority' | 'assignee' | 'dueDate' | 'createdAt'
 type SortDirection = 'asc' | 'desc'
 
-export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
-  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+export function TaskListView({ tasks, onTaskClick, kanbanStages = [] }: TaskListViewProps) {
+  const intl = useIntl()
+  const { members } = useWorkspace()
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+
+  const memberByUserId = useMemo(() => {
+    const map = new Map<string, any>()
+    members.forEach((member) => {
+      if (member.user_id) map.set(member.user_id, member)
+      if (member.id) map.set(member.id, member)
+      if (member.user?.id) map.set(member.user.id, member)
+    })
+    return map
+  }, [members])
 
   // Helper function to format per-task custom field values for display
   const formatCustomFieldValue = (field: TaskCustomField): string => {
@@ -125,22 +135,6 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
     }
   }
 
-  const toggleTaskSelection = (taskId: string) => {
-    setSelectedTasks(prev =>
-      prev.includes(taskId)
-        ? prev.filter(id => id !== taskId)
-        : [...prev, taskId]
-    )
-  }
-
-  const toggleAllTasks = () => {
-    if (selectedTasks.length === sortedTasks.length) {
-      setSelectedTasks([])
-    } else {
-      setSelectedTasks(sortedTasks.map(task => task.id))
-    }
-  }
-
   // Sort tasks
   const sortedTasks = [...tasks].sort((a, b) => {
     let aValue: any
@@ -184,30 +178,6 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
     }
   })
 
-  const getTaskTypeIcon = (type?: TaskType) => {
-    switch (type) {
-      case TaskType.BUG: return '🐛'
-      case TaskType.STORY: return '📖'
-      case TaskType.EPIC: return '🎯'
-      case TaskType.TASK: return '✓'
-      case TaskType.SUBTASK: return '📝'
-      case TaskType.FEATURE_REQUEST: return '⚡'
-      default: return '📋'
-    }
-  }
-
-  const getTaskTypeColor = (type?: TaskType) => {
-    switch (type) {
-      case TaskType.BUG: return 'bg-red-200/50 text-red-900'
-      case TaskType.STORY: return 'bg-blue-200/50 text-blue-900'
-      case TaskType.EPIC: return 'bg-purple-200/50 text-purple-900'
-      case TaskType.TASK: return 'bg-green-200/50 text-green-900'
-      case TaskType.SUBTASK: return 'bg-neutral-200/50 text-neutral-900'
-      case TaskType.FEATURE_REQUEST: return 'bg-orange-200/50 text-orange-900'
-      default: return 'bg-neutral-200/50 text-neutral-900'
-    }
-  }
-
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'high': return <ArrowUp className="w-4 h-4 text-red-500" />
@@ -218,18 +188,125 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'todo': return 'bg-blue-200/50 text-blue-900'
-      case 'in_progress': return 'bg-yellow-200/50 text-yellow-900'
-      case 'review': return 'bg-purple-200/50 text-purple-900'
-      case 'completed': return 'bg-green-200/50 text-green-900'
-      default: return 'bg-neutral-200/50 text-neutral-900'
+    const stage = kanbanStages.find((s) => s.id === status) || kanbanStages.find((s) => normalizeStatus(s.id) === normalizeStatus(status))
+    if (stage?.color) {
+      return {
+        backgroundColor: `${stage.color}20`,
+        color: stage.color,
+        borderColor: `${stage.color}66`
+      }
+    }
+
+    const normalizedStatus = (status || '').toString().toLowerCase()
+    switch (normalizedStatus) {
+      case '1':
+      case 'todo': return { backgroundColor: '#DBEAFE', color: '#1E3A8A', borderColor: '#93C5FD' }
+      case '2':
+      case 'in_progress': return { backgroundColor: '#FEF3C7', color: '#92400E', borderColor: '#FCD34D' }
+      case '3':
+      case 'review': return { backgroundColor: '#EDE9FE', color: '#5B21B6', borderColor: '#C4B5FD' }
+      case '4':
+      case 'completed': return { backgroundColor: '#DCFCE7', color: '#166534', borderColor: '#86EFAC' }
+      default: return { backgroundColor: '#E5E7EB', color: '#111827', borderColor: '#D1D5DB' }
+    }
+  }
+
+  const normalizeStatus = (status: string) => {
+    const normalizedStatus = (status || '').toString().toLowerCase()
+    if (normalizedStatus === '1') return 'todo'
+    if (normalizedStatus === '2') return 'in_progress'
+    if (normalizedStatus === '3') return 'review'
+    if (normalizedStatus === '4') return 'completed'
+    if (normalizedStatus === 'in-progress') return 'in_progress'
+    if (normalizedStatus === 'done') return 'completed'
+    return normalizedStatus
+  }
+
+  const getStatusLabel = (status: string) => {
+    const stage = kanbanStages.find((s) => s.id === status) || kanbanStages.find((s) => normalizeStatus(s.id) === normalizeStatus(status))
+    if (stage?.name) return stage.name
+
+    const normalizedStatus = (status || '').toString().toLowerCase()
+    switch (normalizedStatus) {
+      case '1':
+      case 'todo':
+        return intl.formatMessage({ id: 'tasks.status.todo', defaultMessage: 'To do' })
+      case '2':
+      case 'in_progress':
+      case 'in-progress':
+        return intl.formatMessage({ id: 'tasks.status.inProgress', defaultMessage: 'In progress' })
+      case '3':
+      case 'review':
+        return intl.formatMessage({ id: 'tasks.status.review', defaultMessage: 'Review' })
+      case '4':
+      case 'completed':
+      case 'done':
+        return intl.formatMessage({ id: 'tasks.status.completed', defaultMessage: 'Completed' })
+      default:
+        return status
     }
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null
     return sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+  }
+
+  const resolveAssigneeDisplay = (task: Task) => {
+    const firstAssignee = (task as any).assignees?.[0]
+    const firstAssigneeId =
+      typeof firstAssignee === 'string'
+        ? firstAssignee
+        : firstAssignee?.id
+
+    const assigneeId =
+      task.assigneeId ||
+      (typeof task.assignee === 'object' ? task.assignee?.id : undefined) ||
+      firstAssigneeId
+
+    const workspaceMember = assigneeId ? memberByUserId.get(assigneeId) : undefined
+
+    const nameFromMember =
+      workspaceMember?.user?.name ||
+      workspaceMember?.name ||
+      workspaceMember?.email
+
+    const avatarFromMember =
+      workspaceMember?.user?.avatar ||
+      workspaceMember?.avatar_url
+
+    if (nameFromMember) {
+      return {
+        name: nameFromMember,
+        avatarUrl: avatarFromMember
+      }
+    }
+
+    if (typeof firstAssignee === 'object' && firstAssignee?.name) {
+      return {
+        name: firstAssignee.name,
+        avatarUrl: firstAssignee.avatarUrl || firstAssignee.avatar
+      }
+    }
+
+    if (task.assignee && typeof task.assignee === 'object') {
+      return {
+        name: getAssigneeName(task.assignee),
+        avatarUrl: task.assignee.avatarUrl || task.assignee.avatar
+      }
+    }
+
+    return undefined
+  }
+
+  const getNameInitials = (name: string) => {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2)
   }
 
   if (sortedTasks.length === 0) {
@@ -251,86 +328,76 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
       <CardContent className="p-0 h-full flex flex-col">
         <div className="flex-shrink-0">
           <Table>
-            <TableHeader>
+            <TableHeader className="table-fixed w-full">
               <TableRow>
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={selectedTasks.length === sortedTasks.length && sortedTasks.length > 0}
-                    onCheckedChange={toggleAllTasks}
-                  />
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-8 p-0 font-semibold"
+                <TableHead className="w-[22%]">
+                  <button
+                    type="button"
+                    className="h-8 p-0 font-semibold inline-flex items-center gap-1 bg-transparent border-0 shadow-none"
                     onClick={() => handleSort('title')}
                   >
-                    Task
+                    {intl.formatMessage({ id: 'tasks.listTable.task', defaultMessage: 'Task' })}
                     <SortIcon field="title" />
-                  </Button>
+                  </button>
                 </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-8 p-0 font-semibold"
+                <TableHead className="w-[14%]">
+                  <button
+                    type="button"
+                    className="h-8 p-0 font-semibold inline-flex items-center gap-1 bg-transparent border-0 shadow-none"
                     onClick={() => handleSort('status')}
                   >
-                    Status
+                    {intl.formatMessage({ id: 'tasks.listTable.status', defaultMessage: 'Status' })}
                     <SortIcon field="status" />
-                  </Button>
+                  </button>
                 </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-8 p-0 font-semibold"
+                <TableHead className="w-[16%]">
+                  <button
+                    type="button"
+                    className="h-8 p-0 font-semibold inline-flex items-center gap-1 bg-transparent border-0 shadow-none"
                     onClick={() => handleSort('priority')}
                   >
-                    Priority
+                    {intl.formatMessage({ id: 'tasks.listTable.priority', defaultMessage: 'Priority' })}
                     <SortIcon field="priority" />
-                  </Button>
+                  </button>
                 </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-8 p-0 font-semibold"
+                <TableHead className="w-[18%]">
+                  <button
+                    type="button"
+                    className="h-8 p-0 font-semibold inline-flex items-center gap-1 bg-transparent border-0 shadow-none"
                     onClick={() => handleSort('assignee')}
                   >
-                    Assignee
+                    {intl.formatMessage({ id: 'tasks.listTable.assignee', defaultMessage: 'Assignee' })}
                     <SortIcon field="assignee" />
-                  </Button>
+                  </button>
                 </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-8 p-0 font-semibold"
+                <TableHead className="w-[12%]">
+                  <button
+                    type="button"
+                    className="h-8 p-0 font-semibold inline-flex items-center gap-1 bg-transparent border-0 shadow-none"
                     onClick={() => handleSort('dueDate')}
                   >
-                    Due Date
+                    {intl.formatMessage({ id: 'tasks.listTable.dueDate', defaultMessage: 'Due Date' })}
                     <SortIcon field="dueDate" />
-                  </Button>
+                  </button>
                 </TableHead>
-                <TableHead>Details</TableHead>
-                <TableHead>Custom Fields</TableHead>
+                <TableHead className="w-[12%]">{intl.formatMessage({ id: 'tasks.listTable.customFields', defaultMessage: 'Custom Fields' })}</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
           </Table>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <Table>
+          <Table className="table-fixed w-full">
             <TableBody>
               {sortedTasks.map(task => {
                 const isOverdue = task.dueDate && isAfter(new Date(), new Date(task.dueDate)) && task.status !== 'completed'
                 const isDueToday = task.dueDate && isToday(new Date(task.dueDate))
+                const assigneeDisplay = resolveAssigneeDisplay(task)
 
                 return (
                   <TableRow
                     key={task.id}
                     className={`cursor-pointer hover:bg-neutral-200/50 ${
-                      selectedTasks.includes(task.id)
-                        ? 'bg-neutral-200/70'
-                        : ''
-                    } ${
                       isOverdue
                         ? 'bg-red-200/30'
                         : isDueToday
@@ -339,89 +406,54 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
                     }`}
                     onClick={() => onTaskClick?.(task)}
                   >
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedTasks.includes(task.id)}
-                        onCheckedChange={() => {
-                          toggleTaskSelection(task.id)
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </TableCell>
-
-                    <TableCell>
+                    <TableCell className="w-[22%]">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-xs ${getTaskTypeColor(undefined)}`}>
-                            {getTaskTypeIcon(undefined)}
-                          </Badge>
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {task.id.substring(0, 8)}
-                          </span>
-                        </div>
-                        <p className="font-medium line-clamp-1">{task.title}</p>
+                        <p className="font-medium line-clamp-2 break-words">{task.title}</p>
                         {task.description && (
                           <p className="text-xs text-muted-foreground line-clamp-1">{stripHtml(task.description)}</p>
                         )}
                       </div>
                     </TableCell>
 
-                    <TableCell>
-                      <Badge className={`text-xs ${getStatusColor(task.status)}`}>
-                        {task.status.replace('_', ' ').toUpperCase()}
+                    <TableCell className="w-[14%]">
+                      <Badge className="text-xs border" style={getStatusColor(task.status)}>
+                        {getStatusLabel(task.status)}
                       </Badge>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="w-[14%]">
                       <div className="flex items-center gap-1">
                         {getPriorityIcon(task.priority)}
                         <span className="text-sm">{task.priority.toUpperCase()}</span>
                       </div>
                     </TableCell>
 
-                    <TableCell>
-                      {task.assignee && (
-                        <div className="flex items-center gap-2">
+                    <TableCell className="w-[18%]">
+                      {assigneeDisplay && (
+                        <div className="flex items-center gap-2 min-w-0">
                           <Avatar className="w-6 h-6">
-                            <AvatarImage src={task.assignee.avatarUrl} />
+                            <AvatarImage src={assigneeDisplay.avatarUrl} />
                             <AvatarFallback className="text-xs">
-                              {getAssigneeInitials(task.assignee)}
+                              {getNameInitials(assigneeDisplay.name)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm">{getAssigneeName(task.assignee)}</span>
+                          <span className="text-sm truncate">{assigneeDisplay.name}</span>
                         </div>
                       )}
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="w-[13%]">
                       {task.dueDate && (
                         <div className={`text-sm ${
                           isOverdue ? 'text-red-600' : isDueToday ? 'text-yellow-600' : 'text-muted-foreground'
                         }`}>
-                          {format(new Date(task.dueDate), 'MMM dd, yyyy')}
+                          {intl.formatDate(new Date(task.dueDate), { month: 'short', day: '2-digit', year: 'numeric' })}
                         </div>
                       )}
                     </TableCell>
 
-                    <TableCell>
-                      <div className="flex items-center gap-3 text-muted-foreground">
-                        {task.comments && task.comments.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <MessageSquare className="w-4 h-4" />
-                            <span className="text-xs">{task.comments.length}</span>
-                          </div>
-                        )}
-                        {task.attachments && task.attachments.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Paperclip className="w-4 h-4" />
-                            <span className="text-xs">{task.attachments.length}</span>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-
                     {/* Custom Fields Column (per-task) */}
-                    <TableCell>
+                    <TableCell className="w-[12%]">
                       {(task as any).custom_fields && Array.isArray((task as any).custom_fields) && (task as any).custom_fields.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5 max-w-[200px]">
                           {((task as any).custom_fields as TaskCustomField[])
@@ -472,16 +504,16 @@ export function TaskListView({ tasks, onTaskClick }: TaskListViewProps) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
                             <Eye className="w-4 h-4 mr-2" />
-                            View Details
+                            {intl.formatMessage({ id: 'tasks.listTable.actions.viewDetails', defaultMessage: 'View Details' })}
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Edit className="w-4 h-4 mr-2" />
-                            Edit
+                            {intl.formatMessage({ id: 'tasks.listTable.actions.edit', defaultMessage: 'Edit' })}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600">
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
+                            {intl.formatMessage({ id: 'tasks.listTable.actions.delete', defaultMessage: 'Delete' })}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

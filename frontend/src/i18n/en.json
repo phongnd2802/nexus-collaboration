@@ -7492,6 +7492,17 @@
       "allCaughtUp": "You're all caught up!",
       "noSuggestions": "No immediate actions required. Great work!",
       "showMore": "Show {count} more suggestions",
+      "actions": {
+        "viewProject": "View Project",
+        "joinMeeting": "Join Meeting",
+        "viewMessages": "View Messages",
+        "openNote": "Open Note",
+        "viewTask": "View Task"
+      },
+      "taskBalance": {
+        "title": "Task Imbalance in {projectName}",
+        "description": "{overloadedName} has {overloadedCount} tasks while {underloadedName} has {underloadedCount}. Ideal is ~{idealCount} tasks per member."
+      },
       "priority": {
         "high": "High Priority",
         "medium": "Medium"
@@ -7730,7 +7741,43 @@
     "taskDeletedSuccess": "\"{title}\" has been deleted successfully.",
     "deleting": "Deleting...",
     "tasksCount": "{count} tasks",
-    "upcomingTasks": "Upcoming Tasks"
+    "upcomingTasks": "Upcoming Tasks",
+    "unassigned": "Unassigned",
+    "gantt": {
+      "title": "Gantt Chart",
+      "today": "Today",
+      "tasks": "Tasks",
+      "itemsCount": "{count, plural, one {# item} other {# items}}",
+      "due": "Due",
+      "durationDays": "{count, plural, one {# day} other {# days}}",
+      "emptyTitle": "No tasks scheduled",
+      "emptyDescription": "Create tasks with due dates to visualize your project timeline. The Gantt chart will help you track progress and dependencies.",
+      "emptyCta": "Create Your First Task"
+    },
+    "status": {
+      "todo": "To do",
+      "inProgress": "In progress",
+      "review": "Review",
+      "completed": "Completed"
+    },
+    "priorityLevels": {
+      "high": "High Priority",
+      "medium": "Medium Priority",
+      "low": "Low Priority"
+    },
+    "listTable": {
+      "task": "Task",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "dueDate": "Due Date",
+      "customFields": "Custom Fields",
+      "actions": {
+        "viewDetails": "View Details",
+        "edit": "Edit",
+        "delete": "Delete"
+      }
+    }
   },
   "settings": {
     "profile": {

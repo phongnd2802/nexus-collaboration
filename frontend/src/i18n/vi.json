@@ -7492,6 +7492,17 @@
       "allCaughtUp": "Bạn đã bắt kịp mọi thứ!",
       "noSuggestions": "Không có hành động nào cần thực hiện ngay. Làm tốt lắm!",
       "showMore": "Hiển thị thêm {count} gợi ý",
+      "actions": {
+        "viewProject": "Xem dự án",
+        "joinMeeting": "Tham gia cuộc họp",
+        "viewMessages": "Xem tin nhắn",
+        "openNote": "Mở ghi chú",
+        "viewTask": "Xem nhiệm vụ"
+      },
+      "taskBalance": {
+        "title": "Mất cân bằng nhiệm vụ trong {projectName}",
+        "description": "{overloadedName} có {overloadedCount} nhiệm vụ trong khi {underloadedName} có {underloadedCount}. Mức lý tưởng là khoảng {idealCount} nhiệm vụ mỗi thành viên."
+      },
       "priority": {
         "high": "Ưu tiên cao",
         "medium": "Trung bình"
@@ -7714,7 +7725,7 @@
     "viewOptions": "Tùy chọn xem",
     "changeView": "Thay đổi chế độ xem",
     "searchTasks": "Tìm kiếm nhiệm vụ...",
-    "priority": "Ưu tiên",
+    "priority": "Mức ưu tiên",
     "all": "Tất cả",
     "low": "Thấp",
     "medium": "Trung bình",
@@ -7730,7 +7741,43 @@
     "taskDeletedSuccess": "\"{title}\" đã được xóa thành công.",
     "deleting": "Đang xóa...",
     "tasksCount": "{count} nhiệm vụ",
-    "upcomingTasks": "Nhiệm vụ sắp tới"
+    "upcomingTasks": "Nhiệm vụ sắp tới",
+    "unassigned": "Chưa giao",
+    "gantt": {
+      "title": "Biểu đồ Gantt",
+      "today": "Hôm nay",
+      "tasks": "Nhiệm vụ",
+      "itemsCount": "{count, plural, one {# mục} other {# mục}}",
+      "due": "Hạn",
+      "durationDays": "{count, plural, one {# ngày} other {# ngày}}",
+      "emptyTitle": "Chưa có nhiệm vụ nào được lên lịch",
+      "emptyDescription": "Hãy tạo nhiệm vụ có ngày hết hạn để hiển thị tiến độ dự án trên dòng thời gian. Biểu đồ Gantt sẽ giúp bạn theo dõi tiến độ và  phụ thuộc.",
+      "emptyCta": "Tạo nhiệm vụ đầu tiên"
+    },
+    "status": {
+      "todo": "Cần làm",
+      "inProgress": "Đang thực hiện",
+      "review": "Đang duyệt",
+      "completed": "Hoàn thành"
+    },
+    "priorityLevels": {
+      "high": "Ưu tiên cao",
+      "medium": "Ưu tiên trung bình",
+      "low": "Ưu tiên thấp"
+    },
+    "listTable": {
+      "task": "Nhiệm vụ",
+      "status": "Trạng thái",
+      "priority": "Mức ưu tiên",
+      "assignee": "Người phụ trách",
+      "dueDate": "Hạn",
+      "customFields": "Tùy chỉnh",
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "edit": "Chỉnh sửa",
+        "delete": "Xóa"
+      }
+    }
   },
   "settings": {
     "profile": {
@@ -9559,3 +9606,5 @@
     }
   }
 }
+
+

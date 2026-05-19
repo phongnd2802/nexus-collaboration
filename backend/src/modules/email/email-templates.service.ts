@@ -52,7 +52,14 @@ export class EmailTemplatesService {
       tags: { type: 'task-reminder' },
     };
 
-    await this.emailProvider.send(input);
+    const result = await this.emailProvider.send(input);
+
+    if (!result.accepted) {
+      this.logger.warn(
+        `[EmailTemplates] Email not accepted by provider for ${opts.to} (${opts.remindBeforeLabel})`,
+      );
+      return;
+    }
 
     this.logger.log(
       `[EmailTemplates] Sent task reminder to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,

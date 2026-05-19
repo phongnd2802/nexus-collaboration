@@ -766,12 +766,15 @@ export class NotificationsService {
     notificationData: Partial<CreateNotificationDto>,
   ): Promise<NotificationResponseDto> {
     const now = new Date().toISOString();
+    const data = notificationData.data || {};
     const notification = await this.db.insert('notifications', {
       user_id: userId,
       type: notificationData.type,
       title: notificationData.title,
       message: notificationData.message || null,
-      data: notificationData.data || {},
+      data: data,
+      entity_type: data.entity_type || null,
+      entity_id: data.entity_id || null,
       action_url: notificationData.action_url || null,
       priority: notificationData.priority || NotificationPriority.NORMAL,
       expires_at: notificationData.expires_at || null,
