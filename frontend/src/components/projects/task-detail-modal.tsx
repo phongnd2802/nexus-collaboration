@@ -35,6 +35,7 @@ import {
   CalendarDays
 } from 'lucide-react'
 import { format, formatDistanceToNow, isAfter, isPast } from 'date-fns'
+import { vi as viLocale } from 'date-fns/locale'
 import type { Task } from '@/lib/api/projects-api'
 import { githubApi, type GitHubIssueLink } from '@/lib/api/github-api'
 import { GitHubLinksDisplay } from '@/components/github/github-links-display'
@@ -58,6 +59,8 @@ interface TaskDetailModalProps {
   workspaceId?: string
 }
 
+import { useIntl } from 'react-intl'
+
 export function TaskDetailModal({
   open,
   onOpenChange,
@@ -66,6 +69,7 @@ export function TaskDetailModal({
   kanbanStages = [],
   workspaceId: propWorkspaceId
 }: TaskDetailModalProps) {
+  const intl = useIntl()
   const params = useParams<{ workspaceId: string }>()
   const workspaceId = propWorkspaceId || params.workspaceId || ''
 
@@ -292,13 +296,14 @@ export function TaskDetailModal({
               <Button
                 variant="outline"
                 size="sm"
+                className="mr-6"
                 onClick={() => {
                   onOpenChange(false)
                   onEdit(task)
                 }}
               >
                 <Edit className="w-4 h-4 mr-1" />
-                Edit
+                {intl.formatMessage({ id: 'common.edit', defaultMessage: 'Chỉnh sửa' })}
               </Button>
             )}
           </div>
@@ -311,7 +316,7 @@ export function TaskDetailModal({
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4" />
-                  Description
+                  {intl.formatMessage({ id: 'modules.projects.createTask.description', defaultMessage: 'Mô tả' })}
                 </h3>
                 <div
                   className="text-sm prose prose-sm max-w-none dark:prose-invert"
@@ -328,7 +333,7 @@ export function TaskDetailModal({
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  Assignees
+                  {intl.formatMessage({ id: 'tasks.assignees', defaultMessage: 'Người được giao' })}
                 </h3>
                 {assignees.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -350,7 +355,7 @@ export function TaskDetailModal({
                     })}
                   </div>
                 ) : (
-                  <span className="text-sm text-muted-foreground">No assignees</span>
+                  <span className="text-sm text-muted-foreground">{intl.formatMessage({ id: 'tasks.noAssignees', defaultMessage: 'Chưa có người được giao' })}</span>
                 )}
               </div>
 
@@ -358,20 +363,20 @@ export function TaskDetailModal({
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  Due Date
+                  {intl.formatMessage({ id: 'tasks.dueDate', defaultMessage: 'Ngày hết hạn' })}
                 </h3>
                 {task.dueDate ? (
                   <div className={`flex items-center gap-2 ${isOverdue ? 'text-red-600' : isDueSoon ? 'text-yellow-600' : ''}`}>
                     {isOverdue && <AlertCircle className="w-4 h-4" />}
                     <span className="text-sm font-medium">
-                      {format(new Date(task.dueDate), 'MMM dd, yyyy')}
+                      {format(new Date(task.dueDate), 'dd MMM, yyyy', { locale: viLocale })}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      ({formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })})
+                      ({formatDistanceToNow(new Date(task.dueDate), { addSuffix: true, locale: viLocale })})
                     </span>
                   </div>
                 ) : (
-                  <span className="text-sm text-muted-foreground">No due date</span>
+                  <span className="text-sm text-muted-foreground">{intl.formatMessage({ id: 'tasks.noDueDate', defaultMessage: 'Chưa có ngày hết hạn' })}</span>
                 )}
               </div>
 
@@ -380,9 +385,9 @@ export function TaskDetailModal({
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    Estimated Time
+                    {intl.formatMessage({ id: 'tasks.estimatedTime', defaultMessage: 'Thời gian ước tính' })}
                   </h3>
-                  <span className="text-sm">{task.estimatedHours} hours</span>
+                  <span className="text-sm">{task.estimatedHours} {intl.formatMessage({ id: 'tasks.hours', defaultMessage: 'giờ' })}</span>
                 </div>
               )}
 
@@ -390,12 +395,12 @@ export function TaskDetailModal({
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  Created
+                  {intl.formatMessage({ id: 'tasks.created', defaultMessage: 'Đã tạo' })}
                 </h3>
                 <span className="text-sm">
-                  {format(new Date(task.createdAt), 'MMM dd, yyyy')}
+                  {format(new Date(task.createdAt), 'dd MMM, yyyy', { locale: viLocale })}
                   <span className="text-muted-foreground ml-1">
-                    ({formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })})
+                    ({formatDistanceToNow(new Date(task.createdAt), { addSuffix: true, locale: viLocale })})
                   </span>
                 </span>
               </div>
@@ -408,7 +413,7 @@ export function TaskDetailModal({
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <Tag className="w-4 h-4" />
-                    Tags
+                    {intl.formatMessage({ id: 'tasks.tags', defaultMessage: 'Nhãn' })}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {task.tags.map((tag, index) => (
@@ -440,7 +445,7 @@ export function TaskDetailModal({
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">Custom Fields</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">{intl.formatMessage({ id: 'tasks.customFields', defaultMessage: 'Trường tùy chỉnh' })}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {((task as any).custom_fields as TaskCustomField[])
                       .filter(field => field.value !== undefined && field.value !== null && field.value !== '')
@@ -465,7 +470,7 @@ export function TaskDetailModal({
               <>
                 <Separator />
                 <div className="text-xs text-muted-foreground">
-                  Last updated by <span className="font-medium">{(task as any).updated_by_user.name}</span>
+                  {intl.formatMessage({ id: 'tasks.lastUpdatedBy', defaultMessage: 'Cập nhật lần cuối bởi' })} <span className="font-medium">{(task as any).updated_by_user.name}</span>
                   {task.updatedAt && (
                     <span> {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</span>
                   )}

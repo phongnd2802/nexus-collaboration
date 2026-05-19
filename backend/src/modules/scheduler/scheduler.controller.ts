@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { NotificationSchedulerService } from './notification-scheduler.service';
 import { RecordingProcessorService } from './recording-processor.service';
+import { TaskReminderService } from './task-reminder.service';
 import {
   CreateScheduledNotificationDto,
   UpdateScheduledNotificationDto,
@@ -33,6 +34,7 @@ export class SchedulerController {
   constructor(
     private readonly schedulerService: NotificationSchedulerService,
     private readonly recordingProcessorService: RecordingProcessorService,
+    private readonly taskReminderService: TaskReminderService,
   ) {}
 
   // =============================================
@@ -149,5 +151,19 @@ export class SchedulerController {
   })
   async cleanupStuckRecordings() {
     return this.recordingProcessorService.cleanupStuckRecordings();
+  }
+
+  // =============================================
+  // TASK REMINDERS
+  // =============================================
+
+  @Get('task-reminders/stats')
+  @ApiOperation({ summary: 'Get task reminder statistics' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Task reminder statistics retrieved successfully',
+  })
+  async getTaskReminderStats() {
+    return this.taskReminderService.getReminderStats();
   }
 }

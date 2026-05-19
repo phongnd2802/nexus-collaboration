@@ -43,6 +43,21 @@ import { useToast } from '@/components/ui/use-toast'
 import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProjectsStore } from '@/stores/useProjectsStore'
+import { getProjectTypePreset } from '@/lib/project-type-presets'
+
+const stripHtml = (html: string): string => {
+  if (!html) return ''
+  try {
+    const preprocessed = html
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+    const doc = new DOMParser().parseFromString(preprocessed, 'text/html')
+    return (doc.body.textContent || '').trim().replace(/\n\s*\n+/g, '\n')
+  } catch (e) {
+    return html.replace(/<[^>]*>/g, '\n').trim().replace(/\n\s*\n+/g, '\n')
+  }
+}
 
 interface ProjectDashboardProps {
   workspaceId: string
@@ -71,11 +86,11 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
   const getApiTypeFilter = (uiType: ProjectType | 'ALL') => {
     if (uiType === 'ALL') return undefined
 
-    const typeMap: Record<ProjectType, 'kanban' | 'scrum' | 'waterfall' | 'bug_tracking' | 'feature_development' | 'research'> = {
+    const typeMap: Record<ProjectType, 'kanban' | 'scrum' | 'bug_tracking' | 'feature' | 'research'> = {
       [ProjectType.KANBAN]: 'kanban',
       [ProjectType.SCRUM]: 'scrum',
       [ProjectType.BUG_TRACKING]: 'bug_tracking',
-      [ProjectType.FEATURE_DEVELOPMENT]: 'feature_development',
+      [ProjectType.FEATURE_DEVELOPMENT]: 'feature',
       [ProjectType.RESEARCH]: 'research'
     }
 
@@ -113,9 +128,10 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
       const tasks = taskQueries[index]?.data || []
 
       // Get the last stage (completed stage) from kanban_stages
+      const fallbackCompletion = getProjectTypePreset(project.type).completionStageId
       const lastStageId = project.kanban_stages && project.kanban_stages.length > 0
         ? project.kanban_stages.sort((a: any, b: any) => b.order - a.order)[0]?.id
-        : 'completed' // fallback to 'completed' if no stages defined
+        : fallbackCompletion
 
       // Calculate metrics
       const totalTasks = tasks.length
@@ -151,7 +167,7 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
   // Filter by search term only (type filtering is done by API)
   const filteredProjects = projectsWithMetrics.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                         (project.description ? stripHtml(project.description).toLowerCase().includes(searchTerm.toLowerCase()) : false)
     return matchesSearch
   })
 
@@ -515,8 +531,8 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                   </Badge>
                 </div>
                 {project.description && (
-                  <p className="text-sm text-muted-foreground mt-2 line-clamp-1">
-                    {project.description.replace(/<[^>]*>/g, '')}
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-3 whitespace-pre-wrap">
+                    {stripHtml(project.description)}
                   </p>
                 )}
               </CardHeader>

@@ -112,6 +112,17 @@ export function CreateTaskModal({
     estimatedHours: '',
     tags: [] as string[],
     links: [] as string[],
+    severity: '',
+    reproSteps: '',
+    environment: '',
+    storyPoints: '',
+    sprintId: '',
+    epicLink: '',
+    releaseTarget: '',
+    customerImpact: '',
+    hypothesis: '',
+    sourceLinks: '',
+    evidenceLevel: '',
   })
 
   const [newTag, setNewTag] = useState('')
@@ -178,6 +189,8 @@ export function CreateTaskModal({
   })
 
   const tasks = Array.isArray(availableTasks) ? availableTasks : []
+  const projectTypeRaw = String(projectData?.type || 'kanban')
+  const projectType = projectTypeRaw === 'feature_development' ? 'feature' : projectTypeRaw
 
   // Get kanban stages from project or use defaults
   const kanbanStages = projectData?.kanban_stages && projectData.kanban_stages.length > 0
@@ -237,9 +250,61 @@ export function CreateTaskModal({
         estimatedHours: task.estimatedHours ? String(task.estimatedHours) : '',
         tags: task.tags || [],
         links: [],
+        severity: '',
+        reproSteps: '',
+        environment: '',
+        storyPoints: '',
+        sprintId: '',
+        epicLink: '',
+        releaseTarget: '',
+        customerImpact: '',
+        hypothesis: '',
+        sourceLinks: '',
+        evidenceLevel: '',
       })
+
+      const typedCustomFields = Array.isArray(task.custom_fields) ? task.custom_fields : []
+      const readField = (id: string) => {
+        const found = typedCustomFields.find((f: any) => f?.id === id)
+        return found?.value ? String(found.value) : ''
+      }
+      setFormData(prev => ({
+        ...prev,
+        severity: readField('system_severity'),
+        reproSteps: readField('system_repro_steps'),
+        environment: readField('system_environment'),
+        storyPoints: readField('system_story_points'),
+        sprintId: readField('system_sprint_id'),
+        epicLink: readField('system_epic_link'),
+        releaseTarget: readField('system_release_target'),
+        customerImpact: readField('system_customer_impact'),
+        hypothesis: readField('system_hypothesis'),
+        sourceLinks: readField('system_source_links'),
+        evidenceLevel: readField('system_evidence_level'),
+      }))
     }
   }, [task, open, projectId, projectMembers])
+
+  const buildTypeSpecificCustomFields = (data: typeof formData) => {
+    const fields: Array<{ id: string; name: string; fieldType: string; value: any }> = []
+    const pushIfValue = (id: string, name: string, value: string) => {
+      if (value && value.trim()) {
+        fields.push({ id, name, fieldType: 'text', value: value.trim() })
+      }
+    }
+    pushIfValue('system_severity', 'Severity', data.severity)
+    pushIfValue('system_repro_steps', 'Repro Steps', data.reproSteps)
+    pushIfValue('system_environment', 'Environment', data.environment)
+    pushIfValue('system_story_points', 'Story Points', data.storyPoints)
+    pushIfValue('system_sprint_id', 'Sprint ID', data.sprintId)
+    pushIfValue('system_epic_link', 'Epic Link', data.epicLink)
+    pushIfValue('system_release_target', 'Release Target', data.releaseTarget)
+    pushIfValue('system_customer_impact', 'Customer Impact', data.customerImpact)
+    pushIfValue('system_hypothesis', 'Hypothesis', data.hypothesis)
+    pushIfValue('system_source_links', 'Source Links', data.sourceLinks)
+    pushIfValue('system_evidence_level', 'Evidence Level', data.evidenceLevel)
+    return fields
+  }
 
   const saveTaskMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -247,11 +312,17 @@ export function CreateTaskModal({
       const targetProjectId = data.projectId || projectId
       if (!targetProjectId || !workspaceId) throw new Error('Project ID and Workspace ID are required')
 
+      // Backend currently does not support `feature_request` task_type.
+      const normalizedTaskType =
+        data.type === TaskType.FEATURE_REQUEST
+          ? 'task'
+          : (data.type?.toLowerCase() as 'task' | 'story' | 'bug' | 'epic' | 'subtask' | undefined)
+
       // Map form data to API schema
       const taskData: import('@/lib/api/projects-api').CreateTaskRequest = {
         title: data.name,
         description: data.description || undefined,
-        task_type: data.type?.toLowerCase() as any || 'task',
+        task_type: normalizedTaskType || 'task',
         status: data.status,
         priority: data.priority,
         parent_task_id: data.parentTaskId || undefined,
@@ -259,7 +330,10 @@ export function CreateTaskModal({
         due_date: data.dueDate?.toISOString() || undefined,
         estimated_hours: data.estimatedHours ? parseFloat(data.estimatedHours) : undefined,
         labels: data.tags.length > 0 ? data.tags : undefined,
-        custom_fields: taskCustomFields.length > 0 ? taskCustomFields : undefined,
+        custom_fields:
+          [...taskCustomFields, ...buildTypeSpecificCustomFields(data)].length > 0
+            ? [...taskCustomFields, ...buildTypeSpecificCustomFields(data)]
+            : undefined,
       }
 
       if (isEditMode && task) {
@@ -284,6 +358,15 @@ export function CreateTaskModal({
     },
     onError: (error: any) => {
       console.error('Error creating task:', error)
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        intl.formatMessage({ id: 'modules.projects.createTask.toast.error' })
+      toast({
+        title: intl.formatMessage({ id: 'modules.projects.createTask.toast.error' }),
+        description: Array.isArray(message) ? message.join(', ') : String(message),
+        variant: 'destructive',
+      })
     }
   })
 
@@ -302,6 +385,17 @@ export function CreateTaskModal({
       estimatedHours: '',
       tags: [],
       links: [],
+      severity: '',
+      reproSteps: '',
+      environment: '',
+      storyPoints: '',
+      sprintId: '',
+      epicLink: '',
+      releaseTarget: '',
+      customerImpact: '',
+      hypothesis: '',
+      sourceLinks: '',
+      evidenceLevel: '',
     })
     setTaskCustomFields([])
     setActiveTab('basic')
@@ -794,6 +888,24 @@ export function CreateTaskModal({
 
   const handleSubmit = async () => {
     if (isSubmitting) return
+
+    if (projectType === 'bug_tracking' && !formData.severity.trim()) {
+      toast({
+        title: 'Validation error',
+        description: 'Severity is required for bug tracking tasks.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (projectType === 'research' && !formData.hypothesis.trim()) {
+      toast({
+        title: 'Validation error',
+        description: 'Hypothesis is required for research tasks.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -921,26 +1033,6 @@ export function CreateTaskModal({
                   <Label htmlFor="description">
                     {intl.formatMessage({ id: 'modules.projects.createTask.description' })}
                   </Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={generateAIDescription}
-                    disabled={aiDescriptionLoading || !formData.name.trim()}
-                    className="text-xs"
-                  >
-                    {aiDescriptionLoading ? (
-                      <>
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        {intl.formatMessage({ id: 'modules.projects.createTask.generating' })}
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        {intl.formatMessage({ id: 'modules.projects.createTask.createWithAI' })}
-                      </>
-                    )}
-                  </Button>
                 </div>
                 <RichTextEditor
                   value={formData.description}
@@ -1176,6 +1268,136 @@ export function CreateTaskModal({
                   min="0"
                 />
               </div>
+
+              {projectType === 'scrum' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="storyPoints">Story Points</Label>
+                    <Input
+                      id="storyPoints"
+                      type="number"
+                      min="0"
+                      value={formData.storyPoints}
+                      onChange={(e) => setFormData(prev => ({ ...prev, storyPoints: e.target.value }))}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sprintId">Sprint ID</Label>
+                    <Input
+                      id="sprintId"
+                      value={formData.sprintId}
+                      onChange={(e) => setFormData(prev => ({ ...prev, sprintId: e.target.value }))}
+                      placeholder="Sprint identifier"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {projectType === 'bug_tracking' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="severity">Severity *</Label>
+                    <Select value={formData.severity || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, severity: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="critical">Critical</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="environment">Environment</Label>
+                    <Input
+                      id="environment"
+                      value={formData.environment}
+                      onChange={(e) => setFormData(prev => ({ ...prev, environment: e.target.value }))}
+                      placeholder="e.g. Production / Staging / iOS"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reproSteps">Reproduction Steps</Label>
+                    <Textarea
+                      id="reproSteps"
+                      value={formData.reproSteps}
+                      onChange={(e) => setFormData(prev => ({ ...prev, reproSteps: e.target.value }))}
+                      placeholder="Describe how to reproduce the bug"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {projectType === 'feature' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="epicLink">Epic Link</Label>
+                    <Input
+                      id="epicLink"
+                      value={formData.epicLink}
+                      onChange={(e) => setFormData(prev => ({ ...prev, epicLink: e.target.value }))}
+                      placeholder="Epic reference"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="releaseTarget">Release Target</Label>
+                    <Input
+                      id="releaseTarget"
+                      value={formData.releaseTarget}
+                      onChange={(e) => setFormData(prev => ({ ...prev, releaseTarget: e.target.value }))}
+                      placeholder="Release version/milestone"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="customerImpact">Customer Impact</Label>
+                    <Textarea
+                      id="customerImpact"
+                      value={formData.customerImpact}
+                      onChange={(e) => setFormData(prev => ({ ...prev, customerImpact: e.target.value }))}
+                      placeholder="Describe expected customer impact"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {projectType === 'research' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="hypothesis">Hypothesis *</Label>
+                    <Textarea
+                      id="hypothesis"
+                      value={formData.hypothesis}
+                      onChange={(e) => setFormData(prev => ({ ...prev, hypothesis: e.target.value }))}
+                      placeholder="State your research hypothesis"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sourceLinks">Source Links</Label>
+                    <Textarea
+                      id="sourceLinks"
+                      value={formData.sourceLinks}
+                      onChange={(e) => setFormData(prev => ({ ...prev, sourceLinks: e.target.value }))}
+                      placeholder="Links separated by comma or newline"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="evidenceLevel">Evidence Level</Label>
+                    <Select value={formData.evidenceLevel || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, evidenceLevel: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select evidence level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
 
               {/* Parent Task Selector */}
               <div className="space-y-2">
