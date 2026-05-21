@@ -31,12 +31,10 @@ import {
   Circle,
   MoreHorizontal,
   Loader2,
-  LayoutTemplate,
   MoreVertical,
   Bot,
   Plus
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useProjects, projectService, projectKeys } from '@/lib/api/projects-api';
 import { useToast } from '@/components/ui/use-toast';
@@ -267,14 +265,6 @@ export function ProjectLeftSidebar({
         <div className="p-3 border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-sm">{intl.formatMessage({ id: 'projects.sidebar.title' })}</h2>
-            <Link
-              to={`/workspaces/${workspaceId}/templates`}
-              className="flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-              title="Browse Templates"
-            >
-              <LayoutTemplate className="h-3.5 w-3.5" />
-              <span>Templates</span>
-            </Link>
           </div>
         </div>
 

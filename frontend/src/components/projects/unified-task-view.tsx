@@ -1162,7 +1162,7 @@ export function UnifiedTaskView({
       </div>
 
       {/* Dynamic Content Area - Kanban Board */}
-      <div className="flex-1 overflow-hidden p-3">
+      <div className={`flex-1 p-3 ${currentView === 'gantt' ? 'overflow-auto' : 'overflow-hidden'}`}>
         {currentView === 'board' && (
           <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
             <div ref={containerRef} className="relative flex gap-3 h-full overflow-x-auto pb-2">

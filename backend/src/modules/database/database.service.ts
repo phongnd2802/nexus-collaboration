@@ -225,7 +225,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     data: Record<string, any>,
   ): Promise<any> {
     const updateKeys = Object.keys(data).filter((k) => data[k] !== undefined);
-    const updateValues = updateKeys.map((k) => data[k]);
+    const updateValues = updateKeys.map((k) => {
+      const v = data[k];
+      if (v !== null && typeof v === 'object' && !(v instanceof Date)) {
+        return JSON.stringify(v);
+      }
+      return v;
+    });
     const setClauses = updateKeys.map((k, i) => `${this.escapeIdentifier(k)} = $${i + 1}`);
 
     let whereStr: string;
@@ -252,7 +258,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     data: Record<string, any>,
   ): Promise<any[]> {
     const updateKeys = Object.keys(data).filter((k) => data[k] !== undefined);
-    const updateValues = updateKeys.map((k) => data[k]);
+    const updateValues = updateKeys.map((k) => {
+      const v = data[k];
+      if (v !== null && typeof v === 'object' && !(v instanceof Date)) {
+        return JSON.stringify(v);
+      }
+      return v;
+    });
     const setClauses = updateKeys.map((k, i) => `${this.escapeIdentifier(k)} = $${i + 1}`);
 
     const { whereClause, values: whereValues } = this.buildWhereClause(
