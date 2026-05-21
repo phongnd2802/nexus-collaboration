@@ -14,6 +14,7 @@ import {
 import { OAuthController } from './oauth/oauth.controller';
 import { OAuthService } from './oauth/oauth.service';
 import { getEmailConfig, sendEmailFn } from '../database/email-helpers';
+import { EmailProviderModule } from '../email/email.module';
 
 /**
  * Default magic-link email sender — delegates to the existing
@@ -37,6 +38,7 @@ const magicLinkEmailSenderProvider = {
 @Module({
   imports: [
     ConfigModule,
+    EmailProviderModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

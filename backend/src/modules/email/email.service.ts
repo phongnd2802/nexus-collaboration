@@ -54,7 +54,11 @@ export class EmailProviderService implements OnModuleInit {
     this.logger.log(
       `send subject="${input.subject}" to=${Array.isArray(input.to) ? input.to.join(',') : input.to} via=${this.provider.name}`,
     );
-    return this.provider.send(input);
+    const result = await this.provider.send(input);
+    this.logger.log(
+      `send success provider=${result.provider} accepted=${result.accepted} messageId=${result.messageId}`,
+    );
+    return result;
   }
 
   /** Send many emails. Providers with a native batch API override this. */

@@ -13,7 +13,7 @@ interface DeadlineTask {
   priority: string;
   projectId: string;
   projectName?: string;
-  assignedTo: string;
+  assigneeId: string;
   workspaceId: string;
 }
 
@@ -24,6 +24,8 @@ interface DeadlineEvent {
   workspaceId: string;
   userId: string;
 }
+
+const COMPLETED_STATUSES = ['done', 'completed', 'cancelled'];
 
 @Injectable()
 export class DeadlineAlertService {
@@ -79,22 +81,12 @@ export class DeadlineAlertService {
     try {
       const result = await this.db
         .table('tasks')
-        .select('*')
+        .select('tasks.*', 'projects.workspace_id as project_workspace_id')
+        .join('projects', 'tasks.project_id', 'projects.id')
         .where('due_date', '>=', start.toISOString())
         .where('due_date', '<=', end.toISOString())
-        .where('status', '!=', 'done')
         .execute();
-
-      const tasks = Array.isArray(result) ? result : [];
-      return tasks.map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        dueDate: new Date(t.due_date),
-        priority: t.priority,
-        projectId: t.project_id,
-        assignedTo: t.assigned_to || t.user_id,
-        workspaceId: t.workspace_id,
-      }));
+      return this.flattenTasksForAssignees(result);
     } catch (error) {
       this.logger.error(`[DeadlineAlert] Error getting tasks due between dates: ${error.message}`);
       return [];
@@ -108,27 +100,14 @@ export class DeadlineAlertService {
     try {
       const result = await this.db
         .table('tasks')
-        .select('*')
+        .select('tasks.*', 'projects.workspace_id as project_workspace_id')
+        .join('projects', 'tasks.project_id', 'projects.id')
         .where('due_date', '>=', start.toISOString())
         .where('due_date', '<=', end.toISOString())
-        .where('status', '!=', 'done')
         .execute();
-
-      const tasks = Array.isArray(result) ? result : [];
-      // Filter high priority tasks (high, urgent)
-      const highPriorityTasks = tasks.filter(
-        (t: any) => t.priority === 'high' || t.priority === 'urgent',
+      return this.flattenTasksForAssignees(result).filter(
+        (t) => t.priority === 'high' || t.priority === 'urgent',
       );
-
-      return highPriorityTasks.map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        dueDate: new Date(t.due_date),
-        priority: t.priority,
-        projectId: t.project_id,
-        assignedTo: t.assigned_to || t.user_id,
-        workspaceId: t.workspace_id,
-      }));
     } catch (error) {
       this.logger.error(`[DeadlineAlert] Error getting high-priority tasks: ${error.message}`);
       return [];
@@ -144,21 +123,11 @@ export class DeadlineAlertService {
 
       const result = await this.db
         .table('tasks')
-        .select('*')
+        .select('tasks.*', 'projects.workspace_id as project_workspace_id')
+        .join('projects', 'tasks.project_id', 'projects.id')
         .where('due_date', '<', now.toISOString())
-        .where('status', '!=', 'done')
         .execute();
-
-      const tasks = Array.isArray(result) ? result : [];
-      return tasks.map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        dueDate: new Date(t.due_date),
-        priority: t.priority,
-        projectId: t.project_id,
-        assignedTo: t.assigned_to || t.user_id,
-        workspaceId: t.workspace_id,
-      }));
+      return this.flattenTasksForAssignees(result);
     } catch (error) {
       this.logger.error(`[DeadlineAlert] Error getting overdue tasks: ${error.message}`);
       return [];
@@ -173,7 +142,7 @@ export class DeadlineAlertService {
     const tasksByUser = new Map<string, DeadlineTask[]>();
 
     for (const task of tasks) {
-      const userId = task.assignedTo;
+      const userId = task.assigneeId;
       if (!tasksByUser.has(userId)) {
         tasksByUser.set(userId, []);
       }
@@ -245,6 +214,13 @@ export class DeadlineAlertService {
     alertType: AlertType,
   ): Promise<void> {
     try {
+      if (!task.workspaceId) {
+        this.logger.warn(
+          `[DeadlineAlert] Skip creating alert for task=${task.id} user=${userId}: missing workspace_id`,
+        );
+        return;
+      }
+
       const message = this.generateAlertMessage(task, alertType);
 
       await this.db.insert('autopilot_alerts', {
@@ -328,6 +304,7 @@ export class DeadlineAlertService {
         title,
         message: body,
         type: NotificationType.TASKS,
+        send_email: true,
         data: {
           workspaceId,
           alertType,
@@ -393,5 +370,55 @@ export class DeadlineAlertService {
       this.logger.error(`[DeadlineAlert] Error dismissing alert: ${error.message}`);
       return false;
     }
+  }
+
+  private flattenTasksForAssignees(rawTasks: any): DeadlineTask[] {
+    const tasks = Array.isArray(rawTasks) ? rawTasks : [];
+    const mapped: DeadlineTask[] = [];
+
+    for (const t of tasks) {
+      if (COMPLETED_STATUSES.includes(String(t.status || '').toLowerCase())) continue;
+
+      const workspaceId = t.project_workspace_id || t.workspace_id;
+      if (!workspaceId || !t.due_date) continue;
+
+      const assigneeIds = this.parseAssigneeIds(t.assigned_to, t.user_id, t.created_by);
+      for (const assigneeId of assigneeIds) {
+        mapped.push({
+          id: t.id,
+          title: t.title,
+          dueDate: new Date(t.due_date),
+          priority: t.priority,
+          projectId: t.project_id,
+          assigneeId,
+          workspaceId,
+        });
+      }
+    }
+
+    return mapped;
+  }
+
+  private parseAssigneeIds(assignedTo: any, userId?: string, createdBy?: string): string[] {
+    let ids: string[] = [];
+
+    try {
+      if (Array.isArray(assignedTo)) {
+        ids = assignedTo.filter(Boolean).map(String);
+      } else if (typeof assignedTo === 'string') {
+        const parsed = JSON.parse(assignedTo);
+        if (Array.isArray(parsed)) ids = parsed.filter(Boolean).map(String);
+        else if (assignedTo.trim()) ids = [assignedTo.trim()];
+      }
+    } catch {
+      if (typeof assignedTo === 'string' && assignedTo.trim()) {
+        ids = [assignedTo.trim()];
+      }
+    }
+
+    if (ids.length === 0 && userId) ids.push(String(userId));
+    if (ids.length === 0 && createdBy) ids.push(String(createdBy));
+
+    return Array.from(new Set(ids));
   }
 }

@@ -55,12 +55,10 @@ export class SemanticSearchService implements OnModuleInit {
   private readonly embeddingSize = 1536; // OpenAI text-embedding-3-small (faster/cheaper than large)
   private isInitialized = false;
 
-  constructor(private readonly db: DatabaseService) {}
-  // Legacy alias for the AI provider - delegates to db.getAI() until a real
-  // AIProviderService is wired in.
-  private get aiProvider(): any {
-    return this.db.getAI();
-  }
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly aiProvider: AiProviderService,
+  ) {}
 
   async onModuleInit() {
     await this.ensureCollection();
@@ -122,9 +120,10 @@ export class SemanticSearchService implements OnModuleInit {
    */
   private async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const embedding = await this.aiProvider.generateEmbedding(text, {
+      const result = await this.aiProvider.generateEmbedding(text, {
         model: 'text-embedding-3-small',
       });
+      const embedding = result?.embedding;
 
       if (!Array.isArray(embedding) || embedding.length === 0) {
         throw new Error('Invalid embedding response');

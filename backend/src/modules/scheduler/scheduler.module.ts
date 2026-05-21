@@ -1,5 +1,4 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationSchedulerService } from './notification-scheduler.service';
 import { RecordingProcessorService } from './recording-processor.service';
 import { ScheduledMessageProcessorService } from './scheduled-message-processor.service';
@@ -12,7 +11,6 @@ import { ChatModule } from '../chat/chat.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
     forwardRef(() => NotificationsModule),
     EmailProviderModule,
     forwardRef(() => VideoCallsModule),

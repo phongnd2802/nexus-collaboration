@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -50,6 +51,7 @@ export default function AISearchInterface({
   initialQuery = '',
   embedded = false
 }: AISearchInterfaceProps) {
+  const intl = useIntl();
   // State management
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -539,9 +541,14 @@ export default function AISearchInterface({
               <Card>
                 <CardContent className="p-8 text-center">
                   <Search className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-2">No results found</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    {intl.formatMessage({ id: 'modules.search.noResultsTitle', defaultMessage: 'No results found' })}
+                  </h3>
                   <p className="text-gray-500 mb-4">
-                    Try adjusting your search terms or filters
+                    {intl.formatMessage({
+                      id: 'modules.search.noResultsDescription',
+                      defaultMessage: "Try adjusting your search terms or filters to find what you're looking for."
+                    })}
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center">
                     <Button variant="outline" size="sm" onClick={() => setSearchMode('semantic')}>

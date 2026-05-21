@@ -21,6 +21,7 @@ const REMINDER_WINDOWS: ReminderWindow[] = [
 
 const COMPLETED_STATUSES = ['done', 'completed', 'cancelled'];
 const MAX_LOOKAHEAD_MS = 3 * 24 * 60 * 60 * 1000;
+const EMAIL_DEDUP_KEY = 'task_reminder_email';
 
 @Injectable()
 export class TaskReminderService {
@@ -178,7 +179,15 @@ export class TaskReminderService {
         });
 
         if (prefOk.email) {
-          await this.sendTaskReminderEmail(user, task, window, taskUrl, dueDate);
+          const emailAlreadySent = await this.hasEmailReminderBeenSent(
+            task.id,
+            assigneeId,
+            window.label,
+          );
+          if (!emailAlreadySent) {
+            await this.sendTaskReminderEmail(user, task, window, taskUrl, dueDate);
+            await this.markEmailReminderSent(task, assigneeId, window.label);
+          }
         }
         if (prefOk.in_app) {
           await this.createTaskReminderNotification(task, assigneeId, window, taskUrl, dueDate);
@@ -219,6 +228,64 @@ export class TaskReminderService {
     }
   }
 
+  private async hasEmailReminderBeenSent(
+    taskId: string,
+    userId: string,
+    remindBefore: string,
+  ): Promise<boolean> {
+    try {
+      const result = await this.db.query(
+        `SELECT id FROM notifications
+         WHERE user_id = $1
+           AND type = $2
+           AND entity_type = 'task'
+           AND entity_id = $3
+           AND data->>'reminder_kind' = $4
+           AND data->>'remind_before' = $5
+         LIMIT 1`,
+        [userId, NotificationType.REMINDER, taskId, EMAIL_DEDUP_KEY, remindBefore],
+      );
+      return (result.rows?.length || 0) > 0;
+    } catch (error: any) {
+      this.logger.error(`[TaskReminder] Email dedup check error: ${error.message}`);
+      return false;
+    }
+  }
+
+  private async markEmailReminderSent(
+    task: any,
+    userId: string,
+    remindBefore: string,
+  ): Promise<void> {
+    try {
+      await this.db.insert('notifications', {
+        user_id: userId,
+        workspace_id: task.workspace_id || null,
+        type: NotificationType.REMINDER,
+        title: 'Task reminder email sent',
+        message: null,
+        category: 'tasks',
+        entity_type: 'task',
+        entity_id: task.id,
+        is_read: true,
+        is_archived: true,
+        priority: 'low',
+        sent_via: { email: true, in_app: false },
+        data: {
+          reminder_kind: EMAIL_DEDUP_KEY,
+          remind_before: remindBefore,
+          task_id: task.id,
+          project_id: task.project_id,
+          due_date: task.due_date,
+        },
+      });
+    } catch (error: any) {
+      this.logger.error(
+        `[TaskReminder] Failed to persist email dedup marker task=${task.id} user=${userId}: ${error.message}`,
+      );
+    }
+  }
+
   private async checkNotificationPreferences(
     userId: string,
   ): Promise<{ email: boolean; in_app: boolean }> {
@@ -251,18 +318,61 @@ export class TaskReminderService {
     }
 
     const assigneeName = user.name || user.username || user.email?.split('@')[0] || 'User';
+    const maxAttempts = 3;
 
-    await this.emailTemplates.sendTaskReminderEmail({
-      to: user.email,
-      assigneeName,
-      taskTitle: task.title,
-      taskDescription: task.description || undefined,
-      projectName: task.project_name || 'Untitled Project',
-      dueDate,
-      priority: task.priority || 'medium',
-      remindBeforeLabel: window.label,
-      taskUrl,
-    });
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.emailTemplates.sendTaskReminderEmail({
+          to: user.email,
+          assigneeName,
+          taskTitle: task.title,
+          taskDescription: task.description || undefined,
+          projectName: task.project_name || 'Untitled Project',
+          dueDate,
+          priority: task.priority || 'medium',
+          remindBeforeLabel: window.label,
+          taskUrl,
+        });
+        return;
+      } catch (error: any) {
+        const isLastAttempt = attempt === maxAttempts;
+        const retryable = this.isRetryableEmailError(error);
+
+        if (!retryable || isLastAttempt) {
+          if (isLastAttempt) {
+            this.logger.error(
+              `[TaskReminder] Email send failed after ${maxAttempts} attempts for user=${user.id}: ${error?.message || 'unknown error'}`,
+            );
+          }
+          throw error;
+        }
+
+        this.logger.warn(
+          `[TaskReminder] Email send attempt ${attempt}/${maxAttempts} failed for user=${user.id}, retrying: ${error?.message || 'unknown error'}`,
+        );
+        await this.sleep(500 * attempt);
+      }
+    }
+  }
+
+  private isRetryableEmailError(error: any): boolean {
+    const message = String(error?.message || '').toUpperCase();
+    const code = String(error?.code || '').toUpperCase();
+
+    return (
+      code === 'ETIMEOUT' ||
+      code === 'ESOCKET' ||
+      code === 'ECONNECTION' ||
+      code === 'ENOTFOUND' ||
+      code === 'EAI_AGAIN' ||
+      message.includes('ETIMEOUT') ||
+      message.includes('ENOTFOUND') ||
+      message.includes('EAI_AGAIN')
+    );
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async createTaskReminderNotification(

@@ -280,6 +280,38 @@
     "createNewWorkspace": "Tạo không gian làm việc mới",
     "createTitle": "Tạo không gian làm việc của bạn",
     "createDescription": "Thiết lập không gian làm việc nhóm để bắt đầu cộng tác. Bạn có thể tùy chỉnh mọi thứ sau.",
+    "createForm": {
+      "title": "Tạo không gian làm việc",
+      "description": "Không gian làm việc là nơi nhóm của bạn cộng tác. Hãy đặt tên theo công ty hoặc đội nhóm của bạn.",
+      "nameLabel": "Tên không gian làm việc",
+      "defaultNameTemplate": "{name}'s Workspace",
+      "namePlaceholder": "Ví dụ: Acme Design Studio, Công ty của tôi",
+      "characterCount": "{count}/50 ký tự",
+      "submit": "Tạo không gian làm việc",
+      "uploading": "Đang tải lên...",
+      "creating": "Đang tạo...",
+      "helpText": "Bạn luôn có thể thay đổi các thiết lập này sau trong phần tùy chọn không gian làm việc",
+      "success": {
+        "title": "Đã tạo không gian làm việc!",
+        "description": "Chào mừng đến với {name}. Đang chuyển bạn đến không gian làm việc mới..."
+      },
+      "errors": {
+        "nameRequired": "Tên không gian làm việc là bắt buộc",
+        "nameMinLength": "Tên không gian làm việc phải có ít nhất 2 ký tự",
+        "nameMaxLength": "Tên không gian làm việc phải ít hơn 50 ký tự",
+        "createFailed": "Không thể tạo không gian làm việc. Vui lòng thử lại."
+      },
+      "icon": {
+        "upload": "Tải biểu tượng",
+        "change": "Đổi biểu tượng",
+        "hint": "Tùy chọn • PNG, JPG tối đa 5MB",
+        "previewAlt": "Xem trước biểu tượng không gian làm việc",
+        "errors": {
+          "invalidType": "Vui lòng chọn tệp hình ảnh",
+          "maxSize": "Kích thước tệp phải nhỏ hơn 5MB"
+        }
+      }
+    },
     "back": "Quay lại",
     "stepInfo": "Bước 1/1",
     "needHelp": "Cần trợ giúp?",
@@ -3217,6 +3249,8 @@
       "noRecentSearches": "Không có tìm kiếm gần đây",
       "savedSearches": "TÌM KIẾM ĐÃ LƯU",
       "noSavedSearches": "Không có tìm kiếm đã lưu",
+      "noResultsTitle": "Không tìm thấy kết quả",
+      "noResultsDescription": "Hãy thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc để tìm nội dung bạn cần.",
       "dashboard": {
         "title": "Bảng điều khiển tìm kiếm",
         "description": "Khám phá nội dung, tìm những gì bạn cần và khám phá không gian làm việc.",
@@ -9606,5 +9640,3 @@
     }
   }
 }
-
-

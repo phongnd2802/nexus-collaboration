@@ -34,26 +34,40 @@ export class SmtpProvider implements EmailProvider {
   private readonly logger = new Logger('SmtpProvider');
 
   private readonly host: string;
+  private readonly hostIp: string;
   private readonly port: number;
   private readonly user: string;
   private readonly password: string;
   private readonly secure: boolean;
   private readonly from: string;
   private readonly replyTo?: string;
+  private readonly tlsServername?: string;
+  private readonly connectionTimeout: number;
+  private readonly greetingTimeout: number;
+  private readonly socketTimeout: number;
+  private readonly dnsTimeout: number;
 
   private transporter?: nodemailer.Transporter;
 
   constructor(config: ConfigService) {
     this.host = config.get<string>('SMTP_HOST', '');
+    this.hostIp = config.get<string>('SMTP_HOST_IP', '');
     this.port = parseInt(config.get<string>('SMTP_PORT', '587'), 10);
     this.user = config.get<string>('SMTP_USER', '');
     this.password = config.get<string>('SMTP_PASSWORD', '');
     this.secure = String(config.get<string>('SMTP_SECURE', 'false')).toLowerCase() === 'true';
     this.from = config.get<string>('EMAIL_FROM', 'noreply@example.com');
     this.replyTo = config.get<string>('EMAIL_REPLY_TO');
+    this.tlsServername = config.get<string>('SMTP_TLS_SERVERNAME', this.host || undefined);
+    this.connectionTimeout = parseInt(config.get<string>('SMTP_CONNECTION_TIMEOUT_MS', '20000'), 10);
+    this.greetingTimeout = parseInt(config.get<string>('SMTP_GREETING_TIMEOUT_MS', '15000'), 10);
+    this.socketTimeout = parseInt(config.get<string>('SMTP_SOCKET_TIMEOUT_MS', '30000'), 10);
+    this.dnsTimeout = parseInt(config.get<string>('SMTP_DNS_TIMEOUT_MS', '8000'), 10);
 
     if (this.isAvailable()) {
-      this.logger.log(`SMTP provider configured: ${this.host}:${this.port}`);
+      this.logger.log(
+        `SMTP provider configured: ${this.host}:${this.port}${this.hostIp ? ` (hostIp=${this.hostIp})` : ''}`,
+      );
     } else {
       this.logger.warn('SMTP provider selected but SMTP_HOST missing');
     }
@@ -69,10 +83,15 @@ export class SmtpProvider implements EmailProvider {
       throw new EmailProviderNotConfiguredError('smtp', ['SMTP_HOST']);
     }
     this.transporter = nodemailer.createTransport({
-      host: this.host,
+      host: this.hostIp || this.host,
       port: this.port,
       secure: this.secure,
+      connectionTimeout: this.connectionTimeout,
+      greetingTimeout: this.greetingTimeout,
+      socketTimeout: this.socketTimeout,
+      dnsTimeout: this.dnsTimeout,
       auth: this.user ? { user: this.user, pass: this.password } : undefined,
+      tls: this.tlsServername ? { servername: this.tlsServername } : undefined,
     });
     return this.transporter;
   }
