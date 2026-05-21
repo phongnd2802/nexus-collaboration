@@ -466,10 +466,25 @@ export class AuthService {
     }
   }
 
-  async updateProfile(userId: string, data: UpdateProfileDto) {
+  async updateProfile(userId: string, data: UpdateProfileDto, tokenEmail?: string) {
     try {
-      // Get current user to preserve existing metadata
-      const currentUser = await this.db.getUserById(userId);
+      // Resolve user by ID first; if not found, fallback to email from verified JWT payload.
+      let resolvedUserId = userId;
+      let currentUser = await this.db.getUserById(resolvedUserId);
+      if (!currentUser && tokenEmail) {
+        const userByEmail = await this.db.findOne('users', { email: tokenEmail.toLowerCase() });
+        if (userByEmail?.id) {
+          resolvedUserId = userByEmail.id;
+          currentUser = userByEmail;
+          this.logger.warn(
+            `updateProfile: userId ${userId} not found, fallback to token email ${tokenEmail} -> ${resolvedUserId}`,
+          );
+        }
+      }
+
+      if (!currentUser) {
+        throw new NotFoundException('User not found');
+      }
       const currentMetadata = currentUser?.metadata || {};
 
       // Build update data - database stores some fields in root, others in metadata
@@ -496,17 +511,23 @@ export class AuthService {
 
       updateData.metadata = metadataUpdates;
 
-      this.logger.log(`Updating profile for user ${userId} with data:`, updateData);
+      this.logger.log(`Updating profile for user ${resolvedUserId} with data:`, updateData);
 
       // Update the user profile in database
-      const updateResult = await this.db.update('users', userId, updateData);
+      const updateResult = await this.db.update('users', resolvedUserId, updateData);
 
       this.logger.log('Update result:', updateResult);
+      if (!updateResult) {
+        throw new NotFoundException('User not found');
+      }
 
       // Get the updated profile to return fresh data
-      const updatedProfile = await this.db.getUserById(userId);
+      const updatedProfile = await this.db.getUserById(resolvedUserId);
 
       this.logger.log('Updated profile from database:', updatedProfile);
+      if (!updatedProfile) {
+        throw new NotFoundException('User not found');
+      }
 
       // Extract profile data from both root level and metadata
       const metadata = updatedProfile?.metadata || {};
@@ -535,7 +556,7 @@ export class AuthService {
         response: error.response,
         stack: error.stack,
       });
-      if (error.response?.status === 404) {
+      if (error instanceof NotFoundException || error.response?.status === 404) {
         throw new NotFoundException('User not found');
       }
       if (error.response?.status === 401) {

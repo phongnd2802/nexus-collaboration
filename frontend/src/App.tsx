@@ -321,8 +321,15 @@ function App() {
                             <Route path="/invitation/accept" element={<AcceptInvitation />} />
                             <Route path="/invite/:token" element={<AcceptInvitation />} />
 
-                            {/* Semi-Protected Routes */}
-                            <Route path="/create-workspace" element={<CreateWorkspace />} />
+                            {/* Protected Routes */}
+                            <Route
+                              path="/create-workspace"
+                              element={
+                                <ProtectedRoute>
+                                  <CreateWorkspace />
+                                </ProtectedRoute>
+                              }
+                            />
 
                             {/* Notifications Redirect */}
                             <Route path="/notifications" element={<Navigate to="/workspaces" replace />} />

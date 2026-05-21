@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,11 +28,6 @@ import {
   Clock,
   User,
   Loader2,
-  GitBranch,
-  Target,
-  Bug,
-  Zap,
-  Microscope,
   MoreVertical,
   Eye,
   Edit,
@@ -37,8 +39,7 @@ import {
   FolderKanban
 } from 'lucide-react'
 import { projectService, type Project, projectKeys, useDeleteProject, useProjects } from '@/lib/api/projects-api'
-import { ProjectType } from '@/types/projects'
-import { useQuery, useQueries } from '@tanstack/react-query'
+import { useQueries } from '@tanstack/react-query'
 import { useToast } from '@/components/ui/use-toast'
 import { DeleteConfirmationModal } from '@/components/ui/delete-confirmation-modal'
 import { useAuth } from '@/contexts/AuthContext'
@@ -68,7 +69,7 @@ interface ProjectDashboardProps {
 export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }: ProjectDashboardProps) {
   const intl = useIntl()
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedType, setSelectedType] = useState<ProjectType | 'ALL'>('ALL')
+  const [sortBy, setSortBy] = useState<'updated_desc' | 'updated_asc' | 'progress_desc'>('updated_desc')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -82,34 +83,12 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
   const allProjects = useProjectsStore((state) => state.projects) || []
   const lastRefresh = useProjectsStore((state) => state.lastRefresh)
 
-  // Map UI project type to API type format (snake_case)
-  const getApiTypeFilter = (uiType: ProjectType | 'ALL') => {
-    if (uiType === 'ALL') return undefined
-
-    const typeMap: Record<ProjectType, 'kanban' | 'scrum' | 'bug_tracking' | 'feature' | 'research'> = {
-      [ProjectType.KANBAN]: 'kanban',
-      [ProjectType.SCRUM]: 'scrum',
-      [ProjectType.BUG_TRACKING]: 'bug_tracking',
-      [ProjectType.FEATURE_DEVELOPMENT]: 'feature',
-      [ProjectType.RESEARCH]: 'research'
-    }
-
-    return typeMap[uiType]
-  }
-
   // Fetch projects - this automatically syncs with Zustand store
   const { isLoading, error, refetch } = useProjects(workspaceId)
 
-  console.log('[Dashboard] Projects:', allProjects.length, 'Filter:', selectedType, 'lastRefresh:', lastRefresh)
+  console.log('[Dashboard] Projects:', allProjects.length, 'Sort:', sortBy, 'lastRefresh:', lastRefresh)
   console.log('[Dashboard] Project names:', allProjects.map(p => p.name))
-
-  // Apply client-side filtering if a type is selected
-  const projects = selectedType !== 'ALL'
-    ? allProjects.filter(p => {
-        const apiTypeFilter = getApiTypeFilter(selectedType)
-        return apiTypeFilter ? p.type === apiTypeFilter : true
-      })
-    : allProjects
+  const projects = allProjects
 
   // Fetch tasks for all projects
   // Use the same query key as sidebar and task view for cache consistency
@@ -165,14 +144,63 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
   }, [projects, taskQueries])
 
   // Filter by search term only (type filtering is done by API)
-  const filteredProjects = projectsWithMetrics.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (project.description ? stripHtml(project.description).toLowerCase().includes(searchTerm.toLowerCase()) : false)
-    return matchesSearch
-  })
+  const filteredProjects = useMemo(() => {
+    const normalizedSearch = searchTerm.toLowerCase()
+    const visibleProjects = projectsWithMetrics.filter(project => {
+      const matchesSearch = project.name.toLowerCase().includes(normalizedSearch) ||
+                           (project.description ? stripHtml(project.description).toLowerCase().includes(normalizedSearch) : false)
+      return matchesSearch
+    })
+
+    const getUpdatedTimestamp = (project: any) => {
+      const rawValue = project.updatedAt || project.updated_at || project.createdAt || project.created_at
+      const timestamp = rawValue ? new Date(rawValue).getTime() : 0
+      return Number.isNaN(timestamp) ? 0 : timestamp
+    }
+
+    return [...visibleProjects].sort((a, b) => {
+      if (sortBy === 'updated_asc') {
+        return getUpdatedTimestamp(a) - getUpdatedTimestamp(b)
+      }
+
+      if (sortBy === 'progress_desc') {
+        return (b.averageProgress || 0) - (a.averageProgress || 0)
+      }
+
+      return getUpdatedTimestamp(b) - getUpdatedTimestamp(a)
+    })
+  }, [projectsWithMetrics, searchTerm, sortBy])
 
   const getProjectProgress = (project: any) => {
     return project.averageProgress || 0
+  }
+
+  const getProjectMemberCount = (project: any) => {
+    const collaborativeData = project.collaborative_data
+    const memberIds: string[] = []
+
+    if (collaborativeData?.project_lead) {
+      memberIds.push(collaborativeData.project_lead)
+    }
+
+    if (Array.isArray(collaborativeData?.default_assignee_ids)) {
+      memberIds.push(...collaborativeData.default_assignee_ids)
+    }
+
+    const uniqueCollaborators = [...new Set(memberIds.filter(Boolean))]
+    if (uniqueCollaborators.length > 0) {
+      return uniqueCollaborators.length
+    }
+
+    if (Array.isArray(project.members) && project.members.length > 0) {
+      return project.members.length
+    }
+
+    if (Array.isArray(project.teamMembers) && project.teamMembers.length > 0) {
+      return project.teamMembers.length
+    }
+
+    return 0
   }
 
   const getOverallStats = () => {
@@ -392,62 +420,16 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant={selectedType === 'ALL' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedType('ALL')}
-            className="gap-2"
-          >
-            <BarChart3 className="w-4 h-4" />
-            {intl.formatMessage({ id: 'projects.types.all' })}
-          </Button>
-          <Button
-            variant={selectedType === ProjectType.KANBAN ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedType(ProjectType.KANBAN)}
-            className="gap-2"
-          >
-            <GitBranch className="w-4 h-4" />
-            {intl.formatMessage({ id: 'projects.types.kanban' })}
-          </Button>
-          <Button
-            variant={selectedType === ProjectType.SCRUM ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedType(ProjectType.SCRUM)}
-            className="gap-2"
-          >
-            <Target className="w-4 h-4" />
-            {intl.formatMessage({ id: 'projects.types.scrum' })}
-          </Button>
-          <Button
-            variant={selectedType === ProjectType.BUG_TRACKING ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedType(ProjectType.BUG_TRACKING)}
-            className="gap-2"
-          >
-            <Bug className="w-4 h-4" />
-            {intl.formatMessage({ id: 'projects.types.bugTracking' })}
-          </Button>
-          <Button
-            variant={selectedType === ProjectType.FEATURE_DEVELOPMENT ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedType(ProjectType.FEATURE_DEVELOPMENT)}
-            className="gap-2"
-          >
-            <Zap className="w-4 h-4" />
-            {intl.formatMessage({ id: 'projects.types.feature' })}
-          </Button>
-          <Button
-            variant={selectedType === ProjectType.RESEARCH ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedType(ProjectType.RESEARCH)}
-            className="gap-2"
-          >
-            <Microscope className="w-4 h-4" />
-            {intl.formatMessage({ id: 'projects.types.research' })}
-          </Button>
-        </div>
+        <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'updated_desc' | 'updated_asc' | 'progress_desc')}>
+          <SelectTrigger className="w-[240px]">
+            <SelectValue placeholder="Sắp xếp" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updated_desc">Mới cập nhật gần nhất</SelectItem>
+            <SelectItem value="updated_asc">Mới cập nhật cũ nhất</SelectItem>
+            <SelectItem value="progress_desc">Tiến độ cao nhất</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Projects Grid */}
@@ -567,7 +549,7 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                   <div className="flex items-center gap-1">
                     <User className="w-4 h-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
-                      {intl.formatMessage({ id: 'projects.members' }, { count: project.members?.length || 0 })}
+                      {intl.formatMessage({ id: 'projects.members' }, { count: getProjectMemberCount(project) })}
                     </span>
                   </div>
                   <Badge variant="outline" className="text-xs">

@@ -694,6 +694,10 @@ export const LiveKitVideoCall: React.FC<LiveKitVideoCallProps> = ({
 
     // Listen for join request events (match backend event names)
     socket.on('join-request:new', (data: { call_id: string; request: JoinRequest }) => {
+      // Only handle requests for the current call
+      if (data.call_id !== callId) {
+        return;
+      }
       console.log('🔔 [WebSocket] New join request received:', data);
       setJoinRequests((prev) => {
         // Avoid duplicates
@@ -707,12 +711,20 @@ export const LiveKitVideoCall: React.FC<LiveKitVideoCallProps> = ({
 
     // Listen for accepted join request
     socket.on('join-request:accepted', (data: { call_id: string; request_id: string; message: string }) => {
+      // Only handle events for the current call
+      if (data.call_id !== callId) {
+        return;
+      }
       console.log('✅ [WebSocket] Join request accepted:', data.request_id);
       setJoinRequests((prev) => prev.filter(req => req.id !== data.request_id));
     });
 
     // Listen for rejected join request
     socket.on('join-request:rejected', (data: { call_id: string; request_id: string; message: string }) => {
+      // Only handle events for the current call
+      if (data.call_id !== callId) {
+        return;
+      }
       console.log('❌ [WebSocket] Join request rejected:', data.request_id);
       setJoinRequests((prev) => prev.filter(req => req.id !== data.request_id));
     });

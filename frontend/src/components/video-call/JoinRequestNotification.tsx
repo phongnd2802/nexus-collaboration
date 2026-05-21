@@ -18,6 +18,7 @@ interface JoinRequestNotificationProps {
   request: JoinRequest;
   onAccept: (requestId: string) => void;
   onReject: (requestId: string) => void;
+  isProcessing?: boolean;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export const JoinRequestNotification: React.FC<JoinRequestNotificationProps> = (
   request,
   onAccept,
   onReject,
+  isProcessing,
   className,
 }) => {
   return (
@@ -63,6 +65,7 @@ export const JoinRequestNotification: React.FC<JoinRequestNotificationProps> = (
             <Button
               size="sm"
               onClick={() => onAccept(request.id)}
+              disabled={isProcessing}
               className="flex-1 bg-green-600 hover:bg-green-700 h-8"
             >
               <Check className="h-4 w-4 mr-1" />
@@ -72,6 +75,7 @@ export const JoinRequestNotification: React.FC<JoinRequestNotificationProps> = (
               size="sm"
               variant="destructive"
               onClick={() => onReject(request.id)}
+              disabled={isProcessing}
               className="flex-1 h-8"
             >
               <X className="h-4 w-4 mr-1" />
@@ -101,6 +105,18 @@ export const JoinRequestList: React.FC<JoinRequestListProps> = ({
   onReject,
   className,
 }) => {
+  const [processingIds, setProcessingIds] = React.useState<Set<string>>(new Set());
+
+  const handleAccept = (requestId: string) => {
+    setProcessingIds((prev) => new Set(prev).add(requestId));
+    onAccept(requestId);
+  };
+
+  const handleReject = (requestId: string) => {
+    setProcessingIds((prev) => new Set(prev).add(requestId));
+    onReject(requestId);
+  };
+
   if (requests.length === 0) {
     return null;
   }
@@ -111,8 +127,9 @@ export const JoinRequestList: React.FC<JoinRequestListProps> = ({
         <JoinRequestNotification
           key={request.id}
           request={request}
-          onAccept={onAccept}
-          onReject={onReject}
+          onAccept={handleAccept}
+          onReject={handleReject}
+          isProcessing={processingIds.has(request.id)}
         />
       ))}
     </div>

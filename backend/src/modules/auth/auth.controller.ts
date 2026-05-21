@@ -90,7 +90,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user profile' })
   async updateProfile(@Request() req, @Body() dto: UpdateProfileDto) {
-    return await this.authService.updateProfile(req.user.sub, dto);
+    return await this.authService.updateProfile(req.user.sub, dto, req.user.email);
   }
 
   @Post('profile/image')

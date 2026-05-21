@@ -1,23 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
   Plus,
-  Filter,
-  Settings,
-  Link,
-  LayoutGrid,
   List as ListIcon,
-  Clock,
   Calendar,
   Target,
   AlertTriangle,
@@ -34,7 +27,6 @@ import {
   startOfDay,
   endOfMonth,
   eachDayOfInterval,
-  differenceInCalendarDays,
   differenceInDays,
   addMonths,
   subMonths,
@@ -65,10 +57,82 @@ export function GanttView({
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [timelineScrollWidth, setTimelineScrollWidth] = useState(1000)
+  const timelineHeaderScrollRef = useRef<HTMLDivElement | null>(null)
+  const timelineBodyScrollRef = useRef<HTMLDivElement | null>(null)
+  const timelineBottomScrollRef = useRef<HTMLDivElement | null>(null)
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  const scheduledTasks = tasks.filter(task => task.dueDate)
+
+  useEffect(() => {
+    const headerEl = timelineHeaderScrollRef.current
+    const bodyEl = timelineBodyScrollRef.current
+    const bottomEl = timelineBottomScrollRef.current
+    if (!headerEl || !bodyEl || !bottomEl) return
+
+    let syncingSource: 'body' | 'bottom' | null = null
+
+    const syncHeaderFromBody = () => {
+      if (syncingSource === 'bottom') return
+      syncingSource = 'body'
+      headerEl.scrollLeft = bodyEl.scrollLeft
+      bottomEl.scrollLeft = bodyEl.scrollLeft
+      requestAnimationFrame(() => {
+        syncingSource = null
+      })
+    }
+
+    const syncFromBottomScrollbar = () => {
+      if (syncingSource === 'body') return
+      syncingSource = 'bottom'
+      bodyEl.scrollLeft = bottomEl.scrollLeft
+      headerEl.scrollLeft = bottomEl.scrollLeft
+      requestAnimationFrame(() => {
+        syncingSource = null
+      })
+    }
+
+    bodyEl.addEventListener('scroll', syncHeaderFromBody)
+    bottomEl.addEventListener('scroll', syncFromBottomScrollbar)
+    headerEl.scrollLeft = bodyEl.scrollLeft
+    bottomEl.scrollLeft = bodyEl.scrollLeft
+
+    return () => {
+      bodyEl.removeEventListener('scroll', syncHeaderFromBody)
+      bottomEl.removeEventListener('scroll', syncFromBottomScrollbar)
+    }
+  }, [days.length, scheduledTasks.length])
+
+  useEffect(() => {
+    const bodyEl = timelineBodyScrollRef.current
+    if (!bodyEl) return
+
+    const syncTimelineWidth = () => {
+      setTimelineScrollWidth(bodyEl.scrollWidth)
+    }
+
+    syncTimelineWidth()
+
+    const resizeObserver = new ResizeObserver(() => {
+      syncTimelineWidth()
+    })
+
+    resizeObserver.observe(bodyEl)
+    const firstChild = bodyEl.firstElementChild
+    if (firstChild instanceof HTMLElement) {
+      resizeObserver.observe(firstChild)
+    }
+
+    window.addEventListener('resize', syncTimelineWidth)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', syncTimelineWidth)
+    }
+  }, [days.length, scheduledTasks.length, currentMonth])
 
   const memberByUserId = useMemo(() => {
     const map = new Map<string, any>()
@@ -79,9 +143,6 @@ export function GanttView({
     })
     return map
   }, [members])
-
-  // Filter tasks that have due dates
-  const scheduledTasks = tasks.filter(task => task.dueDate)
 
   const normalizeStatus = (status: string) => {
     const s = (status || '').toString().toLowerCase()
@@ -397,7 +458,7 @@ export function GanttView({
   }
 
   return (
-      <div className="h-full flex flex-col">
+      <div className="flex flex-col">
         {/* Header */}
         <div className="flex-shrink-0 px-6 py-4 border-b bg-gradient-to-r from-background to-muted/20">
           <div className="flex items-center justify-between mb-4">
@@ -446,11 +507,11 @@ export function GanttView({
         </div>
 
         {/* Gantt Chart */}
-        <div className="flex-1 overflow-hidden">
-          <div className="h-full flex bg-background">
+        <div className="bg-background">
+          <div className="flex bg-background">
             {/* Task List */}
-            <div className="w-96 border-r bg-gradient-to-b from-muted/5 to-muted/10">
-              <div className="sticky top-0 z-20 h-[74px] bg-background/95 backdrop-blur-sm border-b px-4 shadow-sm flex items-center">
+            <div className="w-96 flex-shrink-0 border-r bg-gradient-to-b from-muted/5 to-muted/10">
+              <div className="sticky top-0 z-20 h-[74px] border-b bg-background px-4 shadow-sm flex items-center relative before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-background before:content-['']">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-blue-100 rounded">
@@ -468,99 +529,96 @@ export function GanttView({
                   </Badge>
                 </div>
               </div>
-              <ScrollArea className="h-full">
-                <div className="space-y-0">
-                  {scheduledTasks.map((task, index) => {
-                    const priorityColors = getPriorityColor(task.priority)
-                    const statusColors = getStatusColor(task.status)
-                    const progress = getTaskProgress(task)
-                    const assigneeDisplay = resolveAssigneeDisplay(task)
+              <div className="space-y-0">
+                {scheduledTasks.map((task, index) => {
+                  const priorityColors = getPriorityColor(task.priority)
+                  const statusColors = getStatusColor(task.status)
+                  const progress = getTaskProgress(task)
+                  const assigneeDisplay = resolveAssigneeDisplay(task)
 
-                    return (
-                      <div
-                        key={task.id}
-                        className={`group px-3 py-3 cursor-pointer transition-all duration-200 border h-28 flex items-start hover:bg-muted/50 hover:shadow-sm border-transparent hover:rounded-lg ${
-                          index % 2 === 0 ? 'bg-background' : 'bg-muted/5'
-                        }`}
-                        onClick={() => onTaskClick?.(task)}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-3 flex-1 min-w-0 max-w-[250px]">
-                            <div className="flex-1 min-w-0 pt-2">
-                              <div className="font-semibold text-sm truncate group-hover:text-blue-600 transition-colors">
-                                {task.title}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-0.5 mb-1">
-                                {intl.formatMessage(
-                                  { id: 'tasks.gantt.durationDays', defaultMessage: '{count, plural, one {# day} other {# days}}' },
-                                  { count: getTaskDuration(task) }
-                                )}
-                              </div>
-                              <div className="text-xs text-muted-foreground mb-1">
-                                {intl.formatMessage({ id: 'tasks.gantt.due', defaultMessage: 'Due' })}: {task.dueDate ? format(new Date(task.dueDate), 'dd/MM/yyyy') : '--'}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {assigneeDisplay ? (
-                                  <>
-                                    <Avatar className="w-5 h-5 ring-1 ring-background">
-                                      <AvatarImage src={assigneeDisplay.avatarUrl} />
-                                      <AvatarFallback className="text-xs bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700">
-                                        {getAssigneeInitials(assigneeDisplay.name)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-xs text-muted-foreground font-medium">
-                                      {assigneeDisplay.name}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground">
-                                    {intl.formatMessage({ id: 'tasks.unassigned', defaultMessage: 'Unassigned' })}
+                  return (
+                    <div
+                      key={task.id}
+                      className={`group px-3 py-3 cursor-pointer transition-all duration-200 border h-28 flex items-start hover:bg-muted/50 hover:shadow-sm border-transparent hover:rounded-lg ${
+                        index % 2 === 0 ? 'bg-background' : 'bg-muted/5'
+                      }`}
+                      onClick={() => onTaskClick?.(task)}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-3 flex-1 min-w-0 max-w-[250px]">
+                          <div className="flex-1 min-w-0 pt-2">
+                            <div className="font-semibold text-sm truncate group-hover:text-blue-600 transition-colors">
+                              {task.title}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5 mb-1">
+                              {intl.formatMessage(
+                                { id: 'tasks.gantt.durationDays', defaultMessage: '{count, plural, one {# day} other {# days}}' },
+                                { count: getTaskDuration(task) }
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground mb-1">
+                              {intl.formatMessage({ id: 'tasks.gantt.due', defaultMessage: 'Due' })}: {task.dueDate ? format(new Date(task.dueDate), 'dd/MM/yyyy') : '--'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {assigneeDisplay ? (
+                                <>
+                                  <Avatar className="w-5 h-5 ring-1 ring-background">
+                                    <AvatarImage src={assigneeDisplay.avatarUrl} />
+                                    <AvatarFallback className="text-xs bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700">
+                                      {getAssigneeInitials(assigneeDisplay.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-xs text-muted-foreground font-medium">
+                                    {assigneeDisplay.name}
                                   </span>
-                                )}
-                              </div>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">
+                                  {intl.formatMessage({ id: 'tasks.unassigned', defaultMessage: 'Unassigned' })}
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-2 min-w-[56px]">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${statusColors.text} ${statusColors.bg} border-transparent`}
-                              style={statusColors.customColor ? {
-                                backgroundColor: statusColors.customColor,
-                                borderColor: statusColors.customColor
-                              } : undefined}
-                            >
-                              {getStatusLabel(task.status)}
-                            </Badge>
-                            <div className="flex items-center gap-2">
-                              <div className="text-xs font-medium text-muted-foreground">
-                                {progress}%
-                              </div>
-                              <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full ${statusColors.customColor ? '' : `bg-gradient-to-r ${statusColors.gradient}`} transition-all duration-300`}
-                                  style={{
-                                    width: `${progress}%`,
-                                    ...(statusColors.customColor ? { backgroundColor: statusColors.customColor } : {})
-                                  }}
-                                />
-                              </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-2 min-w-[56px]">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${statusColors.text} ${statusColors.bg} border-transparent`}
+                            style={statusColors.customColor ? {
+                              backgroundColor: statusColors.customColor,
+                              borderColor: statusColors.customColor
+                            } : undefined}
+                          >
+                            {getStatusLabel(task.status)}
+                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs font-medium text-muted-foreground">
+                              {progress}%
+                            </div>
+                            <div className="w-12 h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${statusColors.customColor ? '' : `bg-gradient-to-r ${statusColors.gradient}`} transition-all duration-300`}
+                                style={{
+                                  width: `${progress}%`,
+                                  ...(statusColors.customColor ? { backgroundColor: statusColors.customColor } : {})
+                                }}
+                              />
                             </div>
                           </div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Timeline */}
-            <div className="flex-1 overflow-x-auto bg-gradient-to-br from-background to-muted/5">
-              <div className="min-w-[1000px] h-full">
-                {/* Timeline Header */}
-                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b shadow-sm">
+            <div className="flex-1 min-w-0 bg-gradient-to-br from-background to-muted/5">
+              <div className="sticky top-0 z-30 border-b bg-background shadow-sm relative before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-background before:content-['']">
+                <div ref={timelineHeaderScrollRef} className="overflow-x-hidden">
                   <div
-                    className="grid border-b border-muted/20"
+                    className="grid min-w-[1000px] border-b border-muted/20"
                     style={{ gridTemplateColumns: `repeat(${days.length}, minmax(48px, 1fr))` }}
                   >
                     {days.map((day) => {
@@ -598,114 +656,130 @@ export function GanttView({
                     })}
                   </div>
                 </div>
+              </div>
 
-                {/* Timeline Body */}
-                <DragDropContext onDragEnd={onDragEnd}>
-                  <div className="relative">
-                    {scheduledTasks.map((task, index) => {
-                      const taskDayId = getTaskDayId(task)
-                      const progress = getTaskProgress(task)
-                      const statusColors = getStatusColor(task.status)
-                      const priorityColors = getPriorityColor(task.priority)
+              <div
+                ref={timelineBodyScrollRef}
+                className="overflow-x-auto [&::-webkit-scrollbar]:hidden"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                <div className="min-w-[1000px]">
+                  <DragDropContext onDragEnd={onDragEnd}>
+                    <div className="relative">
+                      {scheduledTasks.map((task, index) => {
+                        const taskDayId = getTaskDayId(task)
+                        const progress = getTaskProgress(task)
+                        const statusColors = getStatusColor(task.status)
+                        const priorityColors = getPriorityColor(task.priority)
 
-                      return (
-                        <div
-                          key={task.id}
-                          className={`grid relative h-28 border-b border-muted/10 transition-all duration-200 hover:bg-muted/20 ${
-                            index % 2 === 0 ? 'bg-background' : 'bg-muted/5'
-                          }`}
-                          style={{ gridTemplateColumns: `repeat(${days.length}, minmax(48px, 1fr))` }}
-                        >
-                          {days.map((day, dayIndex) => {
-                            const isCurrentDay = isToday(day)
-                            const isWeekendDay = isWeekend(day)
-                            const dayId = format(day, 'yyyy-MM-dd')
-                            const isTaskDay = taskDayId === dayId
+                        return (
+                          <div
+                            key={task.id}
+                            className={`grid relative h-28 border-b border-muted/10 transition-all duration-200 hover:bg-muted/20 ${
+                              index % 2 === 0 ? 'bg-background' : 'bg-muted/5'
+                            }`}
+                            style={{ gridTemplateColumns: `repeat(${days.length}, minmax(48px, 1fr))` }}
+                          >
+                            {days.map((day, dayIndex) => {
+                              const isCurrentDay = isToday(day)
+                              const isWeekendDay = isWeekend(day)
+                              const dayId = format(day, 'yyyy-MM-dd')
+                              const isTaskDay = taskDayId === dayId
 
-                            return (
-                              <Droppable
-                                key={dayId}
-                                droppableId={getDroppableId(task.id, dayId)}
-                                type={task.id}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className={`border-r h-full ${
-                                      isCurrentDay
-                                        ? 'border-blue-300'
-                                        : isWeekendDay
-                                        ? 'border-muted/40'
-                                        : 'border-muted/20'
-                                    } ${
-                                      isCurrentDay ? 'bg-blue-50/50' : ''
-                                    } ${
-                                      snapshot.isDraggingOver ? 'bg-blue-100/70' : ''
-                                    }`}
-                                    style={{ gridColumn: dayIndex + 1 }}
-                                  >
-                                    {isTaskDay ? (
-                                      <div className="flex items-start px-1 pt-3">
-                                        <Draggable draggableId={task.id} index={0}>
-                                          {(dragProvided, dragSnapshot) => (
-                                            <div
-                                              ref={dragProvided.innerRef}
-                                              {...dragProvided.draggableProps}
-                                              {...dragProvided.dragHandleProps}
-                                              className={`h-8 w-full min-w-[40px] rounded-lg shadow-lg cursor-grab transition-all duration-300 hover:shadow-xl hover:scale-105 group border ${
-                                                dragSnapshot.isDragging ? 'opacity-75' : ''
-                                              } ${statusColors.border}`}
-                                              style={{
-                                                ...dragProvided.draggableProps.style,
-                                                borderColor: statusColors.customColor || undefined
-                                              }}
-                                              onClick={() => onTaskClick?.(task)}
-                                            >
+                              return (
+                                <Droppable
+                                  key={dayId}
+                                  droppableId={getDroppableId(task.id, dayId)}
+                                  type={task.id}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.droppableProps}
+                                      className={`border-r h-full ${
+                                        isCurrentDay
+                                          ? 'border-blue-300'
+                                          : isWeekendDay
+                                          ? 'border-muted/40'
+                                          : 'border-muted/20'
+                                      } ${
+                                        isCurrentDay ? 'bg-blue-50/50' : ''
+                                      } ${
+                                        snapshot.isDraggingOver ? 'bg-blue-100/70' : ''
+                                      }`}
+                                      style={{ gridColumn: dayIndex + 1 }}
+                                    >
+                                      {isTaskDay ? (
+                                        <div className="flex items-start px-1 pt-3">
+                                          <Draggable draggableId={task.id} index={0}>
+                                            {(dragProvided, dragSnapshot) => (
                                               <div
-                                                className={`h-full rounded-lg ${statusColors.customColor ? '' : `bg-gradient-to-r ${statusColors.gradient}`} relative overflow-hidden`}
-                                                style={statusColors.customColor ? { backgroundColor: statusColors.customColor } : undefined}
+                                                ref={dragProvided.innerRef}
+                                                {...dragProvided.draggableProps}
+                                                {...dragProvided.dragHandleProps}
+                                                className={`h-8 w-full min-w-[40px] rounded-lg shadow-lg cursor-grab transition-all duration-300 hover:shadow-xl hover:scale-105 group border ${
+                                                  dragSnapshot.isDragging ? 'opacity-75' : ''
+                                                } ${statusColors.border}`}
+                                                style={{
+                                                  ...dragProvided.draggableProps.style,
+                                                  borderColor: statusColors.customColor || undefined
+                                                }}
+                                                onClick={() => onTaskClick?.(task)}
                                               >
                                                 <div
-                                                  className="absolute top-0 left-0 h-full bg-white/25 rounded-lg transition-all duration-500"
-                                                  style={{ width: `${progress}%` }}
-                                                />
+                                                  className={`h-full rounded-lg ${statusColors.customColor ? '' : `bg-gradient-to-r ${statusColors.gradient}`} relative overflow-hidden`}
+                                                  style={statusColors.customColor ? { backgroundColor: statusColors.customColor } : undefined}
+                                                >
+                                                  <div
+                                                    className="absolute top-0 left-0 h-full bg-white/25 rounded-lg transition-all duration-500"
+                                                    style={{ width: `${progress}%` }}
+                                                  />
 
-                                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${priorityColors.accent} rounded-l-lg`} />
+                                                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${priorityColors.accent} rounded-l-lg`} />
 
-                                                <div className="absolute inset-0 flex items-center px-3">
-                                                  <div className="flex items-center gap-2 flex-1 min-w-0 pr-10">
-                                                    {getStatusIcon(task.status)}
-                                                    <span className={`text-xs font-semibold truncate ${statusColors.text}`}>
-                                                      {task.title}
-                                                    </span>
+                                                  <div className="absolute inset-0 flex items-center px-3">
+                                                    <div className="flex items-center gap-2 flex-1 min-w-0 pr-10">
+                                                      {getStatusIcon(task.status)}
+                                                      <span className={`text-xs font-semibold truncate ${statusColors.text}`}>
+                                                        {task.title}
+                                                      </span>
+                                                    </div>
+                                                    <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium ${statusColors.text} opacity-90`}>
+                                                      {progress}%
+                                                    </div>
                                                   </div>
-                                                  <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium ${statusColors.text} opacity-90`}>
-                                                    {progress}%
-                                                  </div>
+
+                                                  <div className="absolute inset-0 bg-white/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                                                 </div>
-
-                                                <div className="absolute inset-0 bg-white/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                                               </div>
-                                            </div>
-                                          )}
-                                        </Draggable>
-                                      </div>
-                                    ) : null}
-                                    {provided.placeholder}
-                                  </div>
-                                )}
-                              </Droppable>
-                            )
-                          })}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </DragDropContext>
+                                            )}
+                                          </Draggable>
+                                        </div>
+                                      ) : null}
+                                      {provided.placeholder}
+                                    </div>
+                                  )}
+                                </Droppable>
+                              )
+                            })}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </DragDropContext>
+                </div>
               </div>
             </div>
+          </div>
 
+          <div className="sticky bottom-0 z-40 flex border-t bg-background/95 backdrop-blur-sm relative after:absolute after:inset-x-0 after:-bottom-3 after:h-3 after:bg-background after:content-['']">
+            <div className="w-96 flex-shrink-0 border-r bg-background" />
+            <div
+              ref={timelineBottomScrollRef}
+              className="flex-1 overflow-x-auto"
+            >
+              <div className="h-4" style={{ width: `${timelineScrollWidth}px` }} />
+            </div>
           </div>
         </div>
       </div>
