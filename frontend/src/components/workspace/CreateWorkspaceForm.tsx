@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -8,6 +8,8 @@ import { WorkspaceIconUpload } from './WorkspaceIconUpload'
 import { useCreateWorkspace, useUploadWorkspaceLogo } from '../../lib/api/workspace-api'
 import { CheckCircle, Loader2, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '../ui/alert'
+import { useIntl } from 'react-intl'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface CreateWorkspaceFormData {
   name: string
@@ -16,6 +18,8 @@ interface CreateWorkspaceFormData {
 
 export function CreateWorkspaceForm() {
   const navigate = useNavigate()
+  const intl = useIntl()
+  const { user } = useAuth()
   const createWorkspaceMutation = useCreateWorkspace()
   const uploadLogoMutation = useUploadWorkspaceLogo()
 
@@ -26,16 +30,32 @@ export function CreateWorkspaceForm() {
   const [errors, setErrors] = useState<Partial<CreateWorkspaceFormData>>({})
   const [isSuccess, setIsSuccess] = useState(false)
   const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null)
+  const [hasEditedName, setHasEditedName] = useState(false)
+
+  useEffect(() => {
+    if (hasEditedName || formData.name.trim()) return
+
+    const displayName = user?.fullName?.trim() || user?.name?.trim() || user?.username?.trim() || ''
+    if (!displayName) return
+
+    setFormData(prev => ({
+      ...prev,
+      name: intl.formatMessage(
+        { id: 'workspace.createForm.defaultNameTemplate' },
+        { name: displayName }
+      ),
+    }))
+  }, [user, intl, hasEditedName, formData.name])
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CreateWorkspaceFormData> = {}
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Workspace name is required'
+      newErrors.name = intl.formatMessage({ id: 'workspace.createForm.errors.nameRequired' })
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Workspace name must be at least 2 characters'
+      newErrors.name = intl.formatMessage({ id: 'workspace.createForm.errors.nameMinLength' })
     } else if (formData.name.trim().length > 50) {
-      newErrors.name = 'Workspace name must be less than 50 characters'
+      newErrors.name = intl.formatMessage({ id: 'workspace.createForm.errors.nameMaxLength' })
     }
 
     setErrors(newErrors)
@@ -110,6 +130,9 @@ export function CreateWorkspaceForm() {
   }
 
   const handleInputChange = (field: keyof CreateWorkspaceFormData, value: string) => {
+    if (field === 'name') {
+      setHasEditedName(true)
+    }
     setFormData(prev => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
     if (errors[field]) {
@@ -127,10 +150,10 @@ export function CreateWorkspaceForm() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                Workspace Created!
+                {intl.formatMessage({ id: 'workspace.createForm.success.title' })}
               </h3>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 px-2">
-                Welcome to {formData.name}. Redirecting you to your new workspace...
+                {intl.formatMessage({ id: 'workspace.createForm.success.description' }, { name: formData.name })}
               </p>
             </div>
             <div className="flex justify-center">
@@ -145,9 +168,11 @@ export function CreateWorkspaceForm() {
   return (
     <Card className="w-full max-w-lg mx-auto shadow-xl">
       <CardHeader className="text-center pb-3 px-4 sm:px-6 pt-4">
-        <CardTitle className="text-lg sm:text-xl">Create a workspace</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">
+          {intl.formatMessage({ id: 'workspace.createForm.title' })}
+        </CardTitle>
         <CardDescription className="text-sm">
-          Workspaces are where your team collaborates. Name it after your company or team.
+          {intl.formatMessage({ id: 'workspace.createForm.description' })}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 px-4 sm:px-6 pb-4">
@@ -162,14 +187,14 @@ export function CreateWorkspaceForm() {
           {/* Workspace Name */}
           <div className="space-y-1.5">
             <Label htmlFor="workspace-name" className="text-sm font-medium">
-              Workspace Name <span className="text-red-500">*</span>
+              {intl.formatMessage({ id: 'workspace.createForm.nameLabel' })} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="workspace-name"
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="e.g., Acme Design Studio, My Company"
+              placeholder={intl.formatMessage({ id: 'workspace.createForm.namePlaceholder' })}
               className={`h-10 ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
               maxLength={50}
             />
@@ -180,7 +205,7 @@ export function CreateWorkspaceForm() {
               </p>
             )}
             <p className="text-xs text-gray-500">
-              {formData.name.length}/50 characters
+              {intl.formatMessage({ id: 'workspace.createForm.characterCount' }, { count: formData.name.length })}
             </p>
           </div>
 
@@ -189,7 +214,7 @@ export function CreateWorkspaceForm() {
             <Alert variant="destructive" className="py-2">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
-                {createWorkspaceMutation.error?.message || 'Failed to create workspace. Please try again.'}
+                {createWorkspaceMutation.error?.message || intl.formatMessage({ id: 'workspace.createForm.errors.createFailed' })}
               </AlertDescription>
             </Alert>
           )}
@@ -203,10 +228,14 @@ export function CreateWorkspaceForm() {
             {createWorkspaceMutation.isPending || uploadLogoMutation.isPending ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{uploadLogoMutation.isPending ? 'Uploading...' : 'Creating...'}</span>
+                <span>
+                  {uploadLogoMutation.isPending
+                    ? intl.formatMessage({ id: 'workspace.createForm.uploading' })
+                    : intl.formatMessage({ id: 'workspace.createForm.creating' })}
+                </span>
               </div>
             ) : (
-              'Create Workspace'
+              intl.formatMessage({ id: 'workspace.createForm.submit' })
             )}
           </Button>
         </form>
@@ -214,7 +243,7 @@ export function CreateWorkspaceForm() {
         {/* Help Text */}
         <div className="text-center pt-3 border-t">
           <p className="text-xs text-gray-500">
-            You can always change these settings later in workspace preferences
+            {intl.formatMessage({ id: 'workspace.createForm.helpText' })}
           </p>
         </div>
       </CardContent>

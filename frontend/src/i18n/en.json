@@ -280,6 +280,38 @@
     "createNewWorkspace": "Create New Workspace",
     "createTitle": "Create Your Workspace",
     "createDescription": "Set up your team's workspace to start collaborating. You can customize everything later.",
+    "createForm": {
+      "title": "Create a workspace",
+      "description": "Workspaces are where your team collaborates. Name it after your company or team.",
+      "nameLabel": "Workspace Name",
+      "defaultNameTemplate": "{name}'s Workspace",
+      "namePlaceholder": "e.g., Acme Design Studio, My Company",
+      "characterCount": "{count}/50 characters",
+      "submit": "Create Workspace",
+      "uploading": "Uploading...",
+      "creating": "Creating...",
+      "helpText": "You can always change these settings later in workspace preferences",
+      "success": {
+        "title": "Workspace Created!",
+        "description": "Welcome to {name}. Redirecting you to your new workspace..."
+      },
+      "errors": {
+        "nameRequired": "Workspace name is required",
+        "nameMinLength": "Workspace name must be at least 2 characters",
+        "nameMaxLength": "Workspace name must be less than 50 characters",
+        "createFailed": "Failed to create workspace. Please try again."
+      },
+      "icon": {
+        "upload": "Upload Icon",
+        "change": "Change Icon",
+        "hint": "Optional • PNG, JPG up to 5MB",
+        "previewAlt": "Workspace icon preview",
+        "errors": {
+          "invalidType": "Please select an image file",
+          "maxSize": "File size must be less than 5MB"
+        }
+      }
+    },
     "back": "Back",
     "stepInfo": "Step 1 of 1",
     "needHelp": "Need help?",
@@ -3217,6 +3249,8 @@
       "noRecentSearches": "No recent searches",
       "savedSearches": "SAVED SEARCHES",
       "noSavedSearches": "No saved searches",
+      "noResultsTitle": "No results found",
+      "noResultsDescription": "Try adjusting your search terms or filters to find what you're looking for.",
       "dashboard": {
         "title": "Search Dashboard",
         "description": "Discover content, find what you need, and explore your workspace.",

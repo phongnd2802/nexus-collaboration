@@ -266,9 +266,14 @@ export function SearchResults({ results, searchType, isLoading, searchQuery: _se
       <div className="flex-1 flex items-center justify-center text-center p-8">
         <div className="max-w-md">
           <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No results found</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            {intl.formatMessage({ id: 'modules.search.noResultsTitle', defaultMessage: 'No results found' })}
+          </h3>
           <p className="text-muted-foreground">
-            Try adjusting your search terms or filters to find what you're looking for.
+            {intl.formatMessage({
+              id: 'modules.search.noResultsDescription',
+              defaultMessage: "Try adjusting your search terms or filters to find what you're looking for."
+            })}
           </p>
         </div>
       </div>

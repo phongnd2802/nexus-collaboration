@@ -17,21 +17,33 @@ import * as nodemailer from 'nodemailer';
 
 export interface EmailConfig {
   host: string;
+  hostIp: string;
   port: number;
   user: string;
   password: string;
   from: string;
   secure: boolean;
+  tlsServername?: string;
+  connectionTimeout: number;
+  greetingTimeout: number;
+  socketTimeout: number;
+  dnsTimeout: number;
 }
 
 export function getEmailConfig(getConfig: (key: string, fallback?: any) => any): EmailConfig {
   return {
     host: getConfig('SMTP_HOST', ''),
+    hostIp: getConfig('SMTP_HOST_IP', ''),
     port: parseInt(getConfig('SMTP_PORT', '587'), 10),
     user: getConfig('SMTP_USER', ''),
     password: getConfig('SMTP_PASSWORD', ''),
     from: getConfig('SMTP_FROM', 'noreply@example.com'),
     secure: String(getConfig('SMTP_SECURE', 'false')).toLowerCase() === 'true',
+    tlsServername: getConfig('SMTP_TLS_SERVERNAME', getConfig('SMTP_HOST', '')),
+    connectionTimeout: parseInt(getConfig('SMTP_CONNECTION_TIMEOUT_MS', '20000'), 10),
+    greetingTimeout: parseInt(getConfig('SMTP_GREETING_TIMEOUT_MS', '15000'), 10),
+    socketTimeout: parseInt(getConfig('SMTP_SOCKET_TIMEOUT_MS', '30000'), 10),
+    dnsTimeout: parseInt(getConfig('SMTP_DNS_TIMEOUT_MS', '8000'), 10),
   };
 }
 
@@ -40,15 +52,20 @@ let cachedTransport: nodemailer.Transporter | null = null;
 function getTransport(cfg: EmailConfig): nodemailer.Transporter {
   if (cachedTransport) return cachedTransport;
   cachedTransport = nodemailer.createTransport({
-    host: cfg.host,
+    host: cfg.hostIp || cfg.host,
     port: cfg.port,
     secure: cfg.secure,
+    connectionTimeout: cfg.connectionTimeout,
+    greetingTimeout: cfg.greetingTimeout,
+    socketTimeout: cfg.socketTimeout,
+    dnsTimeout: cfg.dnsTimeout,
     auth: cfg.user
       ? {
           user: cfg.user,
           pass: cfg.password,
         }
       : undefined,
+    tls: cfg.tlsServername ? { servername: cfg.tlsServername } : undefined,
   });
   return cachedTransport;
 }

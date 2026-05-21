@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from '../database/database.service';
+import { EmailProviderService } from '../email/email.service';
 import {
   RegisterDto,
   LoginDto,
@@ -27,6 +28,7 @@ export class AuthService {
   constructor(
     private readonly db: DatabaseService,
     private jwtService: JwtService,
+    private readonly emailProvider: EmailProviderService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -750,11 +752,23 @@ export class AuthService {
     const text = `Verify your email: ${verificationLink}\n\nIf you didn't request this, you can ignore this email.`;
 
     try {
-      const result = await this.db.sendEmail(to, 'Verify your email address', html, text);
-      if (!result?.success) {
+      if (!this.emailProvider.isAvailable()) {
         this.logger.error(
-          `Failed to send verification email to ${to}: ${result?.error || 'unknown error'}`,
+          `Failed to send verification email to ${to}: email provider is not available`,
         );
+        return;
+      }
+
+      const result = await this.emailProvider.send({
+        to,
+        subject: 'Verify your email address',
+        html,
+        text,
+        tags: { type: 'auth-verification' },
+      });
+
+      if (!result?.accepted) {
+        this.logger.error(`Failed to send verification email to ${to}: provider rejected message`);
       }
     } catch (error: any) {
       this.logger.error(

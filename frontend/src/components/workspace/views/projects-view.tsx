@@ -169,7 +169,7 @@ export function ProjectsView() {
               <Button
                 variant={activeTab === 'dashboard' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => navigate(`/workspaces/${workspaceId}/projects`)}
+                onClick={() => navigate(`/workspaces/${workspaceId}/dashboard`)}
               >
                 <BarChart3 className="w-3 h-3 mr-1" />
                 {intl.formatMessage({ id: 'projects.dashboard' })}

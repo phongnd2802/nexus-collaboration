@@ -522,13 +522,10 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                     <div className="min-w-0">
                       <h3 className="font-semibold truncate">{project.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                        {intl.formatMessage({ id: `projects.status.${project.status}` }, { defaultMessage: project.status.charAt(0).toUpperCase() + project.status.slice(1) })}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="whitespace-nowrap flex-shrink-0">
-                    {(project.priority || 'medium').toUpperCase()}
-                  </Badge>
                 </div>
                 {project.description && (
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-3 whitespace-pre-wrap">
@@ -541,7 +538,7 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                 {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Progress</span>
+                    <span>{intl.formatMessage({ id: 'projects.progress' })}</span>
                     <span>{progress}%</span>
                   </div>
                   <Progress value={progress} className="h-2" />

@@ -21,6 +21,8 @@ interface BriefingContext {
   recentNotes: any[];
 }
 
+const COMPLETED_STATUSES = ['done', 'completed', 'cancelled'];
+
 @Injectable()
 export class DailyBriefingService {
   private readonly logger = new Logger(DailyBriefingService.name);
@@ -161,18 +163,29 @@ export class DailyBriefingService {
     try {
       const result = await this.db
         .table('tasks')
-        .select('id', 'title', 'due_date', 'priority', 'project_id', 'assigned_to', 'user_id')
-        .where('workspace_id', '=', workspaceId)
+        .select(
+          'tasks.id',
+          'tasks.title',
+          'tasks.due_date',
+          'tasks.priority',
+          'tasks.project_id',
+          'tasks.assigned_to',
+          'tasks.user_id',
+          'tasks.created_by',
+          'tasks.status',
+          'projects.workspace_id as project_workspace_id',
+        )
+        .join('projects', 'tasks.project_id', 'projects.id')
+        .where('projects.workspace_id', '=', workspaceId)
         .where('due_date', '<', now.toISOString())
-        .where('status', '!=', 'done')
-        .where('is_deleted', '=', false)
         .execute();
 
       const tasks = Array.isArray(result) ? result : [];
 
       // Filter tasks assigned to user or created by user
       return tasks
-        .filter((t: any) => t.assigned_to === userId || t.user_id === userId)
+        .filter((t: any) => this.isTaskOpen(t.status))
+        .filter((t: any) => this.isUserInTask(t, userId))
         .map((t: any) => ({
           id: t.id,
           title: t.title,
@@ -200,16 +213,29 @@ export class DailyBriefingService {
     try {
       const result = await this.db
         .table('tasks')
-        .select('id', 'title', 'due_date', 'priority', 'status', 'project_id')
-        .where('workspace_id', '=', workspaceId)
+        .select(
+          'tasks.id',
+          'tasks.title',
+          'tasks.due_date',
+          'tasks.priority',
+          'tasks.status',
+          'tasks.project_id',
+          'tasks.assigned_to',
+          'tasks.user_id',
+          'tasks.created_by',
+          'projects.workspace_id as project_workspace_id',
+        )
+        .join('projects', 'tasks.project_id', 'projects.id')
+        .where('projects.workspace_id', '=', workspaceId)
         .where('due_date', '>=', start.toISOString())
         .where('due_date', '<=', end.toISOString())
-        .where('status', '!=', 'done')
-        .where('is_deleted', '=', false)
         .execute();
 
       const tasks = Array.isArray(result) ? result : [];
-      return tasks.map((t: any) => ({
+      return tasks
+        .filter((t: any) => this.isTaskOpen(t.status))
+        .filter((t: any) => this.isUserInTask(t, userId))
+        .map((t: any) => ({
         id: t.id,
         title: t.title,
         dueDate: t.due_date,
@@ -267,16 +293,28 @@ export class DailyBriefingService {
     try {
       const result = await this.db
         .table('tasks')
-        .select('id', 'title', 'due_date', 'priority')
-        .where('workspace_id', '=', workspaceId)
+        .select(
+          'tasks.id',
+          'tasks.title',
+          'tasks.due_date',
+          'tasks.priority',
+          'tasks.status',
+          'tasks.assigned_to',
+          'tasks.user_id',
+          'tasks.created_by',
+          'projects.workspace_id as project_workspace_id',
+        )
+        .join('projects', 'tasks.project_id', 'projects.id')
+        .where('projects.workspace_id', '=', workspaceId)
         .where('due_date', '>', start.toISOString())
         .where('due_date', '<=', end.toISOString())
-        .where('status', '!=', 'done')
-        .where('is_deleted', '=', false)
         .execute();
 
       const tasks = Array.isArray(result) ? result : [];
-      return tasks.map((t: any) => ({
+      return tasks
+        .filter((t: any) => this.isTaskOpen(t.status))
+        .filter((t: any) => this.isUserInTask(t, userId))
+        .map((t: any) => ({
         id: t.id,
         title: t.title,
         dueDate: t.due_date,
@@ -295,15 +333,26 @@ export class DailyBriefingService {
     try {
       const result = await this.db
         .table('tasks')
-        .select('id', 'title', 'due_date', 'priority', 'status')
-        .where('workspace_id', '=', workspaceId)
-        .where('status', '!=', 'done')
-        .where('is_deleted', '=', false)
+        .select(
+          'tasks.id',
+          'tasks.title',
+          'tasks.due_date',
+          'tasks.priority',
+          'tasks.status',
+          'tasks.assigned_to',
+          'tasks.user_id',
+          'tasks.created_by',
+          'projects.workspace_id as project_workspace_id',
+        )
+        .join('projects', 'tasks.project_id', 'projects.id')
+        .where('projects.workspace_id', '=', workspaceId)
         .execute();
 
       const tasks = Array.isArray(result) ? result : [];
       // Filter high priority (high, urgent)
       return tasks
+        .filter((t: any) => this.isTaskOpen(t.status))
+        .filter((t: any) => this.isUserInTask(t, userId))
         .filter((t: any) => t.priority === 'high' || t.priority === 'urgent')
         .map((t: any) => ({
           id: t.id,
@@ -562,6 +611,31 @@ export class DailyBriefingService {
     } catch (error) {
       this.logger.error(`[DailyBriefing] Error marking briefing as read: ${error.message}`);
       return false;
+    }
+  }
+
+  private isTaskOpen(status: string): boolean {
+    return !COMPLETED_STATUSES.includes(String(status || '').toLowerCase());
+  }
+
+  private isUserInTask(task: any, userId: string): boolean {
+    const assignees = this.parseAssigneeIds(task.assigned_to);
+    if (assignees.includes(userId)) return true;
+    return task.user_id === userId || task.created_by === userId;
+  }
+
+  private parseAssigneeIds(assignedTo: any): string[] {
+    try {
+      if (Array.isArray(assignedTo)) return assignedTo.filter(Boolean).map(String);
+      if (typeof assignedTo === 'string') {
+        const parsed = JSON.parse(assignedTo);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String);
+        if (assignedTo.trim()) return [assignedTo.trim()];
+      }
+      return [];
+    } catch {
+      if (typeof assignedTo === 'string' && assignedTo.trim()) return [assignedTo.trim()];
+      return [];
     }
   }
 }

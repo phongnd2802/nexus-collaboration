@@ -1,28 +1,30 @@
 import { useState, useRef } from 'react'
 import { Button } from '../ui/button'
 import { Camera, Upload, X, Building2 } from 'lucide-react'
+import { useIntl } from 'react-intl'
 
 interface WorkspaceIconUploadProps {
   onIconChange: (file: File | null) => void
 }
 
 export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) {
+  const intl = useIntl()
   const [preview, setPreview] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (file: File) => {
     console.log('🔍 File selected in WorkspaceIconUpload:', file.name, file.type, file.size)
-    
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
+      alert(intl.formatMessage({ id: 'workspace.createForm.icon.errors.invalidType' }))
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB')
+      alert(intl.formatMessage({ id: 'workspace.createForm.icon.errors.maxSize' }))
       return
     }
 
@@ -45,7 +47,7 @@ export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    
+
     const file = e.dataTransfer.files[0]
     if (file) {
       handleFileSelect(file)
@@ -93,7 +95,7 @@ export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) 
           <>
             <img
               src={preview}
-              alt="Workspace icon preview"
+              alt={intl.formatMessage({ id: 'workspace.createForm.icon.previewAlt' })}
               className="w-full h-full rounded-xl object-cover"
             />
             <button
@@ -126,10 +128,12 @@ export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) 
           onClick={openFileDialog}
           className="text-xs h-7"
         >
-          {preview ? 'Change Icon' : 'Upload Icon'}
+          {preview
+            ? intl.formatMessage({ id: 'workspace.createForm.icon.change' })
+            : intl.formatMessage({ id: 'workspace.createForm.icon.upload' })}
         </Button>
         <p className="text-xs text-gray-500 mt-1">
-          Optional • PNG, JPG up to 5MB
+          {intl.formatMessage({ id: 'workspace.createForm.icon.hint' })}
         </p>
       </div>
 
