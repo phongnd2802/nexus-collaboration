@@ -28,6 +28,7 @@
 import { Inject, Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { buildBrandedEmail } from '../../email/branded-email';
 
 /**
  * Minimal email-sender contract used by MagicLinkService. Deliberately
@@ -154,19 +155,16 @@ export class MagicLinkService {
   }
 
   private buildHtml(link: string): string {
-    return `<!doctype html>
-<html>
-  <body style="font-family:system-ui,sans-serif;max-width:600px;margin:40px auto;padding:0 20px;color:#1a1a1a;">
-    <h2 style="color:#2563eb;">Sign in to Nexus</h2>
-    <p>Click the button below to sign in. This link will expire in ${Math.round(this.ttlSeconds / 60)} minutes.</p>
-    <p style="text-align:center;margin:32px 0;">
-      <a href="${link}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;">Sign in</a>
-    </p>
-    <p style="color:#666;font-size:14px;">If the button doesn't work, copy and paste this link into your browser:</p>
-    <p style="word-break:break-all;color:#2563eb;font-size:14px;">${link}</p>
-    <hr style="border:0;border-top:1px solid #eee;margin:32px 0;" />
-    <p style="color:#999;font-size:12px;">If you didn't request this sign-in link, you can safely ignore this email.</p>
-  </body>
-</html>`;
+    return buildBrandedEmail({
+      eyebrow: 'Nexus Sign In',
+      title: 'Đăng nhập không mật khẩu',
+      intro: `Nhấn vào nút bên dưới để đăng nhập vào Nexus. Liên kết này sẽ hết hạn sau ${Math.round(this.ttlSeconds / 60)} phút.`,
+      action: {
+        label: 'Đăng nhập',
+        url: link,
+      },
+      actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${link}`,
+      footer: 'Nếu bạn không yêu cầu liên kết đăng nhập này, bạn có thể bỏ qua email.',
+    }).html;
   }
 }

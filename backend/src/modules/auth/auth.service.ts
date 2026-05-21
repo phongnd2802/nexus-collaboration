@@ -10,6 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from '../database/database.service';
 import { EmailProviderService } from '../email/email.service';
+import { buildBrandedEmail } from '../email/branded-email';
 import {
   RegisterDto,
   LoginDto,
@@ -756,21 +757,17 @@ export class AuthService {
   }
 
   private async sendVerificationEmail(to: string, verificationLink: string): Promise<void> {
-    const html = `<!doctype html>
-<html>
-  <body style="font-family:system-ui,sans-serif;max-width:600px;margin:40px auto;padding:0 20px;color:#1a1a1a;">
-    <h2 style="color:#2563eb;">Verify your email</h2>
-    <p>Thanks for signing up for Nexus. Click the button below to verify your email address.</p>
-    <p style="text-align:center;margin:32px 0;">
-      <a href="${verificationLink}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;">Verify email</a>
-    </p>
-    <p style="color:#666;font-size:14px;">If the button doesn't work, copy and paste this link into your browser:</p>
-    <p style="word-break:break-all;color:#2563eb;font-size:14px;">${verificationLink}</p>
-    <hr style="border:0;border-top:1px solid #eee;margin:32px 0;" />
-    <p style="color:#999;font-size:12px;">If you didn't request this email, you can safely ignore it.</p>
-  </body>
-</html>`;
-    const text = `Verify your email: ${verificationLink}\n\nIf you didn't request this, you can ignore this email.`;
+    const { html, text } = buildBrandedEmail({
+      eyebrow: 'Nexus Account',
+      title: 'Xác thực email',
+      intro: 'Cảm ơn bạn đã đăng ký Nexus. Hãy xác thực địa chỉ email để hoàn tất quá trình tạo tài khoản.',
+      action: {
+        label: 'Xác thực email',
+        url: verificationLink,
+      },
+      actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${verificationLink}`,
+      footer: 'Nếu bạn không yêu cầu email này, bạn có thể bỏ qua một cách an toàn.',
+    });
 
     try {
       if (!this.emailProvider.isAvailable()) {

@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
@@ -35,6 +35,35 @@
     "unknown": "Không rõ",
     "workspaceNotFound": "Không tìm thấy không gian làm việc",
     "pleaseTryAgain": "Vui lòng thử lại"
+  },
+  "invitation": {
+    "loading": "Đang tải lời mời...",
+    "invalidTitle": "Lời mời không hợp lệ",
+    "backToLogin": "Quay lại đăng nhập",
+    "notFoundTitle": "Không tìm thấy lời mời",
+    "notFoundDesc": "Chúng tôi không thể tìm thấy lời mời với liên kết này. Vui lòng kiểm tra email của bạn để lấy liên kết chính xác.",
+    "title": "Lời mời tham gia không gian làm việc",
+    "subtitle": "Bạn đã được mời tham gia một không gian làm việc trên Nexus",
+    "workspace": "Không gian làm việc",
+    "role": "Vai trò",
+    "invitedBy": "Được mời bởi",
+    "expires": "Hết hạn",
+    "messageFrom": "Tin nhắn từ {name}",
+    "requiredSkills": "Kỹ năng yêu cầu",
+    "decline": "Từ chối",
+    "accepting": "Đang chấp nhận...",
+    "accept": "Chấp nhận lời mời",
+    "loggedInAs": "Đã đăng nhập dưới tên",
+    "notYou": "Không phải bạn? Chuyển đổi tài khoản",
+    "successMessage": "Tham gia nhóm thành công!",
+    "errors": {
+      "emailMismatch": "Lời mời này được gửi đến {invitedEmail}, nhưng bạn đang đăng nhập với tư cách {userEmail}. Vui lòng đăng xuất và đăng nhập bằng email chính xác.",
+      "alreadyAccepted": "Lời mời này đã được chấp nhận.",
+      "revoked": "Lời mời này đã bị người gửi hủy.",
+      "expired": "Lời mời này đã hết hạn.",
+      "loadFailed": "Không thể tải chi tiết lời mời. Liên kết có thể không hợp lệ hoặc đã hết hạn.",
+      "acceptFailed": "Không thể chấp nhận lời mời. Vui lòng thử lại."
+    }
   },
   "support": {
     "title": "Trợ giúp & Hỗ trợ",
@@ -7526,6 +7555,7 @@
       "allCaughtUp": "Bạn đã bắt kịp mọi thứ!",
       "noSuggestions": "Không có hành động nào cần thực hiện ngay. Làm tốt lắm!",
       "showMore": "Hiển thị thêm {count} gợi ý",
+      "showLess": "Ẩn bớt",
       "actions": {
         "viewProject": "Xem dự án",
         "joinMeeting": "Tham gia cuộc họp",

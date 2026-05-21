@@ -47,7 +47,7 @@ export class EmailTemplatesService {
 
     const input: SendEmailInput = {
       to: opts.to,
-      subject: `[Nexus] Nhac nho: ${opts.reminderHeadline}`,
+      subject: `[Nexus] Nhắc nhở: ${opts.reminderHeadline}`,
       html,
       text,
       tags: { type: 'task-reminder' },

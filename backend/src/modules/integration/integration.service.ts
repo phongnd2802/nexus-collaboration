@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { buildBrandedEmail } from '../email/branded-email';
 import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -243,18 +244,15 @@ export class IntegrationService {
     inviteToken: string,
   ) {
     const subject = `You've been invited to join ${workspaceName}`;
-    const content = `
-      <h2>You're invited to join ${workspaceName}</h2>
-      <p>${inviterName} has invited you to collaborate in their Nexus workspace.</p>
-      <p><a href="${process.env.FRONTEND_URL}/invite/accept/${inviteToken}" 
-         style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
-         Accept Invitation
-      </a></p>
-      <p>If the button doesn't work, copy and paste this link: 
-         ${process.env.FRONTEND_URL}/invite/accept/${inviteToken}</p>
-    `;
+    const inviteUrl = `${process.env.FRONTEND_URL}/invite/accept/${inviteToken}`;
+    const content = `${inviterName} đã mời bạn cộng tác trong workspace ${workspaceName} trên Nexus.`;
 
-    return await this.sendNotificationEmail(email, subject, content);
+    return await this.sendNotificationEmail(email, subject, content, {
+      title: `Mời tham gia ${workspaceName}`,
+      intro: content,
+      actionLabel: 'Chấp nhận lời mời',
+      actionUrl: inviteUrl,
+    });
   }
 
   async sendTaskAssignmentEmail(
@@ -265,18 +263,14 @@ export class IntegrationService {
     taskUrl: string,
   ) {
     const subject = `New task assigned: ${taskTitle}`;
-    const content = `
-      <h2>You've been assigned a new task</h2>
-      <p><strong>Task:</strong> ${taskTitle}</p>
-      <p><strong>Project:</strong> ${projectName}</p>
-      <p><strong>Assigned by:</strong> ${assignerName}</p>
-      <p><a href="${taskUrl}" 
-         style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
-         View Task
-      </a></p>
-    `;
+    const content = `${assignerName} đã giao cho bạn task "${taskTitle}" trong dự án ${projectName}.`;
 
-    return await this.sendNotificationEmail(email, subject, content);
+    return await this.sendNotificationEmail(email, subject, content, {
+      title: 'Bạn vừa được giao task mới',
+      intro: content,
+      actionLabel: 'Xem task',
+      actionUrl: taskUrl,
+    });
   }
 
   async sendEventReminderEmail(
@@ -287,23 +281,14 @@ export class IntegrationService {
   ) {
     const eventDate = new Date(startTime);
     const subject = `Reminder: ${eventTitle} starts soon`;
+    const content = `${eventTitle} sẽ bắt đầu vào ${eventDate.toLocaleString()}.`;
 
-    let content = `
-      <h2>Event Reminder</h2>
-      <p><strong>Event:</strong> ${eventTitle}</p>
-      <p><strong>Time:</strong> ${eventDate.toLocaleString()}</p>
-    `;
-
-    if (meetingUrl) {
-      content += `
-        <p><a href="${meetingUrl}" 
-           style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
-           Join Meeting
-        </a></p>
-      `;
-    }
-
-    return await this.sendNotificationEmail(email, subject, content);
+    return await this.sendNotificationEmail(email, subject, content, {
+      title: 'Nhắc lịch sự kiện',
+      intro: content,
+      actionLabel: meetingUrl ? 'Tham gia cuộc họp' : undefined,
+      actionUrl: meetingUrl,
+    });
   }
 
   // ============================================
@@ -351,30 +336,20 @@ export class IntegrationService {
   // ============================================
 
   private generateEmailHtml(content: string, templateData?: any): string {
-    // Basic HTML email template
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Nexus Notification</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #007bff;">Nexus</h1>
-            </div>
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-              ${content}
-            </div>
-            <div style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
-              <p>This email was sent from Nexus. If you no longer wish to receive these emails, 
-                 you can update your notification preferences in your account settings.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+    return buildBrandedEmail({
+      eyebrow: 'Nexus Notification',
+      title: templateData?.title || 'Cập nhật từ Nexus',
+      intro: templateData?.intro || content,
+      action:
+        templateData?.actionLabel && templateData?.actionUrl
+          ? {
+              label: templateData.actionLabel,
+              url: templateData.actionUrl,
+            }
+          : undefined,
+      footer:
+        'Nếu bạn không muốn nhận các email tương tự, bạn có thể cập nhật tuỳ chọn thông báo trong phần cài đặt tài khoản.',
+    }).html;
   }
 
   // Integration health check
