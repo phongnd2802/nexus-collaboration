@@ -22,21 +22,11 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { ProjectType } from '@/types/projects'
 // import { mockUsers } from '@/lib/mock-data' // Removed - use real API data
 import { useToast } from '@/components/ui/use-toast'
 import {
   Check,
-
-  Target,
-  GitBranch,
-  Bug,
-  Zap,
-  Microscope,
-
   Plus,
   X,
   GripVertical,
@@ -97,7 +87,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     name: '',
     description: '',
     key: '',
-    type: '' as ProjectType | '',
+    type: 'KANBAN',
     leadId: '',
     defaultAssigneeIds: [] as string[],
     statusColumns: getDefaultStatusColumns('kanban')
@@ -473,74 +463,6 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     }
   })
 
-  const projectTypeOptions = [
-    {
-      type: 'KANBAN' as ProjectType,
-      title: intl.formatMessage({ id: 'modules.projects.createProject.projectType.kanban.title', defaultMessage: 'Kanban Board' }),
-      description: intl.formatMessage({ id: 'modules.projects.createProject.projectType.kanban.description', defaultMessage: 'Continuous flow workflow for ongoing projects' }),
-      icon: <GitBranch className="w-6 h-6" />,
-      features: [
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.kanban.features.continuousFlow', defaultMessage: 'Continuous flow' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.kanban.features.wipLimits', defaultMessage: 'WIP limits' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.kanban.features.leadTime', defaultMessage: 'Lead time tracking' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.kanban.features.cumulativeFlow', defaultMessage: 'Cumulative flow' })
-      ],
-      color: 'bg-green-200/30 dark:bg-green-900/30 border-green-500/30'
-    },
-    {
-      type: 'SCRUM' as ProjectType,
-      title: intl.formatMessage({ id: 'modules.projects.createProject.projectType.scrum.title', defaultMessage: 'Scrum Board' }),
-      description: intl.formatMessage({ id: 'modules.projects.createProject.projectType.scrum.description', defaultMessage: 'Sprint-based agile workflow with backlog management' }),
-      icon: <Target className="w-6 h-6" />,
-      features: [
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.scrum.features.sprintPlanning', defaultMessage: 'Sprint planning' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.scrum.features.backlog', defaultMessage: 'Backlog management' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.scrum.features.burndown', defaultMessage: 'Burndown charts' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.scrum.features.velocity', defaultMessage: 'Velocity tracking' })
-      ],
-      color: 'bg-blue-200/30 dark:bg-blue-900/30 border-blue-500/30'
-    },
-    {
-      type: 'BUG_TRACKING' as ProjectType,
-      title: intl.formatMessage({ id: 'modules.projects.createProject.projectType.bugTracking.title', defaultMessage: 'Bug Tracking' }),
-      description: intl.formatMessage({ id: 'modules.projects.createProject.projectType.bugTracking.description', defaultMessage: 'Issue tracking and resolution workflow' }),
-      icon: <Bug className="w-6 h-6" />,
-      features: [
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.bugTracking.features.issueTracking', defaultMessage: 'Issue tracking' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.bugTracking.features.severity', defaultMessage: 'Severity levels' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.bugTracking.features.resolution', defaultMessage: 'Resolution workflow' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.bugTracking.features.reports', defaultMessage: 'Bug reports' })
-      ],
-      color: 'bg-red-200/30 dark:bg-red-900/30 border-red-500/30'
-    },
-    {
-      type: 'FEATURE_DEVELOPMENT' as ProjectType,
-      title: intl.formatMessage({ id: 'modules.projects.createProject.projectType.featureDevelopment.title', defaultMessage: 'Feature Development' }),
-      description: intl.formatMessage({ id: 'modules.projects.createProject.projectType.featureDevelopment.description', defaultMessage: 'Feature request to completion workflow' }),
-      icon: <Zap className="w-6 h-6" />,
-      features: [
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.featureDevelopment.features.requests', defaultMessage: 'Feature requests' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.featureDevelopment.features.development', defaultMessage: 'Development workflow' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.featureDevelopment.features.release', defaultMessage: 'Release planning' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.featureDevelopment.features.feedback', defaultMessage: 'User feedback' })
-      ],
-      color: 'bg-orange-200/30 dark:bg-orange-900/30 border-orange-500/30'
-    },
-    {
-      type: 'RESEARCH' as ProjectType,
-      title: intl.formatMessage({ id: 'modules.projects.createProject.projectType.research.title', defaultMessage: 'Research Project' }),
-      description: intl.formatMessage({ id: 'modules.projects.createProject.projectType.research.description', defaultMessage: 'Research and documentation workflow' }),
-      icon: <Microscope className="w-6 h-6" />,
-      features: [
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.research.features.researchTasks', defaultMessage: 'Research tasks' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.research.features.documentation', defaultMessage: 'Documentation' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.research.features.knowledgeBase', defaultMessage: 'Knowledge base' }),
-        intl.formatMessage({ id: 'modules.projects.createProject.projectType.research.features.collaborative', defaultMessage: 'Collaborative notes' })
-      ],
-      color: 'bg-purple-200/30 dark:bg-purple-900/30 border-purple-500/30'
-    }
-  ]
-
   const generateProjectKey = (name: string) => {
     return name
       .split(' ')
@@ -666,12 +588,12 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       // Build context based on project type
       let context = ''
       if (projectType) {
-        const typeDescriptions: Record<ProjectType, string> = {
-          [ProjectType.KANBAN]: 'Kanban workflow focusing on visual task management',
-          [ProjectType.SCRUM]: 'Scrum methodology with sprints and iterative development',
-          [ProjectType.BUG_TRACKING]: 'Bug tracking and issue resolution',
-          [ProjectType.FEATURE_DEVELOPMENT]: 'Feature development and product enhancements',
-          [ProjectType.RESEARCH]: 'Research, investigation, and knowledge discovery'
+        const typeDescriptions: Record<string, string> = {
+          KANBAN: 'Kanban workflow focusing on visual task management',
+          SCRUM: 'Scrum methodology with sprints and iterative development',
+          BUG_TRACKING: 'Bug tracking and issue resolution',
+          FEATURE_DEVELOPMENT: 'Feature development and product enhancements',
+          RESEARCH: 'Research, investigation, and knowledge discovery'
         }
         context = typeDescriptions[projectType] || ''
       }
@@ -716,7 +638,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
   }
 
   const handleNext = () => {
-    if (step < 4) {
+    if (step < 3) {
       setStep(step + 1)
     }
   }
@@ -747,7 +669,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       name: '',
       description: '',
       key: '',
-      type: '' as ProjectType | '',
+      type: 'KANBAN',
       leadId: '',
       defaultAssigneeIds: [],
       statusColumns: getDefaultStatusColumns('kanban')
@@ -761,8 +683,6 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       case 2:
         return formData.statusColumns.length >= 2 && formData.statusColumns.every(col => col.name.trim())
       case 3:
-        return formData.type
-      case 4:
         return !!formData.leadId
       default:
         return false
@@ -788,7 +708,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center space-x-4 py-4">
-          {[1, 2, 3, 4].map(num => (
+          {[1, 2, 3].map(num => (
             <div key={num} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 step >= num
@@ -797,7 +717,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
               }`}>
                 {step > num ? <Check className="w-4 h-4" /> : num}
               </div>
-              {num < 4 && (
+              {num < 3 && (
                 <div className={`w-12 h-px ${
                   step > num ? 'bg-primary' : 'bg-muted'
                 }`} />
@@ -1046,64 +966,8 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
             </div>
           )}
 
-          {/* Step 3: Project Type */}
+          {/* Step 3: Team Setup */}
           {step === 3 && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">
-                  {intl.formatMessage({ id: 'modules.projects.createProject.projectType.title', defaultMessage: 'Choose Project Type' })}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {intl.formatMessage({ id: 'modules.projects.createProject.projectType.description', defaultMessage: 'Select the workflow that best fits your project needs' })}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                {projectTypeOptions.map(option => (
-                  <Card
-                    key={option.type}
-                    className={`cursor-pointer transition-all ${
-                      formData.type === option.type
-                        ? 'ring-2 ring-primary ' + option.color
-                        : 'hover:shadow-md ' + option.color
-                    }`}
-                    onClick={() =>
-                      setFormData(prev => ({
-                        ...prev,
-                        type: option.type,
-                        statusColumns: getDefaultStatusColumns(mapUiProjectTypeToApi(option.type))
-                      }))
-                    }
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        <div className="p-2 rounded-lg bg-background">
-                          {option.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-1">{option.title}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">{option.description}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {option.features.map(feature => (
-                              <Badge key={feature} variant="secondary" className="text-xs">
-                                {feature}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        {formData.type === option.type && (
-                          <Check className="w-5 h-5 text-primary" />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Team Setup */}
-          {step === 4 && (
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold mb-4">
@@ -1233,7 +1097,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
                       <span className="text-sm text-muted-foreground">
                         {intl.formatMessage({ id: 'modules.projects.createProject.summary.type', defaultMessage: 'Type:' })}
                       </span>
-                      <span>{formData.type?.replace('_', ' ')}</span>
+                      <span>KANBAN</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">
@@ -1287,7 +1151,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 {intl.formatMessage({ id: 'modules.projects.createProject.cancel' })}
               </Button>
-              {step < 4 ? (
+              {step < 3 ? (
                 <Button onClick={handleNext} disabled={!isStepValid()}>
                   {intl.formatMessage({ id: 'modules.projects.createProject.next' })}
                 </Button>

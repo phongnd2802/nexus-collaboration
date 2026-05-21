@@ -30,6 +30,7 @@ export interface TaskReminderEmailData {
   dueDate: string;
   priority: string;
   remindBeforeLabel: string;
+  reminderHeadline: string;
   taskUrl: string;
 }
 
@@ -50,7 +51,7 @@ export function buildTaskReminderEmail(data: TaskReminderEmailData): { html: str
     `</div>`,
     `<div style="padding:24px 32px;background:#FFFFFF">`,
     `<p style="margin:0 0 16px;color:#1F1E1D;font-size:15px;line-height:22.5px">Xin chào <strong>${data.assigneeName}</strong>,</p>`,
-    `<p style="margin:0 0 24px;color:#1F1E1D;font-size:15px;line-height:22.5px">Task <strong>"${data.taskTitle}"</strong> sẽ hết hạn sau <strong style="color:${urgencyColor}">${data.remindBeforeLabel}</strong>.</p>`,
+    `<p style="margin:0 0 24px;color:#1F1E1D;font-size:15px;line-height:22.5px"><strong style="color:${urgencyColor}">${data.reminderHeadline}</strong>.</p>`,
     `<div style="border:1px solid rgba(31,30,29,0.15);border-left:4px solid ${urgencyColor};border-radius:12px;padding:20px 16px;background:#FFFFFF;margin-bottom:24px">`,
     `<table style="width:100%;border-collapse:collapse">`,
     `<tr><td style="padding:6px 0;color:#73726C;font-size:14px;line-height:19.6px;width:110px;vertical-align:top">Task</td><td style="padding:6px 0;color:#1F1E1D;font-size:15px;line-height:22.5px;font-weight:600">${data.taskTitle}</td></tr>`,
@@ -76,7 +77,7 @@ export function buildTaskReminderEmail(data: TaskReminderEmailData): { html: str
     ``,
     `Xin chào ${data.assigneeName},`,
     ``,
-    `Task "${data.taskTitle}" sẽ hết hạn sau ${data.remindBeforeLabel}.`,
+    `${data.reminderHeadline}.`,
     ``,
     `Task: ${data.taskTitle}`,
     `Dự án: ${data.projectName}`,

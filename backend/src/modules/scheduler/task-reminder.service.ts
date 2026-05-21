@@ -1,4 +1,4 @@
-﻿import { Injectable, Logger } from '@nestjs/common';
+﻿import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DatabaseService } from '../database/database.service';
 import { EmailTemplatesService } from '../email/email-templates.service';
@@ -9,6 +9,12 @@ interface ReminderWindow {
   minMsExclusive: number;
   maxMsInclusive: number;
   label: string;
+}
+
+interface ReminderCopy {
+  headline: string;
+  inAppTitle: string;
+  inAppMessage: string;
 }
 
 const REMINDER_WINDOWS: ReminderWindow[] = [
@@ -22,9 +28,11 @@ const REMINDER_WINDOWS: ReminderWindow[] = [
 const COMPLETED_STATUSES = ['done', 'completed', 'cancelled'];
 const MAX_LOOKAHEAD_MS = 3 * 24 * 60 * 60 * 1000;
 const EMAIL_DEDUP_KEY = 'task_reminder_email';
+const IN_APP_CHANNEL_KEY = 'in_app';
+const IN_MAIL_CHANNEL_KEY = 'in_mail';
 
 @Injectable()
-export class TaskReminderService {
+export class TaskReminderService implements OnModuleInit {
   private readonly logger = new Logger(TaskReminderService.name);
   private isProcessing = false;
   private lastRunAt: Date | null = null;
@@ -34,6 +42,16 @@ export class TaskReminderService {
     private readonly emailTemplates: EmailTemplatesService,
     private readonly notificationsService: NotificationsService,
   ) {}
+  onModuleInit() {
+    setTimeout(() => {
+      void this.runInitialCheck();
+    }, 5000);
+  }
+
+  private async runInitialCheck(): Promise<void> {
+    this.logger.log('[TaskReminder] Running initial check...');
+    await this.handleTaskDeadlineReminders();
+  }
 
   @Cron(CronExpression.EVERY_5_MINUTES, {
     name: 'task-deadline-reminders',
@@ -155,13 +173,6 @@ export class TaskReminderService {
 
     for (const assigneeId of assignees) {
       try {
-        const alreadySent = await this.hasReminderBeenSent(
-          task.id,
-          assigneeId,
-          window.label,
-        );
-        if (alreadySent) continue;
-
         const user = await this.db.getUserById(assigneeId);
         if (!user) {
           this.logger.warn(`[TaskReminder] User not found: ${assigneeId}`);
@@ -177,6 +188,8 @@ export class TaskReminderService {
           dateStyle: 'medium',
           timeStyle: 'short',
         });
+        const remainingMs = new Date(task.due_date).getTime() - Date.now();
+        const reminderCopy = this.buildReminderCopy(task.title, remainingMs, window);
 
         if (prefOk.email) {
           const emailAlreadySent = await this.hasEmailReminderBeenSent(
@@ -185,16 +198,40 @@ export class TaskReminderService {
             window.label,
           );
           if (!emailAlreadySent) {
-            await this.sendTaskReminderEmail(user, task, window, taskUrl, dueDate);
-            await this.markEmailReminderSent(task, assigneeId, window.label);
+            const emailSent = await this.sendTaskReminderEmail(
+              user,
+              task,
+              window,
+              taskUrl,
+              dueDate,
+              reminderCopy,
+            );
+            if (emailSent) {
+              await this.markEmailReminderSent(task, assigneeId, window.label);
+            }
           }
         }
+
         if (prefOk.in_app) {
-          await this.createTaskReminderNotification(task, assigneeId, window, taskUrl, dueDate);
+          const inAppAlreadySent = await this.hasReminderBeenSent(
+            task.id,
+            assigneeId,
+            window.label,
+          );
+          if (!inAppAlreadySent) {
+            await this.createTaskReminderNotification(
+              task,
+              assigneeId,
+              window,
+              taskUrl,
+              dueDate,
+              reminderCopy,
+            );
+          }
         }
 
         this.logger.log(
-          `[TaskReminder] Sent ${window.label} reminder for "${task.title}" to user ${assigneeId} (email=${prefOk.email}, in_app=${prefOk.in_app})`,
+          `[TaskReminder] Processed ${window.label} reminder for "${task.title}" to user ${assigneeId} (email=${prefOk.email}, in_app=${prefOk.in_app})`,
         );
       } catch (error: any) {
         this.logger.error(
@@ -218,8 +255,15 @@ export class TaskReminderService {
            AND entity_type = 'task'
            AND entity_id = $3
            AND data->>'remind_before' = $4
+           AND (
+             data->>'channel' = $5
+             OR (
+               COALESCE(data->>'channel', '') = ''
+               AND COALESCE(data->>'reminder_kind', '') = ''
+             )
+           )
          LIMIT 1`,
-        [userId, NotificationType.REMINDER, taskId, remindBefore],
+        [userId, NotificationType.REMINDER, taskId, remindBefore, IN_APP_CHANNEL_KEY],
       );
       return (result.rows?.length || 0) > 0;
     } catch (error: any) {
@@ -240,10 +284,20 @@ export class TaskReminderService {
            AND type = $2
            AND entity_type = 'task'
            AND entity_id = $3
-           AND data->>'reminder_kind' = $4
-           AND data->>'remind_before' = $5
+           AND data->>'remind_before' = $4
+           AND (
+             data->>'channel' = $5
+             OR data->>'reminder_kind' = $6
+           )
          LIMIT 1`,
-        [userId, NotificationType.REMINDER, taskId, EMAIL_DEDUP_KEY, remindBefore],
+        [
+          userId,
+          NotificationType.REMINDER,
+          taskId,
+          remindBefore,
+          IN_MAIL_CHANNEL_KEY,
+          EMAIL_DEDUP_KEY,
+        ],
       );
       return (result.rows?.length || 0) > 0;
     } catch (error: any) {
@@ -272,6 +326,9 @@ export class TaskReminderService {
         priority: 'low',
         sent_via: { email: true, in_app: false },
         data: {
+          channel: IN_MAIL_CHANNEL_KEY,
+          in_mail: true,
+          in_app: false,
           reminder_kind: EMAIL_DEDUP_KEY,
           remind_before: remindBefore,
           task_id: task.id,
@@ -290,15 +347,41 @@ export class TaskReminderService {
     userId: string,
   ): Promise<{ email: boolean; in_app: boolean }> {
     try {
-      const prefs = await this.notificationsService.getNotificationPreferences(userId);
+      const userSettings = await this.db.findOne('user_settings', {
+        user_id: userId,
+      });
 
-      if (prefs.metadata?.doNotDisturb) return { email: false, in_app: false };
+      if (!userSettings || !userSettings.notifications) {
+        return { email: true, in_app: true };
+      }
 
-      const reminderPrefs = prefs.types?.['reminder'] || prefs.types?.[NotificationType.REMINDER];
+      const notifSettings =
+        typeof userSettings.notifications === 'string'
+          ? JSON.parse(userSettings.notifications)
+          : userSettings.notifications;
+
+      const generalSettings = notifSettings?.generalSettings || {};
+      if (generalSettings.doNotDisturb === true) {
+        return { email: false, in_app: false };
+      }
+
+      const categories = Array.isArray(notifSettings?.categories)
+        ? notifSettings.categories
+        : [];
+      const reminderCategory = categories.find(
+        (category: any) => category?.id === 'reminder' || category?.id === NotificationType.REMINDER,
+      );
+
+      if (reminderCategory?.settings) {
+        return {
+          email: reminderCategory.settings.email !== false,
+          in_app: reminderCategory.settings.inApp !== false,
+        };
+      }
 
       return {
-        email: reminderPrefs ? reminderPrefs.email !== false : prefs.global.email !== false,
-        in_app: reminderPrefs ? reminderPrefs.in_app !== false : prefs.global.in_app !== false,
+        email: notifSettings?.email !== false,
+        in_app: true,
       };
     } catch {
       return { email: true, in_app: true };
@@ -311,10 +394,11 @@ export class TaskReminderService {
     window: ReminderWindow,
     taskUrl: string,
     dueDate: string,
-  ): Promise<void> {
+    reminderCopy: ReminderCopy,
+  ): Promise<boolean> {
     if (!user.email) {
       this.logger.warn(`[TaskReminder] No email for user ${user.id}, skipping email`);
-      return;
+      return false;
     }
 
     const assigneeName = user.name || user.username || user.email?.split('@')[0] || 'User';
@@ -322,7 +406,7 @@ export class TaskReminderService {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await this.emailTemplates.sendTaskReminderEmail({
+        const sent = await this.emailTemplates.sendTaskReminderEmail({
           to: user.email,
           assigneeName,
           taskTitle: task.title,
@@ -331,9 +415,10 @@ export class TaskReminderService {
           dueDate,
           priority: task.priority || 'medium',
           remindBeforeLabel: window.label,
+          reminderHeadline: reminderCopy.headline,
           taskUrl,
         });
-        return;
+        return sent;
       } catch (error: any) {
         const isLastAttempt = attempt === maxAttempts;
         const retryable = this.isRetryableEmailError(error);
@@ -353,6 +438,8 @@ export class TaskReminderService {
         await this.sleep(500 * attempt);
       }
     }
+
+    return false;
   }
 
   private isRetryableEmailError(error: any): boolean {
@@ -381,13 +468,14 @@ export class TaskReminderService {
     window: ReminderWindow,
     taskUrl: string,
     dueDate: string,
+    reminderCopy: ReminderCopy,
   ): Promise<void> {
     try {
       await this.notificationsService.sendNotification({
         user_id: assigneeId,
         type: NotificationType.REMINDER,
-        title: `Task sắp tới hạn: ${task.title}`,
-        message: `Task "${task.title}" sẽ hết hạn sau ${window.label}. Hạn: ${dueDate}`,
+        title: reminderCopy.inAppTitle,
+        message: `${reminderCopy.inAppMessage}. Hạn: ${dueDate}`,
         action_url: taskUrl,
         priority: (task.priority === 'urgent' || task.priority === 'high'
           ? 'high'
@@ -395,6 +483,9 @@ export class TaskReminderService {
         send_push: true,
         send_email: false,
         data: {
+          channel: IN_APP_CHANNEL_KEY,
+          in_app: true,
+          in_mail: false,
           category: 'tasks',
           entity_type: 'task',
           entity_id: task.id,
@@ -421,4 +512,32 @@ export class TaskReminderService {
       isRunning: this.isProcessing,
     };
   }
+
+  private buildReminderCopy(
+    taskTitle: string,
+    remainingMs: number,
+    window: ReminderWindow,
+  ): ReminderCopy {
+    if (window.label === '1 giờ') {
+      return {
+        headline: 'Task sẽ hết hạn trong vòng 1 giờ tới',
+        inAppTitle: `Task sắp hết hạn: ${taskTitle}`,
+        inAppMessage: `Task "${taskTitle}" sẽ hết hạn trong vòng 1 giờ tới`,
+      };
+    }
+
+    const usesDays = window.label === '3 ngày' || window.label === '1 ngày';
+    const roundedValue = usesDays
+      ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
+      : Math.ceil(remainingMs / (60 * 60 * 1000));
+    const unit = usesDays ? 'ngày' : 'giờ';
+    const headline = `Còn ${roundedValue} ${unit} nữa task sẽ hết hạn`;
+
+    return {
+      headline,
+      inAppTitle: `Task sắp tới hạn: ${taskTitle}`,
+      inAppMessage: `Task "${taskTitle}" còn ${roundedValue} ${unit} nữa sẽ hết hạn`,
+    };
+  }
 }
+
