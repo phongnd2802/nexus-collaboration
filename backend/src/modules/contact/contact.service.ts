@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { ContactFormDto } from './dto/contact.dto';
+import { buildBrandedEmail } from '../email/branded-email';
 
 @Injectable()
 export class ContactService {
@@ -28,55 +29,23 @@ export class ContactService {
       // Build email content
       const emailSubject = `[Nexus Contact] ${subjectLabel} from ${dto.name}`;
 
-      const htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">New Contact Form Submission</h1>
-          </div>
-
-          <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151; width: 120px;">Name:</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #1f2937;">${dto.name}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Email:</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #1f2937;">
-                  <a href="mailto:${dto.email}" style="color: #0ea5e9;">${dto.email}</a>
-                </td>
-              </tr>
-              ${
-                dto.company
-                  ? `
-              <tr>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Company:</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #1f2937;">${dto.company}</td>
-              </tr>
-              `
-                  : ''
-              }
-              <tr>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151;">Subject:</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #1f2937;">${subjectLabel}</td>
-              </tr>
-            </table>
-
-            <div style="margin-top: 20px;">
-              <h3 style="color: #374151; margin-bottom: 10px;">Message:</h3>
-              <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; white-space: pre-wrap; color: #1f2937;">
-${dto.message}
-              </div>
-            </div>
-          </div>
-
-          <div style="background: #1f2937; padding: 20px; border-radius: 0 0 10px 10px; text-align: center;">
-            <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-              This email was sent from the Nexus contact form at ${new Date().toISOString()}
-            </p>
-          </div>
-        </div>
-      `;
+      const htmlContent = buildBrandedEmail({
+        eyebrow: 'Contact Form',
+        title: 'Liên hệ mới từ website',
+        intro: 'Bạn vừa nhận được một yêu cầu liên hệ mới từ biểu mẫu trên Nexus.',
+        details: [
+          { label: 'Họ tên', value: dto.name },
+          { label: 'Email', value: dto.email },
+          ...(dto.company ? [{ label: 'Công ty', value: dto.company }] : []),
+          { label: 'Chủ đề', value: subjectLabel },
+        ],
+        callout: {
+          title: 'Nội dung',
+          body: dto.message,
+          tone: 'info',
+        },
+        footer: `Email này được gửi từ form liên hệ Nexus lúc ${new Date().toISOString()}.`,
+      }).html;
 
       // Send email using database to both receivers
       const emailResult = await /* TODO: use EmailService */ this.db.client.email.send(
@@ -106,40 +75,21 @@ ${dto.message}
 
   private async sendConfirmationEmail(dto: ContactFormDto): Promise<void> {
     try {
-      const htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Thank you for contacting us!</h1>
-          </div>
-
-          <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
-            <p style="color: #1f2937; font-size: 16px; line-height: 1.6;">
-              Hi ${dto.name},
-            </p>
-            <p style="color: #1f2937; font-size: 16px; line-height: 1.6;">
-              Thank you for reaching out to us. We have received your message and will get back to you within 24 hours.
-            </p>
-            <p style="color: #1f2937; font-size: 16px; line-height: 1.6;">
-              Here's a copy of your message:
-            </p>
-
-            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin: 20px 0;">
-              <p style="color: #6b7280; font-size: 14px; margin: 0; white-space: pre-wrap;">${dto.message}</p>
-            </div>
-
-            <p style="color: #1f2937; font-size: 16px; line-height: 1.6;">
-              Best regards,<br/>
-              The Nexus Team
-            </p>
-          </div>
-
-          <div style="background: #1f2937; padding: 20px; border-radius: 0 0 10px 10px; text-align: center;">
-            <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-              Nexus - Your All-in-One Workspace Solution
-            </p>
-          </div>
-        </div>
-      `;
+      const htmlContent = buildBrandedEmail({
+        eyebrow: 'Nexus Support',
+        title: 'Cảm ơn bạn đã liên hệ',
+        greeting: `Xin chào ${dto.name},`,
+        paragraphs: [
+          'Chúng tôi đã nhận được tin nhắn của bạn và sẽ phản hồi trong vòng 24 giờ.',
+          'Dưới đây là bản sao nội dung bạn đã gửi:',
+        ],
+        callout: {
+          title: 'Tin nhắn của bạn',
+          body: dto.message,
+          tone: 'default',
+        },
+        footer: 'Trân trọng, đội ngũ Nexus.',
+      }).html;
 
       await /* TODO: use EmailService */ this.db.client.email.send(
         dto.email,

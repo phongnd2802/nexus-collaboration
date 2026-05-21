@@ -30,7 +30,7 @@ export class ProjectsService {
     @Optional()
     @Inject(forwardRef(() => EntityEventIntegrationService))
     private entityEventIntegration?: EntityEventIntegrationService,
-  ) {}
+  ) { }
 
   // Project operations
   async create(workspaceId: string, createProjectDto: CreateProjectDto, userId: string) {
@@ -60,21 +60,21 @@ export class ProjectsService {
       kanban_stages: createProjectDto.kanban_stages
         ? JSON.stringify(createProjectDto.kanban_stages)
         : JSON.stringify([
-            { id: 'todo', name: 'To Do', order: 1, color: '#3B82F6' },
-            { id: 'in_progress', name: 'In Progress', order: 2, color: '#F59E0B' },
-            { id: 'done', name: 'Done', order: 3, color: '#10B981' },
-          ]),
+          { id: 'todo', name: 'To Do', order: 1, color: '#3B82F6' },
+          { id: 'in_progress', name: 'In Progress', order: 2, color: '#F59E0B' },
+          { id: 'done', name: 'Done', order: 3, color: '#10B981' },
+        ]),
       attachments: createProjectDto.attachments
         ? JSON.stringify({
-            note_attachment: createProjectDto.attachments.note_attachment || [],
-            file_attachment: createProjectDto.attachments.file_attachment || [],
-            event_attachment: createProjectDto.attachments.event_attachment || [],
-          })
+          note_attachment: createProjectDto.attachments.note_attachment || [],
+          file_attachment: createProjectDto.attachments.file_attachment || [],
+          event_attachment: createProjectDto.attachments.event_attachment || [],
+        })
         : JSON.stringify({
-            note_attachment: [],
-            file_attachment: [],
-            event_attachment: [],
-          }),
+          note_attachment: [],
+          file_attachment: [],
+          event_attachment: [],
+        }),
       collaborative_data: createProjectDto.collaborative_data
         ? JSON.stringify(createProjectDto.collaborative_data)
         : JSON.stringify({}),
@@ -493,127 +493,202 @@ export class ProjectsService {
         newCollaborativeData.default_assignees || newCollaborativeData.default_assignee_ids || [];
 
       // Check if lead_id was updated and is different from old value
-      if (newLeadId && newLeadId !== oldLeadId && newLeadId !== userId) {
+      if (newLeadId && newLeadId !== oldLeadId) {
         console.log(`[ProjectsService] Project lead changed from ${oldLeadId} to ${newLeadId}`);
 
-        await this.notificationsService.sendNotification({
-          user_id: newLeadId,
-          type: NotificationType.TASKS,
-          title: 'You are now Project Lead',
-          message: `You have been assigned as the lead for project "${project.name}"`,
-          action_url: `/workspaces/${project.workspace_id}/projects/${id}`,
-          priority: 'high' as any,
-          send_push: true, // Enable FCM push notification
-          data: {
-            category: 'tasks',
-            entity_type: 'project',
-            entity_id: id,
-            actor_id: userId,
-            project_name: project.name,
+        // Sync new lead in project_members
+        const existingLeadResult = await this.db.table('project_members')
+          .select('*')
+          .where('project_id', '=', id)
+          .where('user_id', '=', newLeadId)
+          .execute();
+        const existingLeads = Array.isArray(existingLeadResult.data) ? existingLeadResult.data : [];
+        if (existingLeads.length === 0) {
+          await this.db.insert('project_members', {
             project_id: id,
-            workspace_id: project.workspace_id,
+            user_id: newLeadId,
             role: 'lead',
-            action: 'project_lead_assigned',
-          },
-        });
+            joined_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        } else {
+          await this.db.update('project_members', existingLeads[0].id, { role: 'lead' });
+        }
 
-        console.log(`[ProjectsService] Notification sent to new project lead: ${newLeadId}`);
-      }
-
-      // Optionally notify old lead that they were removed
-      if (oldLeadId && newLeadId !== oldLeadId && oldLeadId !== userId) {
-        await this.notificationsService.sendNotification({
-          user_id: oldLeadId,
-          type: NotificationType.TASKS,
-          title: 'Project Lead Changed',
-          message: `You are no longer the lead for project "${project.name}"`,
-          action_url: `/workspaces/${project.workspace_id}/projects/${id}`,
-          priority: 'normal' as any,
-          send_push: true,
-          data: {
-            category: 'tasks',
-            entity_type: 'project',
-            entity_id: id,
-            actor_id: userId,
-            project_name: project.name,
-            project_id: id,
-            workspace_id: project.workspace_id,
-            role: 'lead_removed',
-            action: 'project_lead_removed',
-          },
-        });
-
-        console.log(`[ProjectsService] Notification sent to old project lead: ${oldLeadId}`);
-      }
-
-      // Check for new assignees added to collaborative_data
-      if (updateProjectDto.collaborative_data?.default_assignees) {
-        const addedAssignees = newAssignees.filter((id) => !oldAssignees.includes(id));
-        const removedAssignees = oldAssignees.filter((id) => !newAssignees.includes(id));
-
-        // Notify newly added assignees
-        for (const assigneeId of addedAssignees) {
-          if (assigneeId !== userId) {
-            console.log(
-              `[ProjectsService] Sending notification to newly added assignee: ${assigneeId}`,
-            );
-
-            await this.notificationsService.sendNotification({
-              user_id: assigneeId,
-              type: NotificationType.TASKS,
-              title: 'Added to Project',
-              message: `You have been added as an assignee to project "${project.name}"`,
-              action_url: `/workspaces/${project.workspace_id}/projects/${id}`,
-              priority: 'high' as any,
-              send_push: true,
-              data: {
-                category: 'tasks',
-                entity_type: 'project',
-                entity_id: id,
-                actor_id: userId,
-                project_name: project.name,
-                project_id: id,
-                workspace_id: project.workspace_id,
-                role: 'assignee',
-                action: 'project_assignee_added',
-              },
-            });
-
-            console.log(
-              `[ProjectsService] Notification sent to newly added assignee: ${assigneeId}`,
-            );
+        // Handle old lead
+        if (oldLeadId && oldLeadId !== project.owner_id) {
+          const oldLeadResult = await this.db.table('project_members')
+            .select('*')
+            .where('project_id', '=', id)
+            .where('user_id', '=', oldLeadId)
+            .execute();
+          const oldLeads = Array.isArray(oldLeadResult.data) ? oldLeadResult.data : [];
+          if (oldLeads.length > 0) {
+            if (!newAssignees.includes(oldLeadId)) {
+              await this.db.delete('project_members', oldLeads[0].id);
+            } else {
+              await this.db.update('project_members', oldLeads[0].id, { role: 'member' });
+            }
           }
         }
 
-        // Optionally notify removed assignees
-        for (const assigneeId of removedAssignees) {
-          if (assigneeId !== userId) {
-            console.log(
-              `[ProjectsService] Sending notification to removed assignee: ${assigneeId}`,
-            );
+        if (newLeadId !== userId) {
 
-            await this.notificationsService.sendNotification({
-              user_id: assigneeId,
-              type: NotificationType.TASKS,
-              title: 'Removed from Project',
-              message: `You have been removed from project "${project.name}"`,
-              action_url: `/workspaces/${project.workspace_id}/projects`,
-              priority: 'normal' as any,
-              send_push: true,
-              data: {
-                category: 'tasks',
-                entity_type: 'project',
-                entity_id: id,
-                actor_id: userId,
-                project_name: project.name,
+
+          await this.notificationsService.sendNotification({
+            user_id: newLeadId,
+            type: NotificationType.TASKS,
+            title: 'You are now Project Lead',
+            message: `You have been assigned as the lead for project "${project.name}"`,
+            action_url: `/workspaces/${project.workspace_id}/projects/${id}`,
+            priority: 'high' as any,
+            send_push: true, // Enable FCM push notification
+            data: {
+              category: 'tasks',
+              entity_type: 'project',
+              entity_id: id,
+              actor_id: userId,
+              project_name: project.name,
+              project_id: id,
+              workspace_id: project.workspace_id,
+              role: 'lead',
+              action: 'project_lead_assigned',
+            },
+          });
+
+          console.log(`[ProjectsService] Notification sent to new project lead: ${newLeadId}`);
+        }
+
+        // Optionally notify old lead that they were removed
+        if (oldLeadId && newLeadId !== oldLeadId && oldLeadId !== userId) {
+          await this.notificationsService.sendNotification({
+            user_id: oldLeadId,
+            type: NotificationType.TASKS,
+            title: 'Project Lead Changed',
+            message: `You are no longer the lead for project "${project.name}"`,
+            action_url: `/workspaces/${project.workspace_id}/projects/${id}`,
+            priority: 'normal' as any,
+            send_push: true,
+            data: {
+              category: 'tasks',
+              entity_type: 'project',
+              entity_id: id,
+              actor_id: userId,
+              project_name: project.name,
+              project_id: id,
+              workspace_id: project.workspace_id,
+              role: 'lead_removed',
+              action: 'project_lead_removed',
+            },
+          });
+
+          console.log(`[ProjectsService] Notification sent to old project lead: ${oldLeadId}`);
+        }
+
+        // Check for new assignees added to collaborative_data
+        if (updateProjectDto.collaborative_data?.default_assignees || updateProjectDto.collaborative_data?.default_assignee_ids) {
+          const addedAssignees = newAssignees.filter((id) => !oldAssignees.includes(id));
+          const removedAssignees = oldAssignees.filter((id) => !newAssignees.includes(id));
+
+          // Sync project_members table
+          for (const assigneeId of addedAssignees) {
+            const existingMemberResult = await this.db.table('project_members')
+              .select('*')
+              .where('project_id', '=', id)
+              .where('user_id', '=', assigneeId)
+              .execute();
+            const existingMembers = Array.isArray(existingMemberResult.data) ? existingMemberResult.data : [];
+            if (existingMembers.length === 0) {
+              await this.db.insert('project_members', {
                 project_id: id,
-                workspace_id: project.workspace_id,
-                role: 'assignee_removed',
-                action: 'project_assignee_removed',
-              },
-            });
+                user_id: assigneeId,
+                role: assigneeId === newLeadId ? 'lead' : 'member',
+                joined_at: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              });
+            }
+          }
 
-            console.log(`[ProjectsService] Notification sent to removed assignee: ${assigneeId}`);
+          for (const assigneeId of removedAssignees) {
+            if (assigneeId !== project.owner_id && assigneeId !== newLeadId) {
+              const memberResult = await this.db.table('project_members')
+                .select('*')
+                .where('project_id', '=', id)
+                .where('user_id', '=', assigneeId)
+                .execute();
+              const members = Array.isArray(memberResult.data) ? memberResult.data : [];
+              for (const m of members) {
+                await this.db.delete('project_members', m.id);
+              }
+            }
+          }
+
+          // Notify newly added assignees
+          for (const assigneeId of addedAssignees) {
+            if (assigneeId !== userId) {
+              console.log(
+                `[ProjectsService] Sending notification to newly added assignee: ${assigneeId}`,
+              );
+
+              await this.notificationsService.sendNotification({
+                user_id: assigneeId,
+                type: NotificationType.TASKS,
+                title: 'Added to Project',
+                message: `You have been added as an assignee to project "${project.name}"`,
+                action_url: `/workspaces/${project.workspace_id}/projects/${id}`,
+                priority: 'high' as any,
+                send_push: true,
+                data: {
+                  category: 'tasks',
+                  entity_type: 'project',
+                  entity_id: id,
+                  actor_id: userId,
+                  project_name: project.name,
+                  project_id: id,
+                  workspace_id: project.workspace_id,
+                  role: 'assignee',
+                  action: 'project_assignee_added',
+                },
+              });
+
+              console.log(
+                `[ProjectsService] Notification sent to newly added assignee: ${assigneeId}`,
+              );
+            }
+          }
+
+          // Optionally notify removed assignees
+          for (const assigneeId of removedAssignees) {
+            if (assigneeId !== userId) {
+              console.log(
+                `[ProjectsService] Sending notification to removed assignee: ${assigneeId}`,
+              );
+
+              await this.notificationsService.sendNotification({
+                user_id: assigneeId,
+                type: NotificationType.TASKS,
+                title: 'Removed from Project',
+                message: `You have been removed from project "${project.name}"`,
+                action_url: `/workspaces/${project.workspace_id}/projects`,
+                priority: 'normal' as any,
+                send_push: true,
+                data: {
+                  category: 'tasks',
+                  entity_type: 'project',
+                  entity_id: id,
+                  actor_id: userId,
+                  project_name: project.name,
+                  project_id: id,
+                  workspace_id: project.workspace_id,
+                  role: 'assignee_removed',
+                  action: 'project_assignee_removed',
+                },
+              });
+
+              console.log(`[ProjectsService] Notification sent to removed assignee: ${assigneeId}`);
+            }
           }
         }
       }
@@ -638,6 +713,7 @@ export class ProjectsService {
 
     return updatedProject;
   }
+  // }
 
   async remove(id: string, userId: string) {
     const project = await this.getProjectWithAccess(id, userId);
@@ -736,15 +812,15 @@ export class ProjectsService {
       labels: JSON.stringify(createTaskDto.labels || []),
       attachments: createTaskDto.attachments
         ? JSON.stringify({
-            note_attachment: createTaskDto.attachments.note_attachment || [],
-            file_attachment: createTaskDto.attachments.file_attachment || [],
-            event_attachment: createTaskDto.attachments.event_attachment || [],
-          })
+          note_attachment: createTaskDto.attachments.note_attachment || [],
+          file_attachment: createTaskDto.attachments.file_attachment || [],
+          event_attachment: createTaskDto.attachments.event_attachment || [],
+        })
         : JSON.stringify({
-            note_attachment: [],
-            file_attachment: [],
-            event_attachment: [],
-          }),
+          note_attachment: [],
+          file_attachment: [],
+          event_attachment: [],
+        }),
       // Per-task custom fields (array of { id, name, fieldType, value, options? })
       custom_fields: JSON.stringify(createTaskDto.custom_fields || []),
       collaborative_data: JSON.stringify({}),
@@ -1096,9 +1172,9 @@ export class ProjectsService {
     const lastStage =
       kanbanStages && kanbanStages.length > 0
         ? kanbanStages.reduce(
-            (max: any, stage: any) => (stage.order > max.order ? stage : max),
-            kanbanStages[0],
-          )
+          (max: any, stage: any) => (stage.order > max.order ? stage : max),
+          kanbanStages[0],
+        )
         : null;
     const completedStageId = lastStage?.id || 'done'; // fallback to 'done' if no stages defined
 
@@ -1648,9 +1724,49 @@ export class ProjectsService {
       .where('project_id', '=', projectId)
       .execute();
 
-    const members = Array.isArray(membersResult.data) ? membersResult.data : [];
+    let members = Array.isArray(membersResult.data) ? membersResult.data : [];
 
-    console.log('[ProjectsService] Found members:', members.length);
+    // --- Sync missing members from collaborative_data ---
+    // This handles projects where members were added via the edit modal but
+    // not yet persisted to project_members table (stale data case).
+    const collaborativeData =
+      typeof project.collaborative_data === 'string'
+        ? (() => { try { return JSON.parse(project.collaborative_data); } catch { return {}; } })()
+        : project.collaborative_data || {};
+
+    const expectedUserIds = new Set<string>();
+    if (project.owner_id) expectedUserIds.add(project.owner_id);
+    if (collaborativeData.project_lead) expectedUserIds.add(collaborativeData.project_lead);
+    const assigneeIds: string[] =
+      collaborativeData.default_assignee_ids || collaborativeData.default_assignees || [];
+    assigneeIds.forEach((id: string) => expectedUserIds.add(id));
+
+    const existingUserIds = new Set(members.map((m: any) => m.user_id));
+
+    for (const uid of expectedUserIds) {
+      if (!existingUserIds.has(uid)) {
+        console.log(`[ProjectsService] Backfilling missing project member: ${uid}`);
+        const role =
+          uid === project.owner_id ? 'admin'
+          : uid === collaborativeData.project_lead ? 'lead'
+          : 'member';
+        try {
+          const newMember = await this.db.insert('project_members', {
+            project_id: projectId,
+            user_id: uid,
+            role,
+            joined_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          members = [...members, newMember];
+        } catch (e) {
+          console.error(`[ProjectsService] Failed to backfill member ${uid}:`, e);
+        }
+      }
+    }
+
+    console.log('[ProjectsService] Found members (after sync):', members.length);
     console.log(
       '[ProjectsService] Members:',
       members.map((m) => ({ user_id: m.user_id, role: m.role })),

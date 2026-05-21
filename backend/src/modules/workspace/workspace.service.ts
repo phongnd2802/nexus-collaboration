@@ -10,6 +10,7 @@ import {
   WorkspaceInvitationService,
   InviteWorkspaceMemberDto,
 } from './workspace-invitation.service';
+import { buildBrandedEmail } from '../email/branded-email';
 import {
   CreateWorkspaceDto,
   UpdateWorkspaceDto,
@@ -923,32 +924,27 @@ export class WorkspaceService {
     // Send invitation email
     try {
       const inviteUrl = `${process.env.FRONTEND_URL}/invite/${newToken}`;
-      const emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5;">You're Invited to Join ${workspace.name}</h2>
-          <p>Hi there,</p>
-          <p>You've been invited to join the <strong>${workspace.name}</strong> workspace.</p>
-          ${workspace.description ? `<p><em>${workspace.description}</em></p>` : ''}
-          <p style="margin: 30px 0;">
-            <a href="${inviteUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Accept Invitation
-            </a>
-          </p>
-          <p style="color: #666; font-size: 12px;">
-            This invitation will expire in 7 days. If you're unable to click the button, copy and paste this link into your browser:<br>
-            <a href="${inviteUrl}">${inviteUrl}</a>
-          </p>
-          <p style="color: #999; font-size: 11px; margin-top: 40px;">
-            If you weren't expecting this invitation, you can safely ignore this email.
-          </p>
-        </div>
-      `;
+      const emailContent = buildBrandedEmail({
+        eyebrow: 'Workspace Invitation',
+        title: `Mời tham gia ${workspace.name}`,
+        intro: `Bạn đã được mời tham gia workspace ${workspace.name}.`,
+        paragraphs: [
+          workspace.description || 'Hãy tham gia workspace để bắt đầu cộng tác trên Nexus.',
+          'Lời mời này sẽ hết hạn sau 7 ngày.',
+        ],
+        action: {
+          label: 'Chấp nhận lời mời',
+          url: inviteUrl,
+        },
+        actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${inviteUrl}`,
+        footer: 'Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua email.',
+      });
 
       await /* TODO: use EmailService */ this.db.sendEmail(
         updatedInvitation.email,
-        `Invitation to join ${workspace.name}`,
-        emailHtml,
-        `You've been invited to join ${workspace.name}. Accept your invitation at: ${inviteUrl}`,
+        `Lời mời tham gia ${workspace.name} trên Nexus`,
+        emailContent.html,
+        emailContent.text,
       );
 
       console.log(`✅ Invitation email sent to ${updatedInvitation.email}`);

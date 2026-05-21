@@ -36,6 +36,35 @@
     "workspaceNotFound": "Workspace not found",
     "pleaseTryAgain": "Please try again"
   },
+  "invitation": {
+    "loading": "Loading invitation...",
+    "invalidTitle": "Invalid Invitation",
+    "backToLogin": "Back to Login",
+    "notFoundTitle": "No Invitation Found",
+    "notFoundDesc": "We couldn't find an invitation with this link. Please check your email for the correct invitation link.",
+    "title": "Workspace Invitation",
+    "subtitle": "You've been invited to join a workspace on Nexus",
+    "workspace": "Workspace",
+    "role": "Role",
+    "invitedBy": "Invited by",
+    "expires": "Expires",
+    "messageFrom": "Message from {name}",
+    "requiredSkills": "Required Skills",
+    "decline": "Decline",
+    "accepting": "Accepting...",
+    "accept": "Accept Invitation",
+    "loggedInAs": "Logged in as",
+    "notYou": "Not you? Switch account",
+    "successMessage": "Successfully joined the team!",
+    "errors": {
+      "emailMismatch": "This invitation was sent to {invitedEmail}, but you are logged in as {userEmail}. Please log out and sign in with the correct email.",
+      "alreadyAccepted": "This invitation has already been accepted.",
+      "revoked": "This invitation has been cancelled by the sender.",
+      "expired": "This invitation has expired.",
+      "loadFailed": "Failed to load invitation details. The link may be invalid or expired.",
+      "acceptFailed": "Failed to accept invitation. Please try again."
+    }
+  },
   "support": {
     "title": "Help & Support",
     "description": "Get help with Nexus, find answers to common questions, or contact our support team.",
@@ -7526,6 +7555,7 @@
       "allCaughtUp": "You're all caught up!",
       "noSuggestions": "No immediate actions required. Great work!",
       "showMore": "Show {count} more suggestions",
+      "showLess": "Show less",
       "actions": {
         "viewProject": "View Project",
         "joinMeeting": "Join Meeting",

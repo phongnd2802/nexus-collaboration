@@ -442,6 +442,9 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       // Invalidate to sync with server (setProjects will be called when refetch completes)
       // Use projectKeys.lists() to match the actual query key structure
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() })
+      if (actualProject?.id) {
+        queryClient.invalidateQueries({ queryKey: ['projectMembers', workspaceId, actualProject.id] })
+      }
       toast({
         title: intl.formatMessage({ id: isEditMode ? 'modules.projects.createProject.toast.projectUpdated' : 'modules.projects.createProject.toast.projectCreated' }),
         description: intl.formatMessage(

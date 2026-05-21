@@ -24,6 +24,7 @@ import {
   UnregisterFcmTokenDto,
   FcmTokenResponseDto,
 } from './dto';
+import { buildBrandedEmail } from '../email/branded-email';
 
 export interface NotificationPreferences {
   user_id: string;
@@ -1220,17 +1221,19 @@ export class NotificationsService {
     notificationData: CreateNotificationDto,
     config?: Record<string, any>,
   ): { html: string; text: string } {
-    const text = `${notificationData.title}${notificationData.message ? '\n\n' + notificationData.message : ''}`;
-
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">${notificationData.title}</h2>
-        ${notificationData.message ? `<p style="color: #666;">${notificationData.message}</p>` : ''}
-        ${notificationData.action_url ? `<a href="${notificationData.action_url}" style="display: inline-block; background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">View Details</a>` : ''}
-      </div>
-    `;
-
-    return { html, text };
+    return buildBrandedEmail({
+      eyebrow: 'Nexus Notification',
+      title: notificationData.title,
+      intro: notificationData.message || 'Bạn có một cập nhật mới trên Nexus.',
+      action: notificationData.action_url
+        ? {
+            label: 'Xem chi tiết',
+            url: notificationData.action_url,
+          }
+        : undefined,
+      footer:
+        'Nếu bạn không muốn nhận email cho loại thông báo này, bạn có thể cập nhật tuỳ chọn thông báo trong phần cài đặt tài khoản.',
+    });
   }
 
   private getDefaultPreferences(userId: string): NotificationPreferences {

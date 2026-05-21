@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useIntl } from 'react-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -28,6 +29,7 @@ export function AgenticSuggestions() {
   const intl = useIntl()
   const navigate = useNavigate()
   const { workspaceId } = useParams<{ workspaceId: string }>()
+  const [showAll, setShowAll] = useState(false)
 
   // Single API call to get all suggestions with user's language
   const { data: suggestionsData, isLoading, error } = useSuggestions(workspaceId || '', intl.locale)
@@ -282,7 +284,7 @@ export function AgenticSuggestions() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {suggestions.slice(0, 5).map(suggestion => (
+        {suggestions.slice(0, showAll ? suggestions.length : 5).map(suggestion => (
           <div
             key={suggestion.id}
             className={cn(
@@ -432,11 +434,19 @@ export function AgenticSuggestions() {
 
         {suggestions.length > 5 && (
           <div className="text-center pt-2">
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              {intl.formatMessage(
-                { id: 'dashboard.suggestions.showMore', defaultMessage: 'Show {count} more suggestions' },
-                { count: suggestions.length - 5 }
-              )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-muted-foreground"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll 
+                ? intl.formatMessage({ id: 'dashboard.suggestions.showLess', defaultMessage: 'Show less' })
+                : intl.formatMessage(
+                    { id: 'dashboard.suggestions.showMore', defaultMessage: 'Show {count} more suggestions' },
+                    { count: suggestions.length - 5 }
+                  )
+              }
             </Button>
           </div>
         )}

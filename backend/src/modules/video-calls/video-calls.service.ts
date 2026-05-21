@@ -16,6 +16,7 @@ import { VideoCallsGateway } from './gateways/video-calls.gateway';
 import { AppGateway } from '../../common/gateways/app.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType, NotificationPriority } from '../notifications/dto';
+import { buildBrandedEmail } from '../email/branded-email';
 import { MeetingIntelligenceService } from './services/meeting-intelligence.service';
 import {
   CreateVideoCallDto,
@@ -1391,30 +1392,27 @@ export class VideoCallsService {
         const inviteeUser = await this.db.getUserById(inviteeId);
         if (inviteeUser?.email) {
           const callUrl = `${process.env.FRONTEND_URL}/video-calls/${callId}`;
-          const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #4F46E5;">Video Call Invitation</h2>
-              <p>Hi ${inviteeUser.metadata?.name || inviteeUser.name || inviteeUser.email},</p>
-              <p><strong>${callerName}</strong> has invited you to join a ${call.call_type} call.</p>
-              ${call.title ? `<p><strong>Meeting:</strong> ${call.title}</p>` : ''}
-              ${call.description ? `<p><strong>Description:</strong> ${call.description}</p>` : ''}
-              <p style="margin: 30px 0;">
-                <a href="${callUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                  Join Call
-                </a>
-              </p>
-              <p style="color: #666; font-size: 12px;">
-                If you're unable to click the button, copy and paste this link into your browser:<br>
-                <a href="${callUrl}">${callUrl}</a>
-              </p>
-            </div>
-          `;
+          const emailContent = buildBrandedEmail({
+            eyebrow: 'Video Call',
+            title: 'Lời mời tham gia cuộc gọi',
+            greeting: `Xin chào ${inviteeUser.metadata?.name || inviteeUser.name || inviteeUser.email},`,
+            intro: `${callerName} đã mời bạn tham gia một cuộc gọi ${call.call_type}.`,
+            details: [
+              ...(call.title ? [{ label: 'Cuộc họp', value: call.title }] : []),
+              ...(call.description ? [{ label: 'Mô tả', value: call.description }] : []),
+            ],
+            action: {
+              label: 'Tham gia cuộc gọi',
+              url: callUrl,
+            },
+            actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${callUrl}`,
+          });
 
           await /* TODO: use EmailService */ this.db.sendEmail(
             inviteeUser.email,
             `Video Call Invitation from ${callerName}`,
-            emailHtml,
-            `${callerName} has invited you to join a ${call.call_type} call. Join at: ${callUrl}`,
+            emailContent.html,
+            emailContent.text,
           );
 
           this.logger.log(`Sent email notification to ${inviteeUser.email} for call ${callId}`);

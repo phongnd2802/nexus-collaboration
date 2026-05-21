@@ -545,12 +545,13 @@ export const useUpdateProject = () => {
   return useMutation({
     mutationFn: ({ workspaceId, projectId, data }: { workspaceId: string; projectId: string; data: Partial<CreateProjectRequest> }) =>
       projectApi.updateProject(workspaceId, projectId, data),
-    onSuccess: (updatedProject, { projectId }) => {
+    onSuccess: (updatedProject, { projectId, workspaceId }) => {
       // Immediately update Zustand store for instant UI update
       updateProject(projectId, updatedProject);
       // Invalidate queries to refetch from server
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['projectMembers', workspaceId, projectId] });
     },
   });
 };
