@@ -54,6 +54,14 @@ export class VideoCallsService {
     return this.livekitVideoService;
   }
 
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Unknown error';
+  }
+
+  private getErrorStack(error: unknown): string | undefined {
+    return error instanceof Error ? error.stack : undefined;
+  }
+
   // ============================================
   // Video Call CRUD Operations
   // ============================================
@@ -99,7 +107,7 @@ export class VideoCallsService {
       this.logger.log(`LiveKit room created successfully:`, livekitRoom);
     } catch (error) {
       this.logger.error(`Failed to create LiveKit room:`, error);
-      throw new BadRequestException(`Failed to create video room: ${error.message}`);
+      throw new BadRequestException(`Failed to create video room: ${this.getErrorMessage(error)}`);
     }
 
     if (!livekitRoom || (!livekitRoom.id && !livekitRoom.roomId)) {
@@ -264,9 +272,9 @@ export class VideoCallsService {
         );
       } catch (error) {
         this.logger.error(
-          `❌ [VideoCallService] Failed to send incoming call notifications: ${error.message}`,
+          `❌ [VideoCallService] Failed to send incoming call notifications: ${this.getErrorMessage(error)}`,
         );
-        this.logger.error(`📋 [VideoCallService] Error stack: ${error.stack}`);
+        this.logger.error(`📋 [VideoCallService] Error stack: ${this.getErrorStack(error)}`);
         // Don't fail the whole operation if notifications fail
       }
     } else {
@@ -315,7 +323,7 @@ export class VideoCallsService {
 
         this.logger.log(`Calendar event created for video call: ${calendarEvent.id}`);
       } catch (error) {
-        this.logger.warn(`Failed to create calendar event: ${error.message}`);
+        this.logger.warn(`Failed to create calendar event: ${this.getErrorMessage(error)}`);
         // Don't fail the whole operation if calendar sync fails
       }
     }
@@ -364,7 +372,7 @@ export class VideoCallsService {
           `Notifications sent to ${dto.participant_ids.length} invitees for meeting: ${call.id}`,
         );
       } catch (error) {
-        this.logger.warn(`Failed to send invitee notifications: ${error.message}`);
+        this.logger.warn(`Failed to send invitee notifications: ${this.getErrorMessage(error)}`);
         // Don't fail the whole operation if notifications fail
       }
     }
@@ -450,7 +458,7 @@ export class VideoCallsService {
                 };
               } catch (error) {
                 this.logger.warn(
-                  `Could not fetch user info for participant ${participant.user_id}: ${error.message}`,
+                  `Could not fetch user info for participant ${participant.user_id}: ${this.getErrorMessage(error)}`,
                 );
                 return {
                   ...participant,
@@ -466,7 +474,7 @@ export class VideoCallsService {
             participants: participantsWithUserInfo,
           };
         } catch (error) {
-          this.logger.warn(`Could not fetch participants for call ${call.id}: ${error.message}`);
+          this.logger.warn(`Could not fetch participants for call ${call.id}: ${this.getErrorMessage(error)}`);
           return {
             ...call,
             participants: [],
@@ -514,7 +522,7 @@ export class VideoCallsService {
           };
         } catch (error) {
           this.logger.warn(
-            `Could not fetch user info for participant ${participant.user_id}: ${error.message}`,
+            `Could not fetch user info for participant ${participant.user_id}: ${this.getErrorMessage(error)}`,
           );
           return {
             ...participant,
@@ -534,7 +542,7 @@ export class VideoCallsService {
         livekit_room: livekitRoom,
       };
     } catch (error) {
-      this.logger.warn(`Could not fetch LiveKit room details: ${error.message}`);
+      this.logger.warn(`Could not fetch LiveKit room details: ${this.getErrorMessage(error)}`);
       return {
         ...call,
         participants: participantsWithUserInfo,
@@ -592,7 +600,7 @@ export class VideoCallsService {
       await this.dbVideoService.deleteRoom(call.livekit_room_id);
       this.logger.log(`LiveKit room deleted: ${call.livekit_room_id}`);
     } catch (error) {
-      this.logger.warn(`Could not delete LiveKit room: ${error.message}`);
+      this.logger.warn(`Could not delete LiveKit room: ${this.getErrorMessage(error)}`);
     }
 
     // Process meeting intelligence (generate summary, extract action items) - run async
@@ -952,7 +960,7 @@ export class VideoCallsService {
         await this.dbVideoService.deleteRoom(call.livekit_room_id);
         this.logger.log(`LiveKit room deleted: ${call.livekit_room_id}`);
       } catch (error) {
-        this.logger.warn(`Could not delete LiveKit room: ${error.message}`);
+        this.logger.warn(`Could not delete LiveKit room: ${this.getErrorMessage(error)}`);
       }
 
       // Process meeting intelligence (generate summary, extract action items) - run async
@@ -1046,7 +1054,7 @@ export class VideoCallsService {
         await this.dbVideoService.deleteRoom(call.livekit_room_id);
         this.logger.log(`LiveKit room deleted: ${call.livekit_room_id}`);
       } catch (error) {
-        this.logger.warn(`Could not delete LiveKit room: ${error.message}`);
+        this.logger.warn(`Could not delete LiveKit room: ${this.getErrorMessage(error)}`);
       }
 
       this.logger.log(`One-to-one call ${callId} automatically completed (invitee declined)`);
@@ -1082,7 +1090,7 @@ export class VideoCallsService {
           await this.dbVideoService.deleteRoom(call.livekit_room_id);
           this.logger.log(`LiveKit room deleted: ${call.livekit_room_id}`);
         } catch (error) {
-          this.logger.warn(`Could not delete LiveKit room: ${error.message}`);
+          this.logger.warn(`Could not delete LiveKit room: ${this.getErrorMessage(error)}`);
         }
 
         this.logger.log(`Group call ${callId} automatically completed (no active participants)`);
@@ -1302,7 +1310,7 @@ export class VideoCallsService {
       try {
         currentInvitees = JSON.parse(call.invitees);
       } catch (e) {
-        this.logger.warn(`Failed to parse existing invitees: ${e.message}`);
+        this.logger.warn(`Failed to parse existing invitees: ${this.getErrorMessage(e)}`);
       }
     }
 
@@ -1370,7 +1378,7 @@ export class VideoCallsService {
       );
     } catch (fcmError) {
       this.logger.error(
-        `❌ [VideoCallService] Failed to send FCM notification: ${fcmError.message}`,
+        `❌ [VideoCallService] Failed to send FCM notification: ${this.getErrorMessage(fcmError)}`,
       );
       // Don't fail the entire operation if FCM fails
     }
@@ -1413,7 +1421,7 @@ export class VideoCallsService {
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to send email notifications: ${error.message}`);
+      this.logger.error(`Failed to send email notifications: ${this.getErrorMessage(error)}`);
       // Don't fail the entire operation if email fails
     }
 
@@ -1454,7 +1462,7 @@ export class VideoCallsService {
       }
     } catch (inAppError) {
       this.logger.error(
-        `❌ [VideoCallService] Failed to send in-app notifications: ${inAppError.message}`,
+        `❌ [VideoCallService] Failed to send in-app notifications: ${this.getErrorMessage(inAppError)}`,
       );
       // Don't fail the entire operation if in-app notifications fail
     }
@@ -1742,7 +1750,7 @@ export class VideoCallsService {
       };
     } catch (error) {
       this.logger.error(`Transcription failed for recording ${recordingId}:`, error);
-      throw new BadRequestException(`Transcription failed: ${error.message}`);
+      throw new BadRequestException(`Transcription failed: ${this.getErrorMessage(error)}`);
     }
   }
 
@@ -1827,7 +1835,7 @@ export class VideoCallsService {
       };
     } catch (error) {
       this.logger.error(`Translation failed for recording ${recordingId}:`, error);
-      throw new BadRequestException(`Translation failed: ${error.message}`);
+      throw new BadRequestException(`Translation failed: ${this.getErrorMessage(error)}`);
     }
   }
 
@@ -1901,7 +1909,7 @@ export class VideoCallsService {
       };
     } catch (error) {
       this.logger.error(`Summarization failed for recording ${recordingId}:`, error);
-      throw new BadRequestException(`Summarization failed: ${error.message}`);
+      throw new BadRequestException(`Summarization failed: ${this.getErrorMessage(error)}`);
     }
   }
 

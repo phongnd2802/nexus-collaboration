@@ -1,4 +1,5 @@
 ﻿import { Injectable, Logger } from '@nestjs/common';
+import { DatabaseService } from '../database/database.service';
 import { EmailProviderService } from './email.service';
 import { buildTaskReminderEmail, SendEmailInput, TaskReminderEmailData } from './providers';
 
@@ -10,6 +11,7 @@ export interface SendTaskReminderOptions {
   dueDate: string;
   priority: string;
   remindBeforeLabel: string;
+  reminderHeadline: string;
   taskUrl: string;
   taskDescription?: string;
 }
@@ -18,17 +20,15 @@ export interface SendTaskReminderOptions {
 export class EmailTemplatesService {
   private readonly logger = new Logger(EmailTemplatesService.name);
 
-  constructor(private readonly emailProvider: EmailProviderService) {}
+  constructor(
+    private readonly emailProvider: EmailProviderService,
+    private readonly db: DatabaseService,
+  ) {}
 
-  async sendTaskReminderEmail(opts: SendTaskReminderOptions): Promise<void> {
+  async sendTaskReminderEmail(opts: SendTaskReminderOptions): Promise<boolean> {
     if (!opts.to) {
       this.logger.warn('[EmailTemplates] No recipient email, skipping');
-      return;
-    }
-
-    if (!this.emailProvider.isAvailable()) {
-      this.logger.warn('[EmailTemplates] Email provider not available, skipping');
-      return;
+      return false;
     }
 
     const data: TaskReminderEmailData = {
@@ -39,6 +39,7 @@ export class EmailTemplatesService {
       dueDate: opts.dueDate,
       priority: opts.priority,
       remindBeforeLabel: opts.remindBeforeLabel,
+      reminderHeadline: opts.reminderHeadline,
       taskUrl: opts.taskUrl,
     };
 
@@ -46,23 +47,45 @@ export class EmailTemplatesService {
 
     const input: SendEmailInput = {
       to: opts.to,
-      subject: `[Nexus] Nhắc nhở: "${opts.taskTitle}" sẽ hết hạn sau ${opts.remindBeforeLabel}`,
+      subject: `[Nexus] Nhac nho: ${opts.reminderHeadline}`,
       html,
       text,
       tags: { type: 'task-reminder' },
     };
 
-    const result = await this.emailProvider.send(input);
+    if (this.emailProvider.isAvailable()) {
+      const result = await this.emailProvider.send(input);
 
-    if (!result.accepted) {
-      this.logger.warn(
-        `[EmailTemplates] Email not accepted by provider for ${opts.to} (${opts.remindBeforeLabel})`,
+      if (!result.accepted) {
+        this.logger.warn(
+          `[EmailTemplates] Email not accepted by provider for ${opts.to} (${opts.remindBeforeLabel})`,
+        );
+        return false;
+      }
+
+      this.logger.log(
+        `[EmailTemplates] Sent task reminder to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,
       );
-      return;
+      return true;
+    }
+
+    this.logger.warn(
+      '[EmailTemplates] Email provider not available, falling back to legacy SMTP sender',
+    );
+    const legacyResult = await this.db.sendEmail(opts.to, input.subject, html, text);
+
+    if (!legacyResult?.success) {
+      this.logger.warn(
+        `[EmailTemplates] Legacy SMTP send failed for ${opts.to} (${opts.remindBeforeLabel}): ${legacyResult?.error || 'unknown error'}`,
+      );
+      return false;
     }
 
     this.logger.log(
-      `[EmailTemplates] Sent task reminder to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,
+      `[EmailTemplates] Sent task reminder via legacy SMTP to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,
     );
+    return true;
   }
 }
+
+

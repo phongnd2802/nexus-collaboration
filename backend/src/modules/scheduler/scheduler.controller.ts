@@ -166,4 +166,15 @@ export class SchedulerController {
   async getTaskReminderStats() {
     return this.taskReminderService.getReminderStats();
   }
+
+  @Post('task-reminders/trigger')
+  @ApiOperation({ summary: 'Manually trigger task reminder processing' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Task reminder processing triggered successfully',
+  })
+  async triggerTaskReminders() {
+    await this.taskReminderService.handleTaskDeadlineReminders();
+    return this.taskReminderService.getReminderStats();
+  }
 }
