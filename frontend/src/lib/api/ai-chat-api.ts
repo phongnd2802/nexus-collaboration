@@ -1,5 +1,6 @@
 import { autopilotApi } from './autopilot-api'
 import type { StreamCallbacks, ExecuteCommandRequest } from './autopilot-api'
+import { ragApi } from './rag-api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export interface AIChatConversation {
@@ -58,7 +59,8 @@ export const aiChatApi = {
     data: ExecuteCommandRequest,
     callbacks: StreamCallbacks,
     token: string,
-  ): Promise<void> => autopilotApi.executeCommandStream(data, callbacks, token),
+    signal?: AbortSignal,
+  ): Promise<void> => ragApi.answerStream(data, callbacks, token, signal),
 
   // TODO: wire to backend when available
   renameConversation: (_sessionId: string, _title: string): Promise<{ success: boolean }> =>

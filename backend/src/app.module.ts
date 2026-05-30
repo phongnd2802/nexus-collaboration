@@ -71,6 +71,7 @@ import { BlogModule } from './modules/blog/blog.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
+import { RagModule } from './modules/rag/rag.module';
 
 @Module({
   imports: [
@@ -147,6 +148,7 @@ import { FeedbackModule } from './modules/feedback/feedback.module';
     FormsModule,
     WorkflowsModule,
     FeedbackModule,
+    RagModule,
   ],
   providers: [
     {
