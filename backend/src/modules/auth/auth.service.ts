@@ -623,13 +623,38 @@ export class AuthService {
 
   async requestPasswordReset(dto: PasswordResetRequestDto) {
     try {
-      // Use the database's requestPasswordReset method
-      // This handles everything: checking if user exists, generating token, sending email
-      // Send the complete reset password URL (not just the base URL)
-      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5175';
       const frontendUrl = `${baseUrl}/reset-password`;
-      // TODO: implement password reset (was: this.db.client.auth.requestPasswordReset(dto.email, frontendUrl))
-      await this.db.raw('SELECT 1', []);
+
+      const result = await this.db.resetPasswordForEmail(dto.email);
+
+      if (result?.token) {
+        const resetLink = `${frontendUrl}?token=${encodeURIComponent(result.token)}`;
+        const { html, text } = buildBrandedEmail({
+          eyebrow: 'Nexus Account',
+          title: 'Đặt lại mật khẩu',
+          intro: 'Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Nexus. Nhấn nút bên dưới để tiếp tục.',
+          action: { label: 'Đặt lại mật khẩu', url: resetLink },
+          actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${resetLink}`,
+          footer: 'Nếu bạn không yêu cầu email này, bạn có thể bỏ qua một cách an toàn. Liên kết có hiệu lực trong 1 giờ.',
+        });
+
+        if (this.emailProvider.isAvailable()) {
+          try {
+            await this.emailProvider.send({
+              to: dto.email,
+              subject: 'Đặt lại mật khẩu',
+              html,
+              text,
+              tags: { type: 'password-reset' },
+            });
+          } catch (emailError) {
+            this.logger.error(`Failed to send password reset email to ${dto.email}:`, emailError);
+          }
+        } else {
+          this.logger.error(`Email provider not available for password reset to ${dto.email}`);
+        }
+      }
 
       return {
         success: true,
@@ -637,7 +662,6 @@ export class AuthService {
       };
     } catch (error) {
       this.logger.error('Password reset request error:', error);
-      // Don't expose internal errors to user
       return {
         success: true,
         message: 'If the email exists in our system, you will receive password reset instructions.',
@@ -647,19 +671,16 @@ export class AuthService {
 
   async confirmPasswordReset(dto: PasswordResetConfirmDto) {
     try {
-      // Use the database's resetPassword method
-      // This properly validates the token and hashes the password
-      // TODO: implement password reset confirmation (was: this.db.client.auth.resetPassword({token, newPassword}))
-      await this.db.raw('SELECT 1', []);
-
+      await this.db.resetPassword(dto.token, dto.password);
       return {
         success: true,
         message: 'Password has been reset successfully',
       };
     } catch (error) {
       this.logger.error('Password reset confirmation error:', error);
-      if (error instanceof BadRequestException) {
-        throw error;
+      const errStatus = (error as any)?.status || (error as any)?.code;
+      if (errStatus === 400 || errStatus === 'HTTP_400') {
+        throw new BadRequestException('Invalid or expired reset token');
       }
       throw new BadRequestException('Failed to reset password');
     }

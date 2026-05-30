@@ -3,10 +3,8 @@ import { useIntl } from 'react-intl'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { AlertCircle, Loader2, Key, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react'
-import { Alert, AlertDescription } from '../../components/ui/alert'
 import { authService } from '@/lib/api/auth-api'
 
 export default function ResetPassword() {
@@ -45,14 +43,12 @@ export default function ResetPassword() {
       return
     }
 
-    // Validate password
     const passwordError = validatePassword(password)
     if (passwordError) {
       setError(passwordError)
       return
     }
 
-    // Check password confirmation
     if (password !== confirmPassword) {
       setError(intl.formatMessage({ id: 'auth.resetPassword.passwordMismatch' }))
       return
@@ -61,19 +57,13 @@ export default function ResetPassword() {
     setIsLoading(true)
 
     try {
-      console.log('🔐 Reset Password: Resetting password with token')
       await authService.resetPassword({ token, password })
-      console.log('✅ Reset Password: Password reset successfully')
       setIsSuccess(true)
-      
-      // Redirect to login after a short delay
+
       setTimeout(() => {
-        navigate('/auth/login', { 
-          state: { message: 'Password reset successfully. Please sign in with your new password.' }
-        })
-      }, 2000)
+        navigate('/auth/login')
+      }, 3000)
     } catch (error: any) {
-      console.error('❌ Reset Password: Request failed:', error)
       setError(error.message || 'Failed to reset password. Please try again.')
     } finally {
       setIsLoading(false)
@@ -82,188 +72,169 @@ export default function ResetPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <div className="w-full max-w-lg mx-auto">
-          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="space-y-6 pb-8">
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <CheckCircle className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-center space-y-2">
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    {intl.formatMessage({ id: 'auth.resetPassword.success' })}
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    {intl.formatMessage({ id: 'auth.resetPassword.successMessage' })}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F5] p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-[12px] border border-[rgba(31,30,29,0.15)] shadow-[rgba(0,0,0,0.04)_0px_4px_20px_0px] p-8">
+            <div className="flex flex-col items-center mb-8">
+              <img src="/nexus-logo.png" alt="Nexus" className="h-8 mb-6" />
+              <h1 className="font-serif text-[28px] font-normal leading-[33.6px] text-[#1F1E1D] mb-2">
+                {intl.formatMessage({ id: 'auth.resetPassword.success' })}
+              </h1>
+              <p className="text-[15px] text-[#73726C] leading-[22.5px] text-center">
+                {intl.formatMessage({ id: 'auth.resetPassword.successMessage' })}
+              </p>
+            </div>
 
-            <CardContent className="space-y-6">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                  <Key className="w-8 h-8 text-green-600" />
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {intl.formatMessage({ id: 'auth.resetPassword.redirectMessage' })}
-                </p>
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 rounded-[12px] bg-[#D97757]/10 flex items-center justify-center mx-auto">
+                <CheckCircle className="w-8 h-8 text-[#D97757]" />
               </div>
-
+              <p className="text-[15px] text-[#3D3D3A] leading-[22.5px]">
+                {intl.formatMessage({ id: 'auth.resetPassword.redirectMessage' })}
+              </p>
               <Button
                 onClick={() => navigate('/auth/login')}
-                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg transition-all duration-200"
+                className="w-full h-[44px] bg-[#1F1E1D] text-white rounded-[9.6px] hover:bg-[#0A0A0A] transition-all"
               >
                 {intl.formatMessage({ id: 'auth.resetPassword.continueSignIn' })}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="w-full max-w-lg mx-auto">
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="space-y-6 pb-8">
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Key className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-center space-y-2">
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  {intl.formatMessage({ id: 'auth.resetPassword.title' })}
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  {intl.formatMessage({ id: 'auth.resetPassword.subtitle' })}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-3">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  {intl.formatMessage({ id: 'auth.resetPassword.password' })}
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={intl.formatMessage({ id: 'auth.resetPassword.passwordPlaceholder' })}
-                    required
-                    disabled={isLoading}
-                    minLength={8}
-                    className="h-11 pr-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-11 w-11 p-0 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-500">
-                  {intl.formatMessage({ id: 'auth.resetPassword.passwordHint' })}
-                </p>
-              </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF9F5] p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-[12px] border border-[rgba(31,30,29,0.15)] shadow-[rgba(0,0,0,0.04)_0px_4px_20px_0px] p-8">
+          <div className="flex flex-col items-center mb-8">
+            <img src="/nexus-logo.png" alt="Nexus" className="h-8 mb-6" />
+            <h1 className="font-serif text-[28px] font-normal leading-[33.6px] text-[#1F1E1D] mb-2">
+              {intl.formatMessage({ id: 'auth.resetPassword.title' })}
+            </h1>
+            <p className="text-[15px] text-[#73726C] leading-[22.5px] text-center">
+              {intl.formatMessage({ id: 'auth.resetPassword.subtitle' })}
+            </p>
+          </div>
 
-              <div className="space-y-3">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  {intl.formatMessage({ id: 'auth.resetPassword.confirmPassword' })}
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={intl.formatMessage({ id: 'auth.resetPassword.confirmPasswordPlaceholder' })}
-                    required
-                    disabled={isLoading}
-                    minLength={8}
-                    className="h-11 pr-11 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-11 w-11 p-0 hover:bg-transparent"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={isLoading}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              
-              {error && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <AlertDescription className="text-red-700">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <Button
-                type="submit"
-                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg transition-all duration-200"
-                disabled={isLoading || !token}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {intl.formatMessage({ id: 'auth.resetPassword.resetting' })}
-                  </>
-                ) : (
-                  <>
-                    <Key className="mr-2 h-4 w-4" />
-                    {intl.formatMessage({ id: 'auth.resetPassword.reset' })}
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="flex flex-col items-center space-y-3 pt-4 border-t border-gray-100">
-              <Link
-                to="/auth/login"
-                className="flex items-center text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {intl.formatMessage({ id: 'auth.resetPassword.backToLogin' })}
-              </Link>
-
-              <p className="text-sm text-gray-600">
-                {intl.formatMessage({ id: 'auth.resetPassword.rememberPassword' })}{' '}
-                <Link
-                  to="/auth/login"
-                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-[14px] font-medium text-[#1F1E1D]">
+                {intl.formatMessage({ id: 'auth.resetPassword.password' })}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={intl.formatMessage({ id: 'auth.resetPassword.passwordPlaceholder' })}
+                  required
+                  disabled={isLoading}
+                  minLength={8}
+                  className="h-[44px] pr-11 bg-white border-[rgba(31,30,29,0.15)] rounded-[9.6px] text-[#141413] placeholder:text-[rgba(61,61,58,0.6)] focus:border-[#1F1E1D] focus:ring-0 focus:shadow-[0_0_0_3px_rgba(31,30,29,0.1)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#73726C] hover:text-[#1F1E1D] transition-colors"
                 >
-                  {intl.formatMessage({ id: 'auth.resetPassword.signIn' })}
-                </Link>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-[12px] text-[#73726C]">
+                {intl.formatMessage({ id: 'auth.resetPassword.passwordHint' })}
               </p>
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-[14px] font-medium text-[#1F1E1D]">
+                {intl.formatMessage({ id: 'auth.resetPassword.confirmPassword' })}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder={intl.formatMessage({ id: 'auth.resetPassword.confirmPasswordPlaceholder' })}
+                  required
+                  disabled={isLoading}
+                  minLength={8}
+                  className="h-[44px] pr-11 bg-white border-[rgba(31,30,29,0.15)] rounded-[9.6px] text-[#141413] placeholder:text-[rgba(61,61,58,0.6)] focus:border-[#1F1E1D] focus:ring-0 focus:shadow-[0_0_0_3px_rgba(31,30,29,0.1)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={isLoading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#73726C] hover:text-[#1F1E1D] transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-[8px] border border-[rgba(224,30,90,0.3)] bg-[rgba(224,30,90,0.1)] px-3 py-2.5">
+                <AlertCircle className="h-4 w-4 text-[#BE123C] flex-shrink-0" />
+                <p className="text-sm text-[#BE123C]">{error}</p>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={isLoading || !token}
+              className="w-full h-[44px] bg-[#1F1E1D] text-white rounded-[9.6px] hover:bg-[#0A0A0A] transition-all disabled:bg-[#3D3D3A] disabled:text-[#73726C]"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {intl.formatMessage({ id: 'auth.resetPassword.resetting' })}
+                </>
+              ) : (
+                <>
+                  <Key className="mr-2 h-4 w-4" />
+                  {intl.formatMessage({ id: 'auth.resetPassword.reset' })}
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="flex flex-col items-center gap-3 mt-8 pt-6 border-t border-[rgba(31,30,29,0.15)]">
+            <Link
+              to="/auth/login"
+              className="flex items-center text-sm text-[#D97757] hover:text-[#c8684a] transition-colors"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {intl.formatMessage({ id: 'auth.resetPassword.backToLogin' })}
+            </Link>
+
+            <p className="text-sm text-[#73726C]">
+              {intl.formatMessage({ id: 'auth.resetPassword.rememberPassword' })}{' '}
+              <Link
+                to="/auth/login"
+                className="text-[#D97757] hover:text-[#c8684a] transition-colors"
+              >
+                {intl.formatMessage({ id: 'auth.resetPassword.signIn' })}
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-[#73726C] mt-8">
+          &copy; {new Date().getFullYear()} Nexus. All rights reserved.
+        </p>
       </div>
     </div>
   )

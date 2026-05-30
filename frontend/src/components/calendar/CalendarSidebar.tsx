@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay, getDate } from 'date-fns'
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay, getDate } from 'date-fns'
 import { useIntl } from 'react-intl'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { useEventCategories } from '../../lib/api/calendar-api'
@@ -106,6 +106,16 @@ export function CalendarSidebar({ onDateClick, onReturnToCalendar, onSettingsCli
     intl.formatMessage({ id: 'modules.calendar.monthView.friShort' }),
     intl.formatMessage({ id: 'modules.calendar.monthView.satShort' })
   ]
+  const monthYearLabel = (() => {
+    if (intl.locale.toLowerCase().startsWith('vi')) {
+      return `Thg ${miniCalendarDate.getMonth() + 1}, ${miniCalendarDate.getFullYear()}`
+    }
+
+    return new Intl.DateTimeFormat(intl.locale, {
+      month: 'long',
+      year: 'numeric',
+    }).format(miniCalendarDate)
+  })()
 
   const navigateMiniCalendar = (direction: 'prev' | 'next') => {
     const newDate = new Date(miniCalendarDate)
@@ -147,7 +157,7 @@ export function CalendarSidebar({ onDateClick, onReturnToCalendar, onSettingsCli
 
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5" />
-              <h2 className="text-nowrap font-semibold">{format(miniCalendarDate, 'MMMM yyyy')}</h2>
+              <h2 className="text-nowrap font-semibold">{monthYearLabel}</h2>
             </div>
             <Button
               variant="ghost"

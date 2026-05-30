@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useLayoutEffect, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
@@ -29,6 +29,13 @@ export function CalendarHeader({
   showAnalytics
 }: CalendarHeaderProps) {
   const intl = useIntl()
+  const [compactActionButtons, setCompactActionButtons] = useState(false)
+  const headerRef = useRef<HTMLDivElement | null>(null)
+  const leftSectionRef = useRef<HTMLDivElement | null>(null)
+  const rightSectionRef = useRef<HTMLDivElement | null>(null)
+  const rightMeasureRef = useRef<HTMLDivElement | null>(null)
+  const compactActionButtonsRef = useRef(false)
+  const measureRef = useRef<(() => void) | null>(null)
 
   const {
     currentView,
@@ -52,6 +59,85 @@ export function CalendarHeader({
     { value: 'agenda', label: intl.formatMessage({ id: 'modules.calendar.header.viewAgenda' }) },
     { value: 'timeline', label: intl.formatMessage({ id: 'modules.calendar.header.viewTimeline' }) },
   ]
+  const activeFilterCount = getActiveFilterCount()
+
+  useLayoutEffect(() => {
+    compactActionButtonsRef.current = compactActionButtons
+  }, [compactActionButtons])
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const headerEl = headerRef.current
+      const leftEl = leftSectionRef.current
+      const rightEl = rightSectionRef.current
+      const rightMeasureEl = rightMeasureRef.current
+
+      if (!headerEl || !leftEl || !rightEl) return
+
+      // Available width only inside the middle calendar pane:
+      // from the right edge of left controls (time/calendar area) to the left edge of right sidebar (progress area).
+      const availableWidth = headerEl.clientWidth - leftEl.offsetWidth - 20
+      // Always measure with full labels to avoid flicker when current mode is compact.
+      const requiredFullWidth = rightMeasureEl?.scrollWidth ?? rightEl.scrollWidth
+      const expandBuffer = 96
+
+      let nextCompactActions = compactActionButtonsRef.current
+      if (!compactActionButtonsRef.current && requiredFullWidth > availableWidth) {
+        nextCompactActions = true
+      } else if (compactActionButtonsRef.current && requiredFullWidth + expandBuffer < availableWidth) {
+        nextCompactActions = false
+      }
+
+      if (nextCompactActions !== compactActionButtonsRef.current) {
+        compactActionButtonsRef.current = nextCompactActions
+        setCompactActionButtons(nextCompactActions)
+      }
+    }
+    measureRef.current = measure
+
+    let frameId = 0
+    let burstTimer: number | null = null
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frameId)
+      frameId = requestAnimationFrame(measure)
+    })
+    const runMeasureBurst = () => {
+      let ticks = 0
+      if (burstTimer) window.clearInterval(burstTimer)
+      burstTimer = window.setInterval(() => {
+        measureRef.current?.()
+        ticks += 1
+        if (ticks >= 15 && burstTimer) {
+          window.clearInterval(burstTimer)
+          burstTimer = null
+        }
+      }, 24)
+    }
+    const onLayoutChanged = () => {
+      cancelAnimationFrame(frameId)
+      frameId = requestAnimationFrame(() => {
+        measureRef.current?.()
+        runMeasureBurst()
+      })
+    }
+
+    if (headerRef.current) observer.observe(headerRef.current)
+    if (leftSectionRef.current) observer.observe(leftSectionRef.current)
+    if (rightSectionRef.current) observer.observe(rightSectionRef.current)
+    if (headerRef.current?.parentElement) observer.observe(headerRef.current.parentElement)
+
+    window.addEventListener('resize', measure)
+    window.addEventListener('nexus:layout-changed', onLayoutChanged as EventListener)
+    measure()
+
+    return () => {
+      cancelAnimationFrame(frameId)
+      if (burstTimer) window.clearInterval(burstTimer)
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('nexus:layout-changed', onLayoutChanged as EventListener)
+    }
+  }, [showAnalytics, currentView, intl.locale, activeFilterCount, filters.searchQuery])
 
   // Helper function to check if any filters are active
   const hasActiveFilters = () => {
@@ -66,7 +152,7 @@ export function CalendarHeader({
   }
 
   // Get active filter count for badge
-  const getActiveFilterCount = () => {
+  function getActiveFilterCount() {
     let count = 0
     if (filters.categories.length > 0) count++
     if (filters.priorities?.length > 0) count++
@@ -245,8 +331,8 @@ export function CalendarHeader({
   }
 
   return (
-    <div className="flex items-center justify-between p-2 sm:p-4 border-b border-border bg-background min-h-[60px] sm:min-h-[72px]">
-      <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+    <div ref={headerRef} className="relative flex items-center justify-between p-2 sm:p-4 border-b border-border bg-background min-h-[60px] sm:min-h-[72px]">
+      <div ref={leftSectionRef} className="flex items-center gap-2 sm:gap-4 min-w-0 flex-shrink-0">
         {/* Navigation - Hidden in analytics mode */}
         {!showAnalytics && (
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -263,6 +349,8 @@ export function CalendarHeader({
               variant="outline"
               size="sm"
               onClick={navigateToToday}
+              title={intl.formatMessage({ id: 'modules.calendar.header.today' })}
+              aria-label={intl.formatMessage({ id: 'modules.calendar.header.today' })}
               className="px-2 sm:px-3 text-xs sm:text-sm"
             >
               {intl.formatMessage({ id: 'modules.calendar.header.today' })}
@@ -288,7 +376,7 @@ export function CalendarHeader({
         </div> */}
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+      <div ref={rightSectionRef} className="flex items-center gap-1 sm:gap-2 flex-shrink-0 overflow-hidden">
         {/* Search */}
         <div className="relative hidden xl:block">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -329,26 +417,36 @@ export function CalendarHeader({
           variant={showAnalytics ? "default" : "outline"}
           size="sm"
           onClick={onShowAnalytics}
+          title={intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
+          aria-label={intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
           className={cn(
             "hidden sm:flex items-center gap-2 flex-shrink-0",
+            compactActionButtons && "h-8 w-8 p-0 justify-center",
             showAnalytics && "gradient-primary-active border-0"
           )}
         >
           <BarChart3 className="h-4 w-4" />
-          <span className="hidden xl:inline">{intl.formatMessage({ id: 'modules.calendar.header.analytics' })}</span>
+          <span className={cn(compactActionButtons && "hidden")}>
+            {intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
+          </span>
         </Button>
 
         <Button
           variant={hasActiveFilters() ? "default" : "outline"}
           size="sm"
           onClick={onShowFilters}
+          title={intl.formatMessage({ id: 'modules.calendar.header.filters' })}
+          aria-label={intl.formatMessage({ id: 'modules.calendar.header.filters' })}
           className={cn(
             "hidden sm:flex items-center gap-2 flex-shrink-0 relative",
+            compactActionButtons && "h-8 w-8 p-0 justify-center",
             hasActiveFilters() && "bg-blue-500 hover:bg-blue-600 text-white border-0"
           )}
         >
           <Filter className="h-4 w-4" />
-          <span className="hidden lg:inline">{intl.formatMessage({ id: 'modules.calendar.header.filters' })}</span>
+          <span className={cn(compactActionButtons && "hidden")}>
+            {intl.formatMessage({ id: 'modules.calendar.header.filters' })}
+          </span>
           {hasActiveFilters() && (
             <div className="absolute -top-2 -right-2 h-6 w-6 bg-orange-500 text-white border-0 rounded-full flex items-center justify-center text-xs group">
               <span className="group-hover:hidden">{getActiveFilterCount()}</span>
@@ -370,11 +468,18 @@ export function CalendarHeader({
 
         <Button
           onClick={onCreateEvent}
-          className="flex items-center gap-2 flex-shrink-0 btn-gradient-primary border-0"
+          title={intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}
+          aria-label={intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}
+          className={cn(
+            "flex items-center gap-2 flex-shrink-0 btn-gradient-primary border-0",
+            compactActionButtons && "h-8 w-8 p-0 justify-center"
+          )}
           size="sm"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden md:inline">{intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}</span>
+          <span className={cn(compactActionButtons && "hidden")}>
+            {intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}
+          </span>
         </Button>
 
         <DropdownMenu>
@@ -424,6 +529,41 @@ export function CalendarHeader({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+
+      <div
+        ref={rightMeasureRef}
+        aria-hidden="true"
+        className="absolute pointer-events-none opacity-0 -z-10 h-0 overflow-hidden whitespace-nowrap"
+      >
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="relative hidden xl:block">
+            <div className="pl-10 w-32 2xl:w-48 h-10 border border-border rounded-md" />
+          </div>
+
+          {!showAnalytics && (
+            <div className="w-20 sm:w-24 lg:w-32 h-10 border border-border rounded-md" />
+          )}
+
+          <Button variant={showAnalytics ? "default" : "outline"} size="sm" className="hidden sm:flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span>{intl.formatMessage({ id: 'modules.calendar.header.analytics' })}</span>
+          </Button>
+
+          <Button variant={hasActiveFilters() ? "default" : "outline"} size="sm" className="hidden sm:flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <span>{intl.formatMessage({ id: 'modules.calendar.header.filters' })}</span>
+          </Button>
+
+          <Button size="sm" className="flex items-center gap-2 btn-gradient-primary border-0">
+            <Plus className="h-4 w-4" />
+            <span>{intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}</span>
+          </Button>
+
+          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )
