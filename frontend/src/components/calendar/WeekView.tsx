@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays, isSameDay, isToday, setHours, setMinutes, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, setHours, setMinutes, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { useIntl } from 'react-intl'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { EventCard } from './EventCard'
@@ -177,6 +177,31 @@ export function WeekView({ onEventClick, onTimeSlotClick, onEventDrop }: WeekVie
 
   const allDayEvents = getAllDayEvents()
 
+  const getWeekdayLabel = (day: Date, short = false) => {
+    const dayNumber = day.getDay()
+    const keyMap = short
+      ? [
+          'modules.calendar.weekView.weekdaysShort.sunday',
+          'modules.calendar.weekView.weekdaysShort.monday',
+          'modules.calendar.weekView.weekdaysShort.tuesday',
+          'modules.calendar.weekView.weekdaysShort.wednesday',
+          'modules.calendar.weekView.weekdaysShort.thursday',
+          'modules.calendar.weekView.weekdaysShort.friday',
+          'modules.calendar.weekView.weekdaysShort.saturday',
+        ]
+      : [
+          'modules.calendar.weekView.weekdays.sunday',
+          'modules.calendar.weekView.weekdays.monday',
+          'modules.calendar.weekView.weekdays.tuesday',
+          'modules.calendar.weekView.weekdays.wednesday',
+          'modules.calendar.weekView.weekdays.thursday',
+          'modules.calendar.weekView.weekdays.friday',
+          'modules.calendar.weekView.weekdays.saturday',
+        ]
+
+    return intl.formatMessage({ id: keyMap[dayNumber] })
+  }
+
   return (
     <div className="flex flex-col h-full overflow-hidden min-w-0">
       {/* All-day events section */}
@@ -220,7 +245,9 @@ export function WeekView({ onEventClick, onTimeSlotClick, onEventDrop }: WeekVie
       {/* Week header */}
       <div className="flex border-b border-border bg-background sticky top-0 z-10">
         <div className="w-12 sm:w-16 flex-shrink-0 border-r border-border p-1 sm:p-2">
-          <div className="text-xs text-muted-foreground hidden sm:block">GMT</div>
+          <div className="text-xs text-muted-foreground hidden sm:block">
+            {intl.formatMessage({ id: 'modules.calendar.weekView.timezoneLabel' })}
+          </div>
         </div>
         <div className="grid grid-cols-7 flex-1 min-w-0">
           {weekDays.map((day) => (
@@ -232,8 +259,8 @@ export function WeekView({ onEventClick, onTimeSlotClick, onEventDrop }: WeekVie
               )}
             >
               <div className="text-xs text-muted-foreground mb-1 truncate">
-                <span className="hidden sm:inline">{format(day, 'EEE')}</span>
-                <span className="sm:hidden">{format(day, 'EEEEE')}</span>
+                <span className="hidden sm:inline">{getWeekdayLabel(day)}</span>
+                <span className="sm:hidden">{getWeekdayLabel(day, true)}</span>
               </div>
               <div
                 className={cn(

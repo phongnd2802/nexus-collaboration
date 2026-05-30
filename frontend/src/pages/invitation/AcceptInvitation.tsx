@@ -12,7 +12,6 @@ import {
   getInvitationByToken,
   acceptInvitation,
   isInvitationExpired,
-  getTimeRemaining,
 } from '@/services/invitationService';
 import type { InvitationDetails } from '@/types/invitation';
 import { Mail, Building2, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -31,6 +30,72 @@ const AcceptInvitation: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const formatTimeRemaining = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+
+    if (diff <= 0) {
+      return t('invitation.timeRemaining.expired');
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) {
+      return t('invitation.timeRemaining.days', { count: days });
+    }
+
+    if (hours > 0) {
+      return t('invitation.timeRemaining.hours', { count: hours });
+    }
+
+    return t('invitation.timeRemaining.minutes', { count: minutes });
+  };
+
+  const normalizeInvitationError = (rawMessage?: string) => {
+    if (!rawMessage) return null;
+
+    const message = rawMessage.toLowerCase();
+
+    if (message.includes('already') && message.includes('accepted')) {
+      return t('invitation.errors.alreadyAccepted');
+    }
+
+    if (message.includes('revoked') || message.includes('cancelled by the sender')) {
+      return t('invitation.errors.revoked');
+    }
+
+    if (message.includes('expired')) {
+      return t('invitation.errors.expired');
+    }
+
+    if (
+      (message.includes('sent to') && message.includes('logged in as')) ||
+      message.includes('email mismatch')
+    ) {
+      if (!invitation?.email || !user?.email) {
+        return t('invitation.errors.loadFailed');
+      }
+
+      return t('invitation.errors.emailMismatch', {
+        invitedEmail: invitation?.email || '',
+        userEmail: user?.email || '',
+      });
+    }
+
+    if (
+      message.includes('invalid invitation') ||
+      message.includes('invalid token') ||
+      message.includes('not found')
+    ) {
+      return t('invitation.errors.loadFailed');
+    }
+
+    return null;
+  };
 
   // Get token from URL params or search params
   const invitationToken = token || searchParams.get('token') || '';
@@ -92,7 +157,7 @@ const AcceptInvitation: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Failed to load invitation:', err);
-      setError(err.message || t('invitation.errors.loadFailed'));
+      setError(normalizeInvitationError(err.message) || t('invitation.errors.loadFailed'));
       // Clear invalid token from localStorage
       localStorage.removeItem('pending_invitation_token');
     } finally {
@@ -122,7 +187,7 @@ const AcceptInvitation: React.FC = () => {
       navigate(`/workspaces/${workspaceId}/dashboard`, { replace: true });
     } catch (err: any) {
       console.error('Failed to accept invitation:', err);
-      toast.error(err.message || t('invitation.errors.acceptFailed'));
+      toast.error(normalizeInvitationError(err.message) || t('invitation.errors.acceptFailed'));
     } finally {
       setIsAccepting(false);
     }
@@ -231,7 +296,11 @@ const AcceptInvitation: React.FC = () => {
             <Users className="w-5 h-5 text-gray-400 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-500">{t('invitation.role')}</p>
-              <p className="text-lg font-semibold text-gray-900 capitalize">{invitation.role}</p>
+              <p className="text-lg font-semibold text-gray-900 capitalize">
+                {intl.formatMessage(
+                  { id: `roles.${invitation.role}`, defaultMessage: invitation.role },
+                )}
+              </p>
             </div>
           </div>
 
@@ -250,7 +319,7 @@ const AcceptInvitation: React.FC = () => {
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-500">{t('invitation.expires')}</p>
               <p className="text-lg font-semibold text-gray-900">
-                {getTimeRemaining(invitation.expires_at)}
+                {formatTimeRemaining(invitation.expires_at)}
               </p>
             </div>
           </div>

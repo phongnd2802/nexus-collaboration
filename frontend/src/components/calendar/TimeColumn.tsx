@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { useIntl } from 'react-intl'
 import { cn } from '../../lib/utils'
 
 interface TimeColumnProps {
@@ -8,10 +9,18 @@ interface TimeColumnProps {
 }
 
 export function TimeColumn({ hours, hourHeight, className }: TimeColumnProps) {
+  const intl = useIntl()
+
   const formatHour = (hour: number) => {
     const date = new Date()
     date.setHours(hour, 0, 0, 0)
-    return format(date, 'h a')
+    const value = format(date, 'h a')
+
+    if (intl.locale.toLowerCase().startsWith('vi')) {
+      return value.replace('AM', 'SA').replace('PM', 'CH')
+    }
+
+    return value
   }
 
   return (

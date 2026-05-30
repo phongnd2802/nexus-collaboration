@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useWorkspace } from '../../contexts/WorkspaceContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { useIntl } from 'react-intl'
@@ -22,6 +22,8 @@ import {
   Wrench,
   BookOpen,
   Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useNotesStore } from '../../stores/notesStore'
@@ -72,13 +74,20 @@ const bottomItems: NavigationItem[] = [
   { view: 'settings', icon: Settings, labelKey: 'navigation.settings', path: 'settings' },
 ]
 
-export function NavigationRail() {
+interface NavigationRailProps {
+  defaultExpanded?: boolean
+}
+
+export function NavigationRail({ defaultExpanded = false }: NavigationRailProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { workspaceId: routeWorkspaceId } = useParams<{ workspaceId: string }>()
   const { currentWorkspace } = useWorkspace()
   const { user } = useAuth()
   const { clearSelection } = useNotesStore()
   const intl = useIntl()
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  const [isNexusHovered, setIsNexusHovered] = useState(false)
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin'
@@ -89,7 +98,8 @@ export function NavigationRail() {
     return pathMatch ? pathMatch[1] : null
   }
 
-  const workspaceId = currentWorkspace?.id || getWorkspaceIdFromUrl()
+  const workspaceId = currentWorkspace?.id || routeWorkspaceId || getWorkspaceIdFromUrl()
+  const logoTarget = workspaceId ? `/workspaces/${workspaceId}/dashboard` : '/'
 
   // Helper function to construct workspace-based URLs
   const getWorkspaceUrl = (path: string) => {
@@ -120,9 +130,56 @@ export function NavigationRail() {
 
   return (
     <nav
-      className="flex flex-col items-center w-16 bg-[#FAF9F5] border-r border-[rgba(31,30,29,0.1)] z-50 dark:bg-[#141413] dark:border-[rgba(31,30,29,0.2)]"
+      className={cn(
+        "flex flex-col bg-[#FAF9F5] border-r border-[rgba(31,30,29,0.1)] z-50 dark:bg-[#141413] dark:border-[rgba(31,30,29,0.2)] transition-all duration-300",
+        isExpanded ? "w-72 px-3" : "w-16 items-center"
+      )}
     >
-      <div className="flex-1 flex flex-col gap-2 pt-4 pb-4">
+      <div className={cn("pt-4 pb-3 border-b border-[rgba(31,30,29,0.1)] dark:border-[rgba(31,30,29,0.2)]", isExpanded ? "px-1" : "")}>
+        {!isExpanded ? (
+          <button
+            type="button"
+            title={intl.formatMessage({ id: 'navigation.toggleSidebar', defaultMessage: 'Toggle sidebar info' })}
+            aria-label={intl.formatMessage({ id: 'navigation.toggleSidebar', defaultMessage: 'Toggle sidebar info' })}
+            onClick={() => {
+              setIsExpanded(true)
+              window.dispatchEvent(new Event('nexus:layout-changed'))
+              setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
+            }}
+            onMouseEnter={() => setIsNexusHovered(true)}
+            onMouseLeave={() => setIsNexusHovered(false)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]"
+          >
+            {isNexusHovered ? (
+              <PanelLeftOpen className="h-5 w-5 min-w-[20px]" />
+            ) : (
+              <img src="/nexus-logo.png" alt="Nexus" className="w-6 h-6 min-w-[24px]" />
+            )}
+          </button>
+        ) : (
+          <div className="flex items-center justify-between gap-2 px-3 h-10 rounded-xl">
+            <Link to={logoTarget} className="flex items-center gap-2 min-w-0 hover:opacity-80">
+              <img src="/nexus-logo.png" alt="Nexus Logo" className="w-8 h-8" />
+              <span className="font-bold text-2xl leading-none bg-gradient-to-r from-[#D97757] to-[#DC6038] bg-clip-text text-transparent truncate">
+                Nexus
+              </span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setIsExpanded(false)
+                window.dispatchEvent(new Event('nexus:layout-changed'))
+                setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
+              }}
+              className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 hover:bg-[rgba(31,30,29,0.04)]"
+            >
+              <PanelLeftClose className="h-5 w-5 min-w-[20px]" />
+            </button>
+          </div>
+        )}
+
+      </div>
+      <div className={cn("flex-1 flex flex-col gap-2 pt-4 pb-4", isExpanded ? "px-1" : "")}>
         {navigationItems.map((item) => {
           const isActive = isItemActive(item.path)
           const href = getWorkspaceUrl(item.path)
@@ -133,12 +190,18 @@ export function NavigationRail() {
               title={intl.formatMessage({ id: item.labelKey })}
               onClick={item.view === 'notes' ? handleNotesClick : undefined}
               className={cn(
-                "flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200",
+                "flex items-center rounded-xl transition-all duration-200 h-10",
+                isExpanded ? "w-full justify-start gap-3 px-3" : "justify-center w-10",
                 "hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]",
                 isActive && "bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] dark:bg-[#FAF9F5] dark:text-[#1F1E1D] dark:hover:bg-[#e8e8e5]"
               )}
             >
               <item.icon className="h-5 w-5 min-w-[20px]" />
+              {isExpanded && (
+                <span className="text-sm font-medium truncate">
+                  {intl.formatMessage({ id: item.labelKey })}
+                </span>
+              )}
             </Link>
           )
         })}
@@ -149,12 +212,14 @@ export function NavigationRail() {
             to="/blog"
             title="Blog"
             className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200",
+              "flex items-center rounded-xl transition-all duration-200 h-10",
+              isExpanded ? "w-full justify-start gap-3 px-3" : "justify-center w-10",
               "hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]",
               location.pathname.includes('/blog') && "bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] dark:bg-[#FAF9F5] dark:text-[#1F1E1D] dark:hover:bg-[#e8e8e5]"
             )}
           >
             <BookOpen className="h-5 w-5 min-w-[20px]" />
+            {isExpanded && <span className="text-sm font-medium truncate">Blog</span>}
           </Link>
         )}
 
@@ -163,16 +228,22 @@ export function NavigationRail() {
           to={getWorkspaceUrl('search')}
           title={intl.formatMessage({ id: 'navigation.search' })}
           className={cn(
-            "flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200",
+            "flex items-center rounded-xl transition-all duration-200 h-10",
+            isExpanded ? "w-full justify-start gap-3 px-3" : "justify-center w-10",
             "hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]",
             isItemActive('search') && "bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] dark:bg-[#FAF9F5] dark:text-[#1F1E1D] dark:hover:bg-[#e8e8e5]"
           )}
         >
           <Search className="h-5 w-5 min-w-[20px]" />
+          {isExpanded && (
+            <span className="text-sm font-medium truncate">
+              {intl.formatMessage({ id: 'navigation.search' })}
+            </span>
+          )}
         </Link>
       </div>
 
-      <div className="mt-auto pb-4 flex flex-col gap-2">
+      <div className={cn("mt-auto pb-4 flex flex-col gap-2", isExpanded ? "px-1" : "")}>
         {bottomItems.map((item) => {
           const isActive = isItemActive(item.path)
           const href = getWorkspaceUrl(item.path)
@@ -182,12 +253,18 @@ export function NavigationRail() {
               to={href}
               title={intl.formatMessage({ id: item.labelKey })}
               className={cn(
-                "flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200",
+                "flex items-center rounded-xl transition-all duration-200 h-10",
+                isExpanded ? "w-full justify-start gap-3 px-3" : "justify-center w-10",
                 "hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]",
                 isActive && "bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] dark:bg-[#FAF9F5] dark:text-[#1F1E1D] dark:hover:bg-[#e8e8e5]"
               )}
             >
               <item.icon className="h-5 w-5 min-w-[20px]" />
+              {isExpanded && (
+                <span className="text-sm font-medium truncate">
+                  {intl.formatMessage({ id: item.labelKey })}
+                </span>
+              )}
             </Link>
           )
         })}

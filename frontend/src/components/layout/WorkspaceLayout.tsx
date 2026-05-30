@@ -308,30 +308,32 @@ function WorkspaceLayoutInner({ children }: WorkspaceLayoutProps) {
         <WorkspaceHeader />
         <div className="flex flex-1 overflow-hidden">
           <NavigationRail />
-          <LeftSidebar
-            currentView={currentView}
-            isCollapsed={!sidebarStates.left}
-            key="left-sidebar"
-          />
-          <MainContent
-            currentView={currentView}
-            onToggleSidebar={toggleSidebar}
-            isRightSidebarCollapsed={!sidebarStates.right}
-          >
-            {children}
-          </MainContent>
-          {!isAIModalOpen && (
-            <RightSidebar
+          <div className="flex flex-1 overflow-hidden">
+            <LeftSidebar
               currentView={currentView}
-              isCollapsed={!sidebarStates.right}
-              isMinimized={isMinimized}
-              onToggleMinimized={toggleMinimized}
-              workspaceId={workspaceId}
-              projectsData={projectsData}
-              chatData={chatData}
-              dashboardData={dashboardResponse}
+              isCollapsed={!sidebarStates.left}
+              key="left-sidebar"
             />
-          )}
+            <MainContent
+              currentView={currentView}
+              onToggleSidebar={toggleSidebar}
+              isRightSidebarCollapsed={!sidebarStates.right}
+            >
+              {children}
+            </MainContent>
+            {!isAIModalOpen && (
+              <RightSidebar
+                currentView={currentView}
+                isCollapsed={!sidebarStates.right}
+                isMinimized={isMinimized}
+                onToggleMinimized={toggleMinimized}
+                workspaceId={workspaceId}
+                projectsData={projectsData}
+                chatData={chatData}
+                dashboardData={dashboardResponse}
+              />
+            )}
+          </div>
         </div>
         <DeskiAssistantModal
           isOpen={isAIModalOpen}

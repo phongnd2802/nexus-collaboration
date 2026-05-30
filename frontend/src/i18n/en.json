@@ -56,6 +56,12 @@
     "loggedInAs": "Logged in as",
     "notYou": "Not you? Switch account",
     "successMessage": "Successfully joined the team!",
+    "timeRemaining": {
+      "expired": "Expired",
+      "days": "{count} {count, plural, one {day} other {days}} remaining",
+      "hours": "{count} {count, plural, one {hour} other {hours}} remaining",
+      "minutes": "{count} {count, plural, one {minute} other {minutes}} remaining"
+    },
     "errors": {
       "emailMismatch": "This invitation was sent to {invitedEmail}, but you are logged in as {userEmail}. Please log out and sign in with the correct email.",
       "alreadyAccepted": "This invitation has already been accepted.",
@@ -2842,7 +2848,26 @@
       "weekView": {
         "allDay": "All day",
         "all": "All",
-        "dropHere": "Drop here"
+        "timezoneLabel": "Time zone",
+        "dropHere": "Drop here",
+        "weekdays": {
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        },
+        "weekdaysShort": {
+          "monday": "Mon",
+          "tuesday": "Tue",
+          "wednesday": "Wed",
+          "thursday": "Thu",
+          "friday": "Fri",
+          "saturday": "Sat",
+          "sunday": "Sun"
+        }
       },
       "monthView": {
         "sun": "Sun",
@@ -8433,6 +8458,31 @@
       "warning": "This action cannot be undone. The recipient will no longer be able to use this invitation link.",
       "cancel": "Cancel",
       "confirm": "Delete Invitation"
+    },
+    "sendDialog": {
+      "title": "Invite people to your workspace",
+      "success": "Invitation sent successfully!",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "colleague@example.com",
+      "roleLabel": "Role",
+      "messageLabel": "Message (optional)",
+      "messagePlaceholder": "Add a personal note to your invitation...",
+      "sending": "Sending...",
+      "submit": "Send Invitation",
+      "roles": {
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer"
+      },
+      "roleDescriptions": {
+        "owner": "Full control over workspace and all projects",
+        "admin": "Can manage members, projects, and settings",
+        "member": "Can collaborate on projects and tasks",
+        "viewer": "Read-only access to workspace content"
+      },
+      "errors": {
+        "failedToSend": "Failed to send invitation"
+      }
     },
     "pendingInvitations": "Pending Invitations",
     "noInvitations": "No Pending Invitations",
