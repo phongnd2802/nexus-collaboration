@@ -64,6 +64,6 @@ import { ProactiveModule } from './proactive';
     CalendarBotContextService,
     ScheduledActionsService,
   ],
-  exports: [AutoPilotService, CalendarBotContextService, ScheduledActionsService],
+  exports: [AutoPilotService, AgentMemoryService, CalendarBotContextService, ScheduledActionsService],
 })
 export class AutoPilotModule {}

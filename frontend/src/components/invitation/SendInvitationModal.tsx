@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, X, Send, AlertCircle, CheckCircle } from 'lucide-react';
+import { useIntl } from 'react-intl';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { sendInvitation } from '@/services/invitationService';
 import type { SendInvitationData, TeamRole } from '@/types/invitation';
 
@@ -22,6 +24,7 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
   workspaceId,
   onSuccess,
 }) => {
+  const intl = useIntl();
   const [formData, setFormData] = useState<SendInvitationData>({
     email: '',
     role: 'member',
@@ -55,7 +58,12 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
         onClose();
       }, 2000);
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to send invitation';
+      const errorMessage =
+        err.message ||
+        intl.formatMessage({
+          id: 'invites.sendDialog.errors.failedToSend',
+          defaultMessage: 'Failed to send invitation',
+        });
 
       // Check if this is a member limit error
       if (errorMessage.toLowerCase().includes('member limit reached') ||
@@ -90,13 +98,25 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
   const getRoleDescription = (role: TeamRole) => {
     switch (role) {
       case 'owner':
-        return 'Full control over workspace and all projects';
+        return intl.formatMessage({
+          id: 'invites.sendDialog.roleDescriptions.owner',
+          defaultMessage: 'Full control over workspace and all projects',
+        });
       case 'admin':
-        return 'Can manage members, projects, and settings';
+        return intl.formatMessage({
+          id: 'invites.sendDialog.roleDescriptions.admin',
+          defaultMessage: 'Can manage members, projects, and settings',
+        });
       case 'member':
-        return 'Can collaborate on projects and tasks';
+        return intl.formatMessage({
+          id: 'invites.sendDialog.roleDescriptions.member',
+          defaultMessage: 'Can collaborate on projects and tasks',
+        });
       case 'viewer':
-        return 'Read-only access to workspace content';
+        return intl.formatMessage({
+          id: 'invites.sendDialog.roleDescriptions.viewer',
+          defaultMessage: 'Read-only access to workspace content',
+        });
       default:
         return '';
     }
@@ -127,12 +147,15 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto border border-[rgba(31,30,29,0.12)] dark:border-gray-700/60"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Invite people to your workspace
+              {intl.formatMessage({
+                id: 'invites.sendDialog.title',
+                defaultMessage: 'Invite people to your workspace',
+              })}
             </h2>
             <button
               onClick={handleClose}
@@ -152,7 +175,10 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
             >
               <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
               <p className="text-sm text-green-700 dark:text-green-300">
-                Invitation sent successfully!
+                {intl.formatMessage({
+                  id: 'invites.sendDialog.success',
+                  defaultMessage: 'Invitation sent successfully!',
+                })}
               </p>
             </motion.div>
           )}
@@ -174,7 +200,10 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
             {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
+                {intl.formatMessage({
+                  id: 'invites.sendDialog.emailLabel',
+                  defaultMessage: 'Email Address',
+                })}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -183,8 +212,11 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="colleague@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  placeholder={intl.formatMessage({
+                    id: 'invites.sendDialog.emailPlaceholder',
+                    defaultMessage: 'colleague@example.com',
+                  })}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D97757] focus:border-transparent transition-all text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   disabled={isSubmitting}
                 />
               </div>
@@ -193,19 +225,40 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
             {/* Role */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Role
+                {intl.formatMessage({
+                  id: 'invites.sendDialog.roleLabel',
+                  defaultMessage: 'Role',
+                })}
               </label>
-              <select
-                required
+              <Select
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as TeamRole })}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-gray-900 dark:text-gray-100"
+                onValueChange={(value) => setFormData({ ...formData, role: value as TeamRole })}
                 disabled={isSubmitting}
               >
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-                <option value="viewer">Viewer</option>
-              </select>
+                <SelectTrigger className="h-[46px] rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#D97757] focus:ring-offset-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-gray-200 dark:border-gray-700">
+                  <SelectItem value="member">
+                    {intl.formatMessage({
+                      id: 'invites.sendDialog.roles.member',
+                      defaultMessage: 'Member',
+                    })}
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    {intl.formatMessage({
+                      id: 'invites.sendDialog.roles.admin',
+                      defaultMessage: 'Admin',
+                    })}
+                  </SelectItem>
+                  <SelectItem value="viewer">
+                    {intl.formatMessage({
+                      id: 'invites.sendDialog.roles.viewer',
+                      defaultMessage: 'Viewer',
+                    })}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                 {getRoleDescription(formData.role)}
               </p>
@@ -214,14 +267,20 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
             {/* Custom Message */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Message (optional)
+                {intl.formatMessage({
+                  id: 'invites.sendDialog.messageLabel',
+                  defaultMessage: 'Message (optional)',
+                })}
               </label>
               <textarea
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                placeholder="Add a personal note to your invitation..."
+                placeholder={intl.formatMessage({
+                  id: 'invites.sendDialog.messagePlaceholder',
+                  defaultMessage: 'Add a personal note to your invitation...',
+                })}
                 rows={3}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D97757] focus:border-transparent transition-all resize-none text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 disabled={isSubmitting}
               />
             </div>
@@ -236,24 +295,37 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
                 disabled={isSubmitting}
                 className="flex-1 px-6 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {intl.formatMessage({
+                  id: 'common.cancel',
+                  defaultMessage: 'Cancel',
+                })}
               </motion.button>
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 disabled={isSubmitting || !formData.email}
-                className="flex-1 flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center space-x-2 bg-[#D97757] hover:bg-[#c8684a] text-white px-6 py-2.5 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Sending...</span>
+                    <span>
+                      {intl.formatMessage({
+                        id: 'invites.sendDialog.sending',
+                        defaultMessage: 'Sending...',
+                      })}
+                    </span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Send Invitation</span>
+                    <span>
+                      {intl.formatMessage({
+                        id: 'invites.sendDialog.submit',
+                        defaultMessage: 'Send Invitation',
+                      })}
+                    </span>
                   </>
                 )}
               </motion.button>

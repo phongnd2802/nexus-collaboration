@@ -71,7 +71,9 @@ export function MainContent({
       return
     }
 
+    window.dispatchEvent(new Event('nexus:layout-changed'))
     onToggleSidebar('left')
+    setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
   }
 
   // For whiteboard and budget, render full-screen content without header
@@ -114,7 +116,11 @@ export function MainContent({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onToggleSidebar('right')}
+              onClick={() => {
+                window.dispatchEvent(new Event('nexus:layout-changed'))
+                onToggleSidebar('right')
+                setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
+              }}
               className="text-muted-foreground hover:text-foreground"
             >
               {isRightSidebarCollapsed ? (

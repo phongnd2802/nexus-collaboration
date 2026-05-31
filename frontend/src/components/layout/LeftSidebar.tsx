@@ -1752,7 +1752,7 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
     <aside
       className={cn(
         "bg-card/80 backdrop-blur-xl border-r border-border flex flex-col transition-all duration-300 z-40",
-        isCollapsed ? "w-0 overflow-hidden" : "w-60"
+        isCollapsed ? "w-0 overflow-hidden" : "w-56"
       )}
     >
       {/* Content */}
