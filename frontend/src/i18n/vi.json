@@ -56,6 +56,12 @@
     "loggedInAs": "Đã đăng nhập dưới tên",
     "notYou": "Không phải bạn? Chuyển đổi tài khoản",
     "successMessage": "Tham gia nhóm thành công!",
+    "timeRemaining": {
+      "expired": "Đã hết hạn",
+      "days": "Còn {count} ngày",
+      "hours": "Còn {count} giờ",
+      "minutes": "Còn {count} phút"
+    },
     "errors": {
       "emailMismatch": "Lời mời này được gửi đến {invitedEmail}, nhưng bạn đang đăng nhập với tư cách {userEmail}. Vui lòng đăng xuất và đăng nhập bằng email chính xác.",
       "alreadyAccepted": "Lời mời này đã được chấp nhận.",
@@ -2842,7 +2848,26 @@
       "weekView": {
         "allDay": "Cả ngày",
         "all": "Tất cả",
-        "dropHere": "Thả vào đây"
+        "timezoneLabel": "Múi giờ",
+        "dropHere": "Thả vào đây",
+        "weekdays": {
+          "monday": "Thứ 2",
+          "tuesday": "Thứ 3",
+          "wednesday": "Thứ 4",
+          "thursday": "Thứ 5",
+          "friday": "Thứ 6",
+          "saturday": "Thứ 7",
+          "sunday": "CN"
+        },
+        "weekdaysShort": {
+          "monday": "T2",
+          "tuesday": "T3",
+          "wednesday": "T4",
+          "thursday": "T5",
+          "friday": "T6",
+          "saturday": "T7",
+          "sunday": "CN"
+        }
       },
       "monthView": {
         "sun": "CN",
@@ -6140,14 +6165,14 @@
       "sendAnother": "Gửi Email Khác"
     },
     "resetPassword": {
-      "title": "Đặt lại Mật khẩu",
+      "title": "Đặt lại mật khẩu",
       "subtitle": "Nhập mật khẩu mới của bạn bên dưới",
-      "password": "Mật khẩu Mới",
+      "password": "Mật khẩu mới",
       "passwordPlaceholder": "Nhập mật khẩu mới của bạn",
       "passwordHint": "Mật khẩu phải có ít nhất 8 ký tự",
-      "confirmPassword": "Xác nhận Mật khẩu Mới",
+      "confirmPassword": "Xác nhận mật khẩu mới",
       "confirmPasswordPlaceholder": "Xác nhận mật khẩu mới của bạn",
-      "reset": "Đặt lại Mật khẩu",
+      "reset": "Đặt lại mật khẩu",
       "resetting": "Đang đặt lại Mật khẩu...",
       "backToLogin": "Quay lại Đăng nhập",
       "rememberPassword": "Đã nhớ mật khẩu?",
@@ -8433,6 +8458,31 @@
       "warning": "Hành động này không thể hoàn tác. Người nhận sẽ không thể sử dụng liên kết lời mời này nữa.",
       "cancel": "Hủy",
       "confirm": "Xóa lời mời"
+    },
+    "sendDialog": {
+      "title": "Mời mọi người vào không gian làm việc của bạn",
+      "success": "Đã gửi lời mời thành công!",
+      "emailLabel": "Địa chỉ email",
+      "emailPlaceholder": "dongnghiep@example.com",
+      "roleLabel": "Vai trò",
+      "messageLabel": "Lời nhắn (tùy chọn)",
+      "messagePlaceholder": "Thêm lời nhắn cá nhân vào lời mời của bạn...",
+      "sending": "Đang gửi...",
+      "submit": "Gửi lời mời",
+      "roles": {
+        "admin": "Quản trị viên",
+        "member": "Thành viên",
+        "viewer": "Người xem"
+      },
+      "roleDescriptions": {
+        "owner": "Toàn quyền kiểm soát không gian làm việc và mọi dự án",
+        "admin": "Có thể quản lý thành viên, dự án và cài đặt",
+        "member": "Có thể cộng tác trong dự án và công việc",
+        "viewer": "Chỉ có quyền xem nội dung không gian làm việc"
+      },
+      "errors": {
+        "failedToSend": "Không thể gửi lời mời"
+      }
     },
     "pendingInvitations": "Lời mời đang chờ",
     "noInvitations": "Không có lời mời đang chờ",

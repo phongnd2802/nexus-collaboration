@@ -105,18 +105,18 @@ export function MonthView({ onEventClick, onDateClick, onEventDrop }: MonthViewP
 
   return (
     <div className="flex flex-col h-full min-w-0">
-      {/* Month header with days of week */}
-      <div className="grid grid-cols-7 border-b border-border bg-muted/30">
-        {weekDays.map((day, index) => (
-          <div key={day} className="p-1 sm:p-3 text-center text-xs sm:text-sm font-medium text-muted-foreground border-r border-border last:border-r-0 min-w-0">
-            <span className="hidden sm:inline">{day}</span>
-            <span className="sm:hidden">{weekDaysShort[index]}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar grid */}
       <div className="flex-1 overflow-auto">
+        {/* Month header with days of week */}
+        <div className="grid grid-cols-7 border-b border-border bg-background sticky top-0 z-30">
+          {weekDays.map((day, index) => (
+            <div key={day} className="p-1 sm:p-3 text-center text-xs sm:text-sm font-medium text-muted-foreground border-r border-border last:border-r-0 min-w-0">
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{weekDaysShort[index]}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
         {weeks.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-7 border-b border-border last:border-b-0" style={{ minHeight: '120px' }}>
             {week.map((day) => {

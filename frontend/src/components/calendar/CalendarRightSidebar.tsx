@@ -324,6 +324,19 @@ export function CalendarRightSidebar() {
     window.dispatchEvent(new CustomEvent('openCreateMeetingRoom'))
   }
 
+  const formatProgressTime = (date: Date) =>
+    new Intl.DateTimeFormat(intl.locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(date)
+
+  const workdayStart = new Date()
+  workdayStart.setHours(8, 0, 0, 0)
+
+  const workdayEnd = new Date()
+  workdayEnd.setHours(18, 0, 0, 0)
+
   return (
     <div className="flex-1 overflow-y-auto sidebar-scroll p-4 space-y-6">
       {/* Day Progress */}
@@ -339,9 +352,9 @@ export function CalendarRightSidebar() {
         </div>
         <Progress value={dayProgress} className="h-2" />
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>8:00 AM</span>
-          <span>{format(new Date(), 'h:mm a')}</span>
-          <span>6:00 PM</span>
+          <span>{formatProgressTime(workdayStart)}</span>
+          <span>{formatProgressTime(new Date())}</span>
+          <span>{formatProgressTime(workdayEnd)}</span>
         </div>
       </div>
 

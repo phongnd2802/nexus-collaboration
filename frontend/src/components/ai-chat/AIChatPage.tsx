@@ -4,13 +4,13 @@ import { useIntl } from 'react-intl'
 import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
 import {
+  aiChatApi,
   useAIChatConversations,
   useAIChatMessages,
   useCreateAIChatConversation,
   useDeleteAIChatConversation,
   useRenameAIChatConversation,
 } from '@/lib/api/ai-chat-api'
-import { autopilotApi } from '@/lib/api/autopilot-api'
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
 import { AIChatInput } from './AIChatInput'
@@ -169,7 +169,7 @@ export function AIChatPage() {
       }
 
       try {
-        await autopilotApi.executeCommandStream(
+        await aiChatApi.streamChat(
           {
             command: message,
             workspaceId,
@@ -207,7 +207,8 @@ export function AIChatPage() {
               abortRef.current = null
             },
           },
-          token
+          token,
+          controller.signal
         )
       } catch (err: any) {
         if (err.name !== 'AbortError') {
