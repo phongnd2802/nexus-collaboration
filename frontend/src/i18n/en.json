@@ -500,7 +500,7 @@
     "subtitle": "AI Autopilot connects all your tools, automating workflows and keeping everything in sync.",
     "botCapabilities": "BOT CAPABILITIES",
     "keyFeatures": "Key Features:",
-    "integrations": {
+  "integrations": {
       "badge": "180+ Integrations",
       "title": "Seamless Integrations",
       "subtitle": "Connect with your favorite tools and apps",
@@ -700,6 +700,8 @@
         "title": "CHANNELS",
         "browse": "Browse Channels",
         "create": "Create Channel",
+        "edit": "Edit Channel",
+        "delete": "Delete Channel",
         "public": "Public Channels",
         "private": "Private Channels",
         "archived": "Archived Channels",
@@ -6659,6 +6661,43 @@
       "ctaSubtitle": "Join thousands of teams who've transformed their collaboration and productivity"
     }
   },
+  "github": {
+    "linkModal": {
+      "title": "Link GitHub Issue or PR",
+      "description": {
+        "repositories": "Select a repository to browse issues and pull requests",
+        "issues": "Select an issue or PR from {repository}"
+      },
+      "searchRepositories": "Search repositories...",
+      "searchIssues": "Search issues...",
+      "private": "Private",
+      "issueCount": "{count} issues",
+      "backToRepositories": "Back to repositories",
+      "autoUpdate": "Auto-complete task when issue/PR closes",
+      "linked": "Linked",
+      "byAuthor": "by {author}",
+      "linking": "Linking issue...",
+      "filters": {
+        "all": "All",
+        "issues": "Issues",
+        "prs": "PRs",
+        "open": "Open",
+        "closed": "Closed"
+      },
+      "empty": {
+        "noRepositories": "No repositories found. Make sure your GitHub account is connected.",
+        "noMatchingRepositories": "No repositories match your search.",
+        "noIssuesInRepository": "No issues or PRs found in this repository.",
+        "noMatchingIssues": "No issues match your search."
+      },
+      "errors": {
+        "loadRepositories": "Failed to load repositories",
+        "loadIssues": "Failed to load issues",
+        "alreadyLinked": "This issue is already linked to this task",
+        "linkIssue": "Failed to link issue"
+      }
+    }
+  },
   "legal": {
     "dataDeletion": {
       "badge": "Your Rights",
@@ -7478,6 +7517,9 @@
     },
     "userProfile": {
       "loading": "Loading profile...",
+      "missingParams": "Missing workspace or user ID",
+      "loadFailed": "Failed to load user profile",
+      "unknownUser": "Unknown User",
       "errorTitle": "Profile Not Found",
       "errorMessage": "Unable to load user profile",
       "goBack": "Go Back",
@@ -7495,6 +7537,7 @@
       "website": "Website",
       "timezone": "Timezone",
       "roleLabel": "Role",
+      "statusLabel": "Status",
       "status": {
         "active": "Active",
         "inactive": "Inactive"
@@ -7544,6 +7587,11 @@
       "tasksCompleted": "Tasks Completed",
       "videoCalls": "Video Calls",
       "noData": "No data"
+    },
+    "projectsList": {
+      "title": "Top Projects",
+      "members": "{count} members",
+      "due": "Due {date}"
     },
     "activityLog": {
       "title": "Activity Log",
@@ -7783,6 +7831,7 @@
     "roles": {
       "owner": "Owner",
       "admin": "Admin",
+      "member": "Member",
       "lead": "Lead"
     },
     "sidebar": {
@@ -7819,6 +7868,9 @@
     "low": "Low",
     "medium": "Medium",
     "high": "High",
+    "urgent": "Urgent",
+    "createdBy": "Created by",
+    "updatedBy": "Updated by",
     "loadingTasks": "Loading tasks...",
     "columnSettings": "Column Settings",
     "noTasks": "No tasks",

@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
@@ -500,7 +500,7 @@
     "subtitle": "AI Autopilot kết nối mọi công cụ, tự động hóa quy trình và giữ mọi thứ đồng bộ.",
     "botCapabilities": "KHẢ NĂNG BOT",
     "keyFeatures": "Tính năng chính:",
-    "integrations": {
+  "integrations": {
       "badge": "180+ Tích hợp",
       "title": "Tích hợp liền mạch",
       "subtitle": "Kết nối với các công cụ và ứng dụng yêu thích",
@@ -700,8 +700,10 @@
         "title": "KÊNH",
         "browse": "Duyệt kênh",
         "create": "Tạo kênh",
+        "edit": "Chỉnh sửa kênh",
+        "delete": "Xóa kênh",
         "public": "Kênh công khai",
-        "private": "Kênh riêng tư",
+        "private": "Riêng tư",
         "archived": "Kênh đã lưu trữ",
         "noChannels": "Chưa có kênh",
         "empty": "Chưa có kênh"
@@ -6659,6 +6661,43 @@
       "ctaSubtitle": "Tham gia cùng hàng nghìn đội ngũ đã biến đổi cộng tác và năng suất của họ"
     }
   },
+  "github": {
+    "linkModal": {
+      "title": "Liên kết GitHub Issue hoặc PR",
+      "description": {
+        "repositories": "Chọn kho lưu trữ để duyệt issue và pull request",
+        "issues": "Chọn issue hoặc PR từ {repository}"
+      },
+      "searchRepositories": "Tìm kiếm kho lưu trữ...",
+      "searchIssues": "Tìm kiếm issue...",
+      "private": "Riêng tư",
+      "issueCount": "{count} issue",
+      "backToRepositories": "Quay lại danh sách kho lưu trữ",
+      "autoUpdate": "Tự động hoàn thành tác vụ khi issue/PR được đóng",
+      "linked": "Đã liên kết",
+      "byAuthor": "bởi {author}",
+      "linking": "Đang liên kết issue...",
+      "filters": {
+        "all": "Tất cả",
+        "issues": "Issue",
+        "prs": "PR",
+        "open": "Đang mở",
+        "closed": "Đã đóng"
+      },
+      "empty": {
+        "noRepositories": "Không tìm thấy kho lưu trữ. Hãy đảm bảo tài khoản GitHub của bạn đã được kết nối.",
+        "noMatchingRepositories": "Không có kho lưu trữ nào khớp với tìm kiếm của bạn.",
+        "noIssuesInRepository": "Không tìm thấy issue hoặc PR nào trong kho lưu trữ này.",
+        "noMatchingIssues": "Không có issue nào khớp với tìm kiếm của bạn."
+      },
+      "errors": {
+        "loadRepositories": "Không thể tải danh sách kho lưu trữ",
+        "loadIssues": "Không thể tải danh sách issue",
+        "alreadyLinked": "Issue này đã được liên kết với tác vụ này",
+        "linkIssue": "Không thể liên kết issue"
+      }
+    }
+  },
   "legal": {
     "dataDeletion": {
       "badge": "Quyền Của Bạn",
@@ -7478,12 +7517,15 @@
     },
     "userProfile": {
       "loading": "Đang tải hồ sơ...",
+      "missingParams": "Thiếu workspace hoặc user ID",
+      "loadFailed": "Không thể tải hồ sơ người dùng",
+      "unknownUser": "Người dùng không xác định",
       "errorTitle": "Không tìm thấy Hồ sơ",
       "errorMessage": "Không thể tải hồ sơ người dùng",
       "goBack": "Quay lại",
       "back": "Quay lại",
       "editProfile": "Chỉnh sửa Hồ sơ",
-      "message": "Tin nhắn",
+      "message": "Nhắn tin",
       "contactInfo": "Thông tin Liên hệ",
       "workspaceInfo": "Thông tin Không gian làm việc",
       "about": "Giới thiệu",
@@ -7495,6 +7537,7 @@
       "website": "Website",
       "timezone": "Múi giờ",
       "roleLabel": "Vai trò",
+      "statusLabel": "Trạng thái",
       "status": {
         "active": "Đang hoạt động",
         "inactive": "Không hoạt động"
@@ -7544,6 +7587,11 @@
       "tasksCompleted": "Nhiệm vụ đã hoàn thành",
       "videoCalls": "Cuộc gọi video",
       "noData": "Không có dữ liệu"
+    },
+    "projectsList": {
+      "title": "Dự án nổi bật",
+      "members": "{count} thành viên",
+      "due": "Hạn {date}"
     },
     "activityLog": {
       "title": "Nhật ký hoạt động",
@@ -7783,6 +7831,7 @@
     "roles": {
       "owner": "Chủ sở hữu",
       "admin": "Quản trị viên",
+      "member": "Thành viên",
       "lead": "Trưởng nhóm"
     },
     "sidebar": {
@@ -7819,6 +7868,9 @@
     "low": "Thấp",
     "medium": "Trung bình",
     "high": "Cao",
+    "urgent": "Khẩn cấp",
+    "createdBy": "Tạo bởi",
+    "updatedBy": "Cập nhật bởi",
     "loadingTasks": "Đang tải nhiệm vụ...",
     "columnSettings": "Cài đặt cột",
     "noTasks": "Không có nhiệm vụ",

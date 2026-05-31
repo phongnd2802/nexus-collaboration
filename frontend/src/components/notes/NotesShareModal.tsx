@@ -22,6 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Search, UserPlus, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { notesApi } from '@/lib/api/notes-api';
+import { useIntl } from 'react-intl';
 
 interface NotesShareModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export function NotesShareModal({
   noteId,
   noteTitle,
 }: NotesShareModalProps) {
+  const intl = useIntl();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,12 +74,12 @@ export function NotesShareModal({
 
   const handleShare = async () => {
     if (sharedWith.size === 0) {
-      toast.error('Please select at least one member to share with');
+      toast.error(intl.formatMessage({ id: 'modules.notes.shareModal.noMemberSelected' }));
       return;
     }
 
     if (!workspaceId) {
-      toast.error('Workspace not found');
+      toast.error(intl.formatMessage({ id: 'modules.notes.shareModal.workspaceNotFound' }));
       return;
     }
 
@@ -97,10 +99,17 @@ export function NotesShareModal({
         ? result.shared_count
         : sharedWith.size;
 
-      const successMessage = `Successfully shared "${noteTitle}" with ${sharedCount} member${sharedCount > 1 ? 's' : ''}`;
-      console.log('Success message:', successMessage);
-
-      toast.success(successMessage);
+      toast.success(
+        intl.formatMessage(
+          {
+            id:
+              sharedCount > 1
+                ? 'modules.notes.shareModal.sharedSuccessPlural'
+                : 'modules.notes.shareModal.sharedSuccess',
+          },
+          { title: noteTitle, count: sharedCount }
+        )
+      );
 
       // Reset state
       setSharedWith(new Set());
@@ -109,20 +118,31 @@ export function NotesShareModal({
       onClose();
     } catch (error: any) {
       console.error('Failed to share note:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to share note. Please try again.';
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        intl.formatMessage({ id: 'modules.notes.shareModal.shareFailed' });
       toast.error(String(errorMessage));
     } finally {
       setIsSharing(false);
     }
   };
 
+  const getRoleLabel = (role: string) =>
+    intl.formatMessage(
+      { id: `projects.roles.${role}`, defaultMessage: role },
+      {}
+    );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Share "{noteTitle}"</DialogTitle>
+          <DialogTitle>
+            {intl.formatMessage({ id: 'modules.notes.shareModal.shareNote' }, { title: noteTitle })}
+          </DialogTitle>
           <DialogDescription>
-            Share this note with workspace members
+            {intl.formatMessage({ id: 'modules.notes.shareModal.shareWithMembers' })}
           </DialogDescription>
         </DialogHeader>
 
@@ -132,7 +152,7 @@ export function NotesShareModal({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search members..."
+              placeholder={intl.formatMessage({ id: 'modules.notes.shareModal.searchMembers' })}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -143,11 +163,15 @@ export function NotesShareModal({
           <ScrollArea className="h-[300px] rounded-md border">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-muted-foreground">Loading members...</p>
+                <p className="text-sm text-muted-foreground">
+                  {intl.formatMessage({ id: 'modules.notes.shareModal.loadingMembers' })}
+                </p>
               </div>
             ) : filteredMembers.length === 0 ? (
               <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-muted-foreground">No members found</p>
+                <p className="text-sm text-muted-foreground">
+                  {intl.formatMessage({ id: 'modules.notes.shareModal.noMembersFound' })}
+                </p>
               </div>
             ) : (
               <div className="p-2 space-y-1">
@@ -181,7 +205,7 @@ export function NotesShareModal({
 
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
-                          {member.role}
+                          {getRoleLabel(member.role)}
                         </Badge>
                         {isShared && (
                           <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground">
@@ -199,25 +223,33 @@ export function NotesShareModal({
           {/* Selected Count */}
           {sharedWith.size > 0 && (
             <p className="text-sm text-muted-foreground">
-              {sharedWith.size} member{sharedWith.size > 1 ? 's' : ''} selected
+              {intl.formatMessage(
+                {
+                  id:
+                    sharedWith.size > 1
+                      ? 'modules.notes.shareModal.membersSelectedPlural'
+                      : 'modules.notes.shareModal.membersSelected',
+                },
+                { count: sharedWith.size }
+              )}
             </p>
           )}
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose} disabled={isSharing}>
-              Cancel
+              {intl.formatMessage({ id: 'modules.notes.shareModal.cancel' })}
             </Button>
             <Button onClick={handleShare} disabled={sharedWith.size === 0 || isSharing}>
               {isSharing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sharing...
+                  {intl.formatMessage({ id: 'modules.notes.shareModal.sharing' })}
                 </>
               ) : (
                 <>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Share
+                  {intl.formatMessage({ id: 'modules.notes.shareModal.share' })}
                 </>
               )}
             </Button>

@@ -153,6 +153,8 @@ export const authApi = {
       fullName: userData.full_name || userData.fullName,
       createdAt: userData.created_at || userData.createdAt,
       updatedAt: userData.updated_at || userData.updatedAt,
+      timezone: userData.timezone || userData.metadata?.timezone,
+      language: userData.language || userData.metadata?.language,
       // Preserve metadata and add countryCode if it exists at root level
       metadata: {
         ...(userData.metadata || {}),

@@ -20,6 +20,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
   BarChart3,
   CheckCircle,
   AlertCircle,
@@ -433,14 +439,14 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,380px))] justify-start gap-4">
         {filteredProjects.map(project => {
           const progress = getProjectProgress(project)
 
           return (
             <Card
               key={project.id}
-              className="hover:shadow-md transition-shadow cursor-pointer relative"
+              className="h-full hover:shadow-md transition-shadow cursor-pointer relative"
               onClick={() => onProjectSelect?.(project.id)}
             >
               <CardHeader className="pb-3">
@@ -497,10 +503,12 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                   </DropdownMenu>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pr-8">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-3 h-3 rounded-full"
-                         style={{ backgroundColor: project.color || '#3B82F6' }} />
+                <div className="flex items-start justify-between gap-2 pr-8">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div
+                      className="mt-1 h-3 w-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: project.color || '#3B82F6' }}
+                    />
                     <div className="min-w-0">
                       <h3 className="font-semibold truncate">{project.name}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -510,13 +518,25 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                   </div>
                 </div>
                 {project.description && (
-                  <p className="text-sm text-muted-foreground mt-2 line-clamp-3 whitespace-pre-wrap">
-                    {stripHtml(project.description)}
-                  </p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="mt-2 line-clamp-2 break-words text-sm text-muted-foreground"
+                          title={stripHtml(project.description)}
+                        >
+                          {stripHtml(project.description)}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm whitespace-pre-wrap break-words text-sm">
+                        {stripHtml(project.description)}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </CardHeader>
 
-              <CardContent className="space-y-4">
+              <CardContent className="flex h-full flex-col space-y-4">
                 {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -530,29 +550,29 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="space-y-1">
                     <p className="text-lg font-semibold text-blue-600">{project.taskCount || 0}</p>
-                    <p className="text-xs text-muted-foreground">{intl.formatMessage({ id: 'tasks.total' })}</p>
+                    <p className="text-xs text-muted-foreground break-words">{intl.formatMessage({ id: 'tasks.total' })}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-lg font-semibold text-green-600">{project.completedTaskCount || 0}</p>
-                    <p className="text-xs text-muted-foreground">{intl.formatMessage({ id: 'tasks.done' })}</p>
+                    <p className="text-xs text-muted-foreground break-words">{intl.formatMessage({ id: 'tasks.done' })}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-lg font-semibold text-orange-600">
                       {(project as any).pendingTaskCount || 0}
                     </p>
-                    <p className="text-xs text-muted-foreground">{intl.formatMessage({ id: 'tasks.pending' })}</p>
+                    <p className="text-xs text-muted-foreground break-words">{intl.formatMessage({ id: 'tasks.pending' })}</p>
                   </div>
                 </div>
 
                 {/* Team Members */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-1">
+                <div className="mt-auto flex flex-col gap-3 border-t pt-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-1 min-w-0">
                     <User className="w-4 h-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
                       {intl.formatMessage({ id: 'projects.members' }, { count: getProjectMemberCount(project) })}
                     </span>
                   </div>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs self-start sm:self-auto max-w-full whitespace-normal break-words">
                     {project.status === 'active' ? intl.formatMessage({ id: 'projects.status.active' }) : intl.formatMessage({ id: 'projects.status.completed' })}
                   </Badge>
                 </div>
