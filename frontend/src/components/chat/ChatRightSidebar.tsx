@@ -291,7 +291,7 @@ export function ChatRightSidebar({
           {isPrivate && (
             <Badge variant="secondary" className="text-xs">
               <Lock className="h-3 w-3 mr-1" />
-              Private
+              {intl.formatMessage({ id: 'modules.chat.channels.private', defaultMessage: 'Private' })}
             </Badge>
           )}
         </div>

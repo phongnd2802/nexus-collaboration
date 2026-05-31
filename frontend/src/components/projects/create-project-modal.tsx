@@ -1098,12 +1098,6 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">
-                        {intl.formatMessage({ id: 'modules.projects.createProject.summary.type', defaultMessage: 'Type:' })}
-                      </span>
-                      <span>KANBAN</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
                         {intl.formatMessage({ id: 'modules.projects.createProject.summary.lead', defaultMessage: 'Lead:' })}
                       </span>
                       <span>

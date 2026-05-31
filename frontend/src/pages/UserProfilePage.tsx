@@ -59,7 +59,12 @@ const UserProfilePage: React.FC = () => {
 
   const loadUserProfile = async () => {
     if (!workspaceId || !userId) {
-      setError('Missing workspace or user ID');
+      setError(
+        intl.formatMessage({
+          id: 'legal.userProfile.missingParams',
+          defaultMessage: 'Missing workspace or user ID',
+        }),
+      );
       setLoading(false);
       return;
     }
@@ -73,9 +78,20 @@ const UserProfilePage: React.FC = () => {
       setMember(memberData);
     } catch (err: any) {
       console.error('Error loading user profile:', err);
-      setError(err.message || 'Failed to load user profile');
-      toast.error('Error', {
-        description: err.message || 'Failed to load user profile',
+      setError(
+        err.message ||
+          intl.formatMessage({
+            id: 'legal.userProfile.loadFailed',
+            defaultMessage: 'Failed to load user profile',
+          }),
+      );
+      toast.error(intl.formatMessage({ id: 'common.error', defaultMessage: 'Error' }), {
+        description:
+          err.message ||
+          intl.formatMessage({
+            id: 'legal.userProfile.loadFailed',
+            defaultMessage: 'Failed to load user profile',
+          }),
       });
     } finally {
       setLoading(false);
@@ -83,8 +99,7 @@ const UserProfilePage: React.FC = () => {
   };
 
   const handleMessageUser = () => {
-    // Navigate to chat with this user
-    navigate(`/workspaces/${workspaceId}/chat?user=${userId}`);
+    navigate(`/workspaces/${workspaceId}/chat?userId=${userId}`);
   };
 
   const handleEditProfile = () => {
@@ -127,7 +142,7 @@ const UserProfilePage: React.FC = () => {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
             <span className="ml-3 text-gray-600 dark:text-gray-300 font-semibold">
-              {intl.formatMessage({ id: 'userProfile.loading', defaultMessage: 'Loading profile...' })}
+              {intl.formatMessage({ id: 'legal.userProfile.loading', defaultMessage: 'Loading profile...' })}
             </span>
           </div>
         </div>
@@ -144,13 +159,13 @@ const UserProfilePage: React.FC = () => {
             <CardContent className="p-6 text-center">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                {intl.formatMessage({ id: 'userProfile.errorTitle', defaultMessage: 'Profile Not Found' })}
+                {intl.formatMessage({ id: 'legal.userProfile.errorTitle', defaultMessage: 'Profile Not Found' })}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {error || intl.formatMessage({ id: 'userProfile.errorMessage', defaultMessage: 'Unable to load user profile' })}
+                {error || intl.formatMessage({ id: 'legal.userProfile.errorMessage', defaultMessage: 'Unable to load user profile' })}
               </p>
               <Button onClick={handleGoBack}>
-                {intl.formatMessage({ id: 'userProfile.goBack', defaultMessage: 'Go Back' })}
+                {intl.formatMessage({ id: 'legal.userProfile.goBack', defaultMessage: 'Go Back' })}
               </Button>
             </CardContent>
           </Card>
@@ -162,7 +177,12 @@ const UserProfilePage: React.FC = () => {
   // Get user data from member object
   const userData = member.user || {
     id: member.user_id,
-    name: member.name || 'Unknown User',
+    name:
+      member.name ||
+      intl.formatMessage({
+        id: 'legal.userProfile.unknownUser',
+        defaultMessage: 'Unknown User',
+      }),
     email: member.email || '',
     avatar: member.avatar_url,
   };
@@ -181,7 +201,7 @@ const UserProfilePage: React.FC = () => {
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {intl.formatMessage({ id: 'userProfile.back', defaultMessage: 'Back' })}
+            {intl.formatMessage({ id: 'legal.userProfile.back', defaultMessage: 'Back' })}
           </Button>
         </motion.div>
 
@@ -218,13 +238,13 @@ const UserProfilePage: React.FC = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge className={getRoleBadgeColor(member.role)}>
                           {intl.formatMessage({
-                            id: `userProfile.role.${member.role}`,
+                            id: `legal.userProfile.role.${member.role}`,
                             defaultMessage: member.role.charAt(0).toUpperCase() + member.role.slice(1)
                           })}
                         </Badge>
                         {member.status === 'active' && (
                           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                            {intl.formatMessage({ id: 'userProfile.status.active', defaultMessage: 'Active' })}
+                            {intl.formatMessage({ id: 'legal.userProfile.status.active', defaultMessage: 'Active' })}
                           </Badge>
                         )}
                       </div>
@@ -235,12 +255,12 @@ const UserProfilePage: React.FC = () => {
                       {isOwnProfile ? (
                         <Button onClick={handleEditProfile} className="bg-gradient-to-r from-[#D97757] to-[#DC6038] hover:from-[#c8684a] hover:to-[#c4542f]">
                           <Settings className="w-4 h-4 mr-2" />
-                          {intl.formatMessage({ id: 'userProfile.editProfile', defaultMessage: 'Edit Profile' })}
+                          {intl.formatMessage({ id: 'legal.userProfile.editProfile', defaultMessage: 'Edit Profile' })}
                         </Button>
                       ) : (
                         <Button onClick={handleMessageUser} className="bg-gradient-to-r from-[#D97757] to-[#DC6038] hover:from-[#c8684a] hover:to-[#c4542f]">
                           <MessageSquare className="w-4 h-4 mr-2" />
-                          {intl.formatMessage({ id: 'userProfile.message', defaultMessage: 'Message' })}
+                          {intl.formatMessage({ id: 'legal.userProfile.message', defaultMessage: 'Message' })}
                         </Button>
                       )}
                     </div>
@@ -268,7 +288,7 @@ const UserProfilePage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       <span>
-                        {intl.formatMessage({ id: 'userProfile.joined', defaultMessage: 'Joined' })} {formatDate(member.joined_at)}
+                        {intl.formatMessage({ id: 'legal.userProfile.joined', defaultMessage: 'Joined' })} {formatDate(member.joined_at)}
                       </span>
                     </div>
                   </div>
@@ -290,13 +310,13 @@ const UserProfilePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5 text-emerald-600" />
-                  {intl.formatMessage({ id: 'userProfile.contactInfo', defaultMessage: 'Contact Information' })}
+                  {intl.formatMessage({ id: 'legal.userProfile.contactInfo', defaultMessage: 'Contact Information' })}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <Label className="text-gray-600 dark:text-gray-400 text-sm">
-                    {intl.formatMessage({ id: 'userProfile.email', defaultMessage: 'Email' })}
+                    {intl.formatMessage({ id: 'legal.userProfile.email', defaultMessage: 'Email' })}
                   </Label>
                   <p className="text-gray-900 dark:text-gray-100 font-semibold">{userData.email}</p>
                 </div>
@@ -304,7 +324,7 @@ const UserProfilePage: React.FC = () => {
                 {currentUser?.phone && (
                   <div>
                     <Label className="text-gray-600 dark:text-gray-400 text-sm">
-                      {intl.formatMessage({ id: 'userProfile.phone', defaultMessage: 'Phone' })}
+                      {intl.formatMessage({ id: 'legal.userProfile.phone', defaultMessage: 'Phone' })}
                     </Label>
                     <p className="text-gray-900 dark:text-gray-100 font-semibold">{currentUser.phone}</p>
                   </div>
@@ -314,7 +334,7 @@ const UserProfilePage: React.FC = () => {
                   <div>
                     <Label className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      {intl.formatMessage({ id: 'userProfile.location', defaultMessage: 'Location' })}
+                      {intl.formatMessage({ id: 'legal.userProfile.location', defaultMessage: 'Location' })}
                     </Label>
                     <p className="text-gray-900 dark:text-gray-100 font-semibold">{currentUser.metadata.location}</p>
                   </div>
@@ -324,7 +344,7 @@ const UserProfilePage: React.FC = () => {
                   <div>
                     <Label className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
                       <Globe className="w-4 h-4" />
-                      {intl.formatMessage({ id: 'userProfile.website', defaultMessage: 'Website' })}
+                      {intl.formatMessage({ id: 'legal.userProfile.website', defaultMessage: 'Website' })}
                     </Label>
                     <a
                       href={currentUser.metadata.website}
@@ -341,7 +361,7 @@ const UserProfilePage: React.FC = () => {
                   <div>
                     <Label className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      {intl.formatMessage({ id: 'userProfile.timezone', defaultMessage: 'Timezone' })}
+                      {intl.formatMessage({ id: 'legal.userProfile.timezone', defaultMessage: 'Timezone' })}
                     </Label>
                     <p className="text-gray-900 dark:text-gray-100 font-semibold">{currentUser.timezone}</p>
                   </div>
@@ -360,27 +380,37 @@ const UserProfilePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-teal-600" />
-                  {intl.formatMessage({ id: 'userProfile.workspaceInfo', defaultMessage: 'Workspace Information' })}
+                  {intl.formatMessage({ id: 'legal.userProfile.workspaceInfo', defaultMessage: 'Workspace Information' })}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <Label className="text-gray-600 dark:text-gray-400 text-sm">
-                    {intl.formatMessage({ id: 'userProfile.roleLabel', defaultMessage: 'Role' })}
+                    {intl.formatMessage({ id: 'legal.userProfile.roleLabel', defaultMessage: 'Role' })}
                   </Label>
-                  <p className="text-gray-900 dark:text-gray-100 font-semibold capitalize">{member.role}</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-semibold capitalize">
+                    {intl.formatMessage({
+                      id: `legal.userProfile.role.${member.role}`,
+                      defaultMessage: member.role,
+                    })}
+                  </p>
                 </div>
 
                 <div>
                   <Label className="text-gray-600 dark:text-gray-400 text-sm">
-                    {intl.formatMessage({ id: 'userProfile.status', defaultMessage: 'Status' })}
+                    {intl.formatMessage({ id: 'legal.userProfile.statusLabel', defaultMessage: 'Status' })}
                   </Label>
-                  <p className="text-gray-900 dark:text-gray-100 font-semibold capitalize">{member.status}</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-semibold capitalize">
+                    {intl.formatMessage({
+                      id: `legal.userProfile.status.${member.status || 'inactive'}`,
+                      defaultMessage: member.status || 'Inactive',
+                    })}
+                  </p>
                 </div>
 
                 <div>
                   <Label className="text-gray-600 dark:text-gray-400 text-sm">
-                    {intl.formatMessage({ id: 'userProfile.joinedDate', defaultMessage: 'Joined Date' })}
+                    {intl.formatMessage({ id: 'legal.userProfile.joinedDate', defaultMessage: 'Joined Date' })}
                   </Label>
                   <p className="text-gray-900 dark:text-gray-100 font-semibold">{formatDate(member.joined_at)}</p>
                 </div>
@@ -388,7 +418,7 @@ const UserProfilePage: React.FC = () => {
                 {member.permissions && member.permissions.length > 0 && (
                   <div>
                     <Label className="text-gray-600 dark:text-gray-400 text-sm mb-2 block">
-                      {intl.formatMessage({ id: 'userProfile.permissions', defaultMessage: 'Permissions' })}
+                      {intl.formatMessage({ id: 'legal.userProfile.permissions', defaultMessage: 'Permissions' })}
                     </Label>
                     <div className="flex flex-wrap gap-2">
                       {member.permissions.map((permission, index) => (
@@ -415,7 +445,7 @@ const UserProfilePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5 text-emerald-600" />
-                  {intl.formatMessage({ id: 'userProfile.about', defaultMessage: 'About' })}
+                  {intl.formatMessage({ id: 'legal.userProfile.about', defaultMessage: 'About' })}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -435,12 +465,12 @@ const UserProfilePage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-green-600" />
-                {intl.formatMessage({ id: 'userProfile.recentActivity', defaultMessage: 'Recent Activity' })}
+                {intl.formatMessage({ id: 'legal.userProfile.recentActivity', defaultMessage: 'Recent Activity' })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-                {intl.formatMessage({ id: 'userProfile.noActivity', defaultMessage: 'No recent activity to display' })}
+                {intl.formatMessage({ id: 'legal.userProfile.noActivity', defaultMessage: 'No recent activity to display' })}
               </p>
             </CardContent>
           </Card>
@@ -456,12 +486,12 @@ const UserProfilePage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-teal-600" />
-                {intl.formatMessage({ id: 'userProfile.projects', defaultMessage: 'Projects' })}
+                {intl.formatMessage({ id: 'legal.userProfile.projects', defaultMessage: 'Projects' })}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-                {intl.formatMessage({ id: 'userProfile.noProjects', defaultMessage: 'No projects to display' })}
+                {intl.formatMessage({ id: 'legal.userProfile.noProjects', defaultMessage: 'No projects to display' })}
               </p>
             </CardContent>
           </Card>

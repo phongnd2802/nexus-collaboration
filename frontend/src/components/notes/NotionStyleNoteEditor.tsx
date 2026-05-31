@@ -2026,23 +2026,23 @@ export function NotionStyleNoteEditor({
                     }}
                   >
                     <Copy className="h-4 w-4 mr-2" />
-                    Duplicate
+                    {intl.formatMessage({ id: 'modules.notes.sidebar.duplicate' })}
                   </DropdownMenuItem>
                   {onShare && (
                     <DropdownMenuItem onClick={() => onShare(note.id)}>
                       <Share2 className="h-4 w-4 mr-2" />
-                      Share
+                      {intl.formatMessage({ id: 'modules.notes.sidebar.share' })}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
                     <Upload className="h-4 w-4 mr-2" />
-                    Import
+                    {intl.formatMessage({ id: 'modules.notes.notesView.import' })}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {onArchive && (
                     <DropdownMenuItem onClick={onArchive}>
                       <Archive className="h-4 w-4 mr-2" />
-                      Archive
+                      {intl.formatMessage({ id: 'modules.notes.sidebar.archive' })}
                     </DropdownMenuItem>
                   )}
                   {onDelete && (
@@ -2051,12 +2051,12 @@ export function NotionStyleNoteEditor({
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {intl.formatMessage({ id: 'modules.notes.leftSidebar.delete' })}
                     </DropdownMenuItem>
                   )}
                   {onRestore && note.isDeleted && (
                     <DropdownMenuItem onClick={onRestore}>
-                      Restore
+                      {intl.formatMessage({ id: 'modules.notes.sidebar.restore' })}
                     </DropdownMenuItem>
                   )}
                   {onPermanentDelete && note.isDeleted && (
@@ -2065,7 +2065,7 @@ export function NotionStyleNoteEditor({
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Permanently Delete
+                      {intl.formatMessage({ id: 'modules.notes.sidebar.deletePermanently' })}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

@@ -36,6 +36,8 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         return Crown;
       case 'admin':
         return Shield;
+      case 'member':
+        return UserCog;
       case 'designer':
         return Palette;
       case 'qa':
@@ -52,6 +54,8 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         return 'from-[#D97757] to-[#DC6038]';
       case 'admin':
         return 'from-[#D97757] to-[#DC6038]';
+      case 'member':
+        return 'from-[#D97757] to-green-500';
       case 'designer':
         return 'from-[#DC6038] to-[#D97757]';
       case 'qa':
@@ -68,6 +72,8 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         return intl.formatMessage({ id: 'roles.owner' });
       case 'admin':
         return intl.formatMessage({ id: 'roles.admin' });
+      case 'member':
+        return intl.formatMessage({ id: 'roles.member' });
       case 'designer':
         return intl.formatMessage({ id: 'roles.designer' });
       case 'qa':

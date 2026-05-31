@@ -404,6 +404,8 @@ export class AuthService {
             location: metadata.location || userProfile.location || null,
             website: metadata.website || userProfile.website || null,
             phone: metadata.phone || userProfile.phone || null,
+            timezone: metadata.timezone || 'UTC',
+            language: metadata.language || 'en',
             date_of_birth: userProfile.date_of_birth || null,
             gender: userProfile.gender || null,
             email_verified: userProfile.email_verified || false,
@@ -433,6 +435,8 @@ export class AuthService {
           location: metadata.location || userProfile.location || null,
           website: metadata.website || userProfile.website || null,
           phone: metadata.phone || userProfile.phone || null,
+          timezone: metadata.timezone || 'UTC',
+          language: metadata.language || 'en',
           date_of_birth: userProfile.date_of_birth || null,
           gender: userProfile.gender || null,
           email_verified: userProfile.email_verified || false,
@@ -533,6 +537,34 @@ export class AuthService {
       // Extract profile data from both root level and metadata
       const metadata = updatedProfile?.metadata || {};
 
+      if (data.timezone !== undefined || data.language !== undefined) {
+        const settingsResult = await this.db
+          .table('user_settings')
+          .select('id')
+          .where('user_id', '=', resolvedUserId)
+          .execute();
+
+        const settingsUpdateData: Record<string, any> = {
+          updated_at: new Date().toISOString(),
+        };
+
+        if (data.timezone !== undefined) settingsUpdateData.timezone = data.timezone;
+        if (data.language !== undefined) settingsUpdateData.language = data.language;
+
+        if (settingsResult.data?.[0]?.id) {
+          await this.db
+            .table('user_settings')
+            .update(settingsUpdateData)
+            .where('user_id', '=', resolvedUserId)
+            .execute();
+        } else {
+          await this.db.table('user_settings').insert({
+            user_id: resolvedUserId,
+            ...settingsUpdateData,
+          }).execute();
+        }
+      }
+
       return {
         success: true,
         message: 'Profile updated successfully',
@@ -547,6 +579,9 @@ export class AuthService {
           countryCode: metadata.countryCode,
           location: metadata.location,
           avatarUrl: metadata.avatarUrl || updatedProfile.avatar_url, // Avatar from metadata
+          timezone: metadata.timezone || 'UTC',
+          language: metadata.language || 'en',
+          metadata,
         },
       };
     } catch (error) {
@@ -688,24 +723,13 @@ export class AuthService {
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
     try {
-      // Get user to verify they exist and get their email
+      // Get user to verify they exist
       const user = await this.db.getUserById(userId);
       if (!user) {
         throw new UnauthorizedException('User not found');
       }
 
-      // Verify current password by attempting to sign in
-      try {
-        await this.db.findOne('users', { email: user.email }); // TODO: verify currentPassword with bcrypt
-      } catch (error) {
-        throw new BadRequestException('Current password is incorrect');
-      }
-
-      // Update the password using the service key client
-      // The SDK changePassword endpoint requires user auth context,
-      // so we use updateUser with service key which has admin access
-      // TODO: implement change password (was: this.db.client.auth.changePassword({currentPassword, newPassword, userId}))
-      await this.db.raw('SELECT 1', []);
+      await this.db.changeUserPassword(userId, dto.currentPassword, dto.newPassword);
 
       return {
         success: true,
@@ -713,6 +737,9 @@ export class AuthService {
       };
     } catch (error) {
       this.logger.error('Change password error:', error);
+      if ((error as any)?.status === 401) {
+        throw new BadRequestException('Current password is incorrect');
+      }
       if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
         throw error;
       }

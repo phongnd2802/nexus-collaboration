@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useIntl } from 'react-intl';
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,7 @@ export function GitHubLinkModal({
   existingLinks = [],
   onLinkAdded,
 }: GitHubLinkModalProps) {
+  const intl = useIntl();
   const [step, setStep] = useState<Step>('repo');
   const [isLoading, setIsLoading] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
@@ -102,7 +104,13 @@ export function GitHubLinkModal({
       const response = await githubApi.listRepositories(workspaceId, { perPage: 100 });
       setRepositories(response.repositories);
     } catch (err: any) {
-      setError(err.message || 'Failed to load repositories');
+      setError(
+        err.message ||
+          intl.formatMessage({
+            id: 'github.linkModal.errors.loadRepositories',
+            defaultMessage: 'Failed to load repositories',
+          }),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +130,13 @@ export function GitHubLinkModal({
       });
       setIssues(response.issues);
     } catch (err: any) {
-      setError(err.message || 'Failed to load issues');
+      setError(
+        err.message ||
+          intl.formatMessage({
+            id: 'github.linkModal.errors.loadIssues',
+            defaultMessage: 'Failed to load issues',
+          }),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +158,12 @@ export function GitHubLinkModal({
     );
 
     if (isAlreadyLinked) {
-      setError('This issue is already linked to this task');
+      setError(
+        intl.formatMessage({
+          id: 'github.linkModal.errors.alreadyLinked',
+          defaultMessage: 'This issue is already linked to this task',
+        }),
+      );
       return;
     }
 
@@ -164,7 +183,13 @@ export function GitHubLinkModal({
       onLinkAdded?.(link);
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to link issue');
+      setError(
+        err.message ||
+          intl.formatMessage({
+            id: 'github.linkModal.errors.linkIssue',
+            defaultMessage: 'Failed to link issue',
+          }),
+      );
     } finally {
       setIsLinking(false);
     }
@@ -207,12 +232,24 @@ export function GitHubLinkModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Github className="w-5 h-5" />
-            Link GitHub Issue or PR
+            {intl.formatMessage({
+              id: 'github.linkModal.title',
+              defaultMessage: 'Link GitHub Issue or PR',
+            })}
           </DialogTitle>
           <DialogDescription>
             {step === 'repo'
-              ? 'Select a repository to browse issues and pull requests'
-              : `Select an issue or PR from ${selectedRepo?.fullName}`}
+              ? intl.formatMessage({
+                  id: 'github.linkModal.description.repositories',
+                  defaultMessage: 'Select a repository to browse issues and pull requests',
+                })
+              : intl.formatMessage(
+                  {
+                    id: 'github.linkModal.description.issues',
+                    defaultMessage: 'Select an issue or PR from {repository}',
+                  },
+                  { repository: selectedRepo?.fullName || '' },
+                )}
           </DialogDescription>
         </DialogHeader>
 
@@ -229,7 +266,10 @@ export function GitHubLinkModal({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search repositories..."
+                placeholder={intl.formatMessage({
+                  id: 'github.linkModal.searchRepositories',
+                  defaultMessage: 'Search repositories...',
+                })}
                 value={repoSearchQuery}
                 onChange={e => setRepoSearchQuery(e.target.value)}
                 className="pl-9"
@@ -245,8 +285,14 @@ export function GitHubLinkModal({
               ) : filteredRepos.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   {repositories.length === 0
-                    ? 'No repositories found. Make sure your GitHub account is connected.'
-                    : 'No repositories match your search.'}
+                    ? intl.formatMessage({
+                        id: 'github.linkModal.empty.noRepositories',
+                        defaultMessage: 'No repositories found. Make sure your GitHub account is connected.',
+                      })
+                    : intl.formatMessage({
+                        id: 'github.linkModal.empty.noMatchingRepositories',
+                        defaultMessage: 'No repositories match your search.',
+                      })}
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -268,10 +314,21 @@ export function GitHubLinkModal({
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {repo.private && (
                           <Badge variant="outline" className="text-xs">
-                            Private
+                            {intl.formatMessage({
+                              id: 'github.linkModal.private',
+                              defaultMessage: 'Private',
+                            })}
                           </Badge>
                         )}
-                        <span>{repo.openIssuesCount} issues</span>
+                        <span>
+                          {intl.formatMessage(
+                            {
+                              id: 'github.linkModal.issueCount',
+                              defaultMessage: '{count} issues',
+                            },
+                            { count: repo.openIssuesCount },
+                          )}
+                        </span>
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </button>
@@ -294,7 +351,10 @@ export function GitHubLinkModal({
               className="w-fit -ml-2"
             >
               <ChevronRight className="w-4 h-4 rotate-180 mr-1" />
-              Back to repositories
+              {intl.formatMessage({
+                id: 'github.linkModal.backToRepositories',
+                defaultMessage: 'Back to repositories',
+              })}
             </Button>
 
             {/* Filters */}
@@ -302,7 +362,10 @@ export function GitHubLinkModal({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search issues..."
+                  placeholder={intl.formatMessage({
+                    id: 'github.linkModal.searchIssues',
+                    defaultMessage: 'Search issues...',
+                  })}
                   value={issueSearchQuery}
                   onChange={e => setIssueSearchQuery(e.target.value)}
                   className="pl-9"
@@ -316,9 +379,15 @@ export function GitHubLinkModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="issue">Issues</SelectItem>
-                  <SelectItem value="pull_request">PRs</SelectItem>
+                  <SelectItem value="all">
+                    {intl.formatMessage({ id: 'github.linkModal.filters.all', defaultMessage: 'All' })}
+                  </SelectItem>
+                  <SelectItem value="issue">
+                    {intl.formatMessage({ id: 'github.linkModal.filters.issues', defaultMessage: 'Issues' })}
+                  </SelectItem>
+                  <SelectItem value="pull_request">
+                    {intl.formatMessage({ id: 'github.linkModal.filters.prs', defaultMessage: 'PRs' })}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -329,9 +398,15 @@ export function GitHubLinkModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="open">
+                    {intl.formatMessage({ id: 'github.linkModal.filters.open', defaultMessage: 'Open' })}
+                  </SelectItem>
+                  <SelectItem value="closed">
+                    {intl.formatMessage({ id: 'github.linkModal.filters.closed', defaultMessage: 'Closed' })}
+                  </SelectItem>
+                  <SelectItem value="all">
+                    {intl.formatMessage({ id: 'github.linkModal.filters.all', defaultMessage: 'All' })}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -344,7 +419,10 @@ export function GitHubLinkModal({
                 onCheckedChange={(checked: boolean) => setAutoUpdateStatus(checked)}
               />
               <Label htmlFor="autoUpdate" className="text-sm cursor-pointer">
-                Auto-complete task when issue/PR closes
+                {intl.formatMessage({
+                  id: 'github.linkModal.autoUpdate',
+                  defaultMessage: 'Auto-complete task when issue/PR closes',
+                })}
               </Label>
             </div>
 
@@ -357,8 +435,14 @@ export function GitHubLinkModal({
               ) : filteredIssues.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   {issues.length === 0
-                    ? 'No issues or PRs found in this repository.'
-                    : 'No issues match your search.'}
+                    ? intl.formatMessage({
+                        id: 'github.linkModal.empty.noIssuesInRepository',
+                        defaultMessage: 'No issues or PRs found in this repository.',
+                      })
+                    : intl.formatMessage({
+                        id: 'github.linkModal.empty.noMatchingIssues',
+                        defaultMessage: 'No issues match your search.',
+                      })}
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -386,13 +470,24 @@ export function GitHubLinkModal({
                             <span className="font-medium truncate">{issue.title}</span>
                             {isLinked && (
                               <Badge variant="secondary" className="text-xs">
-                                Linked
+                                {intl.formatMessage({
+                                  id: 'github.linkModal.linked',
+                                  defaultMessage: 'Linked',
+                                })}
                               </Badge>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                             <span>#{issue.number}</span>
-                            <span>by {issue.authorLogin}</span>
+                            <span>
+                              {intl.formatMessage(
+                                {
+                                  id: 'github.linkModal.byAuthor',
+                                  defaultMessage: 'by {author}',
+                                },
+                                { author: issue.authorLogin },
+                              )}
+                            </span>
                             <span>{formatUpdatedAt(issue.updatedAt)}</span>
                           </div>
                           {issue.labels.length > 0 && (
@@ -440,7 +535,10 @@ export function GitHubLinkModal({
         {isLinking && (
           <div className="flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Linking issue...
+            {intl.formatMessage({
+              id: 'github.linkModal.linking',
+              defaultMessage: 'Linking issue...',
+            })}
           </div>
         )}
       </DialogContent>
