@@ -31,15 +31,13 @@ export function WorkspaceHeader() {
   };
 
   return (
-    <header className="h-[52px] border-b border-[rgba(31,30,29,0.1)] bg-[#FAF9F5] flex items-center justify-between px-6 shrink-0 dark:bg-[#141413] dark:border-[rgba(31,30,29,0.2)]">
-      {/* Left Side: Workspace Selector */}
-      <div className="flex items-center gap-4">
-        {/* Workspace Selector */}
+    <header className="h-[68px] border-b border-[rgba(31,30,29,0.1)] bg-[#FAF9F5] flex items-center shrink-0 dark:bg-[#141413] dark:border-[rgba(31,30,29,0.2)]">
+      <div className="w-56 h-full px-6 flex items-center shrink-0">
         <WorkspaceSwitcher />
       </div>
 
       {/* Right Side: Actions + User Menu */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-1 items-center justify-end gap-2 px-6">
         {/* Search */}
         {/*  <Button variant="ghost" size="icon" className="rounded-full">
           <Search className="w-5 h-5" />

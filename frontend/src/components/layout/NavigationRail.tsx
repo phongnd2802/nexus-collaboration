@@ -87,7 +87,8 @@ export function NavigationRail({ defaultExpanded = false }: NavigationRailProps)
   const { clearSelection } = useNotesStore()
   const intl = useIntl()
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
-  const [isNexusHovered, setIsNexusHovered] = useState(false)
+  const [isBrandHovered, setIsBrandHovered] = useState(false)
+  const [isHoverLocked, setIsHoverLocked] = useState(false)
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin'
@@ -128,29 +129,54 @@ export function NavigationRail({ defaultExpanded = false }: NavigationRailProps)
     }
   }
 
+  const handleBrandMouseEnter = () => {
+    if (!isHoverLocked) {
+      setIsBrandHovered(true)
+    }
+  }
+
+  const handleBrandMouseLeave = () => {
+    setIsBrandHovered(false)
+    setIsHoverLocked(false)
+  }
+
+  const handleExpandSidebar = () => {
+    setIsExpanded(true)
+    setIsBrandHovered(false)
+    setIsHoverLocked(true)
+    window.dispatchEvent(new Event('nexus:layout-changed'))
+    setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
+  }
+
+  const handleCollapseSidebar = () => {
+    setIsExpanded(false)
+    setIsBrandHovered(false)
+    setIsHoverLocked(true)
+    window.dispatchEvent(new Event('nexus:layout-changed'))
+    setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
+  }
+
   return (
     <nav
       className={cn(
         "flex flex-col bg-[#FAF9F5] border-r border-[rgba(31,30,29,0.1)] z-50 dark:bg-[#141413] dark:border-[rgba(31,30,29,0.2)] transition-all duration-300",
-        isExpanded ? "w-72 px-3" : "w-16 items-center"
+        isExpanded ? "w-60 px-3" : "w-16 items-center"
       )}
     >
-      <div className={cn("pt-4 pb-3 border-b border-[rgba(31,30,29,0.1)] dark:border-[rgba(31,30,29,0.2)]", isExpanded ? "px-1" : "")}>
+      <div
+        className={cn("pt-4 pb-3 border-b border-[rgba(31,30,29,0.1)] dark:border-[rgba(31,30,29,0.2)]", isExpanded ? "px-1" : "")}
+        onMouseEnter={handleBrandMouseEnter}
+        onMouseLeave={handleBrandMouseLeave}
+      >
         {!isExpanded ? (
           <button
             type="button"
             title={intl.formatMessage({ id: 'navigation.toggleSidebar', defaultMessage: 'Toggle sidebar info' })}
             aria-label={intl.formatMessage({ id: 'navigation.toggleSidebar', defaultMessage: 'Toggle sidebar info' })}
-            onClick={() => {
-              setIsExpanded(true)
-              window.dispatchEvent(new Event('nexus:layout-changed'))
-              setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
-            }}
-            onMouseEnter={() => setIsNexusHovered(true)}
-            onMouseLeave={() => setIsNexusHovered(false)}
+            onClick={handleExpandSidebar}
             className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]"
           >
-            {isNexusHovered ? (
+            {isBrandHovered ? (
               <PanelLeftOpen className="h-5 w-5 min-w-[20px]" />
             ) : (
               <img src="/nexus-logo.png" alt="Nexus" className="w-6 h-6 min-w-[24px]" />
@@ -166,11 +192,7 @@ export function NavigationRail({ defaultExpanded = false }: NavigationRailProps)
             </Link>
             <button
               type="button"
-              onClick={() => {
-                setIsExpanded(false)
-                window.dispatchEvent(new Event('nexus:layout-changed'))
-                setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
-              }}
+              onClick={handleCollapseSidebar}
               className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 hover:bg-[rgba(31,30,29,0.04)]"
             >
               <PanelLeftClose className="h-5 w-5 min-w-[20px]" />

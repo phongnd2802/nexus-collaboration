@@ -304,35 +304,37 @@ function WorkspaceLayoutInner({ children }: WorkspaceLayoutProps) {
         <meta name="robots" content="noindex, nofollow" />
         <meta name="googlebot" content="noindex, nofollow" />
       </Helmet>
-      <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
-        <WorkspaceHeader />
+      <div className="flex h-screen bg-background text-foreground overflow-hidden">
+        <NavigationRail />
         <div className="flex flex-1 overflow-hidden">
-          <NavigationRail />
-          <div className="flex flex-1 overflow-hidden">
-            <LeftSidebar
-              currentView={currentView}
-              isCollapsed={!sidebarStates.left}
-              key="left-sidebar"
-            />
-            <MainContent
-              currentView={currentView}
-              onToggleSidebar={toggleSidebar}
-              isRightSidebarCollapsed={!sidebarStates.right}
-            >
-              {children}
-            </MainContent>
-            {!isAIModalOpen && (
-              <RightSidebar
+          <LeftSidebar
+            currentView={currentView}
+            isCollapsed={!sidebarStates.left}
+            key="left-sidebar"
+          />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <WorkspaceHeader />
+            <div className="flex flex-1 overflow-hidden">
+              <MainContent
                 currentView={currentView}
-                isCollapsed={!sidebarStates.right}
-                isMinimized={isMinimized}
-                onToggleMinimized={toggleMinimized}
-                workspaceId={workspaceId}
-                projectsData={projectsData}
-                chatData={chatData}
-                dashboardData={dashboardResponse}
-              />
-            )}
+                onToggleSidebar={toggleSidebar}
+                isRightSidebarCollapsed={!sidebarStates.right}
+              >
+                {children}
+              </MainContent>
+              {!isAIModalOpen && (
+                <RightSidebar
+                  currentView={currentView}
+                  isCollapsed={!sidebarStates.right}
+                  isMinimized={isMinimized}
+                  onToggleMinimized={toggleMinimized}
+                  workspaceId={workspaceId}
+                  projectsData={projectsData}
+                  chatData={chatData}
+                  dashboardData={dashboardResponse}
+                />
+              )}
+            </div>
           </div>
         </div>
         <DeskiAssistantModal
