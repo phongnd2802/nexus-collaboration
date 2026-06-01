@@ -406,7 +406,12 @@ export function ProjectsRightSidebar({ projects, allTasks, workspaceId, selected
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-                      <p className="text-xs text-muted-foreground capitalize mt-0.5">{userRole}</p>
+                      <p className="text-xs text-muted-foreground capitalize mt-0.5">
+                        {intl.formatMessage({
+                          id: `projects.roles.${userRole}`,
+                          defaultMessage: userRole,
+                        })}
+                      </p>
                     </div>
                   </div>
                 )
@@ -448,7 +453,12 @@ export function ProjectsRightSidebar({ projects, allTasks, workspaceId, selected
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-                      <p className="text-xs text-muted-foreground capitalize mt-0.5">{userRole}</p>
+                      <p className="text-xs text-muted-foreground capitalize mt-0.5">
+                        {intl.formatMessage({
+                          id: `projects.roles.${userRole}`,
+                          defaultMessage: userRole,
+                        })}
+                      </p>
                     </div>
                   </div>
                 )

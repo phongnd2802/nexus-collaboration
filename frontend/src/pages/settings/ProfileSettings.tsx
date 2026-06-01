@@ -110,6 +110,7 @@ const TIMEZONES = [
   { value: 'Asia/Kolkata', label: 'India (IST)', offset: '+05:30' },
   { value: 'Asia/Dhaka', label: 'Dhaka', offset: '+06:00' },
   { value: 'Asia/Bangkok', label: 'Bangkok', offset: '+07:00' },
+  { value: 'Asia/Ho_Chi_Minh', label: 'Vietnam (Ho Chi Minh City)', offset: '+07:00' },
   { value: 'Asia/Singapore', label: 'Singapore', offset: '+08:00' },
   { value: 'Asia/Hong_Kong', label: 'Hong Kong', offset: '+08:00' },
   { value: 'Asia/Shanghai', label: 'Beijing', offset: '+08:00' },
@@ -217,8 +218,14 @@ const ProfileSettings: React.FC = () => {
         countryCode: countryCode || '+1', // Default to US/Canada if not set
         location: (user.metadata?.location as string) || '',
         website: (user.metadata?.website as string) || '',
-        timezone: (user.metadata?.timezone as string) || getBrowserTimezone(),
-        language: (user.metadata?.language as SupportedLocale) || locale
+        timezone:
+          (user.metadata?.timezone as string) ||
+          user.timezone ||
+          getBrowserTimezone(),
+        language:
+          (user.metadata?.language as SupportedLocale) ||
+          (user.language as SupportedLocale) ||
+          locale
       };
 
       console.log('🎯 Setting form data with countryCode:', countryCode);

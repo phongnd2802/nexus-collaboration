@@ -339,7 +339,7 @@ export function ChannelMentionDropdown({
                 </span>
                 {channel.isPrivate && (
                   <Badge variant="outline" className="text-xs">
-                    Private
+                    {intl.formatMessage({ id: 'modules.chat.channels.private', defaultMessage: 'Private' })}
                   </Badge>
                 )}
               </div>

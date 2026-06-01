@@ -86,6 +86,7 @@ import { calendarApi } from '@/lib/api/calendar-api'
 import { CheckCircle, Briefcase } from 'lucide-react'
 
 const formatFileSize = (bytes: number): string => {
+  if (!Number.isFinite(bytes) || bytes < 0) return '0 B';
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -521,6 +522,10 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
     planName: dashboardStats?.plan?.name ?? 'Free',
     planMaxStorageGb: dashboardStats?.plan?.max_storage_gb ?? 1,
   }
+
+  const usedStorageBytes = Number.isFinite(displayStats.totalSize) ? Math.max(displayStats.totalSize, 0) : 0
+  const availableStorageBytes = Number.isFinite(displayStats.availableSpace) ? Math.max(displayStats.availableSpace, 0) : 0
+  const usagePercentage = Number.isFinite(displayStats.usagePercentage) ? Math.max(displayStats.usagePercentage, 0) : 0
 
   // Get actual workspace members for video calls
   const getWorkspaceMembers = () => {
@@ -1225,30 +1230,27 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
                     <div className="text-sm mb-2">
                       <div className="flex justify-between text-xs">
                         <span>{intl.formatMessage({ id: 'modules.files.storage.used', defaultMessage: 'Used' })}</span>
-                        <span>{formatFileSize(displayStats.totalSize)} / {formatFileSize(displayStats.maxStorage)}</span>
+                        <span>{formatFileSize(usedStorageBytes)}</span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
                         <div
                           className={cn(
                             "h-2 rounded-full transition-all duration-300",
-                            displayStats.usagePercentage < 60 && "bg-green-600",
-                            displayStats.usagePercentage >= 60 && displayStats.usagePercentage < 80 && "bg-yellow-600",
-                            displayStats.usagePercentage >= 80 && "bg-red-600"
+                            usagePercentage < 60 && "bg-green-600",
+                            usagePercentage >= 60 && usagePercentage < 80 && "bg-yellow-600",
+                            usagePercentage >= 80 && "bg-red-600"
                           )}
-                          style={{ width: `${Math.min(displayStats.usagePercentage, 100)}%` }}
+                          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
                         ></div>
                       </div>
                       <div className="flex justify-between text-xs mt-1">
                         <span className={cn(
                           "font-medium",
-                          displayStats.usagePercentage < 60 && "text-green-600",
-                          displayStats.usagePercentage >= 60 && displayStats.usagePercentage < 80 && "text-yellow-600",
-                          displayStats.usagePercentage >= 80 && "text-red-600"
+                          usagePercentage < 60 && "text-green-600",
+                          usagePercentage >= 60 && usagePercentage < 80 && "text-yellow-600",
+                          usagePercentage >= 80 && "text-red-600"
                         )}>
-                          {intl.formatMessage({ id: 'modules.files.storage.percentUsed', defaultMessage: '{percent}% used' }, { percent: displayStats.usagePercentage.toFixed(0) })}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {formatFileSize(displayStats.availableSpace)} {intl.formatMessage({ id: 'modules.files.storage.free', defaultMessage: 'Free' }).toLowerCase()}
+                          {intl.formatMessage({ id: 'modules.files.storage.percentUsed', defaultMessage: '{percent}% used' }, { percent: usagePercentage.toFixed(0) })}
                         </span>
                       </div>
                     </div>
@@ -1264,17 +1266,17 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Used Space:</span>
-                        <span className="font-medium">{formatFileSize(displayStats.totalSize)}</span>
+                        <span className="font-medium">{formatFileSize(usedStorageBytes)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Available:</span>
-                        <span className="font-medium text-green-600">{formatFileSize(displayStats.availableSpace)}</span>
+                        <span className="font-medium text-green-600">{formatFileSize(availableStorageBytes)}</span>
                       </div>
                     </div>
-                    {displayStats.usagePercentage > 80 && (
+                    {usagePercentage > 80 && (
                       <div className="pt-2 border-t">
                         <p className="text-xs text-yellow-600">
-                          <strong>Warning:</strong> You're using {displayStats.usagePercentage.toFixed(0)}% of your storage.
+                          <strong>Warning:</strong> You're using {usagePercentage.toFixed(0)}% of your storage.
                         </p>
                       </div>
                     )}
@@ -1410,7 +1412,7 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
             /> */}
 
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Workspace Members
+              {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.recentContacts', defaultMessage: 'WORKSPACE MEMBERS' })}
             </div>
             {workspaceMembers.slice(0, 5).map((member) => (
               <div key={member.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/70 dark:hover:bg-muted mb-1 group">
@@ -1425,7 +1427,11 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
                     {member.user?.name || member.user?.email || 'Unknown User'}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {member.role === 'owner' ? 'Owner' : member.role === 'admin' ? 'Admin' : 'Member'}
+                    {member.role === 'owner'
+                      ? intl.formatMessage({ id: 'roles.owner', defaultMessage: 'Owner' })
+                      : member.role === 'admin'
+                        ? intl.formatMessage({ id: 'roles.admin', defaultMessage: 'Admin' })
+                        : intl.formatMessage({ id: 'roles.member', defaultMessage: 'Member' })}
                   </p>
                 </div>
                 {member.user_id !== user?.id && (
