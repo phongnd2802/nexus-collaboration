@@ -11,6 +11,7 @@ import { notesApi } from '../../lib/api/notes-api'
 import { aiApi } from '../../lib/api/ai-api'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNoteCollaboration } from '../../hooks/useNoteCollaboration'
+import { useIntl } from 'react-intl'
 import { RemoteCursors, PresenceIndicator } from './RemoteCursors'
 import {
   DropdownMenu,
@@ -66,6 +67,7 @@ export function NotionStyleNoteEditor({
   // const updateNoteMutation = useUpdateNote(note.id) // Disabled for now
   const { toast } = useToast()
   const { user } = useAuth()
+  const intl = useIntl()
 
   // Editor container ref for RemoteCursors
   const editorContainerRef = useRef<HTMLDivElement>(null)

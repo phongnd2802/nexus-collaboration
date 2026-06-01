@@ -1,6 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Collapsible,
@@ -8,39 +7,20 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   ChevronDown,
   ChevronRight,
   Calendar,
   Users,
-  Clock,
   Target,
   AlertTriangle,
   CheckCircle2,
   Circle,
   MoreHorizontal,
-  Loader2,
-  MoreVertical,
-  Bot,
-  Plus
+  Loader2
 } from 'lucide-react';
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useProjects, projectService, projectKeys } from '@/lib/api/projects-api';
-import { useToast } from '@/components/ui/use-toast';
 import { useProjectsStore } from '@/stores/useProjectsStore';
-import { useAvailableBotsForProject, useAssignBotToProject } from '@/lib/api/bots-api';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 interface ProjectLeftSidebarProps {
@@ -60,18 +40,7 @@ export function ProjectLeftSidebar({
 }: ProjectLeftSidebarProps) {
   const intl = useIntl();
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
-  const [isAssignBotOpen, setIsAssignBotOpen] = useState(false);
-  const [selectedProjectForBot, setSelectedProjectForBot] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { toast: useToastHook } = useToast();
-
-  // Fetch all bots with assignment status for the selected project
-  const { data: availableBots = [] } = useAvailableBotsForProject(
-    workspaceId || '',
-    selectedProjectForBot || '',
-    { enabled: !!selectedProjectForBot }
-  );
-  const assignBotMutation = useAssignBotToProject();
 
   // ALWAYS use Zustand store as single source of truth
   const projects = useProjectsStore((state) => state.projects) || [];
@@ -156,29 +125,6 @@ export function ProjectLeftSidebar({
     updateTaskMutation.mutate({ taskId: task.id, status: newStatus });
   };
 
-  // Handle bot assignment
-  const handleOpenBotDialog = (projectId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedProjectForBot(projectId);
-    setIsAssignBotOpen(true);
-  };
-
-  const handleAssignBot = async (botId: string) => {
-    if (!workspaceId || !selectedProjectForBot) return;
-
-    try {
-      await assignBotMutation.mutateAsync({
-        workspaceId,
-        botId,
-        projectId: selectedProjectForBot,
-      });
-      toast.success('Bot assigned to project successfully');
-      setIsAssignBotOpen(false);
-      setSelectedProjectForBot(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to assign bot');
-    }
-  };
 
   // Calculate project stats from real task data
   const getProjectStats = (project: any, tasks: any[]) => {
@@ -330,19 +276,6 @@ export function ProjectLeftSidebar({
                               </div>
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0 ml-1">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <button className="p-1 hover:bg-muted rounded transition-colors">
-                                    <MoreVertical className="w-3 h-3 text-muted-foreground" />
-                                  </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                  <DropdownMenuItem onClick={(e) => handleOpenBotDialog(project.id, e)}>
-                                    <Bot className="w-4 h-4 mr-2" />
-                                    Assign Bot
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                               {isExpanded ?
                                 <ChevronDown className="w-3 h-3 text-muted-foreground" /> :
                                 <ChevronRight className="w-3 h-3 text-muted-foreground" />
@@ -527,56 +460,6 @@ export function ProjectLeftSidebar({
           </div>
         </div>
       </div>
-
-      {/* Bot Assignment Dialog */}
-      <Dialog open={isAssignBotOpen} onOpenChange={setIsAssignBotOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Assign AI Assistant to Project</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {availableBots.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Bot className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No activated bots found</p>
-                <p className="text-xs mt-1">Please activate bots first to assign them to projects</p>
-              </div>
-            ) : (
-              availableBots.map((bot) => (
-                <div
-                  key={bot.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold truncate">{bot.displayName}</p>
-                        {bot.isAssigned && (
-                          <Badge variant="secondary" className="text-xs">
-                            Already Assigned
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{bot.description}</p>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAssignBot(bot.id)}
-                    disabled={assignBotMutation.isPending || bot.isAssigned}
-                    className="ml-2 flex-shrink-0"
-                  >
-                    {bot.isAssigned ? 'Assigned' : 'Assign'}
-                  </Button>
-                </div>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

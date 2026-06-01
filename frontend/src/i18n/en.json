@@ -1740,6 +1740,14 @@
         "warningMessage": "You're using {percent}% of your {planName} plan storage ({size} GB). Consider organizing files or upgrading your plan.",
         "upgradeStorage": "Upgrade Storage"
       },
+      "dashboard": {
+        "totalFiles": "Total Files",
+        "addedToday": "{count} added today",
+        "storageUsed": "Storage Used",
+        "aiGenerations": "AI Generations",
+        "thisMonth": "This month",
+        "fileTypes": "File Types"
+      },
       "shared": {
         "heading": "SHARED",
         "sharedWithMe": "Shared with me"
@@ -7354,6 +7362,7 @@
       },
       "filters": {
         "type": "Type",
+        "dateModified": "Date modified",
         "dateModifiedButton": "Date modified"
       },
       "storage": {

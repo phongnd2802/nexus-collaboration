@@ -1740,6 +1740,14 @@
         "warningMessage": "Bạn đang sử dụng {percent}% dung lượng gói {planName} ({size} GB). Cân nhắc sắp xếp tệp hoặc nâng cấp gói.",
         "upgradeStorage": "Nâng cấp dung lượng"
       },
+      "dashboard": {
+        "totalFiles": "Tổng tệp",
+        "addedToday": "Đã thêm hôm nay: {count}",
+        "storageUsed": "Dung lượng đã dùng",
+        "aiGenerations": "Lượt tạo AI",
+        "thisMonth": "Tháng này",
+        "fileTypes": "Loại tệp"
+      },
       "shared": {
         "heading": "ĐÃ CHIA SẺ",
         "sharedWithMe": "Được chia sẻ với tôi"
@@ -7354,6 +7362,7 @@
       },
       "filters": {
         "type": "Loại",
+        "dateModified": "Ngày sửa đổi",
         "dateModifiedButton": "Ngày sửa đổi"
       },
       "storage": {
