@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useIntl } from 'react-intl';
 import {
@@ -205,21 +205,23 @@ const getLastAccessedChatKey = (workspaceId: string) => `nexus_last_chat_${works
 const ChatPage: React.FC = () => {
   const intl = useIntl();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { workspaceId, channelId } = useParams<{ workspaceId: string; channelId?: string }>();
   const { user } = useAuth();
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '');
   const { data: bots = [] } = useBots(workspaceId || '');
   const queryClient = useQueryClient();
+  const requestedDirectUserId = searchParams.get('userId');
 
   // Redirect to last accessed chat if no channelId is provided
   useEffect(() => {
-    if (!workspaceId || channelId) return; // Only redirect if on base chat URL
+    if (!workspaceId || channelId || requestedDirectUserId) return; // Only redirect if on base chat URL
 
     const lastChatId = localStorage.getItem(getLastAccessedChatKey(workspaceId));
     if (lastChatId) {
       navigate(`/workspaces/${workspaceId}/chat/${lastChatId}`, { replace: true });
     }
-  }, [workspaceId, channelId, navigate]);
+  }, [workspaceId, channelId, requestedDirectUserId, navigate]);
 
   // Create message converter with workspace members and current user (memoized to prevent infinite re-renders)
   const convertServiceMessageToMessageItem = useMemo(() => {
@@ -650,6 +652,77 @@ const ChatPage: React.FC = () => {
       setLoadingConversations(false);
     }
   };
+
+  useEffect(() => {
+    if (!workspaceId || channelId || !requestedDirectUserId || !user?.id || loadingConversations) {
+      return;
+    }
+
+    if (requestedDirectUserId === user.id) {
+      navigate(`/workspaces/${workspaceId}/chat`, { replace: true });
+      return;
+    }
+
+    let isCancelled = false;
+
+    const openDirectConversation = async () => {
+      try {
+        const existingConversation = conversations.find((conversation) => {
+          const participants = Array.isArray(conversation.participants) ? conversation.participants : [];
+
+          return (
+            conversation.type === 'direct' &&
+            participants.length === 2 &&
+            participants.includes(user.id) &&
+            participants.includes(requestedDirectUserId)
+          );
+        });
+
+        const conversation =
+          existingConversation ||
+          await chatService.createConversation(workspaceId, [requestedDirectUserId]);
+
+        if (isCancelled) return;
+
+        if (!existingConversation) {
+          setConversations((prev) => (
+            prev.some((item) => item.id === conversation.id) ? prev : [...prev, conversation]
+          ));
+          queryClient.invalidateQueries({ queryKey: chatKeys.conversations() });
+        }
+
+        navigate(`/workspaces/${workspaceId}/chat/${conversation.id}`, { replace: true });
+      } catch (err) {
+        console.error('Failed to open direct conversation:', err);
+
+        if (isCancelled) return;
+
+        toast.error(
+          intl.formatMessage({
+            id: 'modules.chat.errors.failedOpenDirectConversation',
+            defaultMessage: 'Failed to open conversation',
+          }),
+        );
+        navigate(`/workspaces/${workspaceId}/chat`, { replace: true });
+      }
+    };
+
+    openDirectConversation();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    workspaceId,
+    channelId,
+    requestedDirectUserId,
+    user?.id,
+    loadingConversations,
+    conversations,
+    navigate,
+    queryClient,
+    intl,
+  ]);
 
   const fetchMessages = async () => {
     if (!selectedChatId || !selectedChatType || !workspaceId) return;

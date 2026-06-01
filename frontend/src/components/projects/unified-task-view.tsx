@@ -348,6 +348,21 @@ export function UnifiedTaskView({
     }
   }
 
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return intl.formatMessage({ id: 'tasks.high', defaultMessage: 'High' })
+      case 'medium':
+        return intl.formatMessage({ id: 'tasks.medium', defaultMessage: 'Medium' })
+      case 'low':
+        return intl.formatMessage({ id: 'tasks.low', defaultMessage: 'Low' })
+      case 'urgent':
+        return intl.formatMessage({ id: 'tasks.urgent', defaultMessage: 'Urgent' })
+      default:
+        return priority
+    }
+  }
+
   // Update task mutation - simplified since optimistic update is handled in onDragEnd
   const updateTaskMutation = useMutation({
     mutationFn: ({ taskId, newStatus }: { taskId: string; newStatus: string }) =>
@@ -842,7 +857,7 @@ export function UnifiedTaskView({
             </svg>
           )}
           <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}>
-            {task.priority.toUpperCase()}
+            {getPriorityLabel(task.priority)}
           </span>
         </div>
 
@@ -1053,14 +1068,23 @@ export function UnifiedTaskView({
           )} */}
         </div>
 
-        {/* Updated By Information */}
- 
-        {(task as any).updated_by_user && (
+        {/* Updated/Created By Information */}
+        {(((task as any).updated_by_user?.name) || ((task as any).created_by_user?.name)) && (
           <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            <span>Updated by <span className="font-medium">{(task as any).updated_by_user.name}</span></span>
+            {(task as any).updated_by_user?.name ? (
+              <span>
+                {intl.formatMessage({ id: 'tasks.updatedBy', defaultMessage: 'Updated by' })}{' '}
+                <span className="font-medium">{(task as any).updated_by_user.name}</span>
+              </span>
+            ) : (
+              <span>
+                {intl.formatMessage({ id: 'tasks.createdBy', defaultMessage: 'Created by' })}{' '}
+                <span className="font-medium">{(task as any).created_by_user.name}</span>
+              </span>
+            )}
           </div>
         )}
         </div>

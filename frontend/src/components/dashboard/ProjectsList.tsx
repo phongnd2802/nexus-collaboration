@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Progress } from '../ui/progress'
 import { Briefcase, Users } from 'lucide-react'
+import { useIntl } from 'react-intl'
 import { cn } from '../../lib/utils'
 import type { TopProject } from './types'
 
@@ -24,12 +25,14 @@ const getPriorityColor = (priority: string) => {
 }
 
 export function ProjectsList({ projects, onProjectClick }: ProjectsListProps) {
+  const intl = useIntl()
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Briefcase className="h-5 w-5" />
-          Top Projects
+          {intl.formatMessage({ id: 'dashboard.projectsList.title', defaultMessage: 'Top Projects' })}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -53,10 +56,25 @@ export function ProjectsList({ projects, onProjectClick }: ProjectsListProps) {
               </div>
               <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                 <Users className="h-3 w-3" />
-                <span>{project.members} members</span>
-                <span>•</span>
-                <span>Due {new Date(project.dueDate).toLocaleDateString()}</span>
-                <span>•</span>
+                <span>
+                  {intl.formatMessage(
+                    { id: 'dashboard.projectsList.members', defaultMessage: '{count} members' },
+                    { count: project.members }
+                  )}
+                </span>
+                <span>&bull;</span>
+                <span>
+                  {intl.formatMessage(
+                    { id: 'dashboard.projectsList.due', defaultMessage: 'Due {date}' },
+                    {
+                      date: intl.formatDate(new Date(project.dueDate), {
+                        month: 'short',
+                        day: '2-digit'
+                      })
+                    }
+                  )}
+                </span>
+                <span>&bull;</span>
                 <span
                   className={cn(
                     'font-medium',

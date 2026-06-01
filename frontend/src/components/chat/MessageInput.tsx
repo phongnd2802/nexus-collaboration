@@ -967,6 +967,15 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
     }
     setSelectedFiles([])
     setAttachedContent([])
+
+    // Keep typing flow smooth: after sending with Enter, focus back to editor.
+    requestAnimationFrame(() => {
+      const editor = quillRef.current?.getEditor?.()
+      if (!editor) return
+      editor.focus()
+      const endIndex = Math.max(0, editor.getLength() - 1)
+      editor.setSelection(endIndex, 0)
+    })
   }, [value, selectedFiles, attachedContent, disabled, isSending, onSend, onChange, processMentionsInHtml])
 
   // Keep the ref updated with the latest handleSendMessage

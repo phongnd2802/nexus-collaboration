@@ -57,7 +57,7 @@ const mapWorkspaceMemberToTeamMember = (member: WorkspaceMember): TeamMember => 
     email: member.email || member.user?.email || '',
     avatar: member.avatar_url || member.user?.avatar,
     role: member.role as TeamRole,
-    title: member.role,
+    title: undefined,
     permissions: {
       canManageTeam: member.permissions?.includes('manage_team') || false,
       canManageProjects: member.permissions?.includes('manage_projects') || false,

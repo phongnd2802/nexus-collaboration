@@ -128,6 +128,21 @@ export function TaskDetailModal({
     }
   }
 
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return intl.formatMessage({ id: 'tasks.high', defaultMessage: 'High' })
+      case 'medium':
+        return intl.formatMessage({ id: 'tasks.medium', defaultMessage: 'Medium' })
+      case 'low':
+        return intl.formatMessage({ id: 'tasks.low', defaultMessage: 'Low' })
+      case 'urgent':
+        return intl.formatMessage({ id: 'tasks.urgent', defaultMessage: 'Urgent' })
+      default:
+        return priority
+    }
+  }
+
   const getStatusInfo = (status: string) => {
     const stage = kanbanStages.find(s => s.id === status)
     if (stage) {
@@ -284,7 +299,7 @@ export function TaskDetailModal({
                 <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
                   <span className="flex items-center gap-1">
                     {getPriorityIcon(task.priority)}
-                    {task.priority.toUpperCase()}
+                    {getPriorityLabel(task.priority)}
                   </span>
                 </Badge>
               </div>
