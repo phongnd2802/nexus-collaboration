@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import type { DashboardStats } from '@/lib/api/files-api';
 
 const formatFileSize = (bytes: number): string => {
+  if (!Number.isFinite(bytes) || bytes < 0) return '0 B';
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -114,6 +115,9 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
     };
   }, [files, stats]);
 
+  const safeStoragePercentage = Number.isFinite(metrics.storagePercentage) ? Math.max(metrics.storagePercentage, 0) : 0;
+  const safeStorageUsedFormatted = metrics.storageUsedFormatted || formatFileSize(metrics.totalSize || 0);
+
   const quickActions = [
     {
       id: 'image',
@@ -190,7 +194,9 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Files</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {intl.formatMessage({ id: 'modules.files.dashboard.totalFiles', defaultMessage: 'Total Files' })}
+                  </p>
                   <p className="text-2xl font-bold">{metrics.totalFiles.toLocaleString()}</p>
                 </div>
                 <div className="p-2 bg-blue-50 rounded-lg">
@@ -199,7 +205,7 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
               </div>
               <div className="flex items-center mt-2 text-xs text-muted-foreground">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                {metrics.recentFiles} added today
+                {intl.formatMessage({ id: 'modules.files.dashboard.addedToday', defaultMessage: '{count} added today' }, { count: metrics.recentFiles })}
               </div>
             </CardContent>
           </Card>
@@ -208,8 +214,10 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Storage Used</p>
-                  <p className="text-2xl font-bold">{metrics.storageUsedFormatted}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {intl.formatMessage({ id: 'modules.files.dashboard.storageUsed', defaultMessage: 'Storage Used' })}
+                  </p>
+                  <p className="text-2xl font-bold">{safeStorageUsedFormatted}</p>
                 </div>
                 <div className="p-2 bg-purple-50 rounded-lg">
                   <BarChart3 className="h-6 w-6 text-purple-600" />
@@ -217,11 +225,14 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
               </div>
               <div className="mt-2">
                 <Progress
-                  value={metrics.storagePercentage}
+                  value={safeStoragePercentage}
                   className="h-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {Math.round(metrics.storagePercentage)}% of {metrics.storageTotalFormatted} used
+                  {intl.formatMessage(
+                    { id: 'modules.files.storage.percentUsed', defaultMessage: '{percent}% used' },
+                    { percent: Math.round(safeStoragePercentage) }
+                  )}
                 </p>
               </div>
             </CardContent>
@@ -231,7 +242,9 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">AI Generations</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {intl.formatMessage({ id: 'modules.files.dashboard.aiGenerations', defaultMessage: 'AI Generations' })}
+                  </p>
                   <p className="text-2xl font-bold">{metrics.aiGenerations}</p>
                 </div>
                 <div className="p-2 bg-green-50 rounded-lg">
@@ -240,7 +253,7 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
               </div>
               <div className="flex items-center mt-2 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3 mr-1" />
-                This month
+                {intl.formatMessage({ id: 'modules.files.dashboard.thisMonth', defaultMessage: 'This month' })}
               </div>
             </CardContent>
           </Card>
@@ -249,7 +262,9 @@ export function AssetDashboard({ files = [], stats, isLoading, onCreateNew }: As
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">File Types</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {intl.formatMessage({ id: 'modules.files.dashboard.fileTypes', defaultMessage: 'File Types' })}
+                  </p>
                   <p className="text-2xl font-bold">{metrics.uniqueFileTypes}</p>
                 </div>
                 <div className="p-2 bg-orange-50 rounded-lg">

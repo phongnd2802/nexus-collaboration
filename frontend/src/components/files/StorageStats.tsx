@@ -77,15 +77,9 @@ export function StorageStats({ files = [], stats }: StorageStatsProps) {
                       {planName}
                     </Badge>
                   )}
-                  <span className="text-sm font-medium">
+                <span className="text-sm font-medium">
                   {formatFileSize(totalSize)}
                 </span>
-                <span className="text-sm text-muted-foreground">
-                  / {formatFileSize(maxStorage)}
-                </span>
-                <Badge variant="outline" className={getUsageColor(usagePercentage)}>
-                  {usagePercentage.toFixed(0)}%
-                </Badge>
               </div>
             </div>
 

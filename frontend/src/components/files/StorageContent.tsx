@@ -148,8 +148,6 @@ export const StorageContent: React.FC<StorageContentProps> = ({
   const usedStorage = dashboardStats?.storage_used_bytes || 0
   const maxStorage = dashboardStats?.storage_total_bytes || (1 * 1024 * 1024 * 1024) // 1GB default (Free plan)
   const usagePercentage = dashboardStats?.storage_percentage_used || 0
-  const availableSpace = maxStorage - usedStorage
-  const planName = dashboardStats?.plan?.name || intl.formatMessage({ id: 'modules.files.storage.planFree', defaultMessage: 'Free' })
 
   return (
     <div className="space-y-6">
@@ -168,17 +166,11 @@ export const StorageContent: React.FC<StorageContentProps> = ({
             </div>
           ) : (
             <>
-              <div className="bg-muted/50 rounded-lg p-4">
+              <div className="bg-muted/50 rounded-lg p-4 w-full max-w-md">
                 <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{intl.formatMessage({ id: 'modules.files.storage.usedStorage', defaultMessage: 'Used Storage' })}</span>
-                    <span className="px-2 py-0.5 bg-secondary rounded text-xs font-medium">
-                      {planName}
-                    </span>
-                  </div>
+                  <span className="text-sm font-medium">{intl.formatMessage({ id: 'modules.files.storage.usedStorage', defaultMessage: 'Used Storage' })}</span>
                   <span className="text-sm text-muted-foreground">
-                    {formatFileSize(usedStorage)} of{' '}
-                    {formatFileSize(maxStorage)}
+                    {formatFileSize(usedStorage)}
                   </span>
                 </div>
                 <div className="w-full bg-secondary rounded-full h-2 mb-3">
@@ -186,9 +178,6 @@ export const StorageContent: React.FC<StorageContentProps> = ({
                     className="gradient-primary h-2 rounded-full transition-all"
                     style={{ width: `${Math.min(usagePercentage, 100)}%` }}
                   />
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {intl.formatMessage({ id: 'modules.files.storage.available', defaultMessage: '{amount} available' }, { amount: formatFileSize(availableSpace) })}
                 </div>
               </div>
 
