@@ -41,10 +41,6 @@ import { GoogleDriveModule } from './modules/integration-framework/google-drive/
 import { GoogleSheetsModule } from './modules/integration-framework/google-sheets/google-sheets.module';
 import { DropboxModule } from './modules/integration-framework/dropbox/dropbox.module';
 import { YoutubeModule } from './modules/integration-framework/youtube/youtube.module';
-import { SlackModule } from './modules/slack/slack.module';
-import { SlackWhiteboardModule } from './modules/slack-whiteboard/slack-whiteboard.module';
-import { SlackProjectsModule } from './modules/slack-projects/slack-projects.module';
-import { SlackCalendarModule } from './modules/slack-calendar/slack-calendar.module';
 import { TwitterModule } from './modules/twitter/twitter.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { SendGridModule } from './modules/sendgrid/sendgrid.module';
@@ -118,10 +114,6 @@ import { RagModule } from './modules/rag/rag.module';
     GoogleSheetsModule,
     DropboxModule,
     YoutubeModule,
-    SlackModule,
-    SlackWhiteboardModule,
-    SlackProjectsModule,
-    SlackCalendarModule,
     TwitterModule,
     TelegramModule,
     SendGridModule,

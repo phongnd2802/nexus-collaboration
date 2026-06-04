@@ -88,15 +88,6 @@ const DownloadsPage = lazy(() => import('./pages/public/DownloadsPage'));
 const FeaturesPage = lazy(() => import('./pages/public/FeaturesPage'));
 const SharedFilePage = lazy(() => import('./pages/shared/SharedFilePage'));
 
-// Slack Integration Pages
-const SlackOnboarding = lazy(() => import('./pages/slack/SlackOnboarding'));
-const SlackSuccess = lazy(() => import('./pages/slack/SlackSuccess'));
-const SlackError = lazy(() => import('./pages/slack/SlackError'));
-const SlackWhiteboard = lazy(() => import('./pages/slack/SlackWhiteboard'));
-const SlackCalendar = lazy(() => import('./pages/slack/SlackCalendar'));
-const SlackCalendarSuccess = lazy(() => import('./pages/slack/SlackCalendarSuccess'));
-const SlackCalendarOnboarding = lazy(() => import('./pages/slack/SlackCalendarOnboarding'));
-
 // Product Pages
 const ProductDetailPage = lazy(() => import('./pages/public/products/ProductDetailPage'));
 
@@ -274,15 +265,6 @@ function App() {
 
                             {/* Public Routes */}
                             <Route path="/downloads" element={<DownloadsPage />} />
-
-                            {/* Slack Integration Routes */}
-                            <Route path="/slack/onboarding" element={<SlackOnboarding />} />
-                            <Route path="/slack/success" element={<SlackSuccess />} />
-                            <Route path="/slack/error" element={<SlackError />} />
-                            <Route path="/slack/whiteboard" element={<SlackWhiteboard />} />
-                            <Route path="/slack/calendar" element={<SlackCalendar />} />
-                            <Route path="/slack/calendar-success" element={<SlackCalendarSuccess />} />
-                            <Route path="/slack/calendar-onboarding" element={<SlackCalendarOnboarding />} />
 
                             {/* Product Detail Routes */}
                             <Route path="/products/:slug" element={<ProductDetailPage />} />
