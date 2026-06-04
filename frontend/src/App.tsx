@@ -80,9 +80,6 @@ const PublicMeetingPage = lazy(() => import('./pages/video-call/PublicMeetingPag
 const StandaloneVideoCall = lazy(() => import('./pages/video-call/StandaloneVideoCall').then(m => ({ default: m.StandaloneVideoCall })));
 const IncomingCallWindow = lazy(() => import('./pages/video-call/IncomingCallWindow').then(m => ({ default: m.IncomingCallWindow })));
 
-// Whiteboard Pages (Heavy - Excalidraw)
-const WhiteboardPage = lazy(() => import('./pages/whiteboard').then(m => ({ default: m.WhiteboardPage })));
-
 // Public Pages
 const DownloadsPage = lazy(() => import('./pages/public/DownloadsPage'));
 const FeaturesPage = lazy(() => import('./pages/public/FeaturesPage'));
@@ -219,8 +216,6 @@ function WorkspaceRoutes() {
         <Route path="email/message/:messageId" element={<EmailPage />} />
         <Route path="budget" element={<BudgetList />} />
         <Route path="budget/:budgetId" element={<BudgetDetails />} />
-        <Route path="whiteboard" element={<WhiteboardPage />} />
-        <Route path="whiteboard/:whiteboardId" element={<WhiteboardPage />} />
         <Route path="forms" element={<FormsPage />} />
         <Route path="forms/new" element={<FormBuilderPage />} />
         <Route path="forms/:formId/edit" element={<FormBuilderPage />} />
@@ -315,10 +310,6 @@ function App() {
 
                             {/* Notifications Redirect */}
                             <Route path="/notifications" element={<Navigate to="/workspaces" replace />} />
-
-                            {/* Whiteboard Routes */}
-                            <Route path="/whiteboard/:sessionId" element={<WhiteboardPage />} />
-                            <Route path="/whiteboard" element={<WhiteboardPage />} />
 
                             {/* Public Video Meeting */}
                             <Route path="/video/meeting/:meetingId" element={<PublicMeetingPage />} />

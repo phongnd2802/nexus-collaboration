@@ -41,8 +41,6 @@ import { GoogleDriveModule } from './modules/integration-framework/google-drive/
 import { GoogleSheetsModule } from './modules/integration-framework/google-sheets/google-sheets.module';
 import { DropboxModule } from './modules/integration-framework/dropbox/dropbox.module';
 import { YoutubeModule } from './modules/integration-framework/youtube/youtube.module';
-import { TwitterModule } from './modules/twitter/twitter.module';
-import { TelegramModule } from './modules/telegram/telegram.module';
 import { SendGridModule } from './modules/sendgrid/sendgrid.module';
 import { OpenAIModule } from './modules/openai/openai.module';
 import { EmailModule } from './modules/integration-framework/email/email.module';
@@ -56,7 +54,6 @@ import { NotionModule } from './modules/integration-framework/notion/notion.modu
 import { TrelloModule } from './modules/integration-framework/trello/trello.module';
 import { AutoPilotModule } from './modules/autopilot/autopilot.module';
 import { ApprovalsModule } from './modules/approvals/approvals.module';
-import { WhiteboardsModule } from './modules/whiteboards/whiteboards.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { DocumentsModule } from './modules/documents/documents.module';
@@ -114,8 +111,6 @@ import { RagModule } from './modules/rag/rag.module';
     GoogleSheetsModule,
     DropboxModule,
     YoutubeModule,
-    TwitterModule,
-    TelegramModule,
     SendGridModule,
     OpenAIModule,
     EmailModule,
@@ -130,7 +125,6 @@ import { RagModule } from './modules/rag/rag.module';
     TrelloModule,
     AutoPilotModule,
     ApprovalsModule,
-    WhiteboardsModule,
     BotsModule,
     IntegrationFrameworkModule,
     TemplatesModule,

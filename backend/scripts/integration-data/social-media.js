@@ -4,32 +4,6 @@
 
 const socialMediaIntegrations = [
   {
-    slug: 'twitter',
-    name: 'Twitter/X',
-    description: 'Connect Twitter/X for social media management.',
-    category: 'SOCIAL_MEDIA',
-    provider: 'X Corp',
-    logoUrl: 'https://abs.twimg.com/favicons/twitter.3.ico',
-    website: 'https://twitter.com',
-    documentationUrl: 'https://developer.twitter.com/en/docs',
-    authType: 'oauth2',
-    authConfig: {
-      authorizationUrl: 'https://twitter.com/i/oauth2/authorize',
-      tokenUrl: 'https://api.twitter.com/2/oauth2/token',
-      revokeUrl: 'https://api.twitter.com/2/oauth2/revoke',
-      scopes: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
-      clientIdEnvKey: 'TWITTER_CLIENT_ID',
-      clientSecretEnvKey: 'TWITTER_CLIENT_SECRET',
-      usePKCE: true
-    },
-    apiBaseUrl: 'https://api.twitter.com/2',
-    capabilities: ['read_tweets', 'post_tweets', 'read_mentions', 'read_followers'],
-    features: ['Tweet posting', 'Timeline access', 'Analytics', 'Direct messages'],
-    pricingType: 'freemium',
-    isVerified: true,
-    isFeatured: true
-  },
-  {
     slug: 'linkedin',
     name: 'LinkedIn',
     description: 'Connect LinkedIn for professional networking.',

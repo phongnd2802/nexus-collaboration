@@ -38,6 +38,7 @@ export type ViewType =
   | 'files'
   | 'ai-chat'
   | 'bots'
+  | 'email'
   | 'search'
   | 'settings'
   | 'integrations'
@@ -45,7 +46,6 @@ export type ViewType =
   | 'monitoring'
   | 'apps'
   | 'more'
-  | 'whiteboard'
 
 interface NavigationItem {
   view: ViewType

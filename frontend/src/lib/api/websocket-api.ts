@@ -9,7 +9,6 @@ export type WebSocketEventType =
   | 'presence'
   | 'notification'
   | 'cursor'
-  | 'whiteboard'
   | 'video-call'
   | 'connect'
   | 'disconnect'
@@ -50,10 +49,7 @@ export type WebSocketEventType =
   | 'approval:status_updated'  // Backend emits when approval request status changes
   | 'approval:comment_added'   // Backend emits when new comment is added
   | 'approval:request_deleted' // Backend emits when approval request is deleted
-  | 'approval:request_created' // Backend emits when new approval request is created
-  | 'whiteboard:user_joined'   // Backend emits when user joins whiteboard
-  | 'whiteboard:user_left'     // Backend emits when user leaves whiteboard
-  | 'whiteboard:update';       // Backend emits when whiteboard is updated
+  | 'approval:request_created'; // Backend emits when new approval request is created
 
 export interface WebSocketMessage {
   type: WebSocketEventType;

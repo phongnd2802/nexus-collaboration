@@ -834,35 +834,6 @@
       "isFeatured": false
     },
     {
-      "slug": "telegram",
-      "name": "Telegram",
-      "description": "Connect Telegram bot to send notifications and messages.",
-      "category": "COMMUNICATION",
-      "provider": "Telegram",
-      "logoUrl": "https://telegram.org/img/t_logo.svg",
-      "website": "https://telegram.org",
-      "documentationUrl": "https://core.telegram.org/bots/api",
-      "authType": "api_key",
-      "authConfig": {
-        "fieldLabel": "Bot Token",
-        "helpText": "Create a bot via @BotFather and copy the token"
-      },
-      "apiBaseUrl": "https://api.telegram.org",
-      "capabilities": [
-        "send_messages",
-        "receive_messages",
-        "manage_groups"
-      ],
-      "features": [
-        "Bot messaging",
-        "Group notifications",
-        "Inline keyboards"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
       "slug": "whatsapp",
       "name": "WhatsApp Business",
       "description": "Connect WhatsApp Business to send notifications and messages to customers.",
@@ -5435,47 +5406,6 @@
       "pricingType": "paid",
       "isVerified": true,
       "isFeatured": false
-    },
-    {
-      "slug": "twitter",
-      "name": "Twitter/X",
-      "description": "Connect Twitter/X for social media management.",
-      "category": "SOCIAL_MEDIA",
-      "provider": "X Corp",
-      "logoUrl": "https://abs.twimg.com/favicons/twitter.3.ico",
-      "website": "https://twitter.com",
-      "documentationUrl": "https://developer.twitter.com/en/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://twitter.com/i/oauth2/authorize",
-        "tokenUrl": "https://api.twitter.com/2/oauth2/token",
-        "revokeUrl": "https://api.twitter.com/2/oauth2/revoke",
-        "scopes": [
-          "tweet.read",
-          "tweet.write",
-          "users.read",
-          "offline.access"
-        ],
-        "clientIdEnvKey": "TWITTER_CLIENT_ID",
-        "clientSecretEnvKey": "TWITTER_CLIENT_SECRET",
-        "usePKCE": true
-      },
-      "apiBaseUrl": "https://api.twitter.com/2",
-      "capabilities": [
-        "read_tweets",
-        "post_tweets",
-        "read_mentions",
-        "read_followers"
-      ],
-      "features": [
-        "Tweet posting",
-        "Timeline access",
-        "Analytics",
-        "Direct messages"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": true
     },
     {
       "slug": "linkedin",

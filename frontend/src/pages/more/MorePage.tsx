@@ -6,7 +6,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ClipboardCheck,
   ChevronRight,
-  PenTool,
   LayoutTemplate,
   Bot,
   DollarSign,
@@ -16,7 +15,6 @@ import {
 import { GoogleDriveBrowser } from '../apps/GoogleDriveBrowser';
 import GoogleSheetsBrowser from '../apps/GoogleSheetsBrowser';
 import { ApprovalsPage } from '../approvals';
-import { WhiteboardPage } from '../whiteboard/WhiteboardPage';
 import TemplatesPage from '../templates/TemplatesPage';
 import BotsPage from '../bots/BotsPage';
 import BudgetList from '../budget/BudgetList';
@@ -97,13 +95,6 @@ function MoreGrid() {
       path: 'templates',
     },
     {
-      name: intl.formatMessage({ id: 'tools.whiteboard.name', defaultMessage: 'Whiteboard' }),
-      description: intl.formatMessage({ id: 'tools.whiteboard.description', defaultMessage: 'Collaborative drawing and brainstorming' }),
-      icon: <PenTool className="w-6 h-6" />,
-      color: '#10b981',
-      path: 'whiteboard',
-    },
-    {
       name: intl.formatMessage({ id: 'tools.requestApproval.name', defaultMessage: 'Request & Approval' }),
       description: intl.formatMessage({ id: 'tools.requestApproval.description', defaultMessage: 'Create and manage approval workflows' }),
       icon: <ClipboardCheck className="w-6 h-6" />,
@@ -168,7 +159,6 @@ export function MorePage() {
       <Route path="/bots/*" element={<BotsPage />} />
       <Route path="/budget/*" element={<BudgetList />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
-      <Route path="/whiteboard/*" element={<WhiteboardPage />} />
       <Route path="/google-drive/*" element={<GoogleDriveBrowser />} />
       <Route path="/google-sheets/*" element={<GoogleSheetsBrowser />} />
       <Route path="/approvals/*" element={<ApprovalsPage />} />
