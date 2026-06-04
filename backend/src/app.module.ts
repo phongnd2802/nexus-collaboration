@@ -41,7 +41,6 @@ import { GoogleDriveModule } from './modules/integration-framework/google-drive/
 import { GoogleSheetsModule } from './modules/integration-framework/google-sheets/google-sheets.module';
 import { DropboxModule } from './modules/integration-framework/dropbox/dropbox.module';
 import { YoutubeModule } from './modules/integration-framework/youtube/youtube.module';
-import { SendGridModule } from './modules/sendgrid/sendgrid.module';
 import { OpenAIModule } from './modules/openai/openai.module';
 import { EmailModule } from './modules/integration-framework/email/email.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
@@ -111,7 +110,6 @@ import { RagModule } from './modules/rag/rag.module';
     GoogleSheetsModule,
     DropboxModule,
     YoutubeModule,
-    SendGridModule,
     OpenAIModule,
     EmailModule,
     EmailProviderModule,

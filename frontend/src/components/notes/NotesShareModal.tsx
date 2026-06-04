@@ -95,9 +95,10 @@ export function NotesShareModal({
       console.log('Share note result:', result);
 
       // Extract shared_count safely
-      const sharedCount = typeof result === 'object' && result !== null && 'shared_count' in result
-        ? result.shared_count
-        : sharedWith.size;
+      const sharedCount =
+        typeof result === 'object' && result !== null && 'shared_count' in result
+          ? result.shared_count
+          : sharedWith.size;
 
       toast.success(
         intl.formatMessage(

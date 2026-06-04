@@ -2,7 +2,7 @@
  * Real SMTP email helpers using nodemailer.
  *
  * Replaces the fluxez SDK email stub with a concrete implementation. Works
- * with any SMTP provider (Resend, SendGrid, Mailgun, AWS SES, Postmark,
+ * with any SMTP provider (Resend, Mailgun, AWS SES, Postmark,
  * Gmail, self-hosted Postfix, etc.).
  *
  * Required env vars:

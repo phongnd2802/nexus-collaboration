@@ -757,38 +757,6 @@
       "isFeatured": false
     },
     {
-      "slug": "sendgrid",
-      "name": "SendGrid",
-      "description": "Connect SendGrid to send transactional and marketing emails.",
-      "category": "EMAIL",
-      "provider": "Twilio SendGrid",
-      "logoUrl": "https://sendgrid.com/favicon.ico",
-      "website": "https://sendgrid.com",
-      "documentationUrl": "https://docs.sendgrid.com/api-reference",
-      "authType": "api_key",
-      "authConfig": {
-        "headerName": "Authorization",
-        "headerPrefix": "Bearer ",
-        "fieldLabel": "SendGrid API Key",
-        "helpText": "Create an API key in your SendGrid dashboard under Settings > API Keys"
-      },
-      "apiBaseUrl": "https://api.sendgrid.com/v3",
-      "capabilities": [
-        "send_email",
-        "manage_templates",
-        "view_stats"
-      ],
-      "features": [
-        "Email sending",
-        "Template management",
-        "Delivery analytics",
-        "Contact lists"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
       "slug": "discord",
       "name": "Discord",
       "description": "Connect Discord to receive notifications and manage server communications.",

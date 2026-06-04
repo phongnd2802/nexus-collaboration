@@ -15,7 +15,6 @@ import { Logger } from '@nestjs/common';
 import { EmailProvider } from './email-provider.interface';
 import { SmtpProvider } from './smtp.provider';
 import { ResendProvider } from './resend.provider';
-import { SendgridProvider } from './sendgrid.provider';
 import { PostmarkProvider } from './postmark.provider';
 import { MailgunProvider } from './mailgun.provider';
 import { SesProvider } from './ses.provider';
@@ -36,11 +35,6 @@ export function createEmailProvider(config: ConfigService): EmailProvider {
     case 'resend': {
       const p = new ResendProvider(config);
       log.log(`Selected email provider: resend (available=${p.isAvailable()})`);
-      return p;
-    }
-    case 'sendgrid': {
-      const p = new SendgridProvider(config);
-      log.log(`Selected email provider: sendgrid (available=${p.isAvailable()})`);
       return p;
     }
     case 'postmark': {
@@ -65,7 +59,7 @@ export function createEmailProvider(config: ConfigService): EmailProvider {
       return new NoneEmailProvider();
     default:
       log.warn(
-        `Unknown EMAIL_PROVIDER="${choice}". Falling back to "none". Valid values: smtp, resend, sendgrid, postmark, mailgun, ses, none.`,
+        `Unknown EMAIL_PROVIDER="${choice}". Falling back to "none". Valid values: smtp, resend, postmark, mailgun, ses, none.`,
       );
       return new NoneEmailProvider();
   }
@@ -74,7 +68,6 @@ export function createEmailProvider(config: ConfigService): EmailProvider {
 export * from './email-provider.interface';
 export { SmtpProvider } from './smtp.provider';
 export { ResendProvider } from './resend.provider';
-export { SendgridProvider } from './sendgrid.provider';
 export { PostmarkProvider } from './postmark.provider';
 export { MailgunProvider } from './mailgun.provider';
 export { SesProvider } from './ses.provider';

@@ -60,6 +60,49 @@ export class ChatService {
     return text;
   }
 
+  private async ensurePublicWorkspaceChannelMemberships(workspaceId: string, userId: string) {
+    const workspaceMembership = await this.db.findOne('workspace_members', {
+      workspace_id: workspaceId,
+      user_id: userId,
+      is_active: true,
+    });
+
+    if (!workspaceMembership) {
+      return;
+    }
+
+    const publicChannelsResult = await this.db.findMany('channels', {
+      workspace_id: workspaceId,
+      is_private: false,
+      is_archived: false,
+    });
+
+    const publicChannels = Array.isArray(publicChannelsResult.data) ? publicChannelsResult.data : [];
+    if (publicChannels.length === 0) {
+      return;
+    }
+
+    const membershipsResult = await this.db.findMany('channel_members', {
+      user_id: userId,
+    });
+
+    const memberships = Array.isArray(membershipsResult.data) ? membershipsResult.data : [];
+    const memberChannelIds = new Set(memberships.map((membership) => membership.channel_id));
+
+    for (const channel of publicChannels) {
+      if (memberChannelIds.has(channel.id)) {
+        continue;
+      }
+
+      await this.db.insert('channel_members', {
+        channel_id: channel.id,
+        user_id: userId,
+        role: 'member',
+        joined_at: new Date().toISOString(),
+      });
+    }
+  }
+
   // Channel operations
   async createChannel(workspaceId: string, createChannelDto: CreateChannelDto, userId: string) {
     // Check if user is workspace owner or admin
@@ -112,6 +155,7 @@ export class ChatService {
       // Get all workspace members
       const workspaceMembersResult = await this.db.findMany('workspace_members', {
         workspace_id: workspaceId,
+        is_active: true,
       });
 
       const workspaceMembers = Array.isArray(workspaceMembersResult.data)
@@ -213,6 +257,8 @@ export class ChatService {
   }
 
   async getChannels(workspaceId: string, userId: string) {
+    await this.ensurePublicWorkspaceChannelMemberships(workspaceId, userId);
+
     // Get user's channel memberships first
     const membershipResult = await this.db.findMany('channel_members', {
       user_id: userId,
@@ -427,6 +473,7 @@ export class ChatService {
       // Get all workspace members
       const workspaceMembersResult = await this.db.findMany('workspace_members', {
         workspace_id: channel.workspace_id,
+        is_active: true,
       });
       const workspaceMembers = Array.isArray(workspaceMembersResult.data)
         ? workspaceMembersResult.data
@@ -2296,6 +2343,25 @@ export class ChatService {
       const channelData = Array.isArray(channelQueryResult.data) ? channelQueryResult.data : [];
       if (channelData.length === 0) {
         throw new NotFoundException('Channel not found');
+      }
+
+      const channel = channelData[0];
+      if (!channel.is_private) {
+        const workspaceMembership = await this.db.findOne('workspace_members', {
+          workspace_id: channel.workspace_id,
+          user_id: userId,
+          is_active: true,
+        });
+
+        if (workspaceMembership) {
+          await this.db.insert('channel_members', {
+            channel_id: channelId,
+            user_id: userId,
+            role: 'member',
+            joined_at: new Date().toISOString(),
+          });
+          return;
+        }
       }
 
       // User must be a member to access any channel (public or private)

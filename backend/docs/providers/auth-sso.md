@@ -76,7 +76,7 @@ No external credentials needed — magic link uses the existing
 `JwtService` for token signing and the existing `EmailService` for
 transport. When the email adapter PR lands, the transport will
 transparently use whichever `EMAIL_PROVIDER` the operator has
-selected (smtp / resend / sendgrid / ses / etc).
+selected (smtp / resend / postmark / ses / etc).
 
 ### Flow
 

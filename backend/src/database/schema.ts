@@ -1765,29 +1765,6 @@ export const schema = {
     ],
   },
 
-  // ==================== SENDGRID INTEGRATION ====================
-  // User-specific SendGrid connection within workspace (API key based, not OAuth)
-  sendgrid_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who connected this SendGrid
-      { name: 'api_key', type: 'text', nullable: false }, // Encrypted SendGrid API key
-      { name: 'sender_email', type: 'string', nullable: false }, // Default sender email
-      { name: 'sender_name', type: 'string', nullable: true }, // Default sender name
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true }, // One connection per user per workspace
-      { columns: ['is_active'] },
-      { columns: ['sender_email'] },
-    ],
-  },
-
   // ==================== EMAIL CONNECTIONS ====================
   // Supports both OAuth (Gmail) and SMTP/IMAP providers
   email_connections: {
