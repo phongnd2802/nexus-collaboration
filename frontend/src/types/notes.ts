@@ -144,7 +144,6 @@ export interface Note {
   created_by?: string
   last_edited_by?: string
   collaborative_data?: any // JSONB field from backend
-
   // Enriched fields from backend API
   author?: {
     id: string

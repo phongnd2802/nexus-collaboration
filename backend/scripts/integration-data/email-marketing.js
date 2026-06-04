@@ -1,6 +1,6 @@
 /**
  * Email & Marketing Integrations
- * Already implemented: gmail, sendgrid
+ * Already implemented: gmail
  */
 
 const emailMarketingIntegrations = [

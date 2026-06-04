@@ -1544,25 +1544,6 @@ CREATE INDEX IF NOT EXISTS "idx_openai_connections_user_id" ON "openai_connectio
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_openai_connections_workspace_id_user_id" ON "openai_connections" ("workspace_id", "user_id");
 CREATE INDEX IF NOT EXISTS "idx_openai_connections_is_active" ON "openai_connections" ("is_active");
 
--- ==================== SENDGRID_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "sendgrid_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "api_key" TEXT NOT NULL,
-  "sender_email" VARCHAR(255) NOT NULL,
-  "sender_name" VARCHAR(255),
-  "is_active" BOOLEAN DEFAULT true,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_sendgrid_connections_workspace_id" ON "sendgrid_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_sendgrid_connections_user_id" ON "sendgrid_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_sendgrid_connections_workspace_id_user_id" ON "sendgrid_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_sendgrid_connections_is_active" ON "sendgrid_connections" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_sendgrid_connections_sender_email" ON "sendgrid_connections" ("sender_email");
-
 -- ==================== EMAIL_CONNECTIONS ====================
 CREATE TABLE IF NOT EXISTS "email_connections" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),

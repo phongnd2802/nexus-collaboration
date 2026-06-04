@@ -274,7 +274,19 @@ export const notesApi = {
   },
 
   // Sharing
-  async shareNote(workspaceId: string, noteId: string, data: { user_ids: string[]; permission?: 'read' | 'write' | 'admin' }): Promise<{ success: boolean; message: string; shared_count: number; total_shared_users: number }> {
+  async shareNote(
+    workspaceId: string,
+    noteId: string,
+    data: {
+      user_ids: string[];
+      permission?: 'read' | 'write' | 'admin';
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    shared_count: number;
+    total_shared_users: number;
+  }> {
     return api.post(`/workspaces/${workspaceId}/notes/${noteId}/share`, data);
   },
 

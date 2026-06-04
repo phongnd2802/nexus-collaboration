@@ -408,7 +408,6 @@ const SystemSettings: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="SMTP">SMTP</SelectItem>
-                    <SelectItem value="SENDGRID">SendGrid</SelectItem>
                     <SelectItem value="MAILGUN">Mailgun</SelectItem>
                     <SelectItem value="SES">Amazon SES</SelectItem>
                   </SelectContent>

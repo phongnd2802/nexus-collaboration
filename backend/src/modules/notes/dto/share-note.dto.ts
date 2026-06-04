@@ -28,11 +28,4 @@ export class ShareNoteDto {
   @IsEnum(SharePermission)
   permission?: SharePermission;
 
-  @ApiProperty({
-    description: 'Whether to make note publicly accessible',
-    required: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  is_public?: boolean;
 }

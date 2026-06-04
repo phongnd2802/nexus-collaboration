@@ -9,7 +9,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
   // Marketing
   brevo: { apiKey: 'xkeysib-mock-key-12345' },
   mailchimp: { apiKey: 'mock-mailchimp-key-us1' },
-  sendgrid: { apiKey: 'SG.mock-sendgrid-key' },
   hubspot: { accessToken: 'mock-hubspot-token' },
   klaviyo: { apiKey: 'pk_mock_klaviyo_key' },
 
