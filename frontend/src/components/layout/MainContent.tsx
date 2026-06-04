@@ -56,9 +56,6 @@ export function MainContent({
   const intl = useIntl()
   const location = useLocation()
 
-  // Check if we're on the whiteboard page - should be full screen without header
-  const isWhiteboardPage = location.pathname.includes('/whiteboard')
-
   // Check if we're on a budget page - should not show the header
   const isBudgetPage = location.pathname.includes('/budget')
 
@@ -76,8 +73,8 @@ export function MainContent({
     setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
   }
 
-  // For whiteboard and budget, render full-screen content without header
-  if (isWhiteboardPage || isBudgetPage) {
+  // For budget, render full-screen content without header
+  if (isBudgetPage) {
     return (
       <main className="flex-1 bg-background flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto">

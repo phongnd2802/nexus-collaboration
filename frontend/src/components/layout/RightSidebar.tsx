@@ -149,12 +149,12 @@ function DefaultRightSidebar({ currentView }: { currentView: ViewType }) {
     const viewTranslationKeys: Record<ViewType, { id: string; defaultMessage: string }> = {
       dashboard: { id: 'navigation.dashboard', defaultMessage: 'Dashboard' },
       chat: { id: 'navigation.messages', defaultMessage: 'Chat' },
+      'ai-chat': { id: 'navigation.aiChat', defaultMessage: 'AI Chat' },
       projects: { id: 'navigation.projects', defaultMessage: 'Projects' },
       notes: { id: 'navigation.notes', defaultMessage: 'Notes' },
       calendar: { id: 'navigation.calendar', defaultMessage: 'Calendar' },
       video: { id: 'navigation.videoCall', defaultMessage: 'Video' },
       files: { id: 'navigation.files', defaultMessage: 'Files' },
-      whiteboard: { id: 'navigation.whiteboard', defaultMessage: 'Whiteboard' },
       email: { id: 'navigation.email', defaultMessage: 'Email' },
       bots: { id: 'navigation.bots', defaultMessage: 'Bots' },
       search: { id: 'navigation.search', defaultMessage: 'Search' },

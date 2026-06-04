@@ -21,7 +21,6 @@ import { ApprovalsService } from '../../approvals/approvals.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { TemplatesService } from '../../templates/templates.service';
 import { DocumentsService } from '../../documents/documents.service';
-import { WhiteboardsService } from '../../whiteboards/whiteboards.service';
 import { WorkflowsService } from '../../workflows/services/workflows.service';
 import { AIWorkflowGeneratorService } from '../../workflows/services/ai-workflow-generator.service';
 import { WorkflowTriggerType, WorkflowStepType } from '../../workflows/dto/workflow.dto';
@@ -80,8 +79,6 @@ export class AgentToolsService {
     private readonly templatesService: TemplatesService,
     @Inject(forwardRef(() => DocumentsService))
     private readonly documentsService: DocumentsService,
-    @Inject(forwardRef(() => WhiteboardsService))
-    private readonly whiteboardsService: WhiteboardsService,
     @Inject(forwardRef(() => WorkflowsService))
     private readonly workflowsService: WorkflowsService,
     @Inject(forwardRef(() => AIWorkflowGeneratorService))
@@ -138,7 +135,6 @@ export class AgentToolsService {
       ...this.getNotificationTools(),
       ...this.getTemplateTools(),
       ...this.getDocumentTools(),
-      ...this.getWhiteboardTools(),
       ...this.getWorkflowTools(),
       ...this.getSchedulingTools(),
     ];
@@ -345,12 +341,6 @@ export class AgentToolsService {
           'Send the document for signature',
           'List my documents',
         ],
-      },
-      {
-        name: 'Whiteboards',
-        description: 'Create and manage whiteboards for collaboration',
-        category: 'whiteboards',
-        examples: ['Create a whiteboard for brainstorming', 'List all whiteboards'],
       },
       {
         name: 'Workflow Automation',
@@ -6037,92 +6027,6 @@ Provide a comprehensive summary covering:
               this.context.userId,
             );
             return JSON.stringify({ success: true, message: 'Document deleted' });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-    ];
-  }
-
-  // ============================================
-  // WHITEBOARD TOOLS
-  // ============================================
-
-  private getWhiteboardTools(): DynamicStructuredTool[] {
-    return [
-      new DynamicStructuredTool({
-        name: 'create_whiteboard',
-        description: 'Create a new whiteboard.',
-        schema: z.object({
-          name: z.string().describe('Whiteboard name'),
-          description: z.string().optional().describe('Whiteboard description'),
-        }),
-        func: async ({ name, description }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would create whiteboard',
-              details: { name },
-            });
-          }
-
-          try {
-            const whiteboard = await this.whiteboardsService.createWhiteboard(
-              this.context.workspaceId,
-              { name, description } as any,
-              this.context.userId,
-            );
-            return JSON.stringify({
-              success: true,
-              whiteboard,
-              message: `Whiteboard "${name}" created`,
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'list_whiteboards',
-        description: 'List whiteboards in the workspace.',
-        schema: z.object({}),
-        func: async () => {
-          try {
-            const whiteboards = await this.whiteboardsService.getWhiteboards(
-              this.context.workspaceId,
-              this.context.userId,
-            );
-            return JSON.stringify({ success: true, whiteboards, count: whiteboards.length });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'delete_whiteboard',
-        description: 'Delete a whiteboard.',
-        schema: z.object({
-          whiteboardId: z.string().describe('Whiteboard ID to delete'),
-        }),
-        func: async ({ whiteboardId }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would delete whiteboard',
-              details: { whiteboardId },
-            });
-          }
-
-          try {
-            await this.whiteboardsService.deleteWhiteboard(
-              this.context.workspaceId,
-              whiteboardId,
-              this.context.userId,
-            );
-            return JSON.stringify({ success: true, message: 'Whiteboard deleted' });
           } catch (error) {
             return JSON.stringify({ success: false, error: error.message });
           }

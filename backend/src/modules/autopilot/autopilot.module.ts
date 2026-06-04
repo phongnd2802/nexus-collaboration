@@ -25,7 +25,6 @@ import { ApprovalsModule } from '../approvals/approvals.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TemplatesModule } from '../templates/templates.module';
 import { DocumentsModule } from '../documents/documents.module';
-import { WhiteboardsModule } from '../whiteboards/whiteboards.module';
 import { WorkflowsModule } from '../workflows/workflows.module';
 import { SettingsModule } from '../settings/settings.module';
 
@@ -51,7 +50,6 @@ import { ProactiveModule } from './proactive';
     forwardRef(() => NotificationsModule),
     forwardRef(() => TemplatesModule),
     forwardRef(() => DocumentsModule),
-    forwardRef(() => WhiteboardsModule),
     forwardRef(() => WorkflowsModule),
     forwardRef(() => SettingsModule),
   ],
