@@ -9,7 +9,6 @@ import { FaGoogle, FaGithub } from 'react-icons/fa'
 import { authApi } from '../../lib/api/auth-api'
 import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { workspaceApi } from '../../lib/api/workspace-api'
-import { api } from '../../lib/fetch'
 
 export default function Register() {
   const intl = useIntl()
@@ -25,8 +24,6 @@ export default function Register() {
   const [searchParams] = useSearchParams()
 
   const invitationToken = searchParams.get('invitation') || localStorage.getItem('pending_invitation_token')
-  const slackSetupToken = searchParams.get('slack_setup') || null
-
   useEffect(() => {
     const urlInvitation = searchParams.get('invitation')
     if (urlInvitation) {
@@ -53,9 +50,7 @@ export default function Register() {
       })
 
       if (response.requiresVerification) {
-        const redirectUrl = slackSetupToken
-          ? `/auth/login?slack_setup=${slackSetupToken}`
-          : '/auth/login';
+        const redirectUrl = '/auth/login';
         navigate(redirectUrl, {
           state: {
             message: 'Registration successful! Please check your email to verify your account before signing in.',
@@ -63,42 +58,6 @@ export default function Register() {
           }
         })
         return
-      }
-
-      if (slackSetupToken) {
-        const authToken = (response as any).access_token || response.token;
-        if (authToken) {
-          localStorage.setItem('auth_token', authToken);
-        } else {
-          setError('Authentication token not received. Please try logging in.');
-          setIsLoading(false);
-          return;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        try {
-          const setupResult = await api.post<{
-            success: boolean;
-            data: { workspaceId: string; teamId: string; teamName: string };
-            message: string;
-          }>('/slack/whiteboard/complete-setup', {
-            setupToken: slackSetupToken
-          });
-
-          if (setupResult.success) {
-            navigate(`/slack/success?workspace_id=${setupResult.data.workspaceId}&team_id=${setupResult.data.teamId}`);
-            return;
-          } else {
-            setError(setupResult.message || 'Failed to complete Slack setup.');
-            setIsLoading(false);
-            return;
-          }
-        } catch (setupError) {
-          setError('Failed to complete Slack setup. Please try again.');
-          setIsLoading(false);
-          return;
-        }
       }
 
       if (invitationToken) {

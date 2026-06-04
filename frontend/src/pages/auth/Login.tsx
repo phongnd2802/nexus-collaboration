@@ -8,7 +8,6 @@ import { FaGoogle, FaGithub } from 'react-icons/fa'
 import { useAuth } from '../../contexts/AuthContext'
 import { Eye, EyeOff, AlertCircle, Loader2, CheckCircle } from 'lucide-react'
 import { workspaceApi } from '../../lib/api/workspace-api'
-import { api } from '../../lib/fetch'
 
 export default function Login() {
   const intl = useIntl()
@@ -35,8 +34,6 @@ export default function Login() {
   }, [location.state])
 
   const callbackUrl = searchParams.get('callbackUrl') || null
-  const slackSetupToken = searchParams.get('slack_setup') || null
-
   const fromLocation = (location.state as { from?: Location })?.from
   const redirectTo = fromLocation
     ? `${fromLocation.pathname}${fromLocation.search || ''}`
@@ -58,31 +55,6 @@ export default function Login() {
 
     try {
       await login({ email, password })
-
-      if (slackSetupToken) {
-        try {
-          const setupResult = await api.post<{
-            success: boolean;
-            data: { workspaceId: string; teamId: string; teamName: string };
-            message: string;
-          }>('/slack/whiteboard/complete-setup', {
-            setupToken: slackSetupToken
-          });
-
-          if (setupResult.success) {
-            navigate(`/slack/success?workspace_id=${setupResult.data.workspaceId}&team_id=${setupResult.data.teamId}`);
-            return;
-          } else {
-            setError(setupResult.message || 'Failed to complete Slack setup.');
-            setIsLoading(false);
-            return;
-          }
-        } catch (setupError) {
-          setError('Failed to complete Slack setup. Please try again.');
-          setIsLoading(false);
-          return;
-        }
-      }
 
       if (invitationToken) {
         navigate(`/invite/${invitationToken}`);
@@ -321,9 +293,7 @@ export default function Login() {
               {intl.formatMessage({ id: 'auth.login.noAccount' })}{' '}
               <Link
                 to={
-                  slackSetupToken
-                    ? `/auth/register?slack_setup=${slackSetupToken}`
-                    : invitationToken
+                  invitationToken
                     ? `/auth/register?invitation=${invitationToken}`
                     : "/auth/register"
                 }
