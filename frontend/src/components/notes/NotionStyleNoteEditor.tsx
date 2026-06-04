@@ -2020,11 +2020,7 @@ export function NotionStyleNoteEditor({
                       <span>Connecting...</span>
                     </div>
                   ) : isCollaborationConnected && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 text-sm text-green-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full" />
-                        <span>Live</span>
-                      </div>
+                    <div className="flex items-center">
                       <PresenceIndicator
                         users={collaborationUsers}
                         currentUserId={user?.id}
@@ -2132,13 +2128,21 @@ export function NotionStyleNoteEditor({
 
                   {selectedText && (
                     <div className="text-sm text-muted-foreground">
-                      {selectedText.length} chars selected
+                      {intl.formatMessage(
+                        { id: 'modules.notes.editor.charsSelected' },
+                        { count: selectedText.length }
+                      )}
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>{getPlainTextContent().length} characters</span>
+                  <span>
+                    {intl.formatMessage(
+                      { id: 'modules.notes.editor.charactersCount' },
+                      { count: getPlainTextContent().length }
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
