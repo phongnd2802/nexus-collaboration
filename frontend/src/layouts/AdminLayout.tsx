@@ -22,7 +22,6 @@ import {
   Bell,
   Search,
   Home,
-  MessageSquare,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -66,23 +65,6 @@ const AdminLayout: React.FC = () => {
       label: intl.formatMessage({ id: 'admin.organizations' }),
       href: '/admin/organizations',
       icon: Building2,
-    },
-    {
-      label: intl.formatMessage({ id: 'admin.feedback', defaultMessage: 'Feedback' }),
-      href: '/admin/feedback',
-      icon: MessageSquare,
-      children: [
-        {
-          label: intl.formatMessage({ id: 'admin.feedback.all', defaultMessage: 'All Feedback' }),
-          href: '/admin/feedback',
-          icon: MessageSquare,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.feedback.deletion', defaultMessage: 'Deletion Feedback' }),
-          href: '/admin/feedback/deletion',
-          icon: MessageSquare,
-        },
-      ],
     },
     {
       label: intl.formatMessage({ id: 'admin.systemSettings' }),

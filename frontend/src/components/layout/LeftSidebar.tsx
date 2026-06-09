@@ -1604,12 +1604,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
               active={activeSettingsSection === 'notifications'}
               onClick={() => navigateToSettingsSection('notifications')}
             />
-            {/* <SidebarItem
-              icon={<MessageSquare className="h-3 w-3" />}
-              label={intl.formatMessage({ id: 'sidebar.settings.feedback', defaultMessage: 'Feedback' })}
-              active={activeSettingsSection === 'feedback'}
-              onClick={() => navigateToSettingsSection('feedback')}
-            /> */}
             <SidebarItem
               icon={<Users className="h-3 w-3" />}
               label={intl.formatMessage({ id: 'sidebar.settings.team' })}

@@ -56,7 +56,7 @@ export default function ProjectsFeature() {
                 <Link to="/auth/register">{intl.formatMessage({ id: 'productPages.projects.cta' })}</Link>
               </Button>
               <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
-                <Link to="/contact">Request Demo</Link>
+                <a href="mailto:support@nexusapp.io">Request Demo</a>
               </Button>
             </div>
           </div>

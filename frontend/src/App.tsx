@@ -116,8 +116,6 @@ const UserManagement = lazy(() => import('./pages/admin').then(m => ({ default: 
 const OrganizationManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.OrganizationManagement })));
 const SystemSettings = lazy(() => import('./pages/admin').then(m => ({ default: m.SystemSettings })));
 const AuditLogs = lazy(() => import('./pages/admin').then(m => ({ default: m.AuditLogs })));
-const FeedbackManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.FeedbackManagement })));
-const DeletionFeedbackManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.DeletionFeedbackManagement })));
 
 // Error Pages (Keep lightweight, can be static)
 const NotFound = lazy(() => import('./pages/errors').then(m => ({ default: m.NotFound })));
@@ -339,8 +337,6 @@ function App() {
                               <Route index element={<AdminDashboard />} />
                               <Route path="users" element={<UserManagement />} />
                               <Route path="organizations" element={<OrganizationManagement />} />
-                              <Route path="feedback" element={<FeedbackManagement />} />
-                              <Route path="feedback/deletion" element={<DeletionFeedbackManagement />} />
                               <Route path="settings" element={<SystemSettings />} />
                               <Route path="audit-logs" element={<AuditLogs />} />
                             </Route>
