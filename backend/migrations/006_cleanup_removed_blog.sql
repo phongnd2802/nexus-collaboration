@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS "blog_ratings" CASCADE;
+DROP TABLE IF EXISTS "blog_post_likes" CASCADE;
+DROP TABLE IF EXISTS "blog_comments" CASCADE;
+DROP TABLE IF EXISTS "blog_post_tags" CASCADE;
+DROP TABLE IF EXISTS "blog_post_categories" CASCADE;
+DROP TABLE IF EXISTS "blog_tags" CASCADE;
+DROP TABLE IF EXISTS "blog_categories" CASCADE;
+DROP TABLE IF EXISTS "blog_posts" CASCADE;

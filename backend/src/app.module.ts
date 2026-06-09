@@ -59,7 +59,6 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { SignaturesModule } from './modules/signatures/signatures.module';
 import { BotsModule } from './modules/bots/bots.module';
 import { BudgetModule } from './modules/budget/budget.module';
-import { BlogModule } from './modules/blog/blog.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
@@ -103,7 +102,6 @@ import { RagModule } from './modules/rag/rag.module';
     EventsModule,
     SeoModule,
     SettingsModule,
-    BlogModule,
     SchedulerModule,
     ContactModule,
     GoogleDriveModule,

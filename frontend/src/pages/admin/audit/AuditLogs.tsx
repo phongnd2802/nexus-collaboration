@@ -356,7 +356,6 @@ const AuditLogs: React.FC = () => {
                   <SelectItem value="workspace">Workspace</SelectItem>
                   <SelectItem value="project">Project</SelectItem>
                   <SelectItem value="file">File</SelectItem>
-                  <SelectItem value="blog_post">Blog Post</SelectItem>
                   <SelectItem value="settings">Settings</SelectItem>
                   <SelectItem value="system">System</SelectItem>
                 </SelectContent>
@@ -598,8 +597,6 @@ const getResourceIcon = (resource: string) => {
     case 'project':
       return <FileText className="h-4 w-4 text-muted-foreground" />;
     case 'file':
-      return <FileText className="h-4 w-4 text-muted-foreground" />;
-    case 'blog_post':
       return <FileText className="h-4 w-4 text-muted-foreground" />;
     case 'settings':
       return <Settings className="h-4 w-4 text-muted-foreground" />;
