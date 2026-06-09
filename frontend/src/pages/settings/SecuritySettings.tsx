@@ -42,7 +42,7 @@ import {
 
 // Services
 import { settingsService } from '@/lib/api/settings-api';
-import { DeletionExitSurvey } from '@/components/account/deletion-exit-survey';
+import { api } from '@/lib/fetch';
 
 // Types
 interface PasswordFormData {
@@ -95,7 +95,10 @@ const SecuritySettings: React.FC = () => {
   });
 
   // Account deletion states
-  const [showExitSurvey, setShowExitSurvey] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load security settings on mount
   useEffect(() => {
@@ -271,11 +274,24 @@ const SecuritySettings: React.FC = () => {
     }
   }, [success]);
 
-  // Handle logout (used by exit survey)
-  const handleLogoutInstead = async () => {
-    setShowExitSurvey(false);
-    await logout();
-    navigate('/', { replace: true });
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      setDeleteError('Password is required');
+      return;
+    }
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await api.delete('/auth/account', { body: JSON.stringify({ password: deletePassword }) });
+      await api.post('/auth/logout', {});
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      await logout();
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      setDeleteError(err?.message || 'Failed to delete account');
+      setIsDeleting(false);
+    }
   };
 
   if (loading) {
@@ -601,7 +617,7 @@ const SecuritySettings: React.FC = () => {
             </div>
             <Button
               variant="destructive"
-              onClick={() => setShowExitSurvey(true)}
+              onClick={() => { setShowDeleteConfirm(true); setDeletePassword(''); setDeleteError(null); }}
               className="bg-red-600 hover:bg-red-700"
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -611,12 +627,35 @@ const SecuritySettings: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Account Deletion Exit Survey */}
-      <DeletionExitSurvey
-        open={showExitSurvey}
-        onOpenChange={setShowExitSurvey}
-        onLogoutInstead={handleLogoutInstead}
-      />
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{intl.formatMessage({ id: 'settings.security.deleteAccount.button' })}</DialogTitle>
+            <DialogDescription>
+              {intl.formatMessage({ id: 'settings.security.deleteAccount.warning.description' })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="delete-password">Password</Label>
+              <Input
+                id="delete-password"
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password to confirm"
+              />
+            </div>
+            {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete Account'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

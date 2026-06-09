@@ -19,7 +19,6 @@ import SecuritySettings from './SecuritySettings';
 import NotificationSettings from './NotificationSettings';
 import TeamManagement from './TeamManagement';
 import WorkspaceSettings from './WorkspaceSettings';
-import FeedbackSettings from './FeedbackSettings';
 
 // Simple container component - no tabs needed since left sidebar has navigation
 const ContentContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -102,7 +101,6 @@ const SettingsPage: React.FC = () => {
         {activeTab === 'profile' && <ProfileSettings />}
         {activeTab === 'security' && <SecuritySettings />}
         {activeTab === 'notifications' && <NotificationSettings />}
-        {activeTab === 'feedback' && <FeedbackSettings />}
         {activeTab === 'team' && workspaceId && <TeamManagement workspaceId={workspaceId} />}
         {activeTab === 'workspace' && workspaceId && <WorkspaceSettings workspaceId={workspaceId} />}
       </ContentContainer>

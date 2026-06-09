@@ -36,7 +36,6 @@ import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { ConversationMemoryModule } from './modules/conversation-memory/conversation-memory.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
-import { ContactModule } from './modules/contact/contact.module';
 import { GoogleDriveModule } from './modules/integration-framework/google-drive/google-drive.module';
 import { GoogleSheetsModule } from './modules/integration-framework/google-sheets/google-sheets.module';
 import { DropboxModule } from './modules/integration-framework/dropbox/dropbox.module';
@@ -61,7 +60,6 @@ import { BotsModule } from './modules/bots/bots.module';
 import { BudgetModule } from './modules/budget/budget.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
-import { FeedbackModule } from './modules/feedback/feedback.module';
 import { RagModule } from './modules/rag/rag.module';
 
 @Module({
@@ -103,7 +101,6 @@ import { RagModule } from './modules/rag/rag.module';
     SeoModule,
     SettingsModule,
     SchedulerModule,
-    ContactModule,
     GoogleDriveModule,
     GoogleSheetsModule,
     DropboxModule,
@@ -129,7 +126,6 @@ import { RagModule } from './modules/rag/rag.module';
     BudgetModule,
     FormsModule,
     WorkflowsModule,
-    FeedbackModule,
     RagModule,
   ],
   providers: [
