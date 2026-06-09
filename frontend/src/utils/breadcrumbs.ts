@@ -71,19 +71,6 @@ export function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItem[] 
  * Generate common breadcrumb paths for specific sections
  */
 export const commonBreadcrumbs = {
-  blog: (postTitle?: string): BreadcrumbItem[] => {
-    const base: BreadcrumbItem[] = [
-      { name: 'Home', url: '/' },
-      { name: 'Blog', url: '/blog' },
-    ];
-
-    if (postTitle) {
-      base.push({ name: postTitle, url: window.location.pathname });
-    }
-
-    return base;
-  },
-
   products: (productName?: string): BreadcrumbItem[] => {
     const base: BreadcrumbItem[] = [
       { name: 'Home', url: '/' },

@@ -68,33 +68,6 @@ const AdminLayout: React.FC = () => {
       icon: Building2,
     },
     {
-      label: intl.formatMessage({ id: 'admin.blogManagement' }),
-      href: '/admin/blog',
-      icon: FileText,
-      children: [
-        {
-          label: intl.formatMessage({ id: 'admin.blog.allPosts' }),
-          href: '/admin/blog',
-          icon: FileText,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.blog.createPost' }),
-          href: '/admin/blog/create',
-          icon: FileText,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.blog.categories' }),
-          href: '/admin/blog/categories',
-          icon: FileText,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.blog.tags' }),
-          href: '/admin/blog/tags',
-          icon: FileText,
-        },
-      ],
-    },
-    {
       label: intl.formatMessage({ id: 'admin.feedback', defaultMessage: 'Feedback' }),
       href: '/admin/feedback',
       icon: MessageSquare,

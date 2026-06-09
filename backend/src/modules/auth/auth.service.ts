@@ -1033,7 +1033,6 @@ export class AuthService {
         'event_reminders',
         'ai_generations',
         'chat_sessions',
-        'blog_posts',
         'activity_logs',
         'user_activity_logs',
         'search_history',
