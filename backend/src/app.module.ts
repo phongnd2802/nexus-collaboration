@@ -31,7 +31,6 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { EventsModule } from './modules/events/events.module';
-import { SeoModule } from './modules/seo/seo.module';
 import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { ConversationMemoryModule } from './modules/conversation-memory/conversation-memory.module';
@@ -98,7 +97,6 @@ import { RagModule } from './modules/rag/rag.module';
     AnalyticsModule,
     MonitoringModule,
     EventsModule,
-    SeoModule,
     SettingsModule,
     SchedulerModule,
     GoogleDriveModule,

@@ -7641,6 +7641,7 @@
       "actions": {
         "viewProject": "View Project",
         "joinMeeting": "Join Meeting",
+        "viewEvent": "View Event",
         "viewMessages": "View Messages",
         "openNote": "Open Note",
         "viewTask": "View Task"
@@ -7648,6 +7649,14 @@
       "taskBalance": {
         "title": "Task Imbalance in {projectName}",
         "description": "{overloadedName} has {overloadedCount} tasks while {underloadedName} has {underloadedCount}. Ideal is ~{idealCount} tasks per member."
+      },
+      "overdueTask": {
+        "title": "Overdue: {taskTitle}",
+        "description": "This task was due {daysOverdue} {daysOverdue, plural, one {day} other {days}} ago in {projectName}"
+      },
+      "missedEvent": {
+        "title": "Missed Event",
+        "description": "You missed \"{eventTitle}\""
       },
       "priority": {
         "high": "High Priority",

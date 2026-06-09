@@ -7641,6 +7641,7 @@
       "actions": {
         "viewProject": "Xem dự án",
         "joinMeeting": "Tham gia cuộc họp",
+        "viewEvent": "Xem sự kiện",
         "viewMessages": "Xem tin nhắn",
         "openNote": "Mở ghi chú",
         "viewTask": "Xem nhiệm vụ"
@@ -7648,6 +7649,14 @@
       "taskBalance": {
         "title": "Mất cân bằng nhiệm vụ trong {projectName}",
         "description": "{overloadedName} có {overloadedCount} nhiệm vụ trong khi {underloadedName} có {underloadedCount}. Mức lý tưởng là khoảng {idealCount} nhiệm vụ mỗi thành viên."
+      },
+      "overdueTask": {
+        "title": "Quá hạn: {taskTitle}",
+        "description": "Nhiệm vụ này đã quá hạn {daysOverdue} {daysOverdue, plural, one {ngày} other {ngày}} trong {projectName}"
+      },
+      "missedEvent": {
+        "title": "Lỡ sự kiện",
+        "description": "Bạn đã lỡ \"{eventTitle}\""
       },
       "priority": {
         "high": "Ưu tiên cao",
