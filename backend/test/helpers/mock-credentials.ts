@@ -65,10 +65,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
     region: 'us-east-1',
   },
   google_drive: { accessToken: 'mock-google-drive-token' },
-  dropbox: {
-    accessToken: 'sl.mock-dropbox-access-token',
-    refreshToken: 'mock-dropbox-refresh-token',
-  },
 
   // Marketing - Google Ads
   google_ads: {
@@ -399,15 +395,6 @@ export const OAUTH_MOCK_CREDENTIALS = {
     accessToken: 'pina_mock-pinterest-access-token',
     refreshToken: 'pinr_mock-pinterest-refresh-token',
     expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30 days
-  },
-  dropbox: {
-    clientId: 'mock-dropbox-client-id',
-    clientSecret: 'mock-dropbox-client-secret',
-    accessToken: 'sl.mock-dropbox-access-token',
-    refreshToken: 'mock-dropbox-refresh-token',
-    expiresAt: new Date(Date.now() + 4 * 3600 * 1000), // 4 hours
-    accountId: 'dbid:mock-dropbox-account-id',
-    uid: 'mock-dropbox-uid',
   },
   teams: {
     clientId: 'mock-teams-client-id',

@@ -1444,33 +1444,6 @@ CREATE INDEX IF NOT EXISTS "idx_device_tokens_user_id_is_active" ON "device_toke
 CREATE INDEX IF NOT EXISTS "idx_device_tokens_last_used_at" ON "device_tokens" ("last_used_at");
 CREATE INDEX IF NOT EXISTS "idx_device_tokens_created_at" ON "device_tokens" ("created_at");
 
--- ==================== DROPBOX_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "dropbox_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "access_token" TEXT NOT NULL,
-  "refresh_token" TEXT,
-  "token_type" VARCHAR(255) DEFAULT 'Bearer',
-  "scope" TEXT,
-  "expires_at" TIMESTAMPTZ,
-  "account_id" VARCHAR(255),
-  "dropbox_email" VARCHAR(255),
-  "dropbox_name" VARCHAR(255),
-  "dropbox_picture" TEXT,
-  "is_active" BOOLEAN DEFAULT true,
-  "last_synced_at" TIMESTAMPTZ,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_workspace_id" ON "dropbox_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_user_id" ON "dropbox_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_dropbox_connections_workspace_id_user_id" ON "dropbox_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_is_active" ON "dropbox_connections" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_dropbox_email" ON "dropbox_connections" ("dropbox_email");
-CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_account_id" ON "dropbox_connections" ("account_id");
-
 -- ==================== OPENAI_CONNECTIONS ====================
 CREATE TABLE IF NOT EXISTS "openai_connections" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),

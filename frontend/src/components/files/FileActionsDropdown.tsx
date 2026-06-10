@@ -51,14 +51,12 @@ interface FileActionsDropdownProps {
   onDownload?: () => void;
   onInfo?: () => void;
   onComments?: () => void;
-  onExportToDropbox?: () => void;
   onToggleOffline?: () => void;
   canPaste?: boolean;
   isTrashView?: boolean;
   isSearchView?: boolean;
   isSharedWithMeView?: boolean;
   allowCutCopyPaste?: boolean;
-  isDropboxConnected?: boolean;
 }
 
 export function FileActionsDropdown({
@@ -80,14 +78,12 @@ export function FileActionsDropdown({
   onDownload,
   onInfo,
   onComments,
-  onExportToDropbox,
   onToggleOffline,
   canPaste = false,
   isTrashView = false,
   isSearchView = false,
   isSharedWithMeView = false,
   allowCutCopyPaste = true,
-  isDropboxConnected = false,
 }: FileActionsDropdownProps) {
   const intl = useIntl();
 
@@ -187,12 +183,6 @@ export function FileActionsDropdown({
                     {isOffline
                       ? intl.formatMessage({ id: 'modules.files.contextMenu.removeOffline', defaultMessage: 'Remove from offline' })
                       : intl.formatMessage({ id: 'modules.files.contextMenu.makeOffline', defaultMessage: 'Make available offline' })}
-                  </DropdownMenuItem>
-                )}
-                {isDropboxConnected && onExportToDropbox && (
-                  <DropdownMenuItem onSelect={handleAction(onExportToDropbox)}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    {intl.formatMessage({ id: 'modules.files.contextMenu.exportToDropbox', defaultMessage: 'Export to Dropbox' })}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />

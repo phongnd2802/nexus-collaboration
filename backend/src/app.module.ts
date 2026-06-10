@@ -34,7 +34,6 @@ import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { ConversationMemoryModule } from './modules/conversation-memory/conversation-memory.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
-import { DropboxModule } from './modules/integration-framework/dropbox/dropbox.module';
 import { OpenAIModule } from './modules/openai/openai.module';
 import { EmailModule } from './modules/integration-framework/email/email.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
@@ -86,7 +85,6 @@ import { RagModule } from './modules/rag/rag.module';
     EventsModule,
     SettingsModule,
     SchedulerModule,
-    DropboxModule,
     OpenAIModule,
     EmailModule,
     EmailProviderModule,
