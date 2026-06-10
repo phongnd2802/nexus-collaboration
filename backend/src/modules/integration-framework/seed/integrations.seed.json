@@ -191,66 +191,6 @@
       "isFeatured": false
     },
     {
-      "slug": "slack",
-      "name": "Slack",
-      "description": "Connect Slack to receive notifications and send messages directly from Nexus.",
-      "category": "COMMUNICATION",
-      "provider": "Slack",
-      "logoUrl": "https://a.slack-edge.com/80588/marketing/img/icons/icon_slack_hash_colored.png",
-      "website": "https://slack.com",
-      "documentationUrl": "https://api.slack.com/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://slack.com/oauth/v2/authorize",
-        "tokenUrl": "https://slack.com/api/oauth.v2.access",
-        "revokeUrl": "https://slack.com/api/auth.revoke",
-        "userInfoUrl": "https://slack.com/api/users.identity",
-        "scopes": [
-          "channels:read",
-          "chat:write",
-          "users:read",
-          "team:read",
-          "im:write"
-        ],
-        "scopeDelimiter": ",",
-        "clientIdEnvKey": "SLACK_CLIENT_ID",
-        "clientSecretEnvKey": "SLACK_CLIENT_SECRET",
-        "userInfoMapping": {
-          "id": "user.id",
-          "email": "user.email",
-          "name": "user.name",
-          "avatar": "user.image_72"
-        }
-      },
-      "apiBaseUrl": "https://slack.com/api",
-      "supportsWebhooks": true,
-      "webhookConfig": {
-        "events": [
-          "message",
-          "reaction_added",
-          "channel_created",
-          "member_joined_channel"
-        ],
-        "signatureHeader": "X-Slack-Signature",
-        "signatureAlgorithm": "sha256"
-      },
-      "capabilities": [
-        "send_messages",
-        "read_channels",
-        "list_users",
-        "notifications"
-      ],
-      "features": [
-        "Send notifications",
-        "Channel sync",
-        "Message posting",
-        "User directory"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
       "slug": "github",
       "name": "GitHub",
       "description": "Connect GitHub repositories to track issues, pull requests, and sync code activities.",

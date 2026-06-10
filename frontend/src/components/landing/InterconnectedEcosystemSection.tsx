@@ -33,7 +33,7 @@ const featuresData: Record<string, string[]> = {
   calendar: ['Event scheduling', 'Team calendars', 'Reminders', 'Time zones', 'AI scheduling assistant'],
   notes: ['Rich text editor', 'Templates', 'Collaboration', 'Version history', 'AI content generation'],
   email: ['Unified inbox', 'Smart filters', 'Templates', 'Scheduling', 'AI email drafting'],
-  tools: ['WhiteBoard', 'Document Builder', 'Request and Approval', 'Budgeting', 'Custom Bots']
+  tools: ['Shared Planning', 'Document Builder', 'Request and Approval', 'Budgeting', 'Custom Bots']
 };
 
 const botCapabilitiesData: Record<string, string[]> = {
@@ -141,10 +141,8 @@ const getCoreModules = (intl: ReturnType<typeof useIntl>) => [
 
 // 180+ Integration Partners
 const integrations = [
-  { name: 'Slack', logo: 'https://cdn.simpleicons.org/slack/4A154B' },
   { name: 'Microsoft Teams', logo: 'https://cdn.simpleicons.org/microsoftteams/6264A7' },
   { name: 'Discord', logo: 'https://cdn.simpleicons.org/discord/5865F2' },
-  { name: 'Telegram', logo: 'https://cdn.simpleicons.org/telegram/26A5E4' },
   { name: 'WhatsApp', logo: 'https://cdn.simpleicons.org/whatsapp/25D366' },
   { name: 'Zoom', logo: 'https://cdn.simpleicons.org/zoom/2D8CFF' },
   { name: 'Google Meet', logo: 'https://cdn.simpleicons.org/googlemeet/00897B' },
@@ -197,7 +195,6 @@ const integrations = [
   { name: 'Freshdesk', logo: 'https://cdn.simpleicons.org/freshdesk/00C1A5' },
   { name: 'Help Scout', logo: 'https://cdn.simpleicons.org/helpscout/1292EE' },
   { name: 'LiveChat', logo: 'https://cdn.simpleicons.org/livechat/FFD000' },
-  { name: 'Twitter', logo: 'https://cdn.simpleicons.org/x/000000' },
   { name: 'Facebook', logo: 'https://cdn.simpleicons.org/facebook/0866FF' },
   { name: 'Instagram', logo: 'https://cdn.simpleicons.org/instagram/E4405F' },
   { name: 'Confluence', logo: 'https://cdn.simpleicons.org/confluence/172B4D' },

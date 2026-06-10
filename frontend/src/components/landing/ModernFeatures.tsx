@@ -12,7 +12,6 @@ import {
   Brain,
   BarChart3,
   Search,
-  Palette,
   ArrowRight,
   Check,
   Sparkles
@@ -183,24 +182,6 @@ const ModernFeatures: React.FC = () => {
       color: 'from-indigo-500 to-indigo-600',
       imageUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       stats: { searches: '500K+', speed: '<100ms', accuracy: '98%' }
-    },
-    {
-      id: 'whiteboard',
-      icon: Palette,
-      title: 'Whiteboard',
-      subtitle: 'Visual Collaboration',
-      description: 'Real-time collaborative whiteboard for brainstorming, diagrams, and visual thinking. Unlimited canvas for your ideas.',
-      features: [
-        'Infinite canvas',
-        'Real-time collaboration',
-        'Drawing & shape tools',
-        'Templates & stickers',
-        'Export to PNG/SVG',
-        'Version control'
-      ],
-      color: 'from-blue-500 to-blue-600',
-      imageUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
-      stats: { boards: '15K+', collaborators: '100K+', templates: '200+' }
     },
   ];
 

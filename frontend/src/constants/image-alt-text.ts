@@ -181,13 +181,6 @@ export const getAltText = {
   },
 
   /**
-   * Generate alt text for blog featured image
-   */
-  blogFeatured: (postTitle: string) => {
-    return `Featured image for blog post: ${postTitle}`;
-  },
-
-  /**
    * Generate alt text for category image
    */
   category: (categoryName: string) => {

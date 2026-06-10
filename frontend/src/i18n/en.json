@@ -284,13 +284,11 @@
     "calendar": "Calendar",
     "videoCall": "Video Call",
     "files": "Files",
-    "whiteboard": "Whiteboard",
     "search": "Search",
     "settings": "Settings",
     "integrations": "Integrations",
     "analytics": "Analytics",
     "support": "Support",
-    "blog": "Blog",
     "tutorial": "Tutorial",
     "apps": "Apps",
     "more": "More",
@@ -648,7 +646,7 @@
         "name": "Tools",
         "desc": "Productivity tools",
         "features": [
-          "WhiteBoard",
+          "Shared Planning",
           "Document Builder",
           "Request and Approval",
           "Budgeting",
@@ -5184,8 +5182,8 @@
           "description": "AI-powered noise suppression for crystal clear audio"
         },
         "whiteboard": {
-          "title": "Interactive Whiteboard",
-          "description": "Collaborate on ideas with real-time whiteboard sharing"
+          "title": "Shared Planning Canvas",
+          "description": "Collaborate on ideas with live shared planning surfaces"
         },
         "export": {
           "title": "Export & Download",
@@ -6015,9 +6013,9 @@
       "tools": {
         "title": "Collaborative Tools",
         "tagline": "Create Together",
-        "description": "Unlock creativity with powerful collaborative tools. Use interactive whiteboards for brainstorming, visual planning, and real-time collaboration. Perfect for design sprints, strategy sessions, and creative workshops.",
+        "description": "Unlock creativity with powerful collaborative tools for brainstorming, visual planning, and real-time collaboration. Perfect for design sprints, strategy sessions, and creative workshops.",
         "features": [
-          "Interactive whiteboard with drawing tools",
+          "Shared planning canvases",
           "Real-time multi-user collaboration",
           "Templates for common workflows",
           "Export and share your creations"
@@ -6045,36 +6043,6 @@
           "Zapier and automation platform support"
         ]
       }
-    }
-  },
-  "contact": {
-    "badge": "Get in touch",
-    "title": "We'd love to hear from you",
-    "subtitle": "Have questions or feedback? Our team is here to help. Send us a message and we'll respond within 24 hours.",
-    "form": {
-      "name": "Name",
-      "namePlaceholder": "Your full name",
-      "nameRequired": "Name is required",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Invalid email address",
-      "company": "Company",
-      "companyPlaceholder": "Your company name",
-      "message": "Message",
-      "messagePlaceholder": "Tell us about your project or question...",
-      "messageRequired": "Message is required",
-      "submit": "Send Message",
-      "submitting": "Sending...",
-      "success": "Message sent successfully!",
-      "error": "Failed to send message. Please try again.",
-      "subject": "Subject",
-      "selectTopic": "Select a topic",
-      "subjectGeneral": "General Inquiry",
-      "subjectSales": "Sales",
-      "subjectSupport": "Support",
-      "subjectPartnership": "Partnership",
-      "subjectOther": "Other"
     }
   },
   "featureHighlights": {
@@ -6963,9 +6931,9 @@
           "title": "5. Data Retention",
           "content": {
             "0": "We retain your information for as long as your account is active or as needed to provide you services.",
-            "1": "Slack Integration: When you disconnect Nexus from Slack or uninstall the app, Slack-related data (tokens, channel links) is immediately deactivated. Your workspace data (projects, events, whiteboards) remains accessible via the Nexus web platform and can be permanently deleted upon request.",
+            "1": "If you disconnect a third-party integration, any related tokens or linked references are deactivated. Your core workspace data remains accessible in Nexus and can be permanently deleted upon request.",
             "2": "Backup copies of your data may be retained for up to 90 days for disaster recovery purposes.",
-            "3": "You can request deletion of your data at any time by contacting us at support@nexusapp.io or using the disconnect option in the Slack App Home."
+            "3": "You can request deletion of your data at any time by contacting us at support@nexusapp.io."
           }
         },
         "section6": {
@@ -8216,102 +8184,7 @@
     },
     "title": "Settings",
     "description": "Manage your account settings and preferences",
-    "error": "Error loading settings",
-    "feedback": {
-      "title": "Feedback & Support",
-      "description": "Report bugs, request features, or share suggestions to help us improve Nexus.",
-      "newFeedback": "New Feedback",
-      "tabs": {
-        "all": "All",
-        "pending": "Pending",
-        "resolved": "Resolved"
-      },
-      "noFeedback": "No feedback yet",
-      "clickToSubmit": "Click \"New Feedback\" to submit your first feedback",
-      "types": {
-        "bug": "Bug",
-        "issue": "Issue",
-        "improvement": "Improvement",
-        "feature_request": "Feature Request"
-      },
-      "statuses": {
-        "pending": "Pending",
-        "in_review": "In Review",
-        "in_progress": "In Progress",
-        "resolved": "Resolved",
-        "wont_fix": "Won't Fix",
-        "duplicate": "Duplicate"
-      },
-      "attachmentCount": "{count} attachment",
-      "attachmentCount_plural": "{count} attachments",
-      "dialog": {
-        "create": {
-          "title": "Submit Feedback",
-          "type": {
-            "label": "Feedback Type",
-            "bug": "Bug",
-            "issue": "Issue",
-            "improvement": "Improvement",
-            "featureRequest": "Feature Request"
-          },
-          "title_field": {
-            "label": "Title *",
-            "placeholder": "Brief description of the issue",
-            "counter": "{current}/{max}"
-          },
-          "description": {
-            "label": "Description *",
-            "placeholder": "Provide detailed information...",
-            "counter": "{current}/{max}"
-          },
-          "category": {
-            "label": "Category (Optional)",
-            "placeholder": "Select a category",
-            "ui": "UI/UX",
-            "performance": "Performance",
-            "feature": "Feature",
-            "security": "Security",
-            "other": "Other"
-          },
-          "attachments": {
-            "label": "Attachments (Optional)",
-            "description": "Add screenshots or files to help us understand the issue (max 5 files, 10MB each)",
-            "button": "Attach Files",
-            "uploading": "Uploading...",
-            "remove": "Remove"
-          },
-          "errors": {
-            "maxAttachments": "Maximum 5 attachments allowed",
-            "fileTooBig": "File {fileName} is too large (max 10MB)",
-            "uploadFailed": "Failed to upload file",
-            "titleTooShort": "Title must be at least 5 characters",
-            "descriptionTooShort": "Description must be at least 20 characters",
-            "submitFailed": "Failed to submit feedback"
-          },
-          "buttons": {
-            "cancel": "Cancel",
-            "submit": "Submit Feedback",
-            "submitting": "Submitting..."
-          }
-        },
-        "detail": {
-          "title": "Feedback Details",
-          "submittedOn": "Submitted on {date}",
-          "description": "Description",
-          "category": "Category",
-          "attachments": "Attachments",
-          "deviceInfo": "Device Information",
-          "appVersion": "App Version",
-          "platform": "Platform",
-          "os": "OS",
-          "device": "Device",
-          "resolved": {
-            "title": "Resolved",
-            "resolvedOn": "Resolved on {date}"
-          }
-        }
-      }
-    }
+    "error": "Error loading settings"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -8332,8 +8205,7 @@
       "billing": "Billing",
       "billingBadge": "Important",
       "workspaceSection": "WORKSPACE",
-      "workspace": "Workspace Settings",
-      "feedback": "Feedback"
+      "workspace": "Workspace Settings"
     }
   },
   "admin": {
@@ -8341,87 +8213,10 @@
     "dashboard": "Dashboard",
     "userManagement": "User Management",
     "organizations": "Organizations",
-    "blogManagement": "Blog Management",
     "systemSettings": "System Settings",
     "auditLogs": "Audit Logs",
     "security": "Security",
-    "backToApp": "Back to App",
-    "blog": {
-      "post": {
-        "backToBlog": "Back to Blog",
-        "ratingsReviews": "Ratings & Reviews",
-        "rating": "rating",
-        "ratings": "ratings",
-        "star": "star",
-        "yourRating": "Your Rating",
-        "rateThisPost": "Rate this Post",
-        "yourReview": "Your Review (Optional)",
-        "reviewPlaceholder": "Share your thoughts about this article...",
-        "submitRating": "Submit Rating",
-        "updateRating": "Update Rating",
-        "recentReviews": "Recent Reviews",
-        "noReviews": "No reviews yet",
-        "beFirst": "Be the first to share your thoughts!",
-        "comments": "Comments",
-        "comment": "comment",
-        "collapse": "Collapse",
-        "expand": "Expand",
-        "writeComment": "Write a comment...",
-        "postComment": "Post Comment",
-        "reply": "Reply",
-        "postReply": "Post Reply",
-        "cancel": "Cancel",
-        "noComments": "No comments yet",
-        "startConversation": "Be the first to start the conversation!",
-        "loginToComment": "Login to comment",
-        "loginToRate": "Login to rate"
-      },
-      "section": {
-        "title": "Our Blog",
-        "latest": "Latest",
-        "insights": "Insights",
-        "subtitle": "Discover productivity tips, collaboration guides, and workplace insights from our team",
-        "noPosts": "No Blog Posts Yet",
-        "noPostsDesc": "Check back soon for insights and updates from our team",
-        "viewAll": "View All Posts"
-      },
-      "allPosts": "All Posts",
-      "createPost": "Create Post",
-      "categories": "Categories",
-      "tags": "Tags",
-      "title": "Blog",
-      "subtitle": "Insights on social media marketing & growth",
-      "newPost": "New Post",
-      "searchPlaceholder": "Search articles...",
-      "browse": "Browse",
-      "filter": {
-        "latest": "Latest",
-        "popular": "Popular",
-        "featured": "Featured",
-        "allPosts": "All Posts"
-      },
-      "myPosts": "My Posts",
-      "categoriesTitle": "Categories",
-      "allCategories": "All Categories",
-      "noPostsFound": "No posts found",
-      "noPostsFoundDesc": "Try adjusting your filters or search terms",
-      "comment": "comment",
-      "comments": "comments",
-      "noBlogPostsYet": "No blog posts yet",
-      "beTheFirst": "Be the first to share your insights",
-      "createFirstPost": "Create First Post",
-      "category": {
-        "technology": "Technology",
-        "marketing": "Marketing",
-        "socialmedia": "Social Media",
-        "business": "Business",
-        "development": "Development",
-        "design": "Design",
-        "growth": "Growth",
-        "news": "News",
-        "tips": "Tips"
-      }
-    }
+    "backToApp": "Back to App"
   },
   "notifications": {
     "title": "Notifications",
@@ -8804,89 +8599,6 @@
     "createProjectError": "Failed to create project from template.",
     "complexity": "complexity",
     "moreTasks": "+{count} more tasks..."
-  },
-  "whiteboard": {
-    "title": "Whiteboard",
-    "loading": "Loading...",
-    "defaultName": "Untitled Whiteboard",
-    "defaultNameWithDate": "Whiteboard {date}",
-    "updated": "Updated:",
-    "noWhiteboardsYet": "No whiteboards yet. Create one to get started!",
-    "newWhiteboard": "New Whiteboard",
-    "showMenu": "Show Menu",
-    "hideGrid": "Hide Grid",
-    "showGrid": "Show Grid",
-    "canvasBackground": "Canvas Background",
-    "copyData": "Copy Whiteboard Data",
-    "deleteWhiteboard": "Delete Whiteboard",
-    "hideMenuBar": "Hide Menu Bar",
-    "hideHeader": "Hide Header",
-    "showHeader": "Show Header",
-    "error": {
-      "loadFailed": "Failed to load whiteboard",
-      "notFound": "Whiteboard not found",
-      "saveFailed": "Failed to save whiteboard",
-      "createFailed": "Failed to create whiteboard",
-      "deleteFailed": "Failed to delete whiteboard",
-      "exportFailed": "Failed to export whiteboard",
-      "missingWorkspaceId": "Missing Workspace ID",
-      "couldNotExtractWorkspaceId": "Could not extract workspace ID from the URL."
-    },
-    "success": {
-      "saved": "Whiteboard saved successfully",
-      "created": "Whiteboard created successfully",
-      "deleted": "Whiteboard deleted successfully",
-      "exportedPNG": "Exported as PNG",
-      "exportedSVG": "Exported as SVG",
-      "copiedToClipboard": "Whiteboard data copied to clipboard"
-    },
-    "status": {
-      "saving": "Saving...",
-      "failedToSave": "Failed to save",
-      "allChangesSaved": "All changes saved"
-    },
-    "tools": {
-      "lock": "Lock Canvas",
-      "unlock": "Unlock Canvas",
-      "hand": "Hand Tool",
-      "select": "Select",
-      "rectangle": "Rectangle",
-      "diamond": "Diamond",
-      "ellipse": "Ellipse",
-      "arrow": "Arrow",
-      "line": "Line",
-      "draw": "Draw",
-      "text": "Text",
-      "image": "Image",
-      "eraser": "Eraser"
-    },
-    "export": {
-      "png": "Export as PNG",
-      "svg": "Export as SVG"
-    },
-    "dialog": {
-      "createNew": "Create New Whiteboard",
-      "enterName": "Enter a name for your new whiteboard",
-      "name": "Name",
-      "namePlaceholder": "My Whiteboard",
-      "create": "Create",
-      "open": "Open Whiteboard",
-      "select": "Select a whiteboard to open",
-      "selectOrCreate": "Select a whiteboard to open or create a new one",
-      "deleteTitle": "Delete Whiteboard?",
-      "deleteDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
-    },
-    "stickyNote": {
-      "add": "Add Sticky Note",
-      "clickToEdit": "Click to edit",
-      "selectColor": "Select sticky note color:"
-    },
-    "mindMap": {
-      "mode": "Mind Map Mode",
-      "modeShort": "Mind Map",
-      "exit": "Exit Mind Map Mode",
-      "instructions": "Click to add nodes. Connect nodes by clicking and dragging."
-    }
   },
   "approvals": {
     "manageTypes": "Manage Types",

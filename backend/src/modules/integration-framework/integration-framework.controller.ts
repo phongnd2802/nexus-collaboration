@@ -73,7 +73,7 @@ export class IntegrationFrameworkController {
 
   @Get('catalog/:slug')
   @ApiOperation({ summary: 'Get integration details by slug' })
-  @ApiParam({ name: 'slug', description: 'Integration slug (e.g., google-drive, slack)' })
+  @ApiParam({ name: 'slug', description: 'Integration slug (e.g., google-drive, notion)' })
   @ApiResponse({ status: 200, type: IntegrationCatalogResponseDto })
   async getIntegrationBySlug(@Param('slug') slug: string): Promise<IntegrationCatalogResponseDto> {
     return this.catalogService.getBySlug(slug);
@@ -358,7 +358,6 @@ export class IntegrationFrameworkController {
             'google-sheets': 'integration-framework/google-sheets.*oauth',
             'google-calendar': 'calendar.*oauth',
             gmail: 'integration-framework/email.*oauth',
-            slack: 'integration-framework.*slack-oauth',
             github: 'integration-framework/github.*oauth',
             asana: 'integration-framework/asana.*asana-oauth',
             clickup: 'integration-framework/clickup.*clickup-oauth',
