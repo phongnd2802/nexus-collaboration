@@ -8222,6 +8222,11 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "clearRead": "Clear read",
+    "items": {
+      "newMessageInChannel": "New message in #{channelName}",
+      "taskUnassigned": "Task Unassigned",
+      "taskUnassignedMessage": "Task \"{taskTitle}\" has been unassigned from you"
+    },
     "tabs": {
       "all": "All",
       "unread": "Unread",
