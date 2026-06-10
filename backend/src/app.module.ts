@@ -29,7 +29,6 @@ import { IntegrationModule } from './modules/integration/integration.module';
 import { AIModule } from './modules/ai/ai.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
-import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { EventsModule } from './modules/events/events.module';
 import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -95,7 +94,6 @@ import { RagModule } from './modules/rag/rag.module';
     AIModule,
     DashboardModule,
     AnalyticsModule,
-    MonitoringModule,
     EventsModule,
     SettingsModule,
     SchedulerModule,

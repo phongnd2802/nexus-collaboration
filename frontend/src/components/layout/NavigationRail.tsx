@@ -16,7 +16,6 @@ import {
   Settings,
   Link2,
   BarChart3,
-  Radio,
   LayoutGrid,
   Plug,
   Wrench,
@@ -42,7 +41,6 @@ export type ViewType =
   | 'settings'
   | 'integrations'
   | 'analytics'
-  | 'monitoring'
   | 'apps'
   | 'more'
 
@@ -62,9 +60,8 @@ const navigationItems: NavigationItem[] = [
   { view: 'calendar', icon: Calendar, labelKey: 'navigation.calendar', path: 'calendar' },
   { view: 'video', icon: Video, labelKey: 'navigation.videoCall', path: 'video-calls' },
   { view: 'files', icon: FolderOpen, labelKey: 'navigation.files', path: 'files' },
-   /* { view: 'integrations', icon: Link2, labelKey: 'navigation.integrations', path: 'integrations' },
-   { view: 'analytics', icon: BarChart3, labelKey: 'navigation.analytics', path: 'analytics' },
-   { view: 'monitoring', icon: Radio, labelKey: 'navigation.monitoring', path: 'monitoring' }, */
+    /* { view: 'integrations', icon: Link2, labelKey: 'navigation.integrations', path: 'integrations' },
+   { view: 'analytics', icon: BarChart3, labelKey: 'navigation.analytics', path: 'analytics' }, */
 ]
 
 const bottomItems: NavigationItem[] = [

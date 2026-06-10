@@ -289,7 +289,6 @@
     "settings": "Cài đặt",
     "integrations": "Tích hợp",
     "analytics": "Phân tích",
-    "monitoring": "Giám sát",
     "support": "Hỗ trợ",
     "blog": "Blog",
     "tutorial": "Hướng dẫn",
@@ -5533,22 +5532,6 @@
         "essentialsSubtitle": "Mọi thứ bạn cần để thống nhất quy trình"
       }
     },
-    "monitoring": {
-      "badge": "Giám sát hệ thống",
-      "title": "Đón đầu sự cố",
-      "titleHighlight": "Trước khi ảnh hưởng đến người dùng.",
-      "subtitle": "Giám sát toàn bộ cơ sở hạ tầng với cảnh báo thời gian thực, số liệu toàn diện và phát hiện bất thường thông minh. Có cái nhìn đầy đủ về sức khỏe và hiệu suất hệ thống.",
-      "cta": "Bắt đầu giám sát",
-      "sections": {
-        "visibilityTitle": "Khả năng hiển thị cơ sở hạ tầng hoàn chỉnh",
-        "visibilitySubtitle": "Giám sát mọi thứ từ máy chủ đến ứng dụng với công cụ quan sát toàn diện",
-        "alertsTitle": "Cảnh báo thông minh",
-        "alertsSubtitle": "Cảnh báo thông minh với ngưỡng tùy chỉnh, chính sách leo thang và thông báo đa kênh",
-        "performanceTitle": "Phân tích hiệu suất",
-        "performanceSubtitle": "Số liệu chi tiết, phân tích xu hướng và lập kế hoạch dung lượng để tối ưu hệ thống",
-        "essentialsSubtitle": "Mọi thứ bạn cần để hiển thị hệ thống đầy đủ"
-      }
-    },
     "automation": {
       "badge": "Tự động hóa quy trình",
       "title": "Tự động hóa mọi thứ",
@@ -7658,6 +7641,10 @@
         "title": "Lỡ sự kiện",
         "description": "Bạn đã lỡ \"{eventTitle}\""
       },
+      "activeMeeting": {
+        "title": "Cuộc họp đang diễn ra: {meetingTitle}",
+        "description": "Cuộc họp này hiện đang diễn ra. Tham gia ngay để tham dự."
+      },
       "priority": {
         "high": "Ưu tiên cao",
         "medium": "Trung bình"
@@ -8335,7 +8322,6 @@
     "videoCalls": "Cuộc gọi video",
     "notes": "Ghi chú",
     "analytics": "Phân tích",
-    "monitoring": "Giám sát",
     "integrations": "Tích hợp",
     "settings": {
       "title": "Cài đặt",
