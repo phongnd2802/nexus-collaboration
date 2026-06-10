@@ -372,25 +372,6 @@ export const notesApi = {
     });
   },
 
-  // Google Drive Import
-  async importFromGoogleDrive(workspaceId: string, options: {
-    fileId: string;
-    title: string;
-    parentId?: string;
-    tags?: string[];
-  }): Promise<{
-    success: boolean;
-    noteId: string;
-    title: string;
-    message?: string;
-  }> {
-    return api.post(`/workspaces/${workspaceId}/notes/import/google-drive`, {
-      fileId: options.fileId,
-      title: options.title,
-      parentId: options.parentId,
-      tags: options.tags,
-    });
-  },
 };
 
 // React Query Hooks

@@ -796,17 +796,7 @@ export function CreateTaskModal({
       } finally {
         setEventPreviewLoading(false)
       }
-    } else if (attachment.type === 'drive') {
-      // Open Google Drive file in new tab
-      if (attachment.driveFileUrl) {
-        window.open(attachment.driveFileUrl, '_blank', 'noopener,noreferrer')
-      } else {
-        toast({
-          title: intl.formatMessage({ id: 'modules.projects.createTask.toast.error' }),
-          description: intl.formatMessage({ id: 'modules.projects.createTask.toast.driveUrlNotAvailable' }),
-          variant: 'destructive'
-        })
-      }
+
     }
   }
 

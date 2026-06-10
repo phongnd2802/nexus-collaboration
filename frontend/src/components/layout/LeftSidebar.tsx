@@ -1674,64 +1674,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
         )
 
       case 'apps':
-        // Check if user is inside Google Drive browser
-        const isInsideGoogleDrive = location.pathname.includes('google-drive');
-
-        if (isInsideGoogleDrive) {
-          // Show Google Drive specific options
-          return (
-            <>
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                {intl.formatMessage({ id: 'modules.apps.quickActions', defaultMessage: 'QUICK ACTIONS' })}
-              </div>
-              <SidebarItem
-                icon={<Upload className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.uploadFile', defaultMessage: 'Upload File' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?action=upload`)}
-              />
-              <SidebarItem
-                icon={<FolderPlus className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.createFolder', defaultMessage: 'Create Folder' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?action=new-folder`)}
-              />
-
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-6">
-                {intl.formatMessage({ id: 'modules.apps.googleDrive', defaultMessage: 'GOOGLE DRIVE' })}
-              </div>
-              <SidebarItem
-                icon={<HardDrive className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.myDrive', defaultMessage: 'My Drive' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive`)}
-              />
-              <SidebarItem
-                icon={<Users className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.sharedDrives', defaultMessage: 'Shared Drives' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?view=shared-drives`)}
-              />
-              <SidebarItem
-                icon={<Users className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.sharedWithMe', defaultMessage: 'Shared with me' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?view=shared`)}
-              />
-              <SidebarItem
-                icon={<Clock className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.recent', defaultMessage: 'Recent' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?view=recent`)}
-              />
-              <SidebarItem
-                icon={<Star className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.starred', defaultMessage: 'Starred' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?view=starred`)}
-              />
-              <SidebarItem
-                icon={<Trash2 className="h-4 w-4" />}
-                label={intl.formatMessage({ id: 'modules.apps.trash', defaultMessage: 'Trash' })}
-                onClick={() => navigate(`/workspaces/${workspaceId}/apps/google-drive?view=trash`)}
-              />
-            </>
-          )
-        }
-
         // Apps page manages its own content, no sidebar needed
         return null
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useIntl } from 'react-intl'
-import { CornerUpRight, Download, MoreVertical, Pencil, Trash2, Reply, Smile, Loader2, FileText, Calendar, FolderOpen, ExternalLink, Check, HardDrive, BarChart2, Video, Lock } from 'lucide-react'
+import {   CornerUpRight, Download, MoreVertical, Pencil, Trash2, Reply, Smile, Loader2, FileText, Calendar, FolderOpen, ExternalLink, Check, BarChart2, Lock } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -80,16 +80,11 @@ export interface LinkedContent {
   id: string
   title?: string
   name?: string
-  type: 'notes' | 'events' | 'files' | 'drive' | 'poll' | 'youtube'
+  type: 'notes' | 'events' | 'files' | 'drive' | 'poll'
   subtitle?: string
   url?: string
   thumbnail?: string
   metadata?: any
-  // Drive-specific fields
-  driveFileUrl?: string
-  driveThumbnailUrl?: string
-  driveMimeType?: string
-  driveFileSize?: number
   // Poll-specific fields
   poll?: Poll
 }
@@ -691,14 +686,6 @@ export function MessageItem({
                           iconColor: 'text-purple-500',
                           label: 'File'
                         }
-                      case 'drive':
-                        return {
-                          icon: <HardDrive className="h-4 w-4" />,
-                          bgColor: 'bg-green-50 dark:bg-green-950/50',
-                          borderColor: 'border-green-200 dark:border-green-800',
-                          iconColor: 'text-green-600',
-                          label: 'Drive'
-                        }
                       case 'poll':
                         return {
                           icon: <BarChart2 className="h-4 w-4" />,
@@ -706,14 +693,6 @@ export function MessageItem({
                           borderColor: 'border-indigo-200 dark:border-indigo-800',
                           iconColor: 'text-indigo-600',
                           label: 'Poll'
-                        }
-                      case 'youtube':
-                        return {
-                          icon: <Video className="h-4 w-4" />,
-                          bgColor: 'bg-red-50 dark:bg-red-950/50',
-                          borderColor: 'border-red-200 dark:border-red-800',
-                          iconColor: 'text-red-600',
-                          label: 'YouTube'
                         }
                       default:
                         return {

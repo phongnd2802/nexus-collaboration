@@ -3,14 +3,12 @@ import { ApprovalsController } from './approvals.controller';
 import { ApprovalsService } from './approvals.service';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { GoogleSheetsModule } from '../integration-framework/google-sheets/google-sheets.module';
 import { WebSocketModule } from '../../common/gateways/websocket.module';
 
 @Module({
   imports: [
     AuthModule,
     NotificationsModule,
-    GoogleSheetsModule,
     forwardRef(() => WebSocketModule),
   ],
   controllers: [ApprovalsController],

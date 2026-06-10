@@ -1,57 +1,6 @@
 {
   "integrations": [
     {
-      "slug": "google-drive",
-      "name": "Google Drive",
-      "description": "Access and manage your Google Drive files directly from Nexus. Upload, download, and organize files seamlessly.",
-      "category": "FILE_STORAGE",
-      "provider": "Google",
-      "logoUrl": "https://www.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png",
-      "website": "https://drive.google.com",
-      "documentationUrl": "https://developers.google.com/drive/api/v3/about-sdk",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
-        "tokenUrl": "https://oauth2.googleapis.com/token",
-        "revokeUrl": "https://oauth2.googleapis.com/revoke",
-        "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "scopes": [
-          "drive",
-          "drive.file",
-          "userinfo.email",
-          "userinfo.profile"
-        ],
-        "scopePrefix": "https://www.googleapis.com/auth/",
-        "clientIdEnvKey": "GOOGLE_OAUTH_CLIENT_ID",
-        "clientSecretEnvKey": "GOOGLE_OAUTH_CLIENT_SECRET",
-        "extraAuthParams": {
-          "access_type": "offline",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://www.googleapis.com/drive/v3",
-      "apiConfig": {
-        "rateLimiting": {
-          "requestsPerMinute": 100
-        }
-      },
-      "capabilities": [
-        "read_files",
-        "write_files",
-        "list_folders",
-        "share_files"
-      ],
-      "features": [
-        "File sync",
-        "Folder browsing",
-        "File sharing",
-        "Search files"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
       "slug": "google-calendar",
       "name": "Google Calendar",
       "description": "Sync your Google Calendar events with Nexus. View, create, and manage events without leaving the app.",
@@ -144,51 +93,6 @@
       "pricingType": "free",
       "isVerified": true,
       "isFeatured": true
-    },
-    {
-      "slug": "google-sheets",
-      "name": "Google Sheets",
-      "description": "Access and edit Google Sheets spreadsheets. Import data and export reports seamlessly.",
-      "category": "PRODUCTIVITY",
-      "provider": "Google",
-      "logoUrl": "https://www.gstatic.com/images/branding/product/2x/sheets_2020q4_48dp.png",
-      "website": "https://sheets.google.com",
-      "documentationUrl": "https://developers.google.com/sheets/api/reference/rest",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
-        "tokenUrl": "https://oauth2.googleapis.com/token",
-        "revokeUrl": "https://oauth2.googleapis.com/revoke",
-        "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "scopes": [
-          "spreadsheets",
-          "drive.readonly",
-          "userinfo.email",
-          "userinfo.profile"
-        ],
-        "scopePrefix": "https://www.googleapis.com/auth/",
-        "clientIdEnvKey": "GOOGLE_OAUTH_CLIENT_ID",
-        "clientSecretEnvKey": "GOOGLE_OAUTH_CLIENT_SECRET",
-        "extraAuthParams": {
-          "access_type": "offline",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://sheets.googleapis.com/v4",
-      "capabilities": [
-        "read_sheets",
-        "write_sheets",
-        "create_sheets"
-      ],
-      "features": [
-        "Spreadsheet access",
-        "Data import",
-        "Data export",
-        "Cell editing"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
     },
     {
       "slug": "github",
@@ -5506,51 +5410,6 @@
         "Board management",
         "Rich pins",
         "Analytics"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "youtube",
-      "name": "YouTube",
-      "description": "Connect YouTube for video content management.",
-      "category": "SOCIAL_MEDIA",
-      "provider": "Google",
-      "logoUrl": "https://www.youtube.com/favicon.ico",
-      "website": "https://youtube.com",
-      "documentationUrl": "https://developers.google.com/youtube/v3",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
-        "tokenUrl": "https://oauth2.googleapis.com/token",
-        "revokeUrl": "https://oauth2.googleapis.com/revoke",
-        "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "scopes": [
-          "youtube.readonly",
-          "youtube.upload",
-          "youtube.force-ssl"
-        ],
-        "scopePrefix": "https://www.googleapis.com/auth/",
-        "clientIdEnvKey": "GOOGLE_OAUTH_CLIENT_ID",
-        "clientSecretEnvKey": "GOOGLE_OAUTH_CLIENT_SECRET",
-        "extraAuthParams": {
-          "access_type": "offline",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://www.googleapis.com/youtube/v3",
-      "capabilities": [
-        "read_videos",
-        "upload_videos",
-        "manage_playlists",
-        "read_analytics"
-      ],
-      "features": [
-        "Video upload",
-        "Playlist management",
-        "Analytics",
-        "Live streaming"
       ],
       "pricingType": "free",
       "isVerified": true,

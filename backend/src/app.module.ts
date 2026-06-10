@@ -34,10 +34,7 @@ import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { ConversationMemoryModule } from './modules/conversation-memory/conversation-memory.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
-import { GoogleDriveModule } from './modules/integration-framework/google-drive/google-drive.module';
-import { GoogleSheetsModule } from './modules/integration-framework/google-sheets/google-sheets.module';
 import { DropboxModule } from './modules/integration-framework/dropbox/dropbox.module';
-import { YoutubeModule } from './modules/integration-framework/youtube/youtube.module';
 import { OpenAIModule } from './modules/openai/openai.module';
 import { EmailModule } from './modules/integration-framework/email/email.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
@@ -95,10 +92,7 @@ import { RagModule } from './modules/rag/rag.module';
     EventsModule,
     SettingsModule,
     SchedulerModule,
-    GoogleDriveModule,
-    GoogleSheetsModule,
     DropboxModule,
-    YoutubeModule,
     OpenAIModule,
     EmailModule,
     EmailProviderModule,

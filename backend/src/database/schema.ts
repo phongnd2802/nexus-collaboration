@@ -1647,36 +1647,6 @@ export const schema = {
     ],
   },
 
-  // ==================== GOOGLE DRIVE INTEGRATION ====================
-  // User-specific connection within workspace: Each user connects their own Google Drive
-  // Any workspace member can connect/disconnect their own Google Drive
-  google_drive_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who connected this Google Drive
-      { name: 'access_token', type: 'text', nullable: false },
-      { name: 'refresh_token', type: 'text', nullable: true },
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      { name: 'google_email', type: 'string', nullable: true },
-      { name: 'google_name', type: 'string', nullable: true },
-      { name: 'google_picture', type: 'text', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true }, // One connection per user per workspace
-      { columns: ['is_active'] },
-      { columns: ['google_email'] },
-    ],
-  },
-
   // ==================== DROPBOX INTEGRATION ====================
   // User-specific connection within workspace: Each user connects their own Dropbox
   // Any workspace member can connect/disconnect their own Dropbox
@@ -1706,39 +1676,6 @@ export const schema = {
       { columns: ['is_active'] },
       { columns: ['dropbox_email'] },
       { columns: ['account_id'] },
-    ],
-  },
-
-  // ==================== YOUTUBE INTEGRATION ====================
-  // User-specific YouTube connection within workspace
-  youtube_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who connected YouTube
-      { name: 'access_token', type: 'text', nullable: false },
-      { name: 'refresh_token', type: 'text', nullable: true },
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      { name: 'google_user_id', type: 'string', nullable: true }, // Google account ID
-      { name: 'google_email', type: 'string', nullable: true },
-      { name: 'google_name', type: 'string', nullable: true },
-      { name: 'google_picture', type: 'text', nullable: true },
-      { name: 'channel_id', type: 'string', nullable: true }, // YouTube channel ID
-      { name: 'channel_title', type: 'string', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true },
-      { columns: ['is_active'] },
-      { columns: ['google_email'] },
-      { columns: ['channel_id'] },
     ],
   },
 
@@ -1960,74 +1897,6 @@ export const schema = {
       { columns: ['task_id', 'repo_full_name', 'issue_number'], unique: true }, // Prevent duplicate links
       { columns: ['state'] },
       { columns: ['issue_type'] },
-    ],
-  },
-
-  // ==================== GOOGLE SHEETS CONNECTIONS ====================
-  // User-specific Google Sheets connection within workspace
-  google_sheets_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'access_token', type: 'text', nullable: false },
-      { name: 'refresh_token', type: 'text', nullable: true },
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      { name: 'google_email', type: 'string', nullable: true },
-      { name: 'google_name', type: 'string', nullable: true },
-      { name: 'google_picture', type: 'text', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true },
-      { columns: ['is_active'] },
-      { columns: ['google_email'] },
-    ],
-  },
-
-  // ==================== GOOGLE SHEETS SYNCS ====================
-  // Sync configurations for importing/exporting data between Nexus and Google Sheets
-  google_sheets_syncs: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      {
-        name: 'connection_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'google_sheets_connections' },
-      },
-      { name: 'spreadsheet_id', type: 'string', nullable: false },
-      { name: 'spreadsheet_name', type: 'string', nullable: false },
-      { name: 'sheet_name', type: 'string', nullable: false },
-      { name: 'sync_type', type: 'string', nullable: false }, // 'import' | 'export' | 'bidirectional'
-      { name: 'deskive_entity', type: 'string', nullable: false }, // 'tasks' | 'contacts' | 'custom'
-      { name: 'column_mapping', type: 'jsonb', default: '{}' },
-      { name: 'sync_frequency', type: 'string', default: 'manual' }, // 'manual' | 'hourly' | 'daily'
-      { name: 'last_sync_at', type: 'timestamptz', nullable: true },
-      { name: 'last_sync_status', type: 'string', nullable: true }, // 'success' | 'failed' | 'in_progress'
-      { name: 'last_sync_error', type: 'text', nullable: true },
-      { name: 'last_row_count', type: 'integer', default: 0 },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['connection_id'] },
-      { columns: ['spreadsheet_id'] },
-      { columns: ['workspace_id', 'spreadsheet_id', 'sheet_name'], unique: true },
-      { columns: ['sync_frequency'] },
-      { columns: ['is_active'] },
     ],
   },
 
@@ -2364,7 +2233,7 @@ export const schema = {
   integration_catalog: {
     columns: [
       { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'slug', type: 'string', nullable: false }, // e.g., 'google-drive', 'slack', 'notion'
+      { name: 'slug', type: 'string', nullable: false }, // e.g., 'slack', 'notion'
       { name: 'name', type: 'string', nullable: false },
       { name: 'description', type: 'text', nullable: true },
       { name: 'category', type: 'string', nullable: false }, // COMMUNICATION, FILE_STORAGE, CALENDAR, etc.

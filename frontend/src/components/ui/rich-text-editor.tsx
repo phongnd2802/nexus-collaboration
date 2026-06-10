@@ -10,12 +10,7 @@ import 'react-quill-new/dist/quill.snow.css'
 export interface RichTextAttachment {
   id: string
   title: string
-  type: 'notes' | 'events' | 'files' | 'drive'
-  // Drive-specific fields
-  driveFileUrl?: string
-  driveThumbnailUrl?: string
-  driveMimeType?: string
-  driveFileSize?: number
+  type: 'notes' | 'events' | 'files'
 }
 
 interface RichTextEditorProps {

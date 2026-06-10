@@ -58,12 +58,9 @@ import {
   FilePreviewDialog,
   FilePropertiesDialog,
 } from './FileOperationDialogs';
-import { GoogleDriveImportModal } from './GoogleDriveImportModal';
-import { GoogleDriveExportModal } from './GoogleDriveExportModal';
 import { DropboxImportModal } from './DropboxImportModal';
 import { DropboxExportModal } from './DropboxExportModal';
 import { FileCommentsModal } from './FileCommentsModal';
-import { googleDriveApi } from '../../lib/api/google-drive-api';
 import dropboxApi from '../../lib/api/dropbox-api';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
 import { useOfflineSync } from '../../hooks/useOfflineSync';
@@ -227,9 +224,9 @@ export function FileExplorer({
   // Dialog states
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showDriveImport, setShowDriveImport] = useState(false);
+
   const [showDropboxImport, setShowDropboxImport] = useState(false);
-  const [isGoogleDriveConnected, setIsGoogleDriveConnected] = useState(false);
+
   const [isDropboxConnected, setIsDropboxConnected] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [aiCreationPanel, setAICreationPanel] = useState<{ isOpen: boolean; type: 'image' | 'audio' | 'video' | 'document' }>({ isOpen: false, type: 'image' });
@@ -239,7 +236,7 @@ export function FileExplorer({
   const [propertiesFile, setPropertiesFile] = useState<FileItem | null>(null);
   const [shareFile, setShareFile] = useState<{ id: string; name: string } | null>(null);
   const [commentsFile, setCommentsFile] = useState<{ id: string; name: string } | null>(null);
-  const [exportToDriveFile, setExportToDriveFile] = useState<FileItem | null>(null);
+
   const [exportToDropboxFile, setExportToDropboxFile] = useState<FileItem | null>(null);
 
   const getFileIcon = (file: FileItem, size: 'small' | 'large' = 'small') => {
@@ -600,31 +597,7 @@ export function FileExplorer({
     toast.success(`Cut "${file.name}"`);
   };
 
-  const handleExportToDrive = async (file: FileItem, targetFolderId?: string) => {
-    if (!workspaceId || !isGoogleDriveConnected) return;
 
-    setIsExporting(true);
-    try {
-      const result = await googleDriveApi.exportFile(workspaceId, {
-        fileId: file.id,
-        targetFolderId
-      });
-      if (result.success) {
-        toast.success(`"${file.name}" exported to Google Drive`, {
-          action: result.webViewLink ? {
-            label: 'Open in Drive',
-            onClick: () => window.open(result.webViewLink, '_blank')
-          } : undefined
-        });
-      }
-    } catch (error) {
-      console.error('Failed to export file to Google Drive:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to export file to Google Drive');
-    } finally {
-      setIsExporting(false);
-      setExportToDriveFile(null);
-    }
-  };
 
   const handlePaste = async () => {
     if (!clipboard || !workspaceId) return;
@@ -929,21 +902,6 @@ export function FileExplorer({
     };
   }, []);
 
-  // Check Google Drive connection status
-  React.useEffect(() => {
-    const checkDriveConnection = async () => {
-      if (!workspaceId) return;
-      try {
-        const connection = await googleDriveApi.getConnection(workspaceId);
-        setIsGoogleDriveConnected(connection?.isActive || false);
-      } catch (error) {
-        console.warn('Failed to check Google Drive connection:', error);
-        setIsGoogleDriveConnected(false);
-      }
-    };
-    checkDriveConnection();
-  }, [workspaceId]);
-
   // Check Dropbox connection status
   React.useEffect(() => {
     const checkDropboxConnection = async () => {
@@ -1144,26 +1102,6 @@ export function FileExplorer({
               {intl.formatMessage({ id: 'modules.files.buttons.newFolder', defaultMessage: 'New Folder' })}
             </Button>
 
-            {/* <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDriveImport(true)}
-              className="h-8"
-            >
-              <CloudDownload className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.files.buttons.importFromDrive', defaultMessage: 'Import from Drive' })}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDropboxImport(true)}
-              className="h-8"
-            >
-              <CloudDownload className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.files.buttons.importFromDropbox', defaultMessage: 'Import from Dropbox' })}
-            </Button> */}
-
             <div className="flex items-center border rounded-md">
               <Button
                 variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
@@ -1260,13 +1198,11 @@ export function FileExplorer({
                       isSharedWithMeView={isSharedWithMeView}
                       onDownload={file.type === 'file' ? () => onFileDownload?.(file.id, file.name) : undefined}
                       onInfo={() => setPropertiesFile(file)}
-                      onExportToDrive={file.type === 'file' ? () => setExportToDriveFile(file) : undefined}
                       onExportToDropbox={file.type === 'file' ? () => setExportToDropboxFile(file) : undefined}
                       onToggleOffline={file.type === 'file' ? () => handleToggleOffline(file) : undefined}
                       isTrashView={isTrashView}
                       isSearchView={isSearchView}
                       allowCutCopyPaste={allowCutCopyPaste}
-                      isGoogleDriveConnected={isGoogleDriveConnected}
                       isDropboxConnected={isDropboxConnected}
                     />
                   </div>
@@ -1369,13 +1305,11 @@ export function FileExplorer({
                         isSharedWithMeView={isSharedWithMeView}
                         onDownload={file.type === 'file' ? () => onFileDownload?.(file.id, file.name) : undefined}
                         onInfo={() => setPropertiesFile(file)}
-                        onExportToDrive={file.type === 'file' ? () => setExportToDriveFile(file) : undefined}
                         onExportToDropbox={file.type === 'file' ? () => setExportToDropboxFile(file) : undefined}
                         onToggleOffline={file.type === 'file' ? () => handleToggleOffline(file) : undefined}
                         isTrashView={isTrashView}
                         isSearchView={isSearchView}
                         allowCutCopyPaste={allowCutCopyPaste}
-                        isGoogleDriveConnected={isGoogleDriveConnected}
                         isDropboxConnected={isDropboxConnected}
                       />
                     </div>
@@ -1462,41 +1396,6 @@ export function FileExplorer({
         initialType={aiCreationPanel.type}
         workspaceId={workspaceId || ''}
         currentFolderId={parentFolderId}
-      />
-
-      <GoogleDriveImportModal
-        isOpen={showDriveImport}
-        onClose={() => setShowDriveImport(false)}
-        onImportSuccess={() => {
-          console.log('Files imported from Google Drive');
-          // Invalidate all file-related queries for this workspace
-          queryClient.invalidateQueries({
-            predicate: (query) => {
-              const queryKey = query.queryKey as string[];
-              return queryKey[0] === 'files' &&
-                     queryKey[1] === 'list' &&
-                     queryKey[2] === workspaceId;
-            }
-          });
-          // Also invalidate recent and storage views
-          queryClient.invalidateQueries({ queryKey: ['files', 'recent', workspaceId] });
-          queryClient.invalidateQueries({ queryKey: ['files', 'storage', workspaceId] });
-          console.log('✅ Cache invalidated after Google Drive import');
-          onUploadFiles?.();
-        }}
-        targetFolderId={currentFolderId}
-      />
-
-      <GoogleDriveExportModal
-        isOpen={!!exportToDriveFile}
-        onClose={() => setExportToDriveFile(null)}
-        onExport={(targetFolderId) => {
-          if (exportToDriveFile) {
-            handleExportToDrive(exportToDriveFile, targetFolderId);
-          }
-        }}
-        fileName={exportToDriveFile?.name || ''}
-        isExporting={isExporting}
       />
 
       <DropboxImportModal

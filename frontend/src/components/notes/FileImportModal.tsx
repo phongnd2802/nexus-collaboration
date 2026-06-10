@@ -9,36 +9,8 @@ import { Skeleton } from '../ui/skeleton'
 import { Upload, FileText, Link, Loader2, Folder, ChevronRight, Home, AlertCircle, Search, Table, Presentation } from 'lucide-react'
 import { useToast } from '../ui/use-toast'
 import { notesApi } from '../../lib/api/notes-api'
-import { googleDriveApi, type GoogleDriveFile, type GoogleDriveFileType } from '../../lib/api/google-drive-api'
 import { cn } from '../../lib/utils'
 import mammoth from 'mammoth'
-
-// Google Drive icon component
-function GoogleDriveIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 87.3 78" className={className}>
-      <path d="M6.6 66.85L15.9 78h55.5l9.3-11.15z" fill="#0066da" />
-      <path d="M57.6 0L29.4 0 0 48.1l14.8 18.9 28.8-48.2z" fill="#00ac47" />
-      <path d="M29.4 0l28.2 0 29.7 48.1H29.1z" fill="#ea4335" />
-      <path d="M29.1 48.1h58.2l-9.2 18.9H14.8z" fill="#00832d" />
-      <path d="M57.6 0L29.1 48.1h58.2L57.6 0z" fill="#2684fc" />
-      <path d="M0 48.1l14.8 18.9 14.3-18.9z" fill="#ffba00" />
-    </svg>
-  )
-}
-
-// Drive file icon for notes-compatible files
-function DriveFileIcon({ fileType, className }: { fileType: GoogleDriveFileType; className?: string }) {
-  const iconMap: Record<string, React.ReactNode> = {
-    folder: <Folder className={cn('text-yellow-500', className)} />,
-    document: <FileText className={cn('text-blue-500', className)} />,
-    spreadsheet: <Table className={cn('text-green-500', className)} />,
-    presentation: <Presentation className={cn('text-orange-500', className)} />,
-    pdf: <FileText className={cn('text-red-600', className)} />,
-    file: <FileText className={cn('text-gray-500', className)} />,
-  }
-  return <>{iconMap[fileType] || iconMap.file}</>
-}
 
 interface BreadcrumbItem {
   id: string
@@ -56,130 +28,18 @@ interface FileImportModalProps {
 export function FileImportModal({ isOpen, onClose, workspaceId, parentId, onNoteCreated }: FileImportModalProps) {
   const intl = useIntl()
   const { toast } = useToast()
-  const [importType, setImportType] = useState<'file' | 'url' | 'google-drive' | null>(null)
+  const [importType, setImportType] = useState<'file' | 'url' | null>(null)
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
-  // Google Drive states
-  const [isConnected, setIsConnected] = useState<boolean | null>(null)
-  const [isCheckingConnection, setIsCheckingConnection] = useState(false)
-  const [driveFiles, setDriveFiles] = useState<GoogleDriveFile[]>([])
-  const [isLoadingDrive, setIsLoadingDrive] = useState(false)
-  const [currentFolder, setCurrentFolder] = useState<string>('root')
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedDriveFile, setSelectedDriveFile] = useState<GoogleDriveFile | null>(null)
-
-  // Check Google Drive connection when import type changes
-  useEffect(() => {
-    if (importType === 'google-drive' && workspaceId) {
-      checkDriveConnection()
-    }
-  }, [importType, workspaceId])
-
-  // Load Drive files when folder changes
-  useEffect(() => {
-    if (importType === 'google-drive' && workspaceId && isConnected) {
-      loadDriveFiles()
-    }
-  }, [importType, workspaceId, isConnected, currentFolder])
-
-  const checkDriveConnection = async () => {
-    if (!workspaceId) return
-    setIsCheckingConnection(true)
-    try {
-      const connection = await googleDriveApi.getConnection(workspaceId)
-      setIsConnected(!!connection)
-    } catch {
-      setIsConnected(false)
-    } finally {
-      setIsCheckingConnection(false)
-    }
-  }
-
-  const loadDriveFiles = async () => {
-    if (!workspaceId) return
-    setIsLoadingDrive(true)
-    try {
-      const response = await googleDriveApi.listFiles(workspaceId, {
-        folderId: currentFolder,
-        query: searchQuery || undefined,
-        pageSize: 100,
-      })
-      // Filter to only show document-compatible files (docs, pdfs, text files, folders)
-      const compatibleFiles = response.files.filter(f =>
-        f.fileType === 'folder' ||
-        f.fileType === 'document' ||
-        f.fileType === 'pdf' ||
-        f.mimeType?.includes('text/') ||
-        f.mimeType?.includes('application/rtf')
-      )
-      setDriveFiles(compatibleFiles)
-    } catch (error) {
-      console.error('Failed to load Drive files:', error)
-      toast({
-        title: intl.formatMessage({ id: 'modules.notes.fileImport.error' }),
-        description: intl.formatMessage({ id: 'modules.notes.fileImport.failedLoadDrive' }),
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingDrive(false)
-    }
-  }
-
-  const handleConnectDrive = async () => {
-    if (!workspaceId) return
-    try {
-      const returnUrl = window.location.href
-      const { authorizationUrl } = await googleDriveApi.getAuthUrl(workspaceId, returnUrl)
-      window.location.href = authorizationUrl
-    } catch {
-      toast({
-        title: intl.formatMessage({ id: 'modules.notes.fileImport.error' }),
-        description: intl.formatMessage({ id: 'modules.notes.fileImport.failedConnectDrive' }),
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleNavigateToFolder = (folderId: string, folderName?: string) => {
-    if (folderId === 'root') {
-      setCurrentFolder('root')
-      setBreadcrumbs([])
-    } else {
-      if (folderName) {
-        const existingIndex = breadcrumbs.findIndex((b) => b.id === folderId)
-        if (existingIndex >= 0) {
-          setBreadcrumbs(breadcrumbs.slice(0, existingIndex + 1))
-        } else {
-          setBreadcrumbs([...breadcrumbs, { id: folderId, name: folderName }])
-        }
-      }
-      setCurrentFolder(folderId)
-    }
-    setSelectedDriveFile(null)
-  }
-
-  const handleDriveFileClick = (file: GoogleDriveFile) => {
-    if (file.fileType === 'folder') {
-      handleNavigateToFolder(file.id, file.name)
-    } else {
-      setSelectedDriveFile(file)
-      setTitle(file.name.replace(/\.[^/.]+$/, ''))
-    }
-  }
 
   const handleClose = useCallback(() => {
     setImportType(null)
     setTitle('')
     setUrl('')
     setSelectedFile(null)
-    setSelectedDriveFile(null)
-    setCurrentFolder('root')
-    setBreadcrumbs([])
-    setSearchQuery('')
     setIsProcessing(false)
     onClose()
   }, [onClose])
@@ -369,21 +229,6 @@ export function FileImportModal({ isOpen, onClose, workspaceId, parentId, onNote
           title: intl.formatMessage({ id: 'modules.notes.fileImport.urlImportSuccess' }),
           description: result.message || intl.formatMessage({ id: 'modules.notes.fileImport.urlImportDescription' }, { siteName: result.siteName || intl.formatMessage({ id: 'modules.notes.fileImport.website' }) }),
         })
-      } else if (importType === 'google-drive' && selectedDriveFile) {
-        // Import from Google Drive - use backend endpoint
-        const result = await notesApi.importFromGoogleDrive(workspaceId, {
-          fileId: selectedDriveFile.id,
-          title: title.trim(),
-          parentId,
-          tags: ['google-drive', 'imported'],
-        })
-
-        noteId = result.noteId
-
-        toast({
-          title: intl.formatMessage({ id: 'modules.notes.fileImport.driveImportSuccess' }),
-          description: result.message || intl.formatMessage({ id: 'modules.notes.fileImport.driveImportDescription' }, { fileName: selectedDriveFile.name }),
-        })
       }
 
       // Call the callback with the new note ID
@@ -402,7 +247,7 @@ export function FileImportModal({ isOpen, onClose, workspaceId, parentId, onNote
     } finally {
       setIsProcessing(false)
     }
-  }, [title, importType, selectedFile, selectedDriveFile, url, workspaceId, parentId, handleClose, onNoteCreated, toast])
+  }, [title, importType, selectedFile, url, workspaceId, parentId, handleClose, onNoteCreated, toast])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -437,14 +282,7 @@ export function FileImportModal({ isOpen, onClose, workspaceId, parentId, onNote
                   <span>{intl.formatMessage({ id: 'modules.notes.fileImport.importURL' })}</span>
                 </Button>
 
-                <Button
-                  variant="outline"
-                  className="h-32 flex-col gap-3"
-                  onClick={() => setImportType('google-drive')}
-                >
-                  <GoogleDriveIcon className="h-8 w-8" />
-                  <span>{intl.formatMessage({ id: 'modules.notes.fileImport.googleDrive' })}</span>
-                </Button>
+
               </div>
             </div>
           ) : (
@@ -509,117 +347,6 @@ export function FileImportModal({ isOpen, onClose, workspaceId, parentId, onNote
                 </div>
               )}
 
-              {importType === 'google-drive' && (
-                <>
-                  {isCheckingConnection ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : !isConnected ? (
-                    <div className="flex flex-col items-center justify-center gap-4 py-8">
-                      <AlertCircle className="w-12 h-12 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground text-center">
-                        {intl.formatMessage({ id: 'modules.notes.fileImport.connectDrivePrompt' })}
-                      </p>
-                      <Button onClick={handleConnectDrive}>
-                        {intl.formatMessage({ id: 'modules.notes.fileImport.connectDriveButton' })}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {/* Search */}
-                      <form onSubmit={(e) => { e.preventDefault(); loadDriveFiles(); }} className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          placeholder={intl.formatMessage({ id: 'modules.notes.fileImport.searchDocuments' })}
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-9"
-                        />
-                      </form>
-
-                      {/* Breadcrumbs */}
-                      <div className="flex items-center gap-1 text-sm">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2"
-                          onClick={() => handleNavigateToFolder('root')}
-                        >
-                          <Home className="w-4 h-4" />
-                        </Button>
-                        {breadcrumbs.map((item, index) => (
-                          <div key={item.id} className="flex items-center">
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                'h-7 px-2',
-                                index === breadcrumbs.length - 1 && 'font-medium'
-                              )}
-                              onClick={() => handleNavigateToFolder(item.id, item.name)}
-                            >
-                              {item.name}
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* File List */}
-                      <ScrollArea className="h-48 border rounded-lg">
-                        {isLoadingDrive ? (
-                          <div className="p-4 space-y-2">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <div key={i} className="flex items-center gap-3 p-2">
-                                <Skeleton className="w-5 h-5" />
-                                <Skeleton className="h-4 flex-1" />
-                              </div>
-                            ))}
-                          </div>
-                        ) : driveFiles.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                            <Folder className="w-8 h-8 mb-2 opacity-50" />
-                            <p className="text-sm">{intl.formatMessage({ id: 'modules.notes.fileImport.noDocuments' })}</p>
-                          </div>
-                        ) : (
-                          <div className="p-2">
-                            {driveFiles
-                              .sort((a, b) => {
-                                if (a.fileType === 'folder' && b.fileType !== 'folder') return -1
-                                if (a.fileType !== 'folder' && b.fileType === 'folder') return 1
-                                return a.name.localeCompare(b.name)
-                              })
-                              .map((file) => (
-                                <div
-                                  key={file.id}
-                                  className={cn(
-                                    'flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors',
-                                    selectedDriveFile?.id === file.id && 'bg-primary/10'
-                                  )}
-                                  onClick={() => handleDriveFileClick(file)}
-                                >
-                                  <DriveFileIcon fileType={file.fileType} className="w-5 h-5" />
-                                  <span className="flex-1 truncate text-sm">{file.name}</span>
-                                  {file.fileType === 'folder' && (
-                                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                                  )}
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </ScrollArea>
-
-                      {selectedDriveFile && (
-                        <p className="text-xs text-muted-foreground">
-                          {intl.formatMessage({ id: 'modules.notes.fileImport.selectedFile' }, { fileName: selectedDriveFile.name })}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-
               <div className="flex justify-end gap-3 pt-4">
                 <Button variant="outline" onClick={handleClose}>
                   {intl.formatMessage({ id: 'modules.notes.fileImport.cancel' })}
@@ -630,8 +357,7 @@ export function FileImportModal({ isOpen, onClose, workspaceId, parentId, onNote
                     isProcessing ||
                     !title.trim() ||
                     (importType === 'file' && !selectedFile) ||
-                    (importType === 'url' && !url.trim()) ||
-                    (importType === 'google-drive' && !selectedDriveFile)
+                    (importType === 'url' && !url.trim())
                   }
                 >
                   {isProcessing ? (

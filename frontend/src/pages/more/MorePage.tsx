@@ -11,8 +11,6 @@ import {
   FileText,
   ClipboardList,
 } from 'lucide-react';
-import { GoogleDriveBrowser } from '../apps/GoogleDriveBrowser';
-import GoogleSheetsBrowser from '../apps/GoogleSheetsBrowser';
 import { ApprovalsPage } from '../approvals';
 import TemplatesPage from '../templates/TemplatesPage';
 import BotsPage from '../bots/BotsPage';
@@ -149,8 +147,6 @@ export function MorePage() {
       <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
       <Route path="/bots/*" element={<BotsPage />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
-      <Route path="/google-drive/*" element={<GoogleDriveBrowser />} />
-      <Route path="/google-sheets/*" element={<GoogleSheetsBrowser />} />
       <Route path="/approvals/*" element={<ApprovalsPage />} />
       <Route path="/forms" element={<FormsPage />} />
       <Route path="/forms/new" element={<FormBuilderPage />} />

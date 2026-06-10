@@ -49,8 +49,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { CalendarEvent, Reminder, RecurrenceRule, NotificationType, RecurrencePattern, CreateEventRequest, UpdateEventRequest } from '../../types/calendar'
 import { Bell, Trash2, Sparkles, Loader2, Building, FileText, Upload, Plus, X, File, Image, Video, Music, FileType, Eye, FolderOpen, Calendar, HardDrive } from 'lucide-react'
-import { ChatDrivePickerModal } from '@/components/chat/ChatDrivePickerModal'
-import { googleDriveApi } from '@/lib/api/google-drive-api'
+
 import { cn } from '../../lib/utils'
 import { toast } from 'sonner'
 
@@ -136,11 +135,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
   const [showFileSelector, setShowFileSelector] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
-  const [descriptionAttachments, setDescriptionAttachments] = useState<Array<{ id: string; title: string; type: 'notes' | 'events' | 'files' | 'drive'; driveFileUrl?: string; driveThumbnailUrl?: string; driveMimeType?: string; driveFileSize?: number }>>([])
-
-  // Google Drive picker state
-  const [showDrivePicker, setShowDrivePicker] = useState(false)
-  const [isDriveConnected, setIsDriveConnected] = useState(false)
+  const [descriptionAttachments, setDescriptionAttachments] = useState<Array<{ id: string; title: string; type: 'notes' | 'events' | 'files'; }>>([])
 
   // State for attachment preview dialogs
   const [filePreviewOpen, setFilePreviewOpen] = useState(false)
@@ -231,7 +226,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
   })
 
   // Handle click on linked attachment
-  const handleAttachmentClick = async (attachment: { id: string; title: string; type: 'notes' | 'events' | 'files' | 'drive'; driveFileUrl?: string }) => {
+  const handleAttachmentClick = async (attachment: { id: string; title: string; type: 'notes' | 'events' | 'files' }) => {
     const wsId = workspaceId || currentWorkspace?.id
     if (!wsId) return
 
@@ -267,38 +262,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       } finally {
         setEventPreviewLoading(false)
       }
-    } else if (attachment.type === 'drive') {
-      // Open Google Drive file in new tab
-      if (attachment.driveFileUrl) {
-        window.open(attachment.driveFileUrl, '_blank', 'noopener,noreferrer')
-      } else {
-        toast.error('Drive file URL not available')
-      }
-    }
-  }
-
-  // Check Google Drive connection status when dialog opens
-  useEffect(() => {
-    const checkDriveConnection = async () => {
-      const wsId = workspaceId || currentWorkspace?.id
-      if (!wsId || !open) return
-      try {
-        const connection = await googleDriveApi.getConnection(wsId)
-        setIsDriveConnected(!!connection)
-      } catch {
-        setIsDriveConnected(false)
-      }
-    }
-    checkDriveConnection()
-  }, [open, workspaceId, currentWorkspace?.id])
-
-  // Handle Drive file selection
-  const handleDriveFilesSelected = (files: Array<{ id: string; title: string; type: 'drive'; driveFileUrl?: string; driveThumbnailUrl?: string; driveMimeType?: string; driveFileSize?: number }>) => {
-    setDescriptionAttachments(prev => {
-      const newFiles = files.filter(file => !prev.some(existing => existing.id === file.id && existing.type === 'drive'))
-      return [...prev, ...newFiles]
-    })
-    setShowDrivePicker(false)
   }
 
   // Reset all states when modal opens/closes
@@ -414,7 +377,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       }
 
       // Load description attachments from enriched attachments data
-      const loadedDescriptionAttachments: Array<{ id: string; title: string; type: 'notes' | 'events' | 'files' | 'drive'; driveFileUrl?: string; driveThumbnailUrl?: string; driveMimeType?: string; driveFileSize?: number }> = [];
+      const loadedDescriptionAttachments: Array<{ id: string; title: string; type: 'notes' | 'events' | 'files' }> = [];
 
       // Add file attachments
       if (eventAttachments.file_attachment && Array.isArray(eventAttachments.file_attachment)) {
@@ -473,22 +436,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
         });
       }
 
-      // Add Google Drive attachments
-      if (eventAttachments.drive_attachment && Array.isArray(eventAttachments.drive_attachment)) {
-        eventAttachments.drive_attachment.forEach((item: any) => {
-          if (typeof item === 'object' && item.id) {
-            loadedDescriptionAttachments.push({
-              id: item.id,
-              title: item.title || 'Drive File',
-              type: 'drive',
-              driveFileUrl: item.driveFileUrl,
-              driveThumbnailUrl: item.driveThumbnailUrl,
-              driveMimeType: item.driveMimeType,
-              driveFileSize: item.driveFileSize
-            });
-          }
-        });
-      }
+
 
       setDescriptionAttachments(loadedDescriptionAttachments);
     } else {
@@ -539,14 +487,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       const descriptionFileIds = descriptionAttachments.filter(att => att.type === 'files').map(att => att.id);
       const descriptionNoteIds = descriptionAttachments.filter(att => att.type === 'notes').map(att => att.id);
       const descriptionEventIds = descriptionAttachments.filter(att => att.type === 'events').map(att => att.id);
-      const driveAttachments = descriptionAttachments.filter(att => att.type === 'drive').map(att => ({
-        id: att.id,
-        title: att.title,
-        driveFileUrl: att.driveFileUrl,
-        driveThumbnailUrl: att.driveThumbnailUrl,
-        driveMimeType: att.driveMimeType,
-        driveFileSize: att.driveFileSize
-      }));
 
       // Build unified attachments object - combine manual attachments with description mentions
       const unifiedAttachments = {
@@ -561,7 +501,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
         event_attachment: [
           ...descriptionEventIds
         ],
-        drive_attachment: driveAttachments
       };
 
       if (isEdit && event) {
@@ -1209,8 +1148,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                                   "text-muted-foreground",
                                   attachment.type === 'notes' && "text-blue-500",
                                   attachment.type === 'events' && "text-green-500",
-                                  attachment.type === 'files' && "text-orange-500",
-                                  attachment.type === 'drive' && "text-green-600"
+                                  attachment.type === 'files' && "text-orange-500"
                                 )}>
                                   {getAttachmentIcon(attachment.type)}
                                 </div>
@@ -1812,20 +1750,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                       </p>
                     </div>
 
-                    {isDriveConnected && (
-                      <div
-                        className="border-2 border-dashed border-green-500/25 rounded-lg p-6 text-center hover:border-green-500/50 transition-colors cursor-pointer bg-green-50/50 dark:bg-green-950/20"
-                        onClick={() => setShowDrivePicker(true)}
-                      >
-                        <HardDrive className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                        <p className="text-sm text-green-700 dark:text-green-400 font-medium mb-1">
-                          Google Drive
-                        </p>
-                        <p className="text-xs text-green-600/70 dark:text-green-500/70">
-                          Attach from Drive
-                        </p>
-                      </div>
-                    )}
+
                   </div>
 
                   {showFileSelector && (
@@ -1919,52 +1844,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                     </div>
                   )}
 
-                  {/* Google Drive Attachments */}
-                  {descriptionAttachments.filter(att => att.type === 'drive').length > 0 && (
-                    <div className="space-y-2 mt-4">
-                      <h4 className="text-sm font-medium">Google Drive Files ({descriptionAttachments.filter(att => att.type === 'drive').length})</h4>
-                      {descriptionAttachments.filter(att => att.type === 'drive').map((file) => (
-                        <div key={file.id} className="flex items-center justify-between p-3 rounded-lg border bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                          <div className="flex items-center gap-3">
-                            <HardDrive className="h-4 w-4 text-green-600" />
-                            <div>
-                              <div className="font-medium text-sm">{file.title}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {file.driveMimeType && `${file.driveMimeType.split('/').pop()}`}
-                                {file.driveFileSize && ` • ${Math.round(file.driveFileSize / 1024)} KB`}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                if (file.driveFileUrl) {
-                                  window.open(file.driveFileUrl, '_blank', 'noopener,noreferrer');
-                                } else {
-                                  toast.error('Drive file URL not available');
-                                }
-                              }}
-                              title="View in Google Drive"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDescriptionAttachments(prev => prev.filter(a => a.id !== file.id))}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+
                 </div>
                 </fieldset>
               </TabsContent>
@@ -2046,20 +1926,8 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       isLoading={eventPreviewLoading}
     />
 
-    {/* Google Drive File Picker Modal */}
-    <ChatDrivePickerModal
-      open={showDrivePicker}
-      onOpenChange={setShowDrivePicker}
-      onSelectFiles={(files) => handleDriveFilesSelected(files.map(f => ({
-        id: f.id,
-        title: f.title || f.name || 'Untitled',
-        type: 'drive' as const,
-        driveFileUrl: f.driveFileUrl,
-        driveThumbnailUrl: f.driveThumbnailUrl,
-        driveMimeType: f.driveMimeType,
-        driveFileSize: f.driveFileSize
-      })))}
-    />
+
     </>
   )
+}
 }
