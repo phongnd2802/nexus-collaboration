@@ -119,6 +119,18 @@ export function AgenticSuggestions() {
       return intl.formatMessage({ id: 'dashboard.suggestions.missedEvent.title', defaultMessage: 'Missed Event' })
     }
 
+    if (
+      suggestion.type === 'meeting' &&
+      suggestion.metadata?.meeting?.status === 'active' &&
+      suggestion.metadata?.meeting?.title &&
+      (!suggestion.title || suggestion.title.startsWith('Meeting in Progress:'))
+    ) {
+      return intl.formatMessage(
+        { id: 'dashboard.suggestions.activeMeeting.title', defaultMessage: 'Meeting in Progress: {meetingTitle}' },
+        { meetingTitle: suggestion.metadata.meeting.title }
+      )
+    }
+
     return suggestion.title
   }
 
@@ -181,6 +193,17 @@ export function AgenticSuggestions() {
         },
         { eventTitle: suggestion.metadata.calendar.eventTitle }
       )
+    }
+
+    if (
+      suggestion.type === 'meeting' &&
+      suggestion.metadata?.meeting?.status === 'active' &&
+      (!suggestion.description || suggestion.description === 'This meeting is currently active. Join now to participate.')
+    ) {
+      return intl.formatMessage({
+        id: 'dashboard.suggestions.activeMeeting.description',
+        defaultMessage: 'This meeting is currently active. Join now to participate.'
+      })
     }
 
     return suggestion.description

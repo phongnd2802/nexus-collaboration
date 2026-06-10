@@ -289,7 +289,6 @@
     "settings": "Settings",
     "integrations": "Integrations",
     "analytics": "Analytics",
-    "monitoring": "Monitoring",
     "support": "Support",
     "blog": "Blog",
     "tutorial": "Tutorial",
@@ -5533,22 +5532,6 @@
         "essentialsSubtitle": "Everything you need to unify your workflow"
       }
     },
-    "monitoring": {
-      "badge": "System Monitoring",
-      "title": "Stay Ahead of Issues",
-      "titleHighlight": "Before They Impact Users.",
-      "subtitle": "Monitor your entire infrastructure with real-time alerts, comprehensive metrics, and intelligent anomaly detection. Get complete visibility into system health and performance.",
-      "cta": "Start Monitoring",
-      "sections": {
-        "visibilityTitle": "Complete Infrastructure Visibility",
-        "visibilitySubtitle": "Monitor everything from servers to applications with comprehensive observability tools",
-        "alertsTitle": "Intelligent Alerting",
-        "alertsSubtitle": "Smart alerts with customizable thresholds, escalation policies, and multi-channel notifications",
-        "performanceTitle": "Performance Analytics",
-        "performanceSubtitle": "Detailed metrics, trend analysis, and capacity planning to optimize your systems",
-        "essentialsSubtitle": "Everything you need for complete system visibility"
-      }
-    },
     "automation": {
       "badge": "Workflow Automation",
       "title": "Automate Everything",
@@ -7658,6 +7641,10 @@
         "title": "Missed Event",
         "description": "You missed \"{eventTitle}\""
       },
+      "activeMeeting": {
+        "title": "Meeting in Progress: {meetingTitle}",
+        "description": "This meeting is currently active. Join now to participate."
+      },
       "priority": {
         "high": "High Priority",
         "medium": "Medium"
@@ -8335,7 +8322,6 @@
     "videoCalls": "Video Calls",
     "notes": "Notes",
     "analytics": "Analytics",
-    "monitoring": "Monitoring",
     "integrations": "Integrations",
     "settings": {
       "title": "Settings",

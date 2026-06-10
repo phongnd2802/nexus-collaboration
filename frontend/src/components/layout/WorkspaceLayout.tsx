@@ -96,7 +96,7 @@ function WorkspaceLayoutInner({ children }: WorkspaceLayoutProps) {
       'projects': 'projects', 'notes': 'notes', 'calendar': 'calendar',
       'video-calls': 'video', 'files': 'files', 'search': 'search',
       'settings': 'settings', 'integrations': 'integrations',
-      'analytics': 'analytics', 'monitoring': 'monitoring',
+      'analytics': 'analytics',
       'notifications': 'dashboard', 'apps': 'apps', 'more': 'more',
     }
 

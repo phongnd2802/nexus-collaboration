@@ -111,7 +111,6 @@ async function bootstrap() {
     .addTag('dashboard', 'Dashboard statistics')
     .addTag('events', 'Event streaming and updates')
     .addTag('integrations', 'Third-party integrations')
-    .addTag('monitoring', 'System monitoring')
     .addTag('search', 'Universal search')
     .build();
 

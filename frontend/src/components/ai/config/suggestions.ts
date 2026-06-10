@@ -59,12 +59,6 @@ export const moduleSuggestions: Record<string, CommandSuggestion[]> = {
     { textKey: 'ai.suggestions.analytics.trends', defaultText: 'Show trends', icon: '📈', action: 'analyze_trends' },
     { textKey: 'ai.suggestions.analytics.recommendations', defaultText: 'What should I improve?', icon: '🎯', action: 'get_recommendations' },
   ],
-  monitoring: [
-    { textKey: 'ai.suggestions.monitoring.checkStatus', defaultText: 'Check system status', icon: '🔍', action: 'check_status' },
-    { textKey: 'ai.suggestions.monitoring.alertsSummary', defaultText: 'Summarize alerts', icon: '🚨', action: 'summarize_alerts' },
-    { textKey: 'ai.suggestions.monitoring.performance', defaultText: 'Check performance metrics', icon: '⚡', action: 'check_performance' },
-    { textKey: 'ai.suggestions.monitoring.healthCheck', defaultText: 'Run health check', icon: '💚', action: 'health_check' },
-  ],
   integrations: [
     { textKey: 'ai.suggestions.integrations.setup', defaultText: 'Help me set up an integration', icon: '🔗', action: 'setup_integration' },
     { textKey: 'ai.suggestions.integrations.configure', defaultText: 'Configure integration settings', icon: '⚙️', action: 'configure_integration' },
@@ -182,12 +176,6 @@ export const moduleConfig: Record<string, ModuleConfig> = {
     placeholderKey: 'ai.modules.analytics.placeholder',
     welcomeDefault: "Hi! I'm Auto Pilot. I can analyze your data, provide insights, and show trends. What would you like to know?",
   },
-  monitoring: {
-    titleKey: 'ai.modules.monitoring.title',
-    descriptionKey: 'ai.modules.monitoring.description',
-    placeholderKey: 'ai.modules.monitoring.placeholder',
-    welcomeDefault: "Hi! I'm Auto Pilot. I can help you monitor system health, check alerts, and analyze performance. What do you need?",
-  },
   integrations: {
     titleKey: 'ai.modules.integrations.title',
     descriptionKey: 'ai.modules.integrations.description',
@@ -258,7 +246,7 @@ export const defaultConfig: ModuleConfig = moduleConfig.dashboard
  * Views that have full AI assistant support
  * Now supports all views - autopilot is global
  */
-export const supportedViews = ['projects', 'notes', 'calendar', 'files', 'chat', 'dashboard', 'video', 'email', 'settings', 'search', 'analytics', 'monitoring', 'integrations', 'more', 'apps', 'templates', 'budget', 'forms', 'members', 'notifications', 'profile']
+export const supportedViews = ['projects', 'notes', 'calendar', 'files', 'chat', 'dashboard', 'video', 'email', 'settings', 'search', 'analytics', 'integrations', 'more', 'apps', 'templates', 'budget', 'forms', 'members', 'notifications', 'profile']
 
 /**
  * Check if a view has AI support

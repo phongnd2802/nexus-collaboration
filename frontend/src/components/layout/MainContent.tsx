@@ -18,7 +18,6 @@ import {
   Search,
   Link2,
   BarChart3,
-  Radio,
   FileIcon,
   Mail,
 } from 'lucide-react'
@@ -44,7 +43,6 @@ const viewConfigs: Record<string, { titleKey: string; icon: LucideIcon }> = {
   settings: { titleKey: 'navigation.settings', icon: Settings },
   integrations: { titleKey: 'pageTitle.integrations', icon: Link2 },
   analytics: { titleKey: 'pageTitle.analytics', icon: BarChart3 },
-  monitoring: { titleKey: 'pageTitle.monitoring', icon: Radio },
 }
 
 export function MainContent({

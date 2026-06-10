@@ -96,7 +96,6 @@ export function RightSidebar({
 
       case 'integrations':
       case 'analytics':
-      case 'monitoring':
       default:
         return <DefaultRightSidebar currentView={currentView} />;
     }
@@ -161,7 +160,6 @@ function DefaultRightSidebar({ currentView }: { currentView: ViewType }) {
       settings: { id: 'navigation.settings', defaultMessage: 'Settings' },
       integrations: { id: 'navigation.integrations', defaultMessage: 'Integrations' },
       analytics: { id: 'navigation.analytics', defaultMessage: 'Analytics' },
-      monitoring: { id: 'navigation.monitoring', defaultMessage: 'Monitoring' },
       apps: { id: 'navigation.apps', defaultMessage: 'Apps' },
       more: { id: 'navigation.more', defaultMessage: 'More' }
     };
