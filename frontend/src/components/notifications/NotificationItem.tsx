@@ -1,6 +1,7 @@
 import React from 'react';
 import { useIntl } from 'react-intl';
 import { formatDistanceToNow } from 'date-fns';
+import { enUS, vi as viLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { type Notification } from '@/lib/api/notifications-api';
 import {
@@ -26,6 +27,45 @@ interface NotificationItemProps {
   notification: Notification;
   onClick: () => void;
 }
+
+const getLocalizedNotificationTitle = (notification: Notification, intl: ReturnType<typeof useIntl>) => {
+  if (
+    notification.data?.channel_name &&
+    notification.title.startsWith('New message in #')
+  ) {
+    return intl.formatMessage(
+      { id: 'notifications.items.newMessageInChannel' },
+      { channelName: notification.data.channel_name }
+    );
+  }
+
+  if (notification.title === 'Task Unassigned') {
+    return intl.formatMessage({ id: 'notifications.items.taskUnassigned' });
+  }
+
+  return notification.title;
+};
+
+const getLocalizedNotificationMessage = (
+  notification: Notification,
+  intl: ReturnType<typeof useIntl>
+) => {
+  if (!notification.message) {
+    return '';
+  }
+
+  if (
+    notification.data?.task_title &&
+    notification.message.includes('has been unassigned from you')
+  ) {
+    return intl.formatMessage(
+      { id: 'notifications.items.taskUnassignedMessage' },
+      { taskTitle: notification.data.task_title }
+    );
+  }
+
+  return stripHtml(notification.message);
+};
 
 const getNotificationIcon = (type?: string, category?: string) => {
   const key = (category || type || '').toLowerCase();
@@ -79,6 +119,9 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
   const category = notification.data?.category;
   const Icon = getNotificationIcon(notification.type, category);
   const priorityColor = getPriorityColor(notification.priority);
+  const dateLocale = intl.locale === 'vi' ? viLocale : enUS;
+  const title = getLocalizedNotificationTitle(notification, intl);
+  const message = getLocalizedNotificationMessage(notification, intl);
 
   return (
     <div
@@ -99,20 +142,23 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
               !notification.is_read && 'font-semibold'
             )}
           >
-            {notification.title}
+            {title}
           </h4>
           {!notification.is_read && (
             <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
           )}
         </div>
-        {notification.message && (
+        {message && (
           <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-            {stripHtml(notification.message)}
+            {message}
           </p>
         )}
         <p className="text-xs text-muted-foreground mt-2">
           {notification.created_at
-            ? formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })
+            ? formatDistanceToNow(new Date(notification.created_at), {
+                addSuffix: true,
+                locale: dateLocale,
+              })
             : intl.formatMessage({ id: 'notifications.justNow' })
           }
         </p>

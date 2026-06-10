@@ -8222,6 +8222,11 @@
     "title": "Thông báo",
     "markAllRead": "Đánh dấu tất cả là đã đọc",
     "clearRead": "Xóa đã đọc",
+    "items": {
+      "newMessageInChannel": "Tin nhắn mới trong #{channelName}",
+      "taskUnassigned": "Bỏ giao nhiệm vụ",
+      "taskUnassignedMessage": "Nhiệm vụ \"{taskTitle}\" đã được bỏ giao khỏi bạn"
+    },
     "tabs": {
       "all": "Tất cả",
       "unread": "Chưa đọc",
