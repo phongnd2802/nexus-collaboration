@@ -1444,31 +1444,6 @@ CREATE INDEX IF NOT EXISTS "idx_device_tokens_user_id_is_active" ON "device_toke
 CREATE INDEX IF NOT EXISTS "idx_device_tokens_last_used_at" ON "device_tokens" ("last_used_at");
 CREATE INDEX IF NOT EXISTS "idx_device_tokens_created_at" ON "device_tokens" ("created_at");
 
--- ==================== GOOGLE_DRIVE_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "google_drive_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "access_token" TEXT NOT NULL,
-  "refresh_token" TEXT,
-  "token_type" VARCHAR(255) DEFAULT 'Bearer',
-  "scope" TEXT,
-  "expires_at" TIMESTAMPTZ,
-  "google_email" VARCHAR(255),
-  "google_name" VARCHAR(255),
-  "google_picture" TEXT,
-  "is_active" BOOLEAN DEFAULT true,
-  "last_synced_at" TIMESTAMPTZ,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_google_drive_connections_workspace_id" ON "google_drive_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_google_drive_connections_user_id" ON "google_drive_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_google_drive_connections_workspace_id_user_id" ON "google_drive_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_google_drive_connections_is_active" ON "google_drive_connections" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_google_drive_connections_google_email" ON "google_drive_connections" ("google_email");
-
 -- ==================== DROPBOX_CONNECTIONS ====================
 CREATE TABLE IF NOT EXISTS "dropbox_connections" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1495,35 +1470,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS "idx_dropbox_connections_workspace_id_user_id"
 CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_is_active" ON "dropbox_connections" ("is_active");
 CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_dropbox_email" ON "dropbox_connections" ("dropbox_email");
 CREATE INDEX IF NOT EXISTS "idx_dropbox_connections_account_id" ON "dropbox_connections" ("account_id");
-
--- ==================== YOUTUBE_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "youtube_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "access_token" TEXT NOT NULL,
-  "refresh_token" TEXT,
-  "token_type" VARCHAR(255) DEFAULT 'Bearer',
-  "scope" TEXT,
-  "expires_at" TIMESTAMPTZ,
-  "google_user_id" VARCHAR(255),
-  "google_email" VARCHAR(255),
-  "google_name" VARCHAR(255),
-  "google_picture" TEXT,
-  "channel_id" VARCHAR(255),
-  "channel_title" VARCHAR(255),
-  "is_active" BOOLEAN DEFAULT true,
-  "last_synced_at" TIMESTAMPTZ,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_youtube_connections_workspace_id" ON "youtube_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_youtube_connections_user_id" ON "youtube_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_youtube_connections_workspace_id_user_id" ON "youtube_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_youtube_connections_is_active" ON "youtube_connections" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_youtube_connections_google_email" ON "youtube_connections" ("google_email");
-CREATE INDEX IF NOT EXISTS "idx_youtube_connections_channel_id" ON "youtube_connections" ("channel_id");
 
 -- ==================== OPENAI_CONNECTIONS ====================
 CREATE TABLE IF NOT EXISTS "openai_connections" (
@@ -1707,61 +1653,6 @@ CREATE INDEX IF NOT EXISTS "idx_github_issue_links_repo_full_name_issue_number" 
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_github_issue_links_task_id_repo_full_name_issue_number" ON "github_issue_links" ("task_id", "repo_full_name", "issue_number");
 CREATE INDEX IF NOT EXISTS "idx_github_issue_links_state" ON "github_issue_links" ("state");
 CREATE INDEX IF NOT EXISTS "idx_github_issue_links_issue_type" ON "github_issue_links" ("issue_type");
-
--- ==================== GOOGLE_SHEETS_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "google_sheets_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "access_token" TEXT NOT NULL,
-  "refresh_token" TEXT,
-  "token_type" VARCHAR(255) DEFAULT 'Bearer',
-  "scope" TEXT,
-  "expires_at" TIMESTAMPTZ,
-  "google_email" VARCHAR(255),
-  "google_name" VARCHAR(255),
-  "google_picture" TEXT,
-  "is_active" BOOLEAN DEFAULT true,
-  "last_synced_at" TIMESTAMPTZ,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_connections_workspace_id" ON "google_sheets_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_connections_user_id" ON "google_sheets_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_google_sheets_connections_workspace_id_user_id" ON "google_sheets_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_connections_is_active" ON "google_sheets_connections" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_connections_google_email" ON "google_sheets_connections" ("google_email");
-
--- ==================== GOOGLE_SHEETS_SYNCS ====================
-CREATE TABLE IF NOT EXISTS "google_sheets_syncs" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "connection_id" UUID NOT NULL REFERENCES "google_sheets_connections"(id) ON DELETE CASCADE,
-  "spreadsheet_id" VARCHAR(255) NOT NULL,
-  "spreadsheet_name" VARCHAR(255) NOT NULL,
-  "sheet_name" VARCHAR(255) NOT NULL,
-  "sync_type" VARCHAR(255) NOT NULL,
-  "deskive_entity" VARCHAR(255) NOT NULL,
-  "column_mapping" JSONB DEFAULT '{}',
-  "sync_frequency" VARCHAR(255) DEFAULT 'manual',
-  "last_sync_at" TIMESTAMPTZ,
-  "last_sync_status" VARCHAR(255),
-  "last_sync_error" TEXT,
-  "last_row_count" INTEGER DEFAULT 0,
-  "is_active" BOOLEAN DEFAULT true,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_syncs_workspace_id" ON "google_sheets_syncs" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_syncs_user_id" ON "google_sheets_syncs" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_syncs_connection_id" ON "google_sheets_syncs" ("connection_id");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_syncs_spreadsheet_id" ON "google_sheets_syncs" ("spreadsheet_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_google_sheets_syncs_workspace_id_spreadsheet_id_sheet_name" ON "google_sheets_syncs" ("workspace_id", "spreadsheet_id", "sheet_name");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_syncs_sync_frequency" ON "google_sheets_syncs" ("sync_frequency");
-CREATE INDEX IF NOT EXISTS "idx_google_sheets_syncs_is_active" ON "google_sheets_syncs" ("is_active");
 
 -- ==================== REQUEST_TYPES ====================
 CREATE TABLE IF NOT EXISTS "request_types" (

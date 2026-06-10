@@ -73,7 +73,7 @@ export class IntegrationFrameworkController {
 
   @Get('catalog/:slug')
   @ApiOperation({ summary: 'Get integration details by slug' })
-  @ApiParam({ name: 'slug', description: 'Integration slug (e.g., google-drive, notion)' })
+  @ApiParam({ name: 'slug', description: 'Integration slug (e.g., notion)' })
   @ApiResponse({ status: 200, type: IntegrationCatalogResponseDto })
   async getIntegrationBySlug(@Param('slug') slug: string): Promise<IntegrationCatalogResponseDto> {
     return this.catalogService.getBySlug(slug);
@@ -354,8 +354,6 @@ export class IntegrationFrameworkController {
         if (testType === 'oauth') {
           // OAuth connection tests
           const oauthPatternMap: Record<string, string> = {
-            'google-drive': 'integration-framework/google-drive.*oauth',
-            'google-sheets': 'integration-framework/google-sheets.*oauth',
             'google-calendar': 'calendar.*oauth',
             gmail: 'integration-framework/email.*oauth',
             github: 'integration-framework/github.*oauth',

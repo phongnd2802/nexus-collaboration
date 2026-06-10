@@ -31,9 +31,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, Plus, ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, ClipboardCheck, FileText, Users, ChevronRight, Send, MessageSquare, Calendar, Trash2, Ban, Settings2, GripVertical, X, Paperclip, Upload, File, Sheet, ExternalLink, Link2, Unlink } from 'lucide-react';
+import { Loader2, Plus, ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, ClipboardCheck, FileText, Users, ChevronRight, Send, MessageSquare, Calendar, Trash2, Ban, Settings2, GripVertical, X, Paperclip, Upload, File, ExternalLink } from 'lucide-react';
 import { storageApi } from '@/lib/api/storage-api';
-import { googleSheetsApi, type GoogleSheetsConnection } from '@/lib/api/google-sheets-api';
+
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
@@ -85,11 +85,6 @@ function ApprovalsList() {
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
   const [activeTab, setActiveTab] = useState('all');
-
-  // Google Sheets integration state
-  const [sheetsConnection, setSheetsConnection] = useState<GoogleSheetsConnection | null>(null);
-  const [sheetsLoading, setSheetsLoading] = useState(false);
-  const [connectingSheets, setConnectingSheets] = useState(false);
 
   // Check if current user is owner or admin
   const isOwnerOrAdmin = useMemo(() => {
@@ -165,13 +160,6 @@ function ApprovalsList() {
     };
   }, [on, off, isConnected, workspaceId]);
 
-  // Load Google Sheets connection when user is owner/admin
-  useEffect(() => {
-    if (workspaceId && isOwnerOrAdmin) {
-      loadSheetsConnection();
-    }
-  }, [workspaceId, isOwnerOrAdmin]);
-
   const loadData = async () => {
     if (!workspaceId) return;
     try {
@@ -188,48 +176,6 @@ function ApprovalsList() {
       console.error('Failed to load:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadSheetsConnection = async () => {
-    if (!workspaceId) return;
-    try {
-      setSheetsLoading(true);
-      const connection = await googleSheetsApi.getConnection(workspaceId);
-      setSheetsConnection(connection);
-    } catch (error) {
-      console.error('Failed to load Google Sheets connection:', error);
-    } finally {
-      setSheetsLoading(false);
-    }
-  };
-
-  const handleConnectSheets = async () => {
-    if (!workspaceId) return;
-    try {
-      setConnectingSheets(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await googleSheetsApi.connect(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to initiate Google Sheets connection:', error);
-      toast.error(formatMessage({ id: 'approvals.googleSheets.connectFailed', defaultMessage: 'Failed to connect Google Sheets' }));
-      setConnectingSheets(false);
-    }
-  };
-
-  const handleDisconnectSheets = async () => {
-    if (!workspaceId) return;
-    try {
-      setSheetsLoading(true);
-      await googleSheetsApi.disconnect(workspaceId);
-      setSheetsConnection(null);
-      toast.success(formatMessage({ id: 'approvals.googleSheets.disconnected', defaultMessage: 'Google Sheets disconnected' }));
-    } catch (error) {
-      console.error('Failed to disconnect Google Sheets:', error);
-      toast.error(formatMessage({ id: 'approvals.googleSheets.disconnectFailed', defaultMessage: 'Failed to disconnect Google Sheets' }));
-    } finally {
-      setSheetsLoading(false);
     }
   };
 
@@ -293,74 +239,7 @@ function ApprovalsList() {
           </div>
         )}
 
-        {/* Google Sheets Integration - only visible to owners/admins */}
-        {isOwnerOrAdmin && (
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <Sheet className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm">{formatMessage({ id: 'approvals.googleSheets.title', defaultMessage: 'Google Sheets Integration' })}</h3>
-                    {sheetsLoading ? (
-                      <p className="text-xs text-muted-foreground">{formatMessage({ id: 'common.loading', defaultMessage: 'Loading...' })}</p>
-                    ) : sheetsConnection?.isActive ? (
-                      <p className="text-xs text-muted-foreground">
-                        {formatMessage({ id: 'approvals.googleSheets.connected', defaultMessage: 'Connected as {email}' }, { email: sheetsConnection.googleEmail || sheetsConnection.googleName || 'Google Account' })}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        {formatMessage({ id: 'approvals.googleSheets.notConnected', defaultMessage: 'Auto-sync requests to Google Sheets when submitted' })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {sheetsLoading ? (
-                    <Button variant="outline" size="sm" disabled>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    </Button>
-                  ) : sheetsConnection?.isActive ? (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleDisconnectSheets}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Unlink className="w-4 h-4 mr-1" />
-                        {formatMessage({ id: 'approvals.googleSheets.disconnect', defaultMessage: 'Disconnect' })}
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleConnectSheets}
-                      disabled={connectingSheets}
-                    >
-                      {connectingSheets ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <Link2 className="w-4 h-4 mr-1" />
-                      )}
-                      {formatMessage({ id: 'approvals.googleSheets.connect', defaultMessage: 'Connect Google Sheets' })}
-                    </Button>
-                  )}
-                </div>
-              </div>
-              {sheetsConnection?.isActive && (
-                <div className="mt-3 pt-3 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    {formatMessage({ id: 'approvals.googleSheets.description', defaultMessage: 'When a new request is submitted, it will automatically be added to a Google Sheet named "Nexus Approvals". Each request type will have its own sheet tab.' })}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+
 
         {isOwnerOrAdmin && requestTypes.length > 0 && (
           <div className="mb-6">

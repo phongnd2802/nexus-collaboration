@@ -30,14 +30,6 @@ export interface EventAttachments {
   file_attachment: string[]
   note_attachment: string[]
   event_attachment: string[]
-  drive_attachment?: Array<{
-    id: string
-    title: string
-    driveFileUrl?: string
-    driveThumbnailUrl?: string
-    driveMimeType?: string
-    driveFileSize?: number
-  }>
 }
 
 // API-specific types (snake_case for backend compatibility)

@@ -51,7 +51,6 @@ interface FileActionsDropdownProps {
   onDownload?: () => void;
   onInfo?: () => void;
   onComments?: () => void;
-  onExportToDrive?: () => void;
   onExportToDropbox?: () => void;
   onToggleOffline?: () => void;
   canPaste?: boolean;
@@ -59,7 +58,6 @@ interface FileActionsDropdownProps {
   isSearchView?: boolean;
   isSharedWithMeView?: boolean;
   allowCutCopyPaste?: boolean;
-  isGoogleDriveConnected?: boolean;
   isDropboxConnected?: boolean;
 }
 
@@ -82,7 +80,6 @@ export function FileActionsDropdown({
   onDownload,
   onInfo,
   onComments,
-  onExportToDrive,
   onExportToDropbox,
   onToggleOffline,
   canPaste = false,
@@ -90,7 +87,6 @@ export function FileActionsDropdown({
   isSearchView = false,
   isSharedWithMeView = false,
   allowCutCopyPaste = true,
-  isGoogleDriveConnected = false,
   isDropboxConnected = false,
 }: FileActionsDropdownProps) {
   const intl = useIntl();
@@ -191,12 +187,6 @@ export function FileActionsDropdown({
                     {isOffline
                       ? intl.formatMessage({ id: 'modules.files.contextMenu.removeOffline', defaultMessage: 'Remove from offline' })
                       : intl.formatMessage({ id: 'modules.files.contextMenu.makeOffline', defaultMessage: 'Make available offline' })}
-                  </DropdownMenuItem>
-                )}
-                {isGoogleDriveConnected && onExportToDrive && (
-                  <DropdownMenuItem onSelect={handleAction(onExportToDrive)}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    {intl.formatMessage({ id: 'modules.files.contextMenu.exportToDrive', defaultMessage: 'Export to Google Drive' })}
                   </DropdownMenuItem>
                 )}
                 {isDropboxConnected && onExportToDropbox && (

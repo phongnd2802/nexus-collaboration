@@ -288,15 +288,12 @@ export class GenericOAuthService {
   private getRedirectUri(integrationSlug?: string): string {
     // Google services use a dedicated redirect URI
     const googleServices = [
-      'google-drive',
       'gmail',
       'google-calendar',
-      'google-sheets',
       'google-chat',
       'google-meet',
       'google-cloud',
       'google-analytics',
-      'youtube',
     ];
 
     if (integrationSlug && googleServices.includes(integrationSlug)) {
