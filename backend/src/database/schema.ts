@@ -2233,7 +2233,7 @@ export const schema = {
   integration_catalog: {
     columns: [
       { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'slug', type: 'string', nullable: false }, // e.g., 'slack', 'notion'
+      { name: 'slug', type: 'string', nullable: false }, // e.g., 'slack', 'github'
       { name: 'name', type: 'string', nullable: false },
       { name: 'description', type: 'text', nullable: true },
       { name: 'category', type: 'string', nullable: false }, // COMMUNICATION, FILE_STORAGE, CALENDAR, etc.

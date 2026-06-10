@@ -39,12 +39,6 @@ import { OpenAIModule } from './modules/openai/openai.module';
 import { EmailModule } from './modules/integration-framework/email/email.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { GitHubModule } from './modules/integration-framework/github/github.module';
-import { AsanaModule } from './modules/integration-framework/asana/asana.module';
-import { ClickUpModule } from './modules/integration-framework/clickup/clickup.module';
-import { JiraModule } from './modules/integration-framework/jira/jira.module';
-import { LinearModule } from './modules/integration-framework/linear/linear.module';
-import { NotionModule } from './modules/integration-framework/notion/notion.module';
-import { TrelloModule } from './modules/integration-framework/trello/trello.module';
 import { AutoPilotModule } from './modules/autopilot/autopilot.module';
 import { ApprovalsModule } from './modules/approvals/approvals.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
@@ -98,12 +92,6 @@ import { RagModule } from './modules/rag/rag.module';
     EmailProviderModule,
     IntegrationsModule,
     GitHubModule,
-    AsanaModule,
-    ClickUpModule,
-    JiraModule,
-    LinearModule,
-    NotionModule,
-    TrelloModule,
     AutoPilotModule,
     ApprovalsModule,
     BotsModule,

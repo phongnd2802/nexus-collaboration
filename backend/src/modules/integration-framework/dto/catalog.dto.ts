@@ -128,7 +128,7 @@ export class IntegrationFiltersDto {
 }
 
 export class CreateIntegrationDto {
-  @ApiProperty({ description: 'Unique slug identifier', example: 'notion' })
+  @ApiProperty({ description: 'Unique slug identifier', example: 'github' })
   @IsString()
   slug: string;
 
