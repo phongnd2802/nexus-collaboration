@@ -284,13 +284,11 @@
     "calendar": "Lịch",
     "videoCall": "Cuộc gọi video",
     "files": "Tệp",
-    "whiteboard": "Bảng trắng",
     "search": "Tìm kiếm",
     "settings": "Cài đặt",
     "integrations": "Tích hợp",
     "analytics": "Phân tích",
     "support": "Hỗ trợ",
-    "blog": "Blog",
     "tutorial": "Hướng dẫn",
     "apps": "Ứng dụng",
     "more": "Thêm",
@@ -648,7 +646,7 @@
         "name": "Công cụ",
         "desc": "Công cụ năng suất",
         "features": [
-          "Bảng trắng",
+          "Lập kế hoạch chia sẻ",
           "Trình tạo tài liệu",
           "Yêu cầu & Phê duyệt",
           "Ngân sách",
@@ -5184,8 +5182,8 @@
           "description": "Khử tiếng ồn hỗ trợ AI cho âm thanh rõ nét"
         },
         "whiteboard": {
-          "title": "Bảng trắng tương tác",
-          "description": "Cộng tác ý tưởng với chia sẻ bảng trắng thời gian thực"
+          "title": "Khung lập kế hoạch chia sẻ",
+          "description": "Cộng tác ý tưởng với bề mặt lập kế hoạch dùng chung theo thời gian thực"
         },
         "export": {
           "title": "Xuất & Tải xuống",
@@ -6015,9 +6013,9 @@
       "tools": {
         "title": "Công cụ cộng tác",
         "tagline": "Sáng tạo cùng nhau",
-        "description": "Mở khóa sáng tạo với công cụ cộng tác mạnh mẽ. Sử dụng bảng trắng tương tác để động não, lập kế hoạch trực quan và cộng tác thời gian thực. Hoàn hảo cho sprint thiết kế, phiên chiến lược và hội thảo sáng tạo.",
+        "description": "Mở khóa sáng tạo với công cụ cộng tác mạnh mẽ cho động não, lập kế hoạch trực quan và cộng tác thời gian thực. Hoàn hảo cho sprint thiết kế, phiên chiến lược và hội thảo sáng tạo.",
         "features": [
-          "Bảng trắng tương tác với công cụ vẽ",
+          "Khung lập kế hoạch chia sẻ",
           "Cộng tác đa người dùng thời gian thực",
           "Mẫu cho quy trình phổ biến",
           "Xuất và chia sẻ tác phẩm của bạn"
@@ -6045,36 +6043,6 @@
           "Hỗ trợ nền tảng Zapier và tự động hóa"
         ]
       }
-    }
-  },
-  "contact": {
-    "badge": "Liên hệ",
-    "title": "Chúng tôi rất muốn nghe từ bạn",
-    "subtitle": "Có câu hỏi hoặc phản hồi? Đội ngũ của chúng tôi sẵn sàng hỗ trợ. Gửi tin nhắn và chúng tôi sẽ phản hồi trong vòng 24 giờ.",
-    "form": {
-      "name": "Tên",
-      "namePlaceholder": "Họ và tên của bạn",
-      "nameRequired": "Yêu cầu tên",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "emailRequired": "Yêu cầu email",
-      "emailInvalid": "Địa chỉ email không hợp lệ",
-      "company": "Công ty",
-      "companyPlaceholder": "Tên công ty của bạn",
-      "message": "Tin nhắn",
-      "messagePlaceholder": "Cho chúng tôi biết về dự án hoặc câu hỏi của bạn...",
-      "messageRequired": "Yêu cầu tin nhắn",
-      "submit": "Gửi tin nhắn",
-      "submitting": "Đang gửi...",
-      "success": "Đã gửi tin nhắn thành công!",
-      "error": "Không thể gửi tin nhắn. Vui lòng thử lại.",
-      "subject": "Tiêu đề",
-      "selectTopic": "Chọn chủ đề",
-      "subjectGeneral": "Câu hỏi chung",
-      "subjectSales": "Sales",
-      "subjectSupport": "Hỗ trợ",
-      "subjectPartnership": "Hợp tác",
-      "subjectOther": "Khác"
     }
   },
   "featureHighlights": {
@@ -6963,9 +6931,9 @@
           "title": "5. Lưu trữ Dữ liệu",
           "content": {
             "0": "Chúng tôi lưu giữ thông tin của bạn miễn là tài khoản của bạn đang hoạt động hoặc khi cần thiết để cung cấp dịch vụ cho bạn.",
-            "1": "Tích hợp Slack: Khi bạn ngắt kết nối Nexus khỏi Slack hoặc gỡ cài đặt ứng dụng, dữ liệu liên quan đến Slack (token, liên kết kênh) sẽ bị vô hiệu hóa ngay lập tức. Dữ liệu không gian làm việc của bạn (dự án, sự kiện, bảng trắng) vẫn có thể truy cập được qua nền tảng web Nexus và có thể bị xóa vĩnh viễn theo yêu cầu.",
+            "1": "Khi bạn ngắt kết nối một tích hợp bên thứ ba, các token hoặc liên kết liên quan sẽ bị vô hiệu hóa. Dữ liệu cốt lõi của không gian làm việc vẫn có thể truy cập trong Nexus và có thể bị xóa vĩnh viễn theo yêu cầu.",
             "2": "Bản sao lưu dữ liệu của bạn có thể được lưu giữ tối đa 90 ngày cho mục đích khôi phục sau thảm họa.",
-            "3": "Bạn có thể yêu cầu xóa dữ liệu của mình bất cứ lúc nào bằng cách liên hệ với chúng tôi tại support@Nexus.com hoặc sử dụng tùy chọn ngắt kết nối trong Slack App Home."
+            "3": "Bạn có thể yêu cầu xóa dữ liệu của mình bất cứ lúc nào bằng cách liên hệ với chúng tôi tại support@nexusapp.io."
           }
         },
         "section6": {
@@ -8216,102 +8184,7 @@
     },
     "title": "Cài đặt",
     "description": "Quản lý cài đặt và tùy chọn tài khoản của bạn",
-    "error": "Lỗi khi tải cài đặt",
-    "feedback": {
-      "title": "Phản hồi & Hỗ trợ",
-      "description": "Báo cáo lỗi, yêu cầu tính năng hoặc chia sẻ gợi ý để giúp chúng tôi cải thiện Nexus.",
-      "newFeedback": "Phản hồi mới",
-      "tabs": {
-        "all": "Tất cả",
-        "pending": "Đang chờ",
-        "resolved": "Đã giải quyết"
-      },
-      "noFeedback": "Chưa có phản hồi",
-      "clickToSubmit": "Nhấp \"Phản hồi mới\" để gửi phản hồi đầu tiên của bạn",
-      "types": {
-        "bug": "Lỗi",
-        "issue": "Vấn đề",
-        "improvement": "Cải tiến",
-        "feature_request": "Yêu cầu tính năng"
-      },
-      "statuses": {
-        "pending": "Đang chờ",
-        "in_review": "Đang xem xét",
-        "in_progress": "Đang thực hiện",
-        "resolved": "Đã giải quyết",
-        "wont_fix": "Không sửa",
-        "duplicate": "Trùng lặp"
-      },
-      "attachmentCount": "{count} tệp đính kèm",
-      "attachmentCount_plural": "{count} tệp đính kèm",
-      "dialog": {
-        "create": {
-          "title": "Gửi phản hồi",
-          "type": {
-            "label": "Loại phản hồi",
-            "bug": "Lỗi",
-            "issue": "Vấn đề",
-            "improvement": "Cải tiến",
-            "featureRequest": "Yêu cầu tính năng"
-          },
-          "title_field": {
-            "label": "Tiêu đề *",
-            "placeholder": "Mô tả ngắn gọn về vấn đề",
-            "counter": "{current}/{max}"
-          },
-          "description": {
-            "label": "Mô tả *",
-            "placeholder": "Cung cấp thông tin chi tiết...",
-            "counter": "{current}/{max}"
-          },
-          "category": {
-            "label": "Danh mục (Tùy chọn)",
-            "placeholder": "Chọn danh mục",
-            "ui": "UI/UX",
-            "performance": "Hiệu suất",
-            "feature": "Tính năng",
-            "security": "Bảo mật",
-            "other": "Khác"
-          },
-          "attachments": {
-            "label": "Tệp đính kèm (Tùy chọn)",
-            "description": "Thêm ảnh chụp màn hình hoặc tệp để giúp chúng tôi hiểu vấn đề (tối đa 5 tệp, 10MB mỗi tệp)",
-            "button": "Đính kèm tệp",
-            "uploading": "Đang tải lên...",
-            "remove": "Xóa"
-          },
-          "errors": {
-            "maxAttachments": "Tối đa 5 tệp đính kèm được phép",
-            "fileTooBig": "Tệp {fileName} quá lớn (tối đa 10MB)",
-            "uploadFailed": "Không thể tải tệp lên",
-            "titleTooShort": "Tiêu đề phải có ít nhất 5 ký tự",
-            "descriptionTooShort": "Mô tả phải có ít nhất 20 ký tự",
-            "submitFailed": "Không thể gửi phản hồi"
-          },
-          "buttons": {
-            "cancel": "Hủy",
-            "submit": "Gửi phản hồi",
-            "submitting": "Đang gửi..."
-          }
-        },
-        "detail": {
-          "title": "Chi tiết phản hồi",
-          "submittedOn": "Đã gửi vào {date}",
-          "description": "Mô tả",
-          "category": "Danh mục",
-          "attachments": "Tệp đính kèm",
-          "deviceInfo": "Thông tin thiết bị",
-          "appVersion": "Phiên bản ứng dụng",
-          "platform": "Nền tảng",
-          "os": "Hệ điều hành",
-          "device": "Thiết bị",
-          "resolved": {
-            "title": "Đã giải quyết",
-            "resolvedOn": "Đã giải quyết vào {date}"
-          }
-        }
-      }
-    }
+    "error": "Lỗi khi tải cài đặt"
   },
   "sidebar": {
     "dashboard": "Bảng điều khiển",
@@ -8332,8 +8205,7 @@
       "billing": "Thanh toán",
       "billingBadge": "Quan trọng",
       "workspaceSection": "KHÔNG GIAN LÀM VIỆC",
-      "workspace": "Cài đặt không gian làm việc",
-      "feedback": "Phản hồi"
+      "workspace": "Cài đặt không gian làm việc"
     }
   },
   "admin": {
@@ -8341,87 +8213,10 @@
     "dashboard": "Bảng điều khiển",
     "userManagement": "Quản lý người dùng",
     "organizations": "Tổ chức",
-    "blogManagement": "Quản lý bài viết",
     "systemSettings": "Cài đặt hệ thống",
     "auditLogs": "Nhật ký kiểm tra",
     "security": "Bảo mật",
-    "backToApp": "Quay lại ứng dụng",
-    "blog": {
-      "post": {
-        "backToBlog": "Quay lại Blog",
-        "ratingsReviews": "Đánh giá & Nhận xét",
-        "rating": "đánh giá",
-        "ratings": "đánh giá",
-        "star": "sao",
-        "yourRating": "Đánh giá của bạn",
-        "rateThisPost": "Đánh giá bài viết này",
-        "yourReview": "Nhận xét của bạn (Tùy chọn)",
-        "reviewPlaceholder": "Chia sẻ suy nghĩ của bạn về bài viết này...",
-        "submitRating": "Gửi đánh giá",
-        "updateRating": "Cập nhật đánh giá",
-        "recentReviews": "Nhận xét gần đây",
-        "noReviews": "Chưa có nhận xét nào",
-        "beFirst": "Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!",
-        "comments": "Bình luận",
-        "comment": "bình luận",
-        "collapse": "Thu gọn",
-        "expand": "Mở rộng",
-        "writeComment": "Viết bình luận...",
-        "postComment": "Đăng bình luận",
-        "reply": "Trả lời",
-        "postReply": "Đăng trả lời",
-        "cancel": "Hủy",
-        "noComments": "Chưa có bình luận nào",
-        "startConversation": "Hãy là người đầu tiên bắt đầu cuộc trò chuyện!",
-        "loginToComment": "Đăng nhập để bình luận",
-        "loginToRate": "Đăng nhập để đánh giá"
-      },
-      "section": {
-        "title": "Blog của chúng tôi",
-        "latest": "Mới nhất",
-        "insights": "Góc nhìn chuyên sâu",
-        "subtitle": "Khám phá mẹo năng suất, hướng dẫn cộng tác và góc nhìn về nơi làm việc từ đội ngũ của chúng tôi",
-        "noPosts": "Chưa có bài viết nào",
-        "noPostsDesc": "Quay lại sớm để xem các bài viết và cập nhật từ đội ngũ",
-        "viewAll": "Xem tất cả bài viết"
-      },
-      "allPosts": "Tất cả bài viết",
-      "createPost": "Tạo bài viết",
-      "categories": "Danh mục",
-      "tags": "Thẻ",
-      "title": "Blog",
-      "subtitle": "Góc nhìn về tiếp thị & phát triển mạng xã hội",
-      "newPost": "Bài viết mới",
-      "searchPlaceholder": "Tìm kiếm bài viết...",
-      "browse": "Duyệt",
-      "filter": {
-        "latest": "Mới nhất",
-        "popular": "Phổ biến",
-        "featured": "Nổi bật",
-        "allPosts": "Tất cả bài viết"
-      },
-      "myPosts": "Bài viết của tôi",
-      "categoriesTitle": "Danh mục",
-      "allCategories": "Tất cả danh mục",
-      "noPostsFound": "Không tìm thấy bài viết nào",
-      "noPostsFoundDesc": "Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm",
-      "comment": "bình luận",
-      "comments": "bình luận",
-      "noBlogPostsYet": "Chưa có bài viết blog nào",
-      "beTheFirst": "Hãy là người đầu tiên chia sẻ kiến thức",
-      "createFirstPost": "Tạo bài viết đầu tiên",
-      "category": {
-        "technology": "Công nghệ",
-        "marketing": "Tiếp thị",
-        "socialmedia": "Mạng xã hội",
-        "business": "Kinh doanh",
-        "development": "Phát triển",
-        "design": "Thiết kế",
-        "growth": "Tăng trưởng",
-        "news": "Tin tức",
-        "tips": "Mẹo"
-      }
-    }
+    "backToApp": "Quay lại ứng dụng"
   },
   "notifications": {
     "title": "Thông báo",
@@ -8804,89 +8599,6 @@
     "createProjectError": "Không thể tạo dự án từ mẫu.",
     "complexity": "độ phức tạp",
     "moreTasks": "+{count} tác vụ khác..."
-  },
-  "whiteboard": {
-    "title": "Bảng Trắng",
-    "loading": "Đang tải...",
-    "defaultName": "Bảng Trắng Chưa Đặt Tên",
-    "defaultNameWithDate": "Bảng Trắng {date}",
-    "updated": "Cập nhật:",
-    "noWhiteboardsYet": "Chưa có bảng trắng nào. Tạo một bảng để bắt đầu!",
-    "newWhiteboard": "Bảng Trắng Mới",
-    "showMenu": "Hiện Menu",
-    "hideGrid": "Ẩn Lưới",
-    "showGrid": "Hiện Lưới",
-    "canvasBackground": "Nền Canvas",
-    "copyData": "Sao chép Dữ liệu Bảng Trắng",
-    "deleteWhiteboard": "Xóa Bảng Trắng",
-    "hideMenuBar": "Ẩn Thanh Menu",
-    "hideHeader": "Ẩn Tiêu Đề",
-    "showHeader": "Hiện Tiêu Đề",
-    "error": {
-      "loadFailed": "Không thể tải bảng trắng",
-      "notFound": "Không tìm thấy bảng trắng",
-      "saveFailed": "Không thể lưu bảng trắng",
-      "createFailed": "Không thể tạo bảng trắng",
-      "deleteFailed": "Không thể xóa bảng trắng",
-      "exportFailed": "Không thể xuất bảng trắng",
-      "missingWorkspaceId": "Thiếu ID Không gian làm việc",
-      "couldNotExtractWorkspaceId": "Không thể trích xuất ID không gian làm việc từ URL."
-    },
-    "success": {
-      "saved": "Đã lưu bảng trắng thành công",
-      "created": "Đã tạo bảng trắng thành công",
-      "deleted": "Đã xóa bảng trắng thành công",
-      "exportedPNG": "Đã xuất dưới dạng PNG",
-      "exportedSVG": "Đã xuất dưới dạng SVG",
-      "copiedToClipboard": "Đã sao chép dữ liệu bảng trắng vào clipboard"
-    },
-    "status": {
-      "saving": "Đang lưu...",
-      "failedToSave": "Lưu thất bại",
-      "allChangesSaved": "Tất cả thay đổi đã được lưu"
-    },
-    "tools": {
-      "lock": "Khóa Canvas",
-      "unlock": "Mở khóa Canvas",
-      "hand": "Công cụ Di chuyển",
-      "select": "Chọn",
-      "rectangle": "Hình chữ nhật",
-      "diamond": "Hình thoi",
-      "ellipse": "Hình elip",
-      "arrow": "Mũi tên",
-      "line": "Đường thẳng",
-      "draw": "Vẽ",
-      "text": "Văn bản",
-      "image": "Hình ảnh",
-      "eraser": "Tẩy"
-    },
-    "export": {
-      "png": "Xuất PNG",
-      "svg": "Xuất SVG"
-    },
-    "dialog": {
-      "createNew": "Tạo Bảng Trắng Mới",
-      "enterName": "Nhập tên cho bảng trắng mới của bạn",
-      "name": "Tên",
-      "namePlaceholder": "Bảng Trắng Của Tôi",
-      "create": "Tạo",
-      "open": "Mở Bảng Trắng",
-      "select": "Chọn một bảng trắng để mở",
-      "selectOrCreate": "Chọn một bảng trắng để mở hoặc tạo mới",
-      "deleteTitle": "Xóa Bảng Trắng?",
-      "deleteDescription": "Bạn có chắc chắn muốn xóa \"{name}\"? Hành động này không thể hoàn tác."
-    },
-    "stickyNote": {
-      "add": "Thêm Ghi Chú",
-      "clickToEdit": "Nhấp để chỉnh sửa",
-      "selectColor": "Chọn màu ghi chú:"
-    },
-    "mindMap": {
-      "mode": "Chế độ Bản Đồ Tư Duy",
-      "modeShort": "BĐTD",
-      "exit": "Thoát Chế độ BĐTD",
-      "instructions": "Nhấp để thêm nút. Kết nối các nút bằng cách nhấp và kéo."
-    }
   },
   "approvals": {
     "manageTypes": "Quản lý Loại",

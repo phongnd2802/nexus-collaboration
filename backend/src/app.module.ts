@@ -53,7 +53,6 @@ import { ApprovalsModule } from './modules/approvals/approvals.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { DocumentsModule } from './modules/documents/documents.module';
-import { SignaturesModule } from './modules/signatures/signatures.module';
 import { BotsModule } from './modules/bots/bots.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
@@ -117,7 +116,6 @@ import { RagModule } from './modules/rag/rag.module';
     IntegrationFrameworkModule,
     TemplatesModule,
     DocumentsModule,
-    SignaturesModule,
     FormsModule,
     WorkflowsModule,
     RagModule,

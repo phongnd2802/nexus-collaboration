@@ -575,15 +575,6 @@ const SystemSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="slackClientId">Slack Client ID</Label>
-                  <Input
-                    id="slackClientId"
-                    value={config.integrations.slackClientId || ''}
-                    onChange={(e) => updateConfig('integrations', 'slackClientId', e.target.value)}
-                    placeholder="123456789.123456789"
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="googleClientId">Google Client ID</Label>
                   <Input
                     id="googleClientId"

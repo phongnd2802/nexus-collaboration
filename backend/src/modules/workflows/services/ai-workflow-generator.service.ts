@@ -100,7 +100,6 @@ Available action types:
 - update_task: Update existing task
 - create_note: Create a new note
 - create_event: Create calendar event
-- send_slack_message: Send Slack message
 - call_webhook: Call external API
 - delay: Wait for specified time
 - assign_user: Assign user to entity
@@ -330,20 +329,6 @@ Generate a complete workflow JSON that implements this automation.`;
         actionType: 'assign_user',
         actionConfig: {
           userId: '{{triggerData.leadId}}',
-        },
-        conditions: [],
-        order: stepOrder++,
-      });
-    }
-
-    if (lowerDesc.includes('slack')) {
-      workflow.steps.push({
-        name: 'Send Slack Message',
-        stepType: 'action',
-        actionType: 'send_slack_message',
-        actionConfig: {
-          channel: '#general',
-          message: 'Workflow notification',
         },
         conditions: [],
         order: stepOrder++,

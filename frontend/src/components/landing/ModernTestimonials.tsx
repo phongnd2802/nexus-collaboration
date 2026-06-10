@@ -28,7 +28,7 @@ const ModernTestimonials: React.FC = () => {
       name: 'Emily Rodriguez',
       role: 'Design Lead',
       avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
-      content: 'Beautiful interface, powerful features. The whiteboard collaboration feature is a game-changer for our remote design team.',
+      content: 'Beautiful interface, powerful features. The real-time collaboration tools are a game-changer for our remote design team.',
       rating: 5,
       company: 'CreativeHub',
       gradient: 'from-sky-100 via-sky-50 to-blue-50'
