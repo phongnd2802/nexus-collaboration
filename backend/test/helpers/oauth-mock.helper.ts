@@ -69,36 +69,6 @@ export const OAUTH_PROVIDERS = {
     userInfoUrl: 'https://app.asana.com',
     userInfoPath: '/api/1.0/users/me',
   },
-  clickup: {
-    tokenUrl: 'https://api.clickup.com',
-    tokenPath: '/api/v2/oauth/token',
-    userInfoUrl: 'https://api.clickup.com',
-    userInfoPath: '/api/v2/user',
-  },
-  jira: {
-    tokenUrl: 'https://auth.atlassian.com',
-    tokenPath: '/oauth/token',
-    userInfoUrl: 'https://api.atlassian.com',
-    userInfoPath: '/me',
-  },
-  linear: {
-    tokenUrl: 'https://api.linear.app',
-    tokenPath: '/oauth/token',
-    userInfoUrl: 'https://api.linear.app',
-    userInfoPath: '/graphql',
-  },
-  notion: {
-    tokenUrl: 'https://api.notion.com',
-    tokenPath: '/v1/oauth/token',
-    userInfoUrl: 'https://api.notion.com',
-    userInfoPath: '/v1/users/me',
-  },
-  trello: {
-    tokenUrl: 'https://trello.com',
-    tokenPath: '/1/OAuthGetAccessToken',
-    userInfoUrl: 'https://api.trello.com',
-    userInfoPath: '/1/members/me',
-  },
   discord: {
     tokenUrl: 'https://discord.com',
     tokenPath: '/api/oauth2/token',
@@ -129,9 +99,6 @@ export interface MockTokenResponse {
   scope?: string;
   id_token?: string;
   refresh_token_expires_in?: number; // Pinterest specific
-  bot_id?: string; // Notion specific
-  workspace_id?: string; // Notion specific
-  workspace_name?: string; // Notion specific
 }
 
 export interface MockOAuthConfig {
@@ -284,32 +251,6 @@ export const MOCK_TOKENS: Record<OAuthProvider, MockTokenResponse> = {
     expires_in: 3600,
     token_type: 'Bearer',
   },
-  clickup: {
-    access_token: 'mock-clickup-access-token-xyz',
-    token_type: 'Bearer',
-  },
-  jira: {
-    access_token: 'mock-jira-access-token-xyz',
-    refresh_token: 'mock-jira-refresh-token-abc',
-    expires_in: 3600,
-    token_type: 'Bearer',
-    scope: 'read:jira-user read:jira-work write:jira-work offline_access',
-  },
-  linear: {
-    access_token: 'lin_api_mock-linear-token-xyz',
-    token_type: 'Bearer',
-    scope: 'read write issues:create comments:create',
-  },
-  notion: {
-    access_token: 'secret_mock-notion-token-xyz',
-    token_type: 'bearer',
-    bot_id: 'mock-bot-id',
-    workspace_id: 'mock-workspace-id',
-  },
-  trello: {
-    access_token: 'mock-trello-token-xyz',
-    token_type: 'Bearer',
-  },
   discord: {
     access_token: 'mock-discord-access-token-xyz',
     refresh_token: 'mock-discord-refresh-token-abc',
@@ -410,47 +351,6 @@ export const MOCK_USER_INFO = {
         image_60x60: 'https://s3.amazonaws.com/profile_photos/mock-asana.jpg',
       },
     },
-  },
-  clickup: {
-    user: {
-      id: 123456,
-      username: 'testuser',
-      email: 'test@example.com',
-      color: '#7b68ee',
-      profilePicture: 'https://attachments.clickup.com/mock-avatar.jpg',
-    },
-  },
-  jira: {
-    account_id: 'mock-jira-account-id',
-    email: 'test@example.com',
-    name: 'Test User',
-    picture: 'https://avatar-management.services.atlassian.com/mock-avatar',
-  },
-  linear: {
-    data: {
-      viewer: {
-        id: 'mock-linear-user-id',
-        name: 'Test User',
-        email: 'test@example.com',
-      },
-    },
-  },
-  notion: {
-    object: 'user',
-    id: 'mock-notion-user-id',
-    name: 'Test User',
-    avatar_url: 'https://s3.amazonaws.com/notion-avatar/mock.jpg',
-    type: 'person',
-    person: {
-      email: 'test@example.com',
-    },
-  },
-  trello: {
-    id: 'mock-trello-user-id',
-    username: 'testuser',
-    fullName: 'Test User',
-    email: 'test@example.com',
-    avatarUrl: 'https://trello-members.s3.amazonaws.com/mock-avatar.png',
   },
   discord: {
     id: 'mock-discord-user-123456789',

@@ -103,13 +103,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
   // Development
   github: { accessToken: 'ghp_mock_github_token' },
   gitlab: { accessToken: 'glpat-mock-token' },
-  jira: {
-    domain: 'test-company.atlassian.net',
-    username: 'test@test.com',
-    password: 'mock-jira-api-token',
-    email: 'test@test.com',
-    apiToken: 'mock-jira-token',
-  },
   bitbucket: { username: 'mock-bitbucket-user', appPassword: 'mock-bitbucket-app-password' },
   netlify: { accessToken: 'mock-netlify-access-token-12345' },
 
@@ -118,9 +111,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
 
   // Project Management
   asana: { accessToken: 'mock-asana-access-token-123456789' },
-  clickup: { accessToken: 'pk_mock_clickup_access_token_12345' },
-  trello: { apiKey: 'mock-trello-api-key', apiToken: 'mock-trello-api-token' },
-
   // Analytics
   google_analytics: { accessToken: 'mock-ga-token' },
   mixpanel: { projectToken: 'mock-mixpanel-token' },
@@ -409,11 +399,6 @@ export const OAUTH_MOCK_CREDENTIALS = {
     accessToken: 'pina_mock-pinterest-access-token',
     refreshToken: 'pinr_mock-pinterest-refresh-token',
     expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30 days
-  },
-  clickup: {
-    clientId: 'mock-clickup-client-id',
-    clientSecret: 'mock-clickup-client-secret',
-    accessToken: 'pk_mock_clickup_access_token_12345',
   },
   dropbox: {
     clientId: 'mock-dropbox-client-id',
