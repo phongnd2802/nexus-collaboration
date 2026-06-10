@@ -20,7 +20,6 @@ import { ProjectsModule } from '../projects/projects.module';
 import { SuperAgentMemoryModule } from '../super-agent-memory';
 
 // Import new modules for expanded Autopilot tools
-import { BudgetModule } from '../budget/budget.module';
 import { ApprovalsModule } from '../approvals/approvals.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TemplatesModule } from '../templates/templates.module';
@@ -45,7 +44,6 @@ import { ProactiveModule } from './proactive';
     SuperAgentMemoryModule, // For Super Agent memory system
     ProactiveModule, // For proactive AI features (daily briefings, deadline alerts, suggestions cache)
     // New modules for expanded Autopilot tools
-    forwardRef(() => BudgetModule),
     forwardRef(() => ApprovalsModule),
     forwardRef(() => NotificationsModule),
     forwardRef(() => TemplatesModule),

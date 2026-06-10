@@ -54,9 +54,6 @@ export function MainContent({
   const intl = useIntl()
   const location = useLocation()
 
-  // Check if we're on a budget page - should not show the header
-  const isBudgetPage = location.pathname.includes('/budget')
-
   const config = viewConfigs[currentView] || { titleKey: 'pageTitle.view', icon: FileIcon }
   const title = intl.formatMessage({ id: config.titleKey, defaultMessage: 'View' })
   const IconComponent = config.icon
@@ -69,17 +66,6 @@ export function MainContent({
     window.dispatchEvent(new Event('nexus:layout-changed'))
     onToggleSidebar('left')
     setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
-  }
-
-  // For budget, render full-screen content without header
-  if (isBudgetPage) {
-    return (
-      <main className="flex-1 bg-background flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
-      </main>
-    )
   }
 
   return (

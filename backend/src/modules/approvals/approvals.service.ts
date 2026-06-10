@@ -11,7 +11,6 @@ import { DatabaseService } from '../database/database.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { GoogleSheetsService } from '../integration-framework/google-sheets/google-sheets.service';
 import { AppGateway } from '../../common/gateways/app.gateway';
-import { BudgetService } from '../budget/budget.service';
 import { NotificationType, NotificationPriority } from '../notifications/dto';
 import {
   CreateRequestTypeDto,
@@ -41,8 +40,6 @@ export class ApprovalsService {
     private googleSheetsService: GoogleSheetsService,
     @Inject(forwardRef(() => AppGateway))
     private appGateway: AppGateway,
-    @Inject(forwardRef(() => BudgetService))
-    private budgetService: BudgetService,
   ) {}
 
   // ==================== Helper Methods ====================
@@ -716,22 +713,6 @@ export class ApprovalsService {
         updated_at: new Date().toISOString(),
       });
 
-      // Handle expense approval if this is a Budget Expense Approval
-      if (request.requestType?.name === 'Budget Expense Approval' && request.data?.expenseId) {
-        try {
-          await this.budgetService.handleExpenseApproval(
-            workspaceId,
-            request.data.expenseId,
-            userId,
-          );
-          this.logger.log(
-            `Expense ${request.data.expenseId} approved via approval request ${requestId}`,
-          );
-        } catch (error) {
-          this.logger.error(`Failed to approve expense ${request.data.expenseId}:`, error);
-        }
-      }
-
       // Notify requester
       try {
         await this.notificationsService.sendNotification({
@@ -834,22 +815,6 @@ export class ApprovalsService {
       rejection_reason: dto.reason,
       updated_at: new Date().toISOString(),
     });
-
-    // Handle expense rejection if this is a Budget Expense Approval
-    if (request.requestType?.name === 'Budget Expense Approval' && request.data?.expenseId) {
-      try {
-        await this.budgetService.handleExpenseRejection(
-          workspaceId,
-          request.data.expenseId,
-          dto.reason,
-        );
-        this.logger.log(
-          `Expense ${request.data.expenseId} rejected via approval request ${requestId}`,
-        );
-      } catch (error) {
-        this.logger.error(`Failed to reject expense ${request.data.expenseId}:`, error);
-      }
-    }
 
     // Notify requester
     try {
