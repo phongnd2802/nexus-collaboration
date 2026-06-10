@@ -62,9 +62,6 @@ const MorePage = lazy(() => import('./pages/more').then(m => ({ default: m.MoreP
 const AppsPage = lazy(() => import('./pages/apps').then(m => ({ default: m.AppsPage })));
 
 // Budget Pages
-const BudgetList = lazy(() => import('./pages/budget/BudgetList'));
-const BudgetDetails = lazy(() => import('./pages/budget/BudgetDetails'));
-
 // Forms Pages
 const FormsPage = lazy(() => import('./pages/forms/FormsPage'));
 const FormBuilderPage = lazy(() => import('./pages/forms/FormBuilderPage'));
@@ -210,8 +207,6 @@ function WorkspaceRoutes() {
         <Route path="email" element={<EmailPage />} />
         <Route path="email/:folder" element={<EmailPage />} />
         <Route path="email/message/:messageId" element={<EmailPage />} />
-        <Route path="budget" element={<BudgetList />} />
-        <Route path="budget/:budgetId" element={<BudgetDetails />} />
         <Route path="forms" element={<FormsPage />} />
         <Route path="forms/new" element={<FormBuilderPage />} />
         <Route path="forms/:formId/edit" element={<FormBuilderPage />} />

@@ -8,7 +8,6 @@ import {
   ChevronRight,
   LayoutTemplate,
   Bot,
-  DollarSign,
   FileText,
   ClipboardList,
 } from 'lucide-react';
@@ -17,7 +16,6 @@ import GoogleSheetsBrowser from '../apps/GoogleSheetsBrowser';
 import { ApprovalsPage } from '../approvals';
 import TemplatesPage from '../templates/TemplatesPage';
 import BotsPage from '../bots/BotsPage';
-import BudgetList from '../budget/BudgetList';
 import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
 import FormsPage from '../forms/FormsPage';
 import FormBuilderPage from '../forms/FormBuilderPage';
@@ -79,13 +77,6 @@ function MoreGrid() {
       icon: <Bot className="w-6 h-6" />,
       color: '#8b5cf6',
       path: 'bots',
-    },
-    {
-      name: intl.formatMessage({ id: 'tools.budgetManagement.name', defaultMessage: 'Budget Management' }),
-      description: intl.formatMessage({ id: 'tools.budgetManagement.description', defaultMessage: 'Track project budgets, expenses, and time' }),
-      icon: <DollarSign className="w-6 h-6" />,
-      color: '#f59e0b',
-      path: 'budget',
     },
     {
       name: intl.formatMessage({ id: 'tools.projectTemplates.name', defaultMessage: 'Project Templates' }),
@@ -157,7 +148,6 @@ export function MorePage() {
       <Route path="/documents/:documentId" element={<DocumentDetail />} />
       <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
       <Route path="/bots/*" element={<BotsPage />} />
-      <Route path="/budget/*" element={<BudgetList />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
       <Route path="/google-drive/*" element={<GoogleDriveBrowser />} />
       <Route path="/google-sheets/*" element={<GoogleSheetsBrowser />} />

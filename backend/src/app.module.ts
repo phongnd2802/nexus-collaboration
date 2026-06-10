@@ -55,7 +55,6 @@ import { TemplatesModule } from './modules/templates/templates.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { SignaturesModule } from './modules/signatures/signatures.module';
 import { BotsModule } from './modules/bots/bots.module';
-import { BudgetModule } from './modules/budget/budget.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { RagModule } from './modules/rag/rag.module';
@@ -119,7 +118,6 @@ import { RagModule } from './modules/rag/rag.module';
     TemplatesModule,
     DocumentsModule,
     SignaturesModule,
-    BudgetModule,
     FormsModule,
     WorkflowsModule,
     RagModule,

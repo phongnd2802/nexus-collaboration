@@ -16,7 +16,6 @@ import { VideoCallsService } from '../../video-calls/video-calls.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { AutoPilotCapability } from '../dto/autopilot.dto';
 // New service imports for expanded tools
-import { BudgetService } from '../../budget/budget.service';
 import { ApprovalsService } from '../../approvals/approvals.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { TemplatesService } from '../../templates/templates.service';
@@ -69,8 +68,6 @@ export class AgentToolsService {
     @Inject(forwardRef(() => ProjectsService))
     private readonly projectsService: ProjectsService,
     // New service injections for expanded tools
-    @Inject(forwardRef(() => BudgetService))
-    private readonly budgetService: BudgetService,
     @Inject(forwardRef(() => ApprovalsService))
     private readonly approvalsService: ApprovalsService,
     @Inject(forwardRef(() => NotificationsService))
@@ -130,7 +127,6 @@ export class AgentToolsService {
       ...this.getReferenceTools(),
       ...this.getBatchTools(),
       // New tool categories
-      ...this.getBudgetTools(),
       ...this.getApprovalTools(),
       ...this.getNotificationTools(),
       ...this.getTemplateTools(),
@@ -288,17 +284,6 @@ export class AgentToolsService {
           'Delete all completed tasks from last month',
           'Move all files to the archive folder',
           'Create events for all team meetings this week',
-        ],
-      },
-      {
-        name: 'Budget & Expenses',
-        description: 'Create and manage budgets, track expenses, and get spending summaries',
-        category: 'budget',
-        examples: [
-          'Create a budget for the Q1 marketing project',
-          'Add an expense of $500 for office supplies',
-          'Show me the budget summary',
-          'List all expenses for this month',
         ],
       },
       {
@@ -5194,242 +5179,6 @@ Provide a comprehensive summary covering:
             });
           } catch (error) {
             this.logger.error(`[batch_move_files] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-    ];
-  }
-
-  // ============================================
-  // BUDGET TOOLS
-  // ============================================
-
-  private getBudgetTools(): DynamicStructuredTool[] {
-    return [
-      new DynamicStructuredTool({
-        name: 'create_budget',
-        description: 'Create a new budget for tracking expenses.',
-        schema: z.object({
-          name: z.string().describe('Budget name'),
-          totalBudget: z.number().describe('Total budget amount'),
-          projectId: z.string().optional().describe('Associate with a project'),
-          description: z.string().optional().describe('Budget description'),
-          currency: z.string().optional().describe('Currency code (default: USD)'),
-          startDate: z.string().optional().describe('Budget start date (ISO format)'),
-          endDate: z.string().optional().describe('Budget end date (ISO format)'),
-        }),
-        func: async ({
-          name,
-          totalBudget,
-          projectId,
-          description,
-          currency,
-          startDate,
-          endDate,
-        }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would create budget',
-              details: { name, totalBudget, currency: currency || 'USD' },
-            });
-          }
-
-          try {
-            const budget = await this.budgetService.createBudget(
-              this.context.workspaceId,
-              this.context.userId,
-              {
-                name,
-                total_budget: totalBudget,
-                project_id: projectId,
-                description,
-                currency: currency || 'USD',
-                start_date: startDate,
-                end_date: endDate,
-              } as any,
-            );
-            return JSON.stringify({
-              success: true,
-              budget,
-              message: `Budget "${name}" created successfully`,
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'list_budgets',
-        description: 'List all budgets in the workspace.',
-        schema: z.object({
-          projectId: z.string().optional().describe('Filter by project ID'),
-        }),
-        func: async ({ projectId }) => {
-          try {
-            const budgets = await this.budgetService.getBudgets(
-              this.context.workspaceId,
-              projectId,
-            );
-            return JSON.stringify({ success: true, budgets, count: budgets.length });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'get_budget_summary',
-        description: 'Get budget summary with spending statistics.',
-        schema: z.object({
-          budgetId: z.string().describe('Budget ID to get summary for'),
-        }),
-        func: async ({ budgetId }) => {
-          try {
-            const summary = await this.budgetService.getBudgetSummary(
-              this.context.workspaceId,
-              budgetId,
-            );
-            return JSON.stringify({ success: true, summary });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'create_expense',
-        description: 'Create a new expense entry in a budget.',
-        schema: z.object({
-          budgetId: z.string().describe('Budget ID to add expense to'),
-          title: z.string().describe('Expense title/description'),
-          amount: z.number().describe('Expense amount'),
-          expenseDate: z.string().describe('Date of expense (ISO format)'),
-          categoryId: z.string().optional().describe('Budget category ID'),
-          taskId: z.string().optional().describe('Associated task ID'),
-          description: z.string().optional().describe('Additional details'),
-          vendor: z.string().optional().describe('Vendor name'),
-        }),
-        func: async ({
-          budgetId,
-          title,
-          amount,
-          expenseDate,
-          categoryId,
-          taskId,
-          description,
-          vendor,
-        }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would create expense',
-              details: { title, amount, budgetId },
-            });
-          }
-
-          try {
-            const expense = await this.budgetService.createExpense(
-              this.context.workspaceId,
-              this.context.userId,
-              {
-                budget_id: budgetId,
-                title,
-                amount,
-                expense_date: expenseDate,
-                category_id: categoryId,
-                task_id: taskId,
-                description,
-                vendor,
-              } as any,
-            );
-            return JSON.stringify({
-              success: true,
-              expense,
-              message: `Expense "${title}" added successfully`,
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'list_expenses',
-        description: 'List expenses for a budget.',
-        schema: z.object({
-          budgetId: z.string().describe('Budget ID to list expenses for'),
-        }),
-        func: async ({ budgetId }) => {
-          try {
-            const expenses = await this.budgetService.getExpenses(
-              this.context.workspaceId,
-              budgetId,
-            );
-            return JSON.stringify({ success: true, expenses, count: expenses.length });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'approve_expense',
-        description: 'Approve a pending expense.',
-        schema: z.object({
-          expenseId: z.string().describe('Expense ID to approve'),
-        }),
-        func: async ({ expenseId }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would approve expense',
-              details: { expenseId },
-            });
-          }
-
-          try {
-            const expense = await this.budgetService.approveExpense(
-              this.context.workspaceId,
-              expenseId,
-              this.context.userId,
-            );
-            return JSON.stringify({
-              success: true,
-              expense,
-              message: 'Expense approved successfully',
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'delete_budget',
-        description: 'Delete a budget.',
-        schema: z.object({
-          budgetId: z.string().describe('Budget ID to delete'),
-        }),
-        func: async ({ budgetId }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would delete budget',
-              details: { budgetId },
-            });
-          }
-
-          try {
-            await this.budgetService.deleteBudget(
-              this.context.workspaceId,
-              budgetId,
-              this.context.userId,
-            );
-            return JSON.stringify({ success: true, message: 'Budget deleted successfully' });
-          } catch (error) {
             return JSON.stringify({ success: false, error: error.message });
           }
         },
