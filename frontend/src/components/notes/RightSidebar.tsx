@@ -15,8 +15,7 @@ import { useNotesStore } from '../../stores/notesStore'
 import { useWorkspaceMembers } from '@/lib/api/workspace-api'
 import { useAuth } from '@/contexts/AuthContext'
 import { notesApi } from '@/lib/api/notes-api'
-import { googleDriveApi } from '@/lib/api/google-drive-api'
-import { GoogleDriveExportModal } from '../files/GoogleDriveExportModal'
+
 import { toast } from 'sonner'
 import html2pdf from 'html2pdf.js'
 import {
@@ -47,27 +46,8 @@ export function NotesRightSidebar() {
   const [enrichedNote, setEnrichedNote] = React.useState<any>(null)
   const [isLoadingNote, setIsLoadingNote] = React.useState(false)
 
-  // Google Drive export state
-  const [isGoogleDriveConnected, setIsGoogleDriveConnected] = React.useState(false)
-  const [showDriveExportModal, setShowDriveExportModal] = React.useState(false)
-  const [isExportingToDrive, setIsExportingToDrive] = React.useState(false)
-
   // Fetch workspace members to get user details
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
-
-  // Check Google Drive connection status
-  React.useEffect(() => {
-    const checkDriveConnection = async () => {
-      if (!workspaceId) return
-      try {
-        const connection = await googleDriveApi.getConnection(workspaceId)
-        setIsGoogleDriveConnected(connection?.isActive || false)
-      } catch {
-        setIsGoogleDriveConnected(false)
-      }
-    }
-    checkDriveConnection()
-  }, [workspaceId])
 
   // Fetch the note from API only when selected note changes (initial load)
   React.useEffect(() => {
@@ -639,80 +619,6 @@ export function NotesRightSidebar() {
     }
   }
 
-  // Export to Google Drive handler
-  const handleExportToDrive = async (targetFolderId?: string) => {
-    if (!selectedNote || !workspaceId) {
-      toast.error('No note selected')
-      return
-    }
-
-    setIsExportingToDrive(true)
-
-    try {
-      // Get note title
-      const noteTitle = Array.isArray(selectedNote.title)
-        ? selectedNote.title.map((rt: any) => rt.text || rt).join('')
-        : String(selectedNote.title || intl.formatMessage({ id: 'modules.notes.rightSidebar.untitled' }))
-
-      const htmlContent = extractHtmlFromContent(selectedNote.content)
-
-      // Detect if content contains RTL characters
-      const hasRTL = /[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(htmlContent + noteTitle)
-
-      // Create complete HTML document
-      const escapedTitle = noteTitle.replace(/[<>]/g, '')
-      const safeHtmlContent = htmlContent || '<p><em>This note has no content</em></p>'
-
-      // Create a temporary container for html2pdf
-      const container = document.createElement('div')
-      container.innerHTML = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; padding: 20px; ${hasRTL ? 'direction: rtl;' : ''}">
-          <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; border-bottom: 3px solid #3b82f6; padding-bottom: 12px;">${escapedTitle}</h1>
-          <div style="font-size: 11px; color: #666; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #e5e5e5;">
-            Exported from Nexus • ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </div>
-          <div style="font-size: 14px;">${safeHtmlContent}</div>
-        </div>
-      `
-
-      // Generate PDF using html2pdf
-      const pdfBlob = await html2pdf()
-        .set({
-          margin: [10, 10, 10, 10],
-          filename: `${noteTitle.replace(/[^a-zA-Z0-9\u0600-\u06FF\s-_]/g, '').trim()}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        })
-        .from(container)
-        .outputPdf('blob')
-
-      // Create File object from blob
-      const sanitizedFileName = `${noteTitle.replace(/[^a-zA-Z0-9\u0600-\u06FF\s-_]/g, '').trim() || 'Untitled'}.pdf`
-      const file = new File([pdfBlob], sanitizedFileName, { type: 'application/pdf' })
-
-      // Upload to Google Drive
-      const result = await googleDriveApi.uploadFile(workspaceId, file, {
-        parentId: targetFolderId,
-        description: `Note exported from Nexus on ${new Date().toISOString()}`
-      })
-
-      toast.success(intl.formatMessage(
-        { id: 'modules.notes.rightSidebar.exportSuccess', defaultMessage: 'Note exported to Google Drive as PDF' }
-      ))
-      setShowDriveExportModal(false)
-
-      console.log('Note exported to Google Drive as PDF:', result)
-    } catch (error) {
-      console.error('Failed to export note to Google Drive:', error)
-      toast.error(intl.formatMessage(
-        { id: 'modules.notes.rightSidebar.exportFailed', defaultMessage: 'Failed to export note to Google Drive' }
-      ))
-    } finally {
-      setIsExportingToDrive(false)
-    }
-  }
-
   return (
     <div className="flex-1 overflow-y-auto space-y-6 p-4">
       {/* Document Info */}
@@ -986,41 +892,13 @@ export function NotesRightSidebar() {
             {intl.formatMessage({ id: 'modules.notes.rightSidebar.exportAsPDF' })}
           </Button>
 
-          {/* Export to Google Drive - only show when connected */}
+          {/* Export to Google Drive - only show when connected
           {isGoogleDriveConnected && (
             <Button
               variant="outline"
-              className="w-full justify-start"
-              size="sm"
-              onClick={() => setShowDriveExportModal(true)}
-              disabled={!selectedNote || isExportingToDrive}
-            >
-              {isExportingToDrive ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4 mr-2" />
-              )}
-              {intl.formatMessage({ id: 'modules.notes.rightSidebar.exportToDrive', defaultMessage: 'Export to Drive' })}
-            </Button>
-          )}
+              className="w-full justify-start" */}
         </div>
       </div>
-
-      {/* Google Drive Export Modal */}
-      <GoogleDriveExportModal
-        isOpen={showDriveExportModal}
-        onClose={() => setShowDriveExportModal(false)}
-        onExport={handleExportToDrive}
-        fileName={
-          selectedNote
-            ? (Array.isArray(selectedNote.title)
-                ? selectedNote.title.map((rt: any) => rt.text || rt).join('')
-                : String(selectedNote.title || 'Untitled')
-              ).replace(/[^a-zA-Z0-9\u0600-\u06FF\s-_]/g, '').trim() + '.pdf'
-            : 'note.pdf'
-        }
-        isExporting={isExportingToDrive}
-      />
     </div>
   )
 }

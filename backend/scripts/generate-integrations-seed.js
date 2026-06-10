@@ -6,7 +6,7 @@
  * Run: node scripts/generate-integrations-seed.js
  *
  * Already Implemented (17): google-drive, google-calendar, gmail, google-sheets, slack,
- * github, microsoft-teams, notion, jira, trello, asana, dropbox, zoom, linear, figma, hubspot, sendgrid
+ * github, microsoft-teams, notion, jira, trello, asana, dropbox, zoom, linear, figma, hubspot
  */
 
 const fs = require('fs');
@@ -37,7 +37,7 @@ const ALREADY_IMPLEMENTED = [
   'google-drive', 'google-calendar', 'gmail', 'google-sheets',
   'slack', 'github', 'microsoft-teams', 'notion', 'jira',
   'trello', 'asana', 'dropbox', 'zoom', 'linear', 'figma',
-  'hubspot', 'sendgrid'
+  'hubspot'
 ];
 
 // Combine all integrations

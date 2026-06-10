@@ -48,6 +48,9 @@ export function AgenticSuggestions() {
     if (suggestion.type === 'meeting') {
       return intl.formatMessage({ id: 'dashboard.suggestions.actions.joinMeeting', defaultMessage: 'Join Meeting' })
     }
+    if (suggestion.type === 'missed_event') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewEvent', defaultMessage: 'View Event' })
+    }
     if (suggestion.type === 'unread_message') {
       return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewMessages', defaultMessage: 'View Messages' })
     }
@@ -68,6 +71,9 @@ export function AgenticSuggestions() {
       }
       if (normalized === 'view report') {
         return intl.formatMessage({ id: 'dashboard.suggestions.weeklyReport.actionLabel' })
+      }
+      if (normalized === 'view event') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewEvent', defaultMessage: 'View Event' })
       }
       if (normalized === 'view messages') {
         return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewMessages', defaultMessage: 'View Messages' })
@@ -95,6 +101,33 @@ export function AgenticSuggestions() {
       return intl.formatMessage(
         { id: 'dashboard.suggestions.taskBalance.title', defaultMessage: 'Task Imbalance in {projectName}' },
         { projectName: suggestion.metadata?.projectName || intl.formatMessage({ id: 'projects.viewProject', defaultMessage: 'Project' }) }
+      )
+    }
+
+    if (
+      suggestion.type === 'overdue_task' &&
+      suggestion.metadata?.taskTitle &&
+      (!suggestion.title || suggestion.title.startsWith('Overdue:'))
+    ) {
+      return intl.formatMessage(
+        { id: 'dashboard.suggestions.overdueTask.title', defaultMessage: 'Overdue: {taskTitle}' },
+        { taskTitle: suggestion.metadata.taskTitle }
+      )
+    }
+
+    if (suggestion.type === 'missed_event' && (!suggestion.title || suggestion.title === 'Missed Event')) {
+      return intl.formatMessage({ id: 'dashboard.suggestions.missedEvent.title', defaultMessage: 'Missed Event' })
+    }
+
+    if (
+      suggestion.type === 'meeting' &&
+      suggestion.metadata?.meeting?.status === 'active' &&
+      suggestion.metadata?.meeting?.title &&
+      (!suggestion.title || suggestion.title.startsWith('Meeting in Progress:'))
+    ) {
+      return intl.formatMessage(
+        { id: 'dashboard.suggestions.activeMeeting.title', defaultMessage: 'Meeting in Progress: {meetingTitle}' },
+        { meetingTitle: suggestion.metadata.meeting.title }
       )
     }
 
@@ -128,6 +161,49 @@ export function AgenticSuggestions() {
           idealCount
         }
       )
+    }
+
+    if (
+      suggestion.type === 'overdue_task' &&
+      suggestion.metadata?.daysOverdue &&
+      (!suggestion.description || suggestion.description.startsWith('This task was due '))
+    ) {
+      return intl.formatMessage(
+        {
+          id: 'dashboard.suggestions.overdueTask.description',
+          defaultMessage:
+            'This task was due {daysOverdue} {daysOverdue, plural, one {day} other {days}} ago in {projectName}'
+        },
+        {
+          daysOverdue: suggestion.metadata.daysOverdue,
+          projectName: suggestion.metadata.projectName || intl.formatMessage({ id: 'projects.viewProject', defaultMessage: 'project' })
+        }
+      )
+    }
+
+    if (
+      suggestion.type === 'missed_event' &&
+      suggestion.metadata?.calendar?.eventTitle &&
+      (!suggestion.description || suggestion.description.startsWith('You missed '))
+    ) {
+      return intl.formatMessage(
+        {
+          id: 'dashboard.suggestions.missedEvent.description',
+          defaultMessage: 'You missed "{eventTitle}"'
+        },
+        { eventTitle: suggestion.metadata.calendar.eventTitle }
+      )
+    }
+
+    if (
+      suggestion.type === 'meeting' &&
+      suggestion.metadata?.meeting?.status === 'active' &&
+      (!suggestion.description || suggestion.description === 'This meeting is currently active. Join now to participate.')
+    ) {
+      return intl.formatMessage({
+        id: 'dashboard.suggestions.activeMeeting.description',
+        defaultMessage: 'This meeting is currently active. Join now to participate.'
+      })
     }
 
     return suggestion.description

@@ -29,7 +29,6 @@ export const FEATURES_ALT = {
   analytics: 'Analytics dashboard with charts and performance metrics',
   teams: 'Team collaboration workspace with member management',
   integrations: 'Integration marketplace with third-party app connections',
-  monitoring: 'Real-time monitoring dashboard with system metrics',
   automation: 'Workflow automation builder with drag-and-drop interface',
 } as const;
 
@@ -179,13 +178,6 @@ export const getAltText = {
    */
   project: (projectName: string) => {
     return `${projectName} project view`;
-  },
-
-  /**
-   * Generate alt text for blog featured image
-   */
-  blogFeatured: (postTitle: string) => {
-    return `Featured image for blog post: ${postTitle}`;
   },
 
   /**

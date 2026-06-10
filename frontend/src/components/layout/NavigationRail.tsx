@@ -16,11 +16,9 @@ import {
   Settings,
   Link2,
   BarChart3,
-  Radio,
   LayoutGrid,
   Plug,
   Wrench,
-  BookOpen,
   Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
@@ -38,14 +36,13 @@ export type ViewType =
   | 'files'
   | 'ai-chat'
   | 'bots'
+  | 'email'
   | 'search'
   | 'settings'
   | 'integrations'
   | 'analytics'
-  | 'monitoring'
   | 'apps'
   | 'more'
-  | 'whiteboard'
 
 interface NavigationItem {
   view: ViewType
@@ -63,9 +60,8 @@ const navigationItems: NavigationItem[] = [
   { view: 'calendar', icon: Calendar, labelKey: 'navigation.calendar', path: 'calendar' },
   { view: 'video', icon: Video, labelKey: 'navigation.videoCall', path: 'video-calls' },
   { view: 'files', icon: FolderOpen, labelKey: 'navigation.files', path: 'files' },
-   /* { view: 'integrations', icon: Link2, labelKey: 'navigation.integrations', path: 'integrations' },
-   { view: 'analytics', icon: BarChart3, labelKey: 'navigation.analytics', path: 'analytics' },
-   { view: 'monitoring', icon: Radio, labelKey: 'navigation.monitoring', path: 'monitoring' }, */
+    /* { view: 'integrations', icon: Link2, labelKey: 'navigation.integrations', path: 'integrations' },
+   { view: 'analytics', icon: BarChart3, labelKey: 'navigation.analytics', path: 'analytics' }, */
 ]
 
 const bottomItems: NavigationItem[] = [
@@ -227,23 +223,6 @@ export function NavigationRail({ defaultExpanded = false }: NavigationRailProps)
             </Link>
           )
         })}
-
-        {/* Blog button - Admin only */}
-        {isAdmin && (
-          <Link
-            to="/blog"
-            title="Blog"
-            className={cn(
-              "flex items-center rounded-xl transition-all duration-200 h-10",
-              isExpanded ? "w-full justify-start gap-3 px-3" : "justify-center w-10",
-              "hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]",
-              location.pathname.includes('/blog') && "bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] dark:bg-[#FAF9F5] dark:text-[#1F1E1D] dark:hover:bg-[#e8e8e5]"
-            )}
-          >
-            <BookOpen className="h-5 w-5 min-w-[20px]" />
-            {isExpanded && <span className="text-sm font-medium truncate">Blog</span>}
-          </Link>
-        )}
 
         {/* Search button */}
         <Link

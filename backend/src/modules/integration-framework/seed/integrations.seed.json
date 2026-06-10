@@ -1,57 +1,6 @@
 {
   "integrations": [
     {
-      "slug": "google-drive",
-      "name": "Google Drive",
-      "description": "Access and manage your Google Drive files directly from Nexus. Upload, download, and organize files seamlessly.",
-      "category": "FILE_STORAGE",
-      "provider": "Google",
-      "logoUrl": "https://www.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png",
-      "website": "https://drive.google.com",
-      "documentationUrl": "https://developers.google.com/drive/api/v3/about-sdk",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
-        "tokenUrl": "https://oauth2.googleapis.com/token",
-        "revokeUrl": "https://oauth2.googleapis.com/revoke",
-        "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "scopes": [
-          "drive",
-          "drive.file",
-          "userinfo.email",
-          "userinfo.profile"
-        ],
-        "scopePrefix": "https://www.googleapis.com/auth/",
-        "clientIdEnvKey": "GOOGLE_OAUTH_CLIENT_ID",
-        "clientSecretEnvKey": "GOOGLE_OAUTH_CLIENT_SECRET",
-        "extraAuthParams": {
-          "access_type": "offline",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://www.googleapis.com/drive/v3",
-      "apiConfig": {
-        "rateLimiting": {
-          "requestsPerMinute": 100
-        }
-      },
-      "capabilities": [
-        "read_files",
-        "write_files",
-        "list_folders",
-        "share_files"
-      ],
-      "features": [
-        "File sync",
-        "Folder browsing",
-        "File sharing",
-        "Search files"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
       "slug": "google-calendar",
       "name": "Google Calendar",
       "description": "Sync your Google Calendar events with Nexus. View, create, and manage events without leaving the app.",
@@ -140,111 +89,6 @@
         "Send emails",
         "Smart inbox",
         "Label management"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
-      "slug": "google-sheets",
-      "name": "Google Sheets",
-      "description": "Access and edit Google Sheets spreadsheets. Import data and export reports seamlessly.",
-      "category": "PRODUCTIVITY",
-      "provider": "Google",
-      "logoUrl": "https://www.gstatic.com/images/branding/product/2x/sheets_2020q4_48dp.png",
-      "website": "https://sheets.google.com",
-      "documentationUrl": "https://developers.google.com/sheets/api/reference/rest",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
-        "tokenUrl": "https://oauth2.googleapis.com/token",
-        "revokeUrl": "https://oauth2.googleapis.com/revoke",
-        "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "scopes": [
-          "spreadsheets",
-          "drive.readonly",
-          "userinfo.email",
-          "userinfo.profile"
-        ],
-        "scopePrefix": "https://www.googleapis.com/auth/",
-        "clientIdEnvKey": "GOOGLE_OAUTH_CLIENT_ID",
-        "clientSecretEnvKey": "GOOGLE_OAUTH_CLIENT_SECRET",
-        "extraAuthParams": {
-          "access_type": "offline",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://sheets.googleapis.com/v4",
-      "capabilities": [
-        "read_sheets",
-        "write_sheets",
-        "create_sheets"
-      ],
-      "features": [
-        "Spreadsheet access",
-        "Data import",
-        "Data export",
-        "Cell editing"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "slack",
-      "name": "Slack",
-      "description": "Connect Slack to receive notifications and send messages directly from Nexus.",
-      "category": "COMMUNICATION",
-      "provider": "Slack",
-      "logoUrl": "https://a.slack-edge.com/80588/marketing/img/icons/icon_slack_hash_colored.png",
-      "website": "https://slack.com",
-      "documentationUrl": "https://api.slack.com/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://slack.com/oauth/v2/authorize",
-        "tokenUrl": "https://slack.com/api/oauth.v2.access",
-        "revokeUrl": "https://slack.com/api/auth.revoke",
-        "userInfoUrl": "https://slack.com/api/users.identity",
-        "scopes": [
-          "channels:read",
-          "chat:write",
-          "users:read",
-          "team:read",
-          "im:write"
-        ],
-        "scopeDelimiter": ",",
-        "clientIdEnvKey": "SLACK_CLIENT_ID",
-        "clientSecretEnvKey": "SLACK_CLIENT_SECRET",
-        "userInfoMapping": {
-          "id": "user.id",
-          "email": "user.email",
-          "name": "user.name",
-          "avatar": "user.image_72"
-        }
-      },
-      "apiBaseUrl": "https://slack.com/api",
-      "supportsWebhooks": true,
-      "webhookConfig": {
-        "events": [
-          "message",
-          "reaction_added",
-          "channel_created",
-          "member_joined_channel"
-        ],
-        "signatureHeader": "X-Slack-Signature",
-        "signatureAlgorithm": "sha256"
-      },
-      "capabilities": [
-        "send_messages",
-        "read_channels",
-        "list_users",
-        "notifications"
-      ],
-      "features": [
-        "Send notifications",
-        "Channel sync",
-        "Message posting",
-        "User directory"
       ],
       "pricingType": "free",
       "isVerified": true,
@@ -361,134 +205,6 @@
       "isFeatured": true
     },
     {
-      "slug": "notion",
-      "name": "Notion",
-      "description": "Connect Notion to sync databases, pages, and collaborate on documentation.",
-      "category": "DOCUMENTATION",
-      "provider": "Notion",
-      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
-      "website": "https://notion.so",
-      "documentationUrl": "https://developers.notion.com/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://api.notion.com/v1/oauth/authorize",
-        "tokenUrl": "https://api.notion.com/v1/oauth/token",
-        "scopes": [],
-        "clientIdEnvKey": "NOTION_CLIENT_ID",
-        "clientSecretEnvKey": "NOTION_CLIENT_SECRET",
-        "extraAuthParams": {
-          "owner": "user"
-        }
-      },
-      "apiBaseUrl": "https://api.notion.com/v1",
-      "apiConfig": {
-        "defaultHeaders": {
-          "Notion-Version": "2022-06-28"
-        }
-      },
-      "capabilities": [
-        "read_pages",
-        "write_pages",
-        "read_databases",
-        "write_databases"
-      ],
-      "features": [
-        "Page sync",
-        "Database access",
-        "Content creation",
-        "Search"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
-      "slug": "jira",
-      "name": "Jira",
-      "description": "Connect Jira to sync issues, track sprints, and manage projects.",
-      "category": "PROJECT_MANAGEMENT",
-      "provider": "Atlassian",
-      "logoUrl": "https://wac-cdn.atlassian.com/dam/jcr:bc97d93d-8e79-4b0e-8b8e-6c0fa8f65d4c/Jira%20Software-icon-blue.svg",
-      "website": "https://www.atlassian.com/software/jira",
-      "documentationUrl": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://auth.atlassian.com/authorize",
-        "tokenUrl": "https://auth.atlassian.com/oauth/token",
-        "userInfoUrl": "https://api.atlassian.com/me",
-        "scopes": [
-          "read:jira-user",
-          "read:jira-work",
-          "write:jira-work",
-          "offline_access"
-        ],
-        "clientIdEnvKey": "JIRA_CLIENT_ID",
-        "clientSecretEnvKey": "JIRA_CLIENT_SECRET",
-        "extraAuthParams": {
-          "audience": "api.atlassian.com",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://api.atlassian.com/ex/jira",
-      "capabilities": [
-        "read_issues",
-        "create_issues",
-        "update_issues",
-        "read_projects"
-      ],
-      "features": [
-        "Issue sync",
-        "Sprint tracking",
-        "Project management",
-        "Workflow automation"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
-      "slug": "trello",
-      "name": "Trello",
-      "description": "Connect Trello to sync boards, lists, and cards with your Nexus workspace.",
-      "category": "PROJECT_MANAGEMENT",
-      "provider": "Atlassian",
-      "logoUrl": "https://www.trello.com/favicon.ico",
-      "website": "https://trello.com",
-      "documentationUrl": "https://developer.atlassian.com/cloud/trello/rest/",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://trello.com/1/authorize",
-        "tokenUrl": "https://trello.com/1/OAuthGetAccessToken",
-        "scopes": [
-          "read",
-          "write",
-          "account"
-        ],
-        "clientIdEnvKey": "TRELLO_API_KEY",
-        "clientSecretEnvKey": "TRELLO_API_SECRET",
-        "extraAuthParams": {
-          "expiration": "never",
-          "name": "Nexus"
-        }
-      },
-      "apiBaseUrl": "https://api.trello.com/1",
-      "capabilities": [
-        "read_boards",
-        "create_cards",
-        "update_cards",
-        "move_cards"
-      ],
-      "features": [
-        "Board sync",
-        "Card management",
-        "List organization",
-        "Activity tracking"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
       "slug": "asana",
       "name": "Asana",
       "description": "Connect Asana to sync tasks, projects, and team workflows.",
@@ -526,56 +242,6 @@
         "Project management",
         "Timeline view",
         "Team collaboration"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "dropbox",
-      "name": "Dropbox",
-      "description": "Connect Dropbox to access, upload, and share files from your cloud storage.",
-      "category": "FILE_STORAGE",
-      "provider": "Dropbox",
-      "logoUrl": "https://cdn-dev.nexusapp.io/projects/4493aede-e31a-4da4-8645-ca3c3a3d99a4/f521a573-eadb-48c9-90c4-bbb25611811e-1769423380547-1769423379343-dropbox.png",
-      "website": "https://dropbox.com",
-      "documentationUrl": "https://www.dropbox.com/developers/documentation",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://www.dropbox.com/oauth2/authorize",
-        "tokenUrl": "https://api.dropboxapi.com/oauth2/token",
-        "revokeUrl": "https://api.dropboxapi.com/2/auth/token/revoke",
-        "userInfoUrl": "https://api.dropboxapi.com/2/users/get_current_account",
-        "scopes": [
-          "account_info.read",
-          "files.metadata.read",
-          "files.content.read",
-          "files.content.write"
-        ],
-        "clientIdEnvKey": "DROPBOX_CLIENT_ID",
-        "clientSecretEnvKey": "DROPBOX_CLIENT_SECRET",
-        "extraAuthParams": {
-          "token_access_type": "offline"
-        },
-        "userInfoMapping": {
-          "id": "account_id",
-          "email": "email",
-          "name": "name.display_name",
-          "avatar": "profile_photo_url"
-        }
-      },
-      "apiBaseUrl": "https://api.dropboxapi.com/2",
-      "capabilities": [
-        "read_files",
-        "write_files",
-        "list_folders",
-        "share_files"
-      ],
-      "features": [
-        "File sync",
-        "Folder browsing",
-        "File sharing",
-        "Search files"
       ],
       "pricingType": "freemium",
       "isVerified": true,
@@ -620,56 +286,6 @@
         "Meeting scheduling",
         "Recording access",
         "Participant management"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "linear",
-      "name": "Linear",
-      "description": "Connect Linear to sync issues and streamline your development workflow.",
-      "category": "PROJECT_MANAGEMENT",
-      "provider": "Linear",
-      "logoUrl": "https://linear.app/static/favicon.svg",
-      "website": "https://linear.app",
-      "documentationUrl": "https://developers.linear.app/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://linear.app/oauth/authorize",
-        "tokenUrl": "https://api.linear.app/oauth/token",
-        "revokeUrl": "https://api.linear.app/oauth/revoke",
-        "scopes": [
-          "read",
-          "write",
-          "issues:create",
-          "comments:create"
-        ],
-        "clientIdEnvKey": "LINEAR_CLIENT_ID",
-        "clientSecretEnvKey": "LINEAR_CLIENT_SECRET"
-      },
-      "apiBaseUrl": "https://api.linear.app",
-      "supportsWebhooks": true,
-      "webhookConfig": {
-        "events": [
-          "Issue",
-          "Comment",
-          "Project",
-          "Cycle"
-        ],
-        "signatureHeader": "Linear-Signature"
-      },
-      "capabilities": [
-        "read_issues",
-        "create_issues",
-        "update_issues",
-        "read_projects"
-      ],
-      "features": [
-        "Issue tracking",
-        "Cycle management",
-        "Roadmap sync",
-        "Automated workflows"
       ],
       "pricingType": "freemium",
       "isVerified": true,
@@ -757,38 +373,6 @@
       "isFeatured": false
     },
     {
-      "slug": "sendgrid",
-      "name": "SendGrid",
-      "description": "Connect SendGrid to send transactional and marketing emails.",
-      "category": "EMAIL",
-      "provider": "Twilio SendGrid",
-      "logoUrl": "https://sendgrid.com/favicon.ico",
-      "website": "https://sendgrid.com",
-      "documentationUrl": "https://docs.sendgrid.com/api-reference",
-      "authType": "api_key",
-      "authConfig": {
-        "headerName": "Authorization",
-        "headerPrefix": "Bearer ",
-        "fieldLabel": "SendGrid API Key",
-        "helpText": "Create an API key in your SendGrid dashboard under Settings > API Keys"
-      },
-      "apiBaseUrl": "https://api.sendgrid.com/v3",
-      "capabilities": [
-        "send_email",
-        "manage_templates",
-        "view_stats"
-      ],
-      "features": [
-        "Email sending",
-        "Template management",
-        "Delivery analytics",
-        "Contact lists"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
       "slug": "discord",
       "name": "Discord",
       "description": "Connect Discord to receive notifications and manage server communications.",
@@ -828,35 +412,6 @@
         "Server notifications",
         "Channel sync",
         "Member management"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "telegram",
-      "name": "Telegram",
-      "description": "Connect Telegram bot to send notifications and messages.",
-      "category": "COMMUNICATION",
-      "provider": "Telegram",
-      "logoUrl": "https://telegram.org/img/t_logo.svg",
-      "website": "https://telegram.org",
-      "documentationUrl": "https://core.telegram.org/bots/api",
-      "authType": "api_key",
-      "authConfig": {
-        "fieldLabel": "Bot Token",
-        "helpText": "Create a bot via @BotFather and copy the token"
-      },
-      "apiBaseUrl": "https://api.telegram.org",
-      "capabilities": [
-        "send_messages",
-        "receive_messages",
-        "manage_groups"
-      ],
-      "features": [
-        "Bot messaging",
-        "Group notifications",
-        "Inline keyboards"
       ],
       "pricingType": "free",
       "isVerified": true,
@@ -1303,41 +858,6 @@
         "Item management",
         "Status updates",
         "Timeline tracking"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
-      "slug": "clickup",
-      "name": "ClickUp",
-      "description": "Connect ClickUp to sync tasks, lists, and project workflows.",
-      "category": "PROJECT_MANAGEMENT",
-      "provider": "ClickUp",
-      "logoUrl": "https://clickup.com/landing/images/clickup-symbol_color.svg",
-      "website": "https://clickup.com",
-      "documentationUrl": "https://clickup.com/api",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://app.clickup.com/api",
-        "tokenUrl": "https://api.clickup.com/api/v2/oauth/token",
-        "userInfoUrl": "https://api.clickup.com/api/v2/user",
-        "scopes": [],
-        "clientIdEnvKey": "CLICKUP_CLIENT_ID",
-        "clientSecretEnvKey": "CLICKUP_CLIENT_SECRET"
-      },
-      "apiBaseUrl": "https://api.clickup.com/api/v2",
-      "capabilities": [
-        "read_tasks",
-        "create_tasks",
-        "update_tasks",
-        "read_spaces"
-      ],
-      "features": [
-        "Task sync",
-        "List management",
-        "Time tracking",
-        "Custom fields"
       ],
       "pricingType": "freemium",
       "isVerified": true,
@@ -5437,47 +4957,6 @@
       "isFeatured": false
     },
     {
-      "slug": "twitter",
-      "name": "Twitter/X",
-      "description": "Connect Twitter/X for social media management.",
-      "category": "SOCIAL_MEDIA",
-      "provider": "X Corp",
-      "logoUrl": "https://abs.twimg.com/favicons/twitter.3.ico",
-      "website": "https://twitter.com",
-      "documentationUrl": "https://developer.twitter.com/en/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://twitter.com/i/oauth2/authorize",
-        "tokenUrl": "https://api.twitter.com/2/oauth2/token",
-        "revokeUrl": "https://api.twitter.com/2/oauth2/revoke",
-        "scopes": [
-          "tweet.read",
-          "tweet.write",
-          "users.read",
-          "offline.access"
-        ],
-        "clientIdEnvKey": "TWITTER_CLIENT_ID",
-        "clientSecretEnvKey": "TWITTER_CLIENT_SECRET",
-        "usePKCE": true
-      },
-      "apiBaseUrl": "https://api.twitter.com/2",
-      "capabilities": [
-        "read_tweets",
-        "post_tweets",
-        "read_mentions",
-        "read_followers"
-      ],
-      "features": [
-        "Tweet posting",
-        "Timeline access",
-        "Analytics",
-        "Direct messages"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": true
-    },
-    {
       "slug": "linkedin",
       "name": "LinkedIn",
       "description": "Connect LinkedIn for professional networking.",
@@ -5668,51 +5147,6 @@
         "Board management",
         "Rich pins",
         "Analytics"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "youtube",
-      "name": "YouTube",
-      "description": "Connect YouTube for video content management.",
-      "category": "SOCIAL_MEDIA",
-      "provider": "Google",
-      "logoUrl": "https://www.youtube.com/favicon.ico",
-      "website": "https://youtube.com",
-      "documentationUrl": "https://developers.google.com/youtube/v3",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
-        "tokenUrl": "https://oauth2.googleapis.com/token",
-        "revokeUrl": "https://oauth2.googleapis.com/revoke",
-        "userInfoUrl": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "scopes": [
-          "youtube.readonly",
-          "youtube.upload",
-          "youtube.force-ssl"
-        ],
-        "scopePrefix": "https://www.googleapis.com/auth/",
-        "clientIdEnvKey": "GOOGLE_OAUTH_CLIENT_ID",
-        "clientSecretEnvKey": "GOOGLE_OAUTH_CLIENT_SECRET",
-        "extraAuthParams": {
-          "access_type": "offline",
-          "prompt": "consent"
-        }
-      },
-      "apiBaseUrl": "https://www.googleapis.com/youtube/v3",
-      "capabilities": [
-        "read_videos",
-        "upload_videos",
-        "manage_playlists",
-        "read_analytics"
-      ],
-      "features": [
-        "Video upload",
-        "Playlist management",
-        "Analytics",
-        "Live streaming"
       ],
       "pricingType": "free",
       "isVerified": true,

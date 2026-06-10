@@ -59,12 +59,6 @@ export const moduleSuggestions: Record<string, CommandSuggestion[]> = {
     { textKey: 'ai.suggestions.analytics.trends', defaultText: 'Show trends', icon: '📈', action: 'analyze_trends' },
     { textKey: 'ai.suggestions.analytics.recommendations', defaultText: 'What should I improve?', icon: '🎯', action: 'get_recommendations' },
   ],
-  monitoring: [
-    { textKey: 'ai.suggestions.monitoring.checkStatus', defaultText: 'Check system status', icon: '🔍', action: 'check_status' },
-    { textKey: 'ai.suggestions.monitoring.alertsSummary', defaultText: 'Summarize alerts', icon: '🚨', action: 'summarize_alerts' },
-    { textKey: 'ai.suggestions.monitoring.performance', defaultText: 'Check performance metrics', icon: '⚡', action: 'check_performance' },
-    { textKey: 'ai.suggestions.monitoring.healthCheck', defaultText: 'Run health check', icon: '💚', action: 'health_check' },
-  ],
   integrations: [
     { textKey: 'ai.suggestions.integrations.setup', defaultText: 'Help me set up an integration', icon: '🔗', action: 'setup_integration' },
     { textKey: 'ai.suggestions.integrations.configure', defaultText: 'Configure integration settings', icon: '⚙️', action: 'configure_integration' },
@@ -76,18 +70,6 @@ export const moduleSuggestions: Record<string, CommandSuggestion[]> = {
     { textKey: 'ai.suggestions.templates.customize', defaultText: 'Customize a template', icon: '✏️', action: 'customize_template' },
     { textKey: 'ai.suggestions.templates.suggest', defaultText: 'Suggest templates for my project', icon: '💡', action: 'suggest_templates' },
     { textKey: 'ai.suggestions.templates.duplicate', defaultText: 'Duplicate a template', icon: '📑', action: 'duplicate_template' },
-  ],
-  whiteboard: [
-    { textKey: 'ai.suggestions.whiteboard.brainstorm', defaultText: 'Help me brainstorm ideas', icon: '💡', action: 'brainstorm' },
-    { textKey: 'ai.suggestions.whiteboard.organize', defaultText: 'Organize my whiteboard', icon: '🗂️', action: 'organize_whiteboard' },
-    { textKey: 'ai.suggestions.whiteboard.generateDiagram', defaultText: 'Generate a diagram', icon: '📊', action: 'generate_diagram' },
-    { textKey: 'ai.suggestions.whiteboard.summarize', defaultText: 'Summarize whiteboard content', icon: '📝', action: 'summarize_whiteboard' },
-  ],
-  budget: [
-    { textKey: 'ai.suggestions.budget.analyze', defaultText: 'Analyze my budget', icon: '💰', action: 'analyze_budget' },
-    { textKey: 'ai.suggestions.budget.forecast', defaultText: 'Forecast expenses', icon: '📈', action: 'forecast_expenses' },
-    { textKey: 'ai.suggestions.budget.optimize', defaultText: 'Help me optimize spending', icon: '💡', action: 'optimize_spending' },
-    { textKey: 'ai.suggestions.budget.report', defaultText: 'Generate budget report', icon: '📊', action: 'generate_report' },
   ],
   forms: [
     { textKey: 'ai.suggestions.forms.create', defaultText: 'Create a new form', icon: '📝', action: 'create_form' },
@@ -188,12 +170,6 @@ export const moduleConfig: Record<string, ModuleConfig> = {
     placeholderKey: 'ai.modules.analytics.placeholder',
     welcomeDefault: "Hi! I'm Auto Pilot. I can analyze your data, provide insights, and show trends. What would you like to know?",
   },
-  monitoring: {
-    titleKey: 'ai.modules.monitoring.title',
-    descriptionKey: 'ai.modules.monitoring.description',
-    placeholderKey: 'ai.modules.monitoring.placeholder',
-    welcomeDefault: "Hi! I'm Auto Pilot. I can help you monitor system health, check alerts, and analyze performance. What do you need?",
-  },
   integrations: {
     titleKey: 'ai.modules.integrations.title',
     descriptionKey: 'ai.modules.integrations.description',
@@ -205,18 +181,6 @@ export const moduleConfig: Record<string, ModuleConfig> = {
     descriptionKey: 'ai.modules.templates.description',
     placeholderKey: 'ai.modules.templates.placeholder',
     welcomeDefault: "Hi! I'm Auto Pilot. I can help you create, customize, and manage templates. What do you need?",
-  },
-  whiteboard: {
-    titleKey: 'ai.modules.whiteboard.title',
-    descriptionKey: 'ai.modules.whiteboard.description',
-    placeholderKey: 'ai.modules.whiteboard.placeholder',
-    welcomeDefault: "Hi! I'm Auto Pilot. I can help you brainstorm, organize ideas, and create diagrams. What are you working on?",
-  },
-  budget: {
-    titleKey: 'ai.modules.budget.title',
-    descriptionKey: 'ai.modules.budget.description',
-    placeholderKey: 'ai.modules.budget.placeholder',
-    welcomeDefault: "Hi! I'm Auto Pilot. I can help you analyze budgets, forecast expenses, and optimize spending. What do you need?",
   },
   forms: {
     titleKey: 'ai.modules.forms.title',
@@ -270,7 +234,7 @@ export const defaultConfig: ModuleConfig = moduleConfig.dashboard
  * Views that have full AI assistant support
  * Now supports all views - autopilot is global
  */
-export const supportedViews = ['projects', 'notes', 'calendar', 'files', 'chat', 'dashboard', 'video', 'email', 'settings', 'search', 'analytics', 'monitoring', 'integrations', 'more', 'apps', 'templates', 'whiteboard', 'budget', 'forms', 'members', 'notifications', 'profile']
+export const supportedViews = ['projects', 'notes', 'calendar', 'files', 'chat', 'dashboard', 'video', 'email', 'settings', 'search', 'analytics', 'integrations', 'more', 'apps', 'templates', 'forms', 'members', 'notifications', 'profile']
 
 /**
  * Check if a view has AI support

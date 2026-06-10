@@ -274,7 +274,19 @@ export const notesApi = {
   },
 
   // Sharing
-  async shareNote(workspaceId: string, noteId: string, data: { user_ids: string[]; permission?: 'read' | 'write' | 'admin' }): Promise<{ success: boolean; message: string; shared_count: number; total_shared_users: number }> {
+  async shareNote(
+    workspaceId: string,
+    noteId: string,
+    data: {
+      user_ids: string[];
+      permission?: 'read' | 'write' | 'admin';
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    shared_count: number;
+    total_shared_users: number;
+  }> {
     return api.post(`/workspaces/${workspaceId}/notes/${noteId}/share`, data);
   },
 
@@ -360,25 +372,6 @@ export const notesApi = {
     });
   },
 
-  // Google Drive Import
-  async importFromGoogleDrive(workspaceId: string, options: {
-    fileId: string;
-    title: string;
-    parentId?: string;
-    tags?: string[];
-  }): Promise<{
-    success: boolean;
-    noteId: string;
-    title: string;
-    message?: string;
-  }> {
-    return api.post(`/workspaces/${workspaceId}/notes/import/google-drive`, {
-      fileId: options.fileId,
-      title: options.title,
-      parentId: options.parentId,
-      tags: options.tags,
-    });
-  },
 };
 
 // React Query Hooks

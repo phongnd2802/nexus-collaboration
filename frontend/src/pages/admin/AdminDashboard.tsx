@@ -352,9 +352,9 @@ const AdminDashboard: React.FC = () => {
     },
     {
       id: '4',
-      action: 'Published',
-      resource: 'Blog Post',
-      user: 'Content Manager',
+      action: 'Updated',
+      resource: 'Workspace Settings',
+      user: 'System Admin',
       timestamp: '1 hour ago',
       status: 'success',
     },
@@ -374,13 +374,6 @@ const AdminDashboard: React.FC = () => {
       icon: <Building2 className="h-5 w-5 text-white" />,
       href: '/admin/organizations',
       color: 'bg-green-500',
-    },
-    {
-      title: 'Blog Management',
-      description: 'Create and manage blog posts',
-      icon: <FileText className="h-5 w-5 text-white" />,
-      href: '/admin/blog',
-      color: 'bg-purple-500',
     },
     {
       title: 'System Settings',
@@ -446,14 +439,6 @@ const AdminDashboard: React.FC = () => {
           change={15}
           icon={<DollarSign className="h-4 w-4" />}
           color="success"
-        />
-        <MetricCard
-          title="Blog Posts"
-          value={analytics.overview.totalBlogPosts.toLocaleString()}
-          change={3}
-          icon={<FileText className="h-4 w-4" />}
-          href="/admin/blog"
-          color="default"
         />
         <MetricCard
           title="Workspaces"

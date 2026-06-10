@@ -6,20 +6,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ClipboardCheck,
   ChevronRight,
-  PenTool,
   LayoutTemplate,
   Bot,
-  DollarSign,
   FileText,
   ClipboardList,
 } from 'lucide-react';
-import { GoogleDriveBrowser } from '../apps/GoogleDriveBrowser';
-import GoogleSheetsBrowser from '../apps/GoogleSheetsBrowser';
 import { ApprovalsPage } from '../approvals';
-import { WhiteboardPage } from '../whiteboard/WhiteboardPage';
 import TemplatesPage from '../templates/TemplatesPage';
 import BotsPage from '../bots/BotsPage';
-import BudgetList from '../budget/BudgetList';
 import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
 import FormsPage from '../forms/FormsPage';
 import FormBuilderPage from '../forms/FormBuilderPage';
@@ -83,25 +77,11 @@ function MoreGrid() {
       path: 'bots',
     },
     {
-      name: intl.formatMessage({ id: 'tools.budgetManagement.name', defaultMessage: 'Budget Management' }),
-      description: intl.formatMessage({ id: 'tools.budgetManagement.description', defaultMessage: 'Track project budgets, expenses, and time' }),
-      icon: <DollarSign className="w-6 h-6" />,
-      color: '#f59e0b',
-      path: 'budget',
-    },
-    {
       name: intl.formatMessage({ id: 'tools.projectTemplates.name', defaultMessage: 'Project Templates' }),
       description: intl.formatMessage({ id: 'tools.projectTemplates.description', defaultMessage: 'Create projects from predefined templates' }),
       icon: <LayoutTemplate className="w-6 h-6" />,
       color: '#3b82f6',
       path: 'templates',
-    },
-    {
-      name: intl.formatMessage({ id: 'tools.whiteboard.name', defaultMessage: 'Whiteboard' }),
-      description: intl.formatMessage({ id: 'tools.whiteboard.description', defaultMessage: 'Collaborative drawing and brainstorming' }),
-      icon: <PenTool className="w-6 h-6" />,
-      color: '#10b981',
-      path: 'whiteboard',
     },
     {
       name: intl.formatMessage({ id: 'tools.requestApproval.name', defaultMessage: 'Request & Approval' }),
@@ -166,11 +146,7 @@ export function MorePage() {
       <Route path="/documents/:documentId" element={<DocumentDetail />} />
       <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
       <Route path="/bots/*" element={<BotsPage />} />
-      <Route path="/budget/*" element={<BudgetList />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
-      <Route path="/whiteboard/*" element={<WhiteboardPage />} />
-      <Route path="/google-drive/*" element={<GoogleDriveBrowser />} />
-      <Route path="/google-sheets/*" element={<GoogleSheetsBrowser />} />
       <Route path="/approvals/*" element={<ApprovalsPage />} />
       <Route path="/forms" element={<FormsPage />} />
       <Route path="/forms/new" element={<FormBuilderPage />} />

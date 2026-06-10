@@ -1,6 +1,6 @@
 # Email providers
 
-Nexus supports six email backends plus a `none` default. Pick one by
+Nexus supports five email backends plus a `none` default. Pick one by
 setting `EMAIL_PROVIDER` in your `.env`.
 
 ```
@@ -11,22 +11,20 @@ EMAIL_PROVIDER=smtp   # zero vendor lock-in default
 
 | Provider | Free tier | Transport | Attachments | Best for |
 |---|---|---|---|---|
-| **smtp** *(default)* | depends on your server | nodemailer | ✅ | zero lock-in, dev with Mailtrap, Gmail app passwords |
-| **resend** | 3,000 / month | REST | ✅ | modern API, best DX |
-| **sendgrid** | 100 / day | REST | ✅ | enterprise standard |
-| **postmark** | 100 / month | REST | ✅ | top-tier transactional deliverability |
-| **ses** | 62k / month (from EC2) | AWS SDK *(optional dep)* | ❌ *(yet)* | cheapest at scale |
-| **mailgun** | 100 / day × 30 days | REST | ✅ | solid EU/global |
-| **none** | — | — | — | default — email features disabled |
+| **smtp** *(default)* | depends on your server | nodemailer | yes | zero lock-in, dev with Mailtrap, Gmail app passwords |
+| **resend** | 3,000 / month | REST | yes | modern API, best DX |
+| **postmark** | 100 / month | REST | yes | top-tier transactional deliverability |
+| **ses** | 62k / month (from EC2) | AWS SDK *(optional dep)* | no *(yet)* | cheapest at scale |
+| **mailgun** | 100 / day x 30 days | REST | yes | solid EU/global |
+| **none** | - | - | - | default - email features disabled |
 
 ## Which should I pick?
 
-- **"I just want it to work locally"** → `smtp` with [Mailtrap](https://mailtrap.io) (free sandbox)
-- **New production setup in 2 minutes** → `resend` (the cleanest DX)
-- **Already on AWS, at scale** → `ses`
-- **Europe-first deployment** → `mailgun` with `MAILGUN_REGION=eu` or `resend`
-- **Max deliverability for transactional** → `postmark`
-- **Existing SendGrid contract** → `sendgrid`
+- **"I just want it to work locally"** -> `smtp` with [Mailtrap](https://mailtrap.io) (free sandbox)
+- **New production setup in 2 minutes** -> `resend` (the cleanest DX)
+- **Already on AWS, at scale** -> `ses`
+- **Europe-first deployment** -> `mailgun` with `MAILGUN_REGION=eu` or `resend`
+- **Max deliverability for transactional** -> `postmark`
 
 ## Per-provider setup
 
@@ -40,7 +38,7 @@ SMTP_HOST=smtp.yourprovider.com
 SMTP_PORT=587
 SMTP_USER=your-user
 SMTP_PASSWORD=your-pass
-SMTP_SECURE=false          # true for port 465 implicit TLS
+SMTP_SECURE=false
 EMAIL_FROM=Nexus <noreply@yourdomain.com>
 EMAIL_REPLY_TO=support@yourdomain.com
 ```
@@ -60,19 +58,8 @@ RESEND_API_KEY=re_...
 EMAIL_FROM=Nexus <noreply@yourdomain.com>
 ```
 
-Pure REST — no SDK dep on the server. 3,000 free emails/month + 100/day
+Pure REST - no SDK dep on the server. 3,000 free emails/month + 100/day
 with the free tier.
-
-### sendgrid
-
-Sign up at <https://sendgrid.com>, create an API key with "Mail Send"
-permission, verify a sender identity.
-
-```
-EMAIL_PROVIDER=sendgrid
-SENDGRID_API_KEY=SG.xxxxx
-EMAIL_FROM=Nexus <noreply@yourdomain.com>
-```
 
 ### postmark
 
@@ -81,7 +68,7 @@ Token.
 
 ```
 EMAIL_PROVIDER=postmark
-POSTMARK_SERVER_TOKEN=...
+POSTMARK_API_KEY=...
 EMAIL_FROM=Nexus <noreply@yourdomain.com>
 ```
 
@@ -93,14 +80,14 @@ Users who pick a different provider never download it.
 
 ```
 EMAIL_PROVIDER=ses
-SES_REGION=us-east-1
-SES_ACCESS_KEY_ID=AKIA...
-SES_SECRET_ACCESS_KEY=...
+AWS_SES_REGION=us-east-1
+AWS_SES_ACCESS_KEY_ID=AKIA...
+AWS_SES_SECRET_ACCESS_KEY=...
 EMAIL_FROM=Nexus <noreply@yourdomain.com>
 ```
 
 **Limitation**: attachments aren't supported yet. The current provider
-uses `SendEmailCommand`, which doesn't take attachments — attachment
+uses `SendEmailCommand`, which doesn't take attachments - attachment
 support needs a `SendRawEmailCommand` MIME-building migration. Use
 `smtp` or another provider for emails that need attachments, or file
 a follow-up PR.
@@ -113,7 +100,7 @@ Sign up at <https://www.mailgun.com>, add and verify a domain.
 EMAIL_PROVIDER=mailgun
 MAILGUN_API_KEY=key-...
 MAILGUN_DOMAIN=mail.yourdomain.com
-MAILGUN_REGION=us            # or 'eu' for EU data residency
+MAILGUN_REGION=us
 EMAIL_FROM=Nexus <noreply@mail.yourdomain.com>
 ```
 
@@ -124,7 +111,7 @@ prints which env var to set.
 
 ## Migrating from the legacy SMTP helper
 
-`backend/src/modules/database/email-helpers.ts` predates this adapter —
+`backend/src/modules/database/email-helpers.ts` predates this adapter -
 it's a direct nodemailer wrapper exposed via
 `DatabaseService.sendEmail()`. It still works and isn't deprecated
 **yet**, but new callers should inject `EmailService` instead:
@@ -156,5 +143,5 @@ A follow-up PR will migrate `DatabaseService.sendEmail()` to delegate to
 3. Document env vars in this file and in `.env.example`
 4. If the provider needs an SDK, declare it in `optionalDependencies`
    in `backend/package.json` and `require()` it inside a `loadSdk()`
-   method — never at the top of the file. See `ses.provider.ts` for
+   method - never at the top of the file. See `ses.provider.ts` for
    the pattern.

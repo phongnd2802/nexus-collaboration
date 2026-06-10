@@ -51,7 +51,6 @@ const CalendarPage = lazy(() => import('./pages/calendar/CalendarPage'));
 const NotesPage = lazy(() => import('./pages/notes/NotesPage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
-const MonitoringPage = lazy(() => import('./pages/monitoring/MonitoringPage'));
 const EmailPage = lazy(() => import('./pages/email/EmailPage'));
 const SearchPage = lazy(() => import('./pages/search/SearchPage').then(m => ({ default: m.SearchPage })));
 const TemplatesPage = lazy(() => import('./pages/templates/TemplatesPage'));
@@ -63,9 +62,6 @@ const MorePage = lazy(() => import('./pages/more').then(m => ({ default: m.MoreP
 const AppsPage = lazy(() => import('./pages/apps').then(m => ({ default: m.AppsPage })));
 
 // Budget Pages
-const BudgetList = lazy(() => import('./pages/budget/BudgetList'));
-const BudgetDetails = lazy(() => import('./pages/budget/BudgetDetails'));
-
 // Forms Pages
 const FormsPage = lazy(() => import('./pages/forms/FormsPage'));
 const FormBuilderPage = lazy(() => import('./pages/forms/FormBuilderPage'));
@@ -80,22 +76,10 @@ const PublicMeetingPage = lazy(() => import('./pages/video-call/PublicMeetingPag
 const StandaloneVideoCall = lazy(() => import('./pages/video-call/StandaloneVideoCall').then(m => ({ default: m.StandaloneVideoCall })));
 const IncomingCallWindow = lazy(() => import('./pages/video-call/IncomingCallWindow').then(m => ({ default: m.IncomingCallWindow })));
 
-// Whiteboard Pages (Heavy - Excalidraw)
-const WhiteboardPage = lazy(() => import('./pages/whiteboard').then(m => ({ default: m.WhiteboardPage })));
-
 // Public Pages
 const DownloadsPage = lazy(() => import('./pages/public/DownloadsPage'));
 const FeaturesPage = lazy(() => import('./pages/public/FeaturesPage'));
 const SharedFilePage = lazy(() => import('./pages/shared/SharedFilePage'));
-
-// Slack Integration Pages
-const SlackOnboarding = lazy(() => import('./pages/slack/SlackOnboarding'));
-const SlackSuccess = lazy(() => import('./pages/slack/SlackSuccess'));
-const SlackError = lazy(() => import('./pages/slack/SlackError'));
-const SlackWhiteboard = lazy(() => import('./pages/slack/SlackWhiteboard'));
-const SlackCalendar = lazy(() => import('./pages/slack/SlackCalendar'));
-const SlackCalendarSuccess = lazy(() => import('./pages/slack/SlackCalendarSuccess'));
-const SlackCalendarOnboarding = lazy(() => import('./pages/slack/SlackCalendarOnboarding'));
 
 // Product Pages
 const ProductDetailPage = lazy(() => import('./pages/public/products/ProductDetailPage'));
@@ -128,8 +112,6 @@ const UserManagement = lazy(() => import('./pages/admin').then(m => ({ default: 
 const OrganizationManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.OrganizationManagement })));
 const SystemSettings = lazy(() => import('./pages/admin').then(m => ({ default: m.SystemSettings })));
 const AuditLogs = lazy(() => import('./pages/admin').then(m => ({ default: m.AuditLogs })));
-const FeedbackManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.FeedbackManagement })));
-const DeletionFeedbackManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.DeletionFeedbackManagement })));
 
 // Error Pages (Keep lightweight, can be static)
 const NotFound = lazy(() => import('./pages/errors').then(m => ({ default: m.NotFound })));
@@ -215,7 +197,6 @@ function WorkspaceRoutes() {
         <Route path="search" element={<SearchPage />} />
         <Route path="notifications" element={<NotificationCenter />} />
         <Route path="analytics/*" element={<AnalyticsPage />} />
-        <Route path="monitoring/*" element={<MonitoringPage />} />
         <Route path="members" element={<MembersPage />} />
         <Route path="profile/:userId" element={<UserProfilePage />} />
         <Route path="settings/*" element={<SettingsPage />} />
@@ -226,10 +207,6 @@ function WorkspaceRoutes() {
         <Route path="email" element={<EmailPage />} />
         <Route path="email/:folder" element={<EmailPage />} />
         <Route path="email/message/:messageId" element={<EmailPage />} />
-        <Route path="budget" element={<BudgetList />} />
-        <Route path="budget/:budgetId" element={<BudgetDetails />} />
-        <Route path="whiteboard" element={<WhiteboardPage />} />
-        <Route path="whiteboard/:whiteboardId" element={<WhiteboardPage />} />
         <Route path="forms" element={<FormsPage />} />
         <Route path="forms/new" element={<FormBuilderPage />} />
         <Route path="forms/:formId/edit" element={<FormBuilderPage />} />
@@ -274,15 +251,6 @@ function App() {
 
                             {/* Public Routes */}
                             <Route path="/downloads" element={<DownloadsPage />} />
-
-                            {/* Slack Integration Routes */}
-                            <Route path="/slack/onboarding" element={<SlackOnboarding />} />
-                            <Route path="/slack/success" element={<SlackSuccess />} />
-                            <Route path="/slack/error" element={<SlackError />} />
-                            <Route path="/slack/whiteboard" element={<SlackWhiteboard />} />
-                            <Route path="/slack/calendar" element={<SlackCalendar />} />
-                            <Route path="/slack/calendar-success" element={<SlackCalendarSuccess />} />
-                            <Route path="/slack/calendar-onboarding" element={<SlackCalendarOnboarding />} />
 
                             {/* Product Detail Routes */}
                             <Route path="/products/:slug" element={<ProductDetailPage />} />
@@ -334,10 +302,6 @@ function App() {
                             {/* Notifications Redirect */}
                             <Route path="/notifications" element={<Navigate to="/workspaces" replace />} />
 
-                            {/* Whiteboard Routes */}
-                            <Route path="/whiteboard/:sessionId" element={<WhiteboardPage />} />
-                            <Route path="/whiteboard" element={<WhiteboardPage />} />
-
                             {/* Public Video Meeting */}
                             <Route path="/video/meeting/:meetingId" element={<PublicMeetingPage />} />
 
@@ -366,8 +330,6 @@ function App() {
                               <Route index element={<AdminDashboard />} />
                               <Route path="users" element={<UserManagement />} />
                               <Route path="organizations" element={<OrganizationManagement />} />
-                              <Route path="feedback" element={<FeedbackManagement />} />
-                              <Route path="feedback/deletion" element={<DeletionFeedbackManagement />} />
                               <Route path="settings" element={<SystemSettings />} />
                               <Route path="audit-logs" element={<AuditLogs />} />
                             </Route>

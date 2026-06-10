@@ -42,7 +42,6 @@ const PUBLIC_PATHS = [
 const INTERNAL_PATH_PREFIXES = [
   '/workspaces',
   '/dashboard',
-  '/blog',
   '/settings',
   '/profile',
   '/admin',

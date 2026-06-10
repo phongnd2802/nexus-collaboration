@@ -81,9 +81,6 @@ import type {
 import { MessageItem, type Message as MessageItemMessage, type User, type Reaction, type Attachment, type LinkedContent as MessageLinkedContent } from '@/components/chat/MessageItem';
 import { MessageInput, type AttachedContent, type MessageInputRef } from '@/components/chat/MessageInput';
 import { ThreadSidebar } from '@/components/chat/ThreadSidebar';
-import { ChatDrivePickerModal } from '@/components/chat/ChatDrivePickerModal';
-import { YoutubeVideoPickerModal } from '@/components/chat/YoutubeVideoPickerModal';
-import { googleDriveApi } from '@/lib/api/google-drive-api';
 import { MentionDropdown, type User as MentionUser } from '@/components/chat/MentionDropdown';
 import { ScheduleMessageModal } from '@/components/chat/ScheduleMessageModal';
 import { ScheduledMessagesPanel } from '@/components/chat/ScheduledMessagesPanel';
@@ -175,11 +172,6 @@ const createMessageConverter = (workspaceMembers: any[], currentUser: any) => {
         title: item.title,
         type: item.type,
         subtitle: item.subtitle,
-        // Include Drive-specific fields
-        driveFileUrl: item.driveFileUrl,
-        driveThumbnailUrl: item.driveThumbnailUrl,
-        driveMimeType: item.driveMimeType,
-        driveFileSize: item.driveFileSize,
         // Include Poll-specific fields
         poll: item.poll
       })) || [],
@@ -310,14 +302,6 @@ const ChatPage: React.FC = () => {
   const [showScheduledMessagesPanel, setShowScheduledMessagesPanel] = useState(false);
   const [showAIHistoryModal, setShowAIHistoryModal] = useState(false);
   const [showBookmarkedModal, setShowBookmarkedModal] = useState(false);
-
-  // Google Drive picker state
-  const [showDrivePicker, setShowDrivePicker] = useState(false);
-
-  // YouTube picker state
-  const [showYoutubePicker, setShowYoutubePicker] = useState(false);
-  const [isYoutubeConnected, setIsYoutubeConnected] = useState(false);
-  const [isDriveConnected, setIsDriveConnected] = useState(false);
 
   // Poll creator state
   const [showPollCreator, setShowPollCreator] = useState(false);
@@ -819,35 +803,6 @@ const ChatPage: React.FC = () => {
     };
   }, []);
 
-  // Check Google Drive connection status
-  useEffect(() => {
-    const checkDriveConnection = async () => {
-      if (!workspaceId) return;
-      try {
-        const connection = await googleDriveApi.getConnection(workspaceId);
-        setIsDriveConnected(!!connection);
-      } catch {
-        setIsDriveConnected(false);
-      }
-    };
-    checkDriveConnection();
-  }, [workspaceId]);
-
-  // Check YouTube connection status
-  useEffect(() => {
-    const checkYoutubeConnection = async () => {
-      if (!workspaceId) return;
-      try {
-        const { default: youtubeApi } = await import('@/lib/api/youtube-api');
-        const status = await youtubeApi.getStatus(workspaceId);
-        setIsYoutubeConnected(status.connected);
-      } catch {
-        setIsYoutubeConnected(false);
-      }
-    };
-    checkYoutubeConnection();
-  }, [workspaceId]);
-
   // Update selected chat name when channel data changes in Zustand store
   useEffect(() => {
     if (selectedChatType === 'channel' && selectedChatId) {
@@ -908,11 +863,6 @@ const ChatPage: React.FC = () => {
         title: item.title,
         type: item.type,
         subtitle: item.subtitle,
-        // Include Drive-specific fields
-        driveFileUrl: item.driveFileUrl,
-        driveThumbnailUrl: item.driveThumbnailUrl,
-        driveMimeType: item.driveMimeType,
-        driveFileSize: item.driveFileSize,
         // Include Poll-specific fields
         poll: item.poll
       })) || [],
@@ -976,11 +926,6 @@ const ChatPage: React.FC = () => {
             url: item.url,
             thumbnail: item.thumbnail,
             metadata: item.metadata,
-            // Include Drive-specific fields
-            driveFileUrl: item.driveFileUrl,
-            driveThumbnailUrl: item.driveThumbnailUrl,
-            driveMimeType: item.driveMimeType,
-            driveFileSize: item.driveFileSize,
             // Include Poll-specific fields
             poll: item.poll
           } as LinkedContent))
@@ -1370,14 +1315,6 @@ const ChatPage: React.FC = () => {
           setFilePreviewLoading(false);
         }
         break;
-      case 'drive':
-        // Open Google Drive file in new tab
-        if (content.driveFileUrl) {
-          window.open(content.driveFileUrl, '_blank', 'noopener,noreferrer');
-        } else {
-          toast.error(intl.formatMessage({ id: 'modules.chat.linkedContent.driveUrlUnavailable', defaultMessage: 'Drive file URL not available' }));
-        }
-        break;
       default:
         console.log('Unknown content type:', content.type);
     }
@@ -1703,30 +1640,6 @@ const ChatPage: React.FC = () => {
   const handleCloseMentionDropdown = () => {
     setShowMentionDropdown(false);
     setMentionQuery('');
-  };
-
-  // Handle Google Drive file selection
-  const handleDriveFilesSelected = (files: AttachedContent[]) => {
-    if (messageInputRef.current && files.length > 0) {
-      messageInputRef.current.addAttachedContent(files);
-    }
-  };
-
-  // Handle YouTube video selection
-  const handleYoutubeVideoSelected = (videoUrl: string, videoData: any) => {
-    if (messageInputRef.current) {
-      messageInputRef.current.addAttachedContent([{
-        id: videoData.id,
-        type: 'youtube' as const,
-        name: videoData.title,
-        url: videoUrl,
-        thumbnail: videoData.thumbnail,
-        metadata: {
-          channelTitle: videoData.channelTitle,
-          description: videoData.description,
-        },
-      }]);
-    }
   };
 
   // ============================================================================
@@ -3323,10 +3236,6 @@ const ChatPage: React.FC = () => {
                   showScheduleOption={true}
                   onScheduleMessage={() => setShowScheduleModal(true)}
                   onShowAIHistory={() => setShowAIHistoryModal(true)}
-                  showDrivePicker={isDriveConnected}
-                  onOpenDrivePicker={() => setShowDrivePicker(true)}
-                  showYoutubePicker={isYoutubeConnected}
-                  onOpenYoutubePicker={() => setShowYoutubePicker(true)}
                   showPollButton={selectedChatType === 'channel'}
                   onOpenPollCreator={() => setShowPollCreator(true)}
                 />
@@ -3525,19 +3434,6 @@ const ChatPage: React.FC = () => {
         isLoading={eventPreviewLoading}
       />
 
-      {/* Google Drive File Picker Modal */}
-      <ChatDrivePickerModal
-        open={showDrivePicker}
-        onOpenChange={setShowDrivePicker}
-        onSelectFiles={handleDriveFilesSelected}
-      />
-
-      {/* YouTube Video Picker Modal */}
-      <YoutubeVideoPickerModal
-        isOpen={showYoutubePicker}
-        onClose={() => setShowYoutubePicker(false)}
-        onSelect={handleYoutubeVideoSelected}
-      />
     </div>
   );
 };

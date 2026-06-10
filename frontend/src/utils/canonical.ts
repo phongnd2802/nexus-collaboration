@@ -177,9 +177,6 @@ export const CANONICAL_URLS = {
   register: () => getCanonicalUrl('/register'),
   pricing: () => getCanonicalUrl('/pricing'),
   about: () => getCanonicalUrl('/about'),
-  contact: () => getCanonicalUrl('/contact'),
-  blog: () => getCanonicalUrl('/blog'),
-  blogPost: (slug: string) => getCanonicalUrl(`/blog/${slug}`),
   product: (slug: string) => getCanonicalUrl(`/products/${slug}`),
   feature: (slug: string) => getCanonicalUrl(`/features/${slug}`),
 } as const;

@@ -6,17 +6,15 @@ import { ProjectDashboard } from '@/components/projects/project-dashboard'
 import { UnifiedTaskView } from '@/components/projects/unified-task-view'
 import { CreateProjectModal } from '@/components/projects/create-project-modal'
 import { CreateTaskModal } from '@/components/projects/create-task-modal'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { projectService } from '@/lib/api/projects-api'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { api } from '@/lib/fetch'
 
 export function ProjectsView() {
   const { workspaceId, projectId } = useParams<{ workspaceId: string; projectId?: string }>()
   const navigate = useNavigate()
-  const location = useLocation()
   const { toast } = useToast()
   const { user } = useAuth()
   const intl = useIntl()
@@ -25,39 +23,6 @@ export function ProjectsView() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [defaultTaskStatus, setDefaultTaskStatus] = useState<'todo' | 'in_progress' | 'review' | 'completed' | undefined>(undefined)
   const [projectToEdit, setProjectToEdit] = useState<any>(null)
-  const [slackContext, setSlackContext] = useState<any>(null)
-
-  // Auto-open create modal when coming from Slack
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search)
-    const action = searchParams.get('action')
-    const token = searchParams.get('token')
-    const slackTeamId = searchParams.get('slack_team_id')
-    const slackUserId = searchParams.get('slack_user_id')
-    const source = searchParams.get('source')
-    const projectName = searchParams.get('name')
-
-    if (action === 'create' && source === 'slack') {
-      // Store auth token if provided
-      if (token) {
-        localStorage.setItem('auth_token', token)
-      }
-
-      // Save Slack context for notification after project creation
-      setSlackContext({
-        teamId: slackTeamId,
-        userId: slackUserId,
-        projectName: projectName || '',
-      })
-
-      // Open the create project modal
-      setCreateProjectOpen(true)
-
-      // Clean up URL (remove query params)
-      const cleanUrl = `${location.pathname}`
-      navigate(cleanUrl, { replace: true })
-    }
-  }, [location.search, location.pathname, navigate])
 
   // Check project membership when projectId is present
   const { data: projectMembers, isLoading: isMembersLoading, error: membersError } = useQuery({
@@ -110,39 +75,8 @@ export function ProjectsView() {
     navigate(`/workspaces/${workspaceId}/projects/${projectId}`)
   }
 
-  const handleProjectCreated = async (project?: any) => {
-    console.log('📌 handleProjectCreated called:', { project, slackContext })
+  const handleProjectCreated = async () => {
     setRefreshKey(prev => prev + 1)
-
-    // Send Slack notification if project was created from Slack
-    if (slackContext && project?.id) {
-      console.log('📤 Sending Slack notification for project:', project.id)
-      try {
-        await api.post('/slack/whiteboard/notify/project', {
-          projectId: project.id,
-          slackTeamId: slackContext.teamId,
-          slackUserId: slackContext.userId,
-        })
-
-        console.log('✅ Slack notification sent successfully')
-        toast({
-          title: 'Slack notification sent',
-          description: 'Check your Slack DMs for the project link',
-        })
-      } catch (error: any) {
-        console.error('❌ Failed to send Slack notification:', error)
-        toast({
-          title: 'Failed to send Slack notification',
-          description: error?.response?.data?.message || error?.message || 'Unknown error',
-          variant: 'destructive',
-        })
-      }
-
-      // Clear Slack context after use
-      setSlackContext(null)
-    } else {
-      console.log('⚠️ Skipping Slack notification:', { hasSlackContext: !!slackContext, hasProjectId: !!project?.id })
-    }
   }
 
   const handleTaskCreated = () => {
@@ -242,13 +176,11 @@ export function ProjectsView() {
           setCreateProjectOpen(open)
           if (!open) {
             setProjectToEdit(null)
-            // Don't clear slackContext here - it will be cleared in handleProjectCreated after notification is sent
           }
         }}
         workspaceId={workspaceId || ''}
         onProjectCreated={handleProjectCreated}
         project={projectToEdit}
-        initialName={slackContext?.projectName}
       />
 
       <CreateTaskModal

@@ -115,84 +115,6 @@ export interface Organization {
   size?: string;
 }
 
-export interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt?: string;
-  authorId: string;
-  author?: any;
-  categoryId: string;
-  tags: string[];
-  status: 'draft' | 'published' | 'archived' | 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED';
-  publishedAt?: string;
-  scheduledAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  viewCount?: number;
-  featuredImage?: string;
-  seoMeta?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    keywords?: string[];
-  };
-  categories?: Array<{ id: string; name: string }>;
-}
-
-export interface CreateBlogPostData {
-  title: string;
-  slug?: string;
-  content: string;
-  excerpt?: string;
-  categoryId?: string;
-  tags?: string[];
-  status: 'draft' | 'published' | 'archived' | 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED';
-  publishedAt?: string;
-  scheduledAt?: string;
-  featuredImage?: string;
-  seoMeta?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    keywords?: string[];
-  };
-  categories?: any[];
-}
-
-export interface UpdateBlogPostData {
-  title?: string;
-  slug?: string;
-  content?: string;
-  excerpt?: string;
-  categoryId?: string;
-  tags?: string[];
-  status?: 'draft' | 'published' | 'archived' | 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED';
-  publishedAt?: string;
-  scheduledAt?: string;
-  featuredImage?: string;
-  seoMeta?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    keywords?: string[];
-  };
-  categories?: any[];
-}
-
-export interface BlogCategory {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  postsCount: number;
-}
-
-export interface BlogTag {
-  id: string;
-  name: string;
-  slug: string;
-  postsCount: number;
-}
-
 export interface SystemConfig {
   id: string;
   key: string;
@@ -314,39 +236,6 @@ export const adminApi = {
     return api.get(`/admin/organizations/export?format=${format}`, {
       headers: { Accept: 'application/octet-stream' }
     }) as any;
-  },
-
-  async getBlogPosts(filters?: any): Promise<PaginatedResponse<BlogPost>> {
-    const queryString = filters ? `?${new URLSearchParams(filters).toString()}` : '';
-    return api.get<PaginatedResponse<BlogPost>>(`/admin/blog/posts${queryString}`);
-  },
-
-  async createBlogPost(data: CreateBlogPostData): Promise<BlogPost> {
-    return api.post<BlogPost>('/admin/blog/posts', data);
-  },
-
-  async updateBlogPost(id: string, data: UpdateBlogPostData): Promise<BlogPost> {
-    return api.patch<BlogPost>(`/admin/blog/posts/${id}`, data);
-  },
-
-  async deleteBlogPost(id: string): Promise<void> {
-    await api.delete(`/admin/blog/posts/${id}`);
-  },
-
-  async getBlogPost(id: string): Promise<BlogPost> {
-    return api.get<BlogPost>(`/admin/blog/posts/${id}`);
-  },
-
-  async getBlogCategories(): Promise<BlogCategory[]> {
-    return api.get<BlogCategory[]>('/admin/blog/categories');
-  },
-
-  async getBlogTags(): Promise<BlogTag[]> {
-    return api.get<BlogTag[]>('/admin/blog/tags');
-  },
-
-  async createBlogTag(name: string): Promise<BlogTag> {
-    return api.post<BlogTag>('/admin/blog/tags', { name });
   },
 
   async exportUsers(format: 'csv' | 'json' | 'xlsx'): Promise<Blob> {

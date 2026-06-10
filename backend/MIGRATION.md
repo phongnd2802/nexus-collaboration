@@ -16,7 +16,7 @@ This guide tells you which pieces are **wired up and ready**, which are
 - **Redis** (optional but recommended for sessions/cache)
 - **An S3-compatible object storage** (any one of: AWS S3, Cloudflare R2, MinIO,
   Backblaze B2, DigitalOcean Spaces)
-- **An SMTP provider** (any one of: Resend, SendGrid, Mailgun, AWS SES,
+- **An SMTP provider** (any one of: Resend, Mailgun, AWS SES,
   Postmark, Gmail, self-hosted Postfix)
 - **An LLM API key** (only if you want AI features: OpenAI, Anthropic, etc.)
 

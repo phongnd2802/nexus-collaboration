@@ -41,10 +41,7 @@ import {
   ImportPdfResponseDto,
   ImportUrlDto,
   ImportUrlResponseDto,
-  ImportGoogleDriveDto,
-  ImportGoogleDriveResponseDto,
 } from './dto';
-import { GoogleDriveService } from '../integration-framework/google-drive/google-drive.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -60,7 +57,6 @@ export class NotesController {
     private readonly conversationMemoryService: ConversationMemoryService,
     private readonly pdfProcessingService: PdfProcessingService,
     private readonly urlProcessingService: UrlProcessingService,
-    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   // ==================== PDF IMPORT ENDPOINT ====================
@@ -212,91 +208,6 @@ export class NotesController {
       excerpt: result.excerpt,
       siteName: result.siteName,
       message: `Successfully imported content from ${result.siteName || new URL(importUrlDto.url).hostname}`,
-    };
-  }
-
-  // ==================== GOOGLE DRIVE IMPORT ENDPOINT ====================
-
-  @Post('import/google-drive')
-  @ApiOperation({
-    summary: 'Import a document from Google Drive as a note',
-    description:
-      'Downloads a document from Google Drive (Google Docs, PDF, etc.) and creates a new note ' +
-      'with the extracted content formatted as HTML.',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Google Drive document imported successfully',
-    type: ImportGoogleDriveResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid file ID or failed to import' })
-  @ApiResponse({ status: 401, description: 'Google Drive not connected' })
-  async importFromGoogleDrive(
-    @Param('workspaceId') workspaceId: string,
-    @Body() importDto: ImportGoogleDriveDto,
-    @CurrentUser('sub') userId: string,
-  ): Promise<ImportGoogleDriveResponseDto> {
-    // Download the file from Google Drive
-    const { buffer, mimeType, fileName } = await this.googleDriveService.downloadFile(
-      userId,
-      workspaceId,
-      importDto.fileId,
-      'text/html', // Convert Google Docs to HTML
-    );
-
-    // Convert buffer to HTML string
-    let htmlContent: string;
-
-    if (mimeType.includes('text/html')) {
-      htmlContent = buffer.toString('utf-8');
-    } else if (mimeType.includes('text/plain')) {
-      // Convert plain text to HTML paragraphs
-      const text = buffer.toString('utf-8');
-      htmlContent = text
-        .split('\n\n')
-        .filter((p) => p.trim())
-        .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-        .join('');
-    } else if (mimeType.includes('application/pdf')) {
-      // For PDFs, use the PDF processing service
-      const pdfResult = await this.pdfProcessingService.processPdfToMarkdown(
-        buffer,
-        workspaceId,
-        userId,
-      );
-      // Convert markdown to simple HTML
-      htmlContent = pdfResult.markdown
-        .split('\n\n')
-        .filter((p) => p.trim())
-        .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-        .join('');
-    } else {
-      // For other formats (like Google Docs exported as HTML), use as-is
-      htmlContent = buffer.toString('utf-8');
-    }
-
-    // Clean up HTML if needed
-    if (htmlContent && !htmlContent.trim().startsWith('<')) {
-      htmlContent = `<p>${htmlContent}</p>`;
-    }
-
-    // Create the note
-    const note = await this.notesService.createNote(
-      workspaceId,
-      {
-        title: importDto.title,
-        content: htmlContent,
-        parent_id: importDto.parentId,
-        tags: importDto.tags || ['google-drive', 'imported'],
-      },
-      userId,
-    );
-
-    return {
-      success: true,
-      noteId: note.id,
-      title: importDto.title,
-      message: `Successfully imported "${fileName}" from Google Drive`,
     };
   }
 

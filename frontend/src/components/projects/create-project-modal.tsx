@@ -180,18 +180,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       } finally {
         setEventPreviewLoading(false)
       }
-    } else if (attachment.type === 'drive') {
-      // Open Google Drive file in new tab
-      if (attachment.driveFileUrl) {
-        window.open(attachment.driveFileUrl, '_blank', 'noopener,noreferrer')
-      } else {
-        toast({
-          title: intl.formatMessage({ id: 'modules.projects.createProject.toast.error', defaultMessage: 'Error' }),
-          description: intl.formatMessage({ id: 'modules.projects.createProject.toast.driveUrlNotAvailable', defaultMessage: 'Drive file URL not available' }),
-          variant: 'destructive'
-        })
-      }
-    }
+
   }
 
   // Pre-fill project name from Slack
@@ -1196,4 +1185,5 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     />
     </>
   )
+}
 }

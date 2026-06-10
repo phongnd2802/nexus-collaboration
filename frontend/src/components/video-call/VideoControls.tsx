@@ -20,7 +20,6 @@ import {
   StopCircle,
   Settings,
   Sparkles,
-  PenTool,
   Captions,
   FileText
 } from 'lucide-react'
@@ -37,13 +36,11 @@ import useVideoCallStore from '@/stores/videoCallStore'
 
 interface VideoControlsProps {
   onReaction?: (emoji: string) => void
-  onOpenWhiteboard?: () => void
   className?: string
 }
 
 export function VideoControls({ 
   onReaction, 
-  onOpenWhiteboard,
   className 
 }: VideoControlsProps) {
   const {
@@ -279,11 +276,6 @@ export function VideoControls({
                 Start Recording
               </>
             )}
-          </DropdownMenuItem>
-          
-          <DropdownMenuItem onClick={onOpenWhiteboard}>
-            <PenTool className="mr-2 h-4 w-4" />
-            Open Whiteboard
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />

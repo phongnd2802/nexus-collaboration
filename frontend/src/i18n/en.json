@@ -284,14 +284,11 @@
     "calendar": "Calendar",
     "videoCall": "Video Call",
     "files": "Files",
-    "whiteboard": "Whiteboard",
     "search": "Search",
     "settings": "Settings",
     "integrations": "Integrations",
     "analytics": "Analytics",
-    "monitoring": "Monitoring",
     "support": "Support",
-    "blog": "Blog",
     "tutorial": "Tutorial",
     "apps": "Apps",
     "more": "More",
@@ -500,7 +497,7 @@
     "subtitle": "AI Autopilot connects all your tools, automating workflows and keeping everything in sync.",
     "botCapabilities": "BOT CAPABILITIES",
     "keyFeatures": "Key Features:",
-  "integrations": {
+    "integrations": {
       "badge": "180+ Integrations",
       "title": "Seamless Integrations",
       "subtitle": "Connect with your favorite tools and apps",
@@ -649,7 +646,7 @@
         "name": "Tools",
         "desc": "Productivity tools",
         "features": [
-          "WhiteBoard",
+          "Shared Planning",
           "Document Builder",
           "Request and Approval",
           "Budgeting",
@@ -5185,8 +5182,8 @@
           "description": "AI-powered noise suppression for crystal clear audio"
         },
         "whiteboard": {
-          "title": "Interactive Whiteboard",
-          "description": "Collaborate on ideas with real-time whiteboard sharing"
+          "title": "Shared Planning Canvas",
+          "description": "Collaborate on ideas with live shared planning surfaces"
         },
         "export": {
           "title": "Export & Download",
@@ -5531,22 +5528,6 @@
         "businessTitle": "Built for Business",
         "businessSubtitle": "Pre-built connectors for CRM, marketing, finance, and business intelligence tools",
         "essentialsSubtitle": "Everything you need to unify your workflow"
-      }
-    },
-    "monitoring": {
-      "badge": "System Monitoring",
-      "title": "Stay Ahead of Issues",
-      "titleHighlight": "Before They Impact Users.",
-      "subtitle": "Monitor your entire infrastructure with real-time alerts, comprehensive metrics, and intelligent anomaly detection. Get complete visibility into system health and performance.",
-      "cta": "Start Monitoring",
-      "sections": {
-        "visibilityTitle": "Complete Infrastructure Visibility",
-        "visibilitySubtitle": "Monitor everything from servers to applications with comprehensive observability tools",
-        "alertsTitle": "Intelligent Alerting",
-        "alertsSubtitle": "Smart alerts with customizable thresholds, escalation policies, and multi-channel notifications",
-        "performanceTitle": "Performance Analytics",
-        "performanceSubtitle": "Detailed metrics, trend analysis, and capacity planning to optimize your systems",
-        "essentialsSubtitle": "Everything you need for complete system visibility"
       }
     },
     "automation": {
@@ -6032,9 +6013,9 @@
       "tools": {
         "title": "Collaborative Tools",
         "tagline": "Create Together",
-        "description": "Unlock creativity with powerful collaborative tools. Use interactive whiteboards for brainstorming, visual planning, and real-time collaboration. Perfect for design sprints, strategy sessions, and creative workshops.",
+        "description": "Unlock creativity with powerful collaborative tools for brainstorming, visual planning, and real-time collaboration. Perfect for design sprints, strategy sessions, and creative workshops.",
         "features": [
-          "Interactive whiteboard with drawing tools",
+          "Shared planning canvases",
           "Real-time multi-user collaboration",
           "Templates for common workflows",
           "Export and share your creations"
@@ -6062,36 +6043,6 @@
           "Zapier and automation platform support"
         ]
       }
-    }
-  },
-  "contact": {
-    "badge": "Get in touch",
-    "title": "We'd love to hear from you",
-    "subtitle": "Have questions or feedback? Our team is here to help. Send us a message and we'll respond within 24 hours.",
-    "form": {
-      "name": "Name",
-      "namePlaceholder": "Your full name",
-      "nameRequired": "Name is required",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Invalid email address",
-      "company": "Company",
-      "companyPlaceholder": "Your company name",
-      "message": "Message",
-      "messagePlaceholder": "Tell us about your project or question...",
-      "messageRequired": "Message is required",
-      "submit": "Send Message",
-      "submitting": "Sending...",
-      "success": "Message sent successfully!",
-      "error": "Failed to send message. Please try again.",
-      "subject": "Subject",
-      "selectTopic": "Select a topic",
-      "subjectGeneral": "General Inquiry",
-      "subjectSales": "Sales",
-      "subjectSupport": "Support",
-      "subjectPartnership": "Partnership",
-      "subjectOther": "Other"
     }
   },
   "featureHighlights": {
@@ -6980,9 +6931,9 @@
           "title": "5. Data Retention",
           "content": {
             "0": "We retain your information for as long as your account is active or as needed to provide you services.",
-            "1": "Slack Integration: When you disconnect Nexus from Slack or uninstall the app, Slack-related data (tokens, channel links) is immediately deactivated. Your workspace data (projects, events, whiteboards) remains accessible via the Nexus web platform and can be permanently deleted upon request.",
+            "1": "If you disconnect a third-party integration, any related tokens or linked references are deactivated. Your core workspace data remains accessible in Nexus and can be permanently deleted upon request.",
             "2": "Backup copies of your data may be retained for up to 90 days for disaster recovery purposes.",
-            "3": "You can request deletion of your data at any time by contacting us at support@nexusapp.io or using the disconnect option in the Slack App Home."
+            "3": "You can request deletion of your data at any time by contacting us at support@nexusapp.io."
           }
         },
         "section6": {
@@ -7641,6 +7592,7 @@
       "actions": {
         "viewProject": "View Project",
         "joinMeeting": "Join Meeting",
+        "viewEvent": "View Event",
         "viewMessages": "View Messages",
         "openNote": "Open Note",
         "viewTask": "View Task"
@@ -7648,6 +7600,18 @@
       "taskBalance": {
         "title": "Task Imbalance in {projectName}",
         "description": "{overloadedName} has {overloadedCount} tasks while {underloadedName} has {underloadedCount}. Ideal is ~{idealCount} tasks per member."
+      },
+      "overdueTask": {
+        "title": "Overdue: {taskTitle}",
+        "description": "This task was due {daysOverdue} {daysOverdue, plural, one {day} other {days}} ago in {projectName}"
+      },
+      "missedEvent": {
+        "title": "Missed Event",
+        "description": "You missed \"{eventTitle}\""
+      },
+      "activeMeeting": {
+        "title": "Meeting in Progress: {meetingTitle}",
+        "description": "This meeting is currently active. Join now to participate."
       },
       "priority": {
         "high": "High Priority",
@@ -8220,102 +8184,7 @@
     },
     "title": "Settings",
     "description": "Manage your account settings and preferences",
-    "error": "Error loading settings",
-    "feedback": {
-      "title": "Feedback & Support",
-      "description": "Report bugs, request features, or share suggestions to help us improve Nexus.",
-      "newFeedback": "New Feedback",
-      "tabs": {
-        "all": "All",
-        "pending": "Pending",
-        "resolved": "Resolved"
-      },
-      "noFeedback": "No feedback yet",
-      "clickToSubmit": "Click \"New Feedback\" to submit your first feedback",
-      "types": {
-        "bug": "Bug",
-        "issue": "Issue",
-        "improvement": "Improvement",
-        "feature_request": "Feature Request"
-      },
-      "statuses": {
-        "pending": "Pending",
-        "in_review": "In Review",
-        "in_progress": "In Progress",
-        "resolved": "Resolved",
-        "wont_fix": "Won't Fix",
-        "duplicate": "Duplicate"
-      },
-      "attachmentCount": "{count} attachment",
-      "attachmentCount_plural": "{count} attachments",
-      "dialog": {
-        "create": {
-          "title": "Submit Feedback",
-          "type": {
-            "label": "Feedback Type",
-            "bug": "Bug",
-            "issue": "Issue",
-            "improvement": "Improvement",
-            "featureRequest": "Feature Request"
-          },
-          "title_field": {
-            "label": "Title *",
-            "placeholder": "Brief description of the issue",
-            "counter": "{current}/{max}"
-          },
-          "description": {
-            "label": "Description *",
-            "placeholder": "Provide detailed information...",
-            "counter": "{current}/{max}"
-          },
-          "category": {
-            "label": "Category (Optional)",
-            "placeholder": "Select a category",
-            "ui": "UI/UX",
-            "performance": "Performance",
-            "feature": "Feature",
-            "security": "Security",
-            "other": "Other"
-          },
-          "attachments": {
-            "label": "Attachments (Optional)",
-            "description": "Add screenshots or files to help us understand the issue (max 5 files, 10MB each)",
-            "button": "Attach Files",
-            "uploading": "Uploading...",
-            "remove": "Remove"
-          },
-          "errors": {
-            "maxAttachments": "Maximum 5 attachments allowed",
-            "fileTooBig": "File {fileName} is too large (max 10MB)",
-            "uploadFailed": "Failed to upload file",
-            "titleTooShort": "Title must be at least 5 characters",
-            "descriptionTooShort": "Description must be at least 20 characters",
-            "submitFailed": "Failed to submit feedback"
-          },
-          "buttons": {
-            "cancel": "Cancel",
-            "submit": "Submit Feedback",
-            "submitting": "Submitting..."
-          }
-        },
-        "detail": {
-          "title": "Feedback Details",
-          "submittedOn": "Submitted on {date}",
-          "description": "Description",
-          "category": "Category",
-          "attachments": "Attachments",
-          "deviceInfo": "Device Information",
-          "appVersion": "App Version",
-          "platform": "Platform",
-          "os": "OS",
-          "device": "Device",
-          "resolved": {
-            "title": "Resolved",
-            "resolvedOn": "Resolved on {date}"
-          }
-        }
-      }
-    }
+    "error": "Error loading settings"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -8326,7 +8195,6 @@
     "videoCalls": "Video Calls",
     "notes": "Notes",
     "analytics": "Analytics",
-    "monitoring": "Monitoring",
     "integrations": "Integrations",
     "settings": {
       "title": "Settings",
@@ -8337,8 +8205,7 @@
       "billing": "Billing",
       "billingBadge": "Important",
       "workspaceSection": "WORKSPACE",
-      "workspace": "Workspace Settings",
-      "feedback": "Feedback"
+      "workspace": "Workspace Settings"
     }
   },
   "admin": {
@@ -8346,92 +8213,20 @@
     "dashboard": "Dashboard",
     "userManagement": "User Management",
     "organizations": "Organizations",
-    "blogManagement": "Blog Management",
     "systemSettings": "System Settings",
     "auditLogs": "Audit Logs",
     "security": "Security",
-    "backToApp": "Back to App",
-    "blog": {
-      "post": {
-        "backToBlog": "Back to Blog",
-        "ratingsReviews": "Ratings & Reviews",
-        "rating": "rating",
-        "ratings": "ratings",
-        "star": "star",
-        "yourRating": "Your Rating",
-        "rateThisPost": "Rate this Post",
-        "yourReview": "Your Review (Optional)",
-        "reviewPlaceholder": "Share your thoughts about this article...",
-        "submitRating": "Submit Rating",
-        "updateRating": "Update Rating",
-        "recentReviews": "Recent Reviews",
-        "noReviews": "No reviews yet",
-        "beFirst": "Be the first to share your thoughts!",
-        "comments": "Comments",
-        "comment": "comment",
-        "collapse": "Collapse",
-        "expand": "Expand",
-        "writeComment": "Write a comment...",
-        "postComment": "Post Comment",
-        "reply": "Reply",
-        "postReply": "Post Reply",
-        "cancel": "Cancel",
-        "noComments": "No comments yet",
-        "startConversation": "Be the first to start the conversation!",
-        "loginToComment": "Login to comment",
-        "loginToRate": "Login to rate"
-      },
-      "section": {
-        "title": "Our Blog",
-        "latest": "Latest",
-        "insights": "Insights",
-        "subtitle": "Discover productivity tips, collaboration guides, and workplace insights from our team",
-        "noPosts": "No Blog Posts Yet",
-        "noPostsDesc": "Check back soon for insights and updates from our team",
-        "viewAll": "View All Posts"
-      },
-      "allPosts": "All Posts",
-      "createPost": "Create Post",
-      "categories": "Categories",
-      "tags": "Tags",
-      "title": "Blog",
-      "subtitle": "Insights on social media marketing & growth",
-      "newPost": "New Post",
-      "searchPlaceholder": "Search articles...",
-      "browse": "Browse",
-      "filter": {
-        "latest": "Latest",
-        "popular": "Popular",
-        "featured": "Featured",
-        "allPosts": "All Posts"
-      },
-      "myPosts": "My Posts",
-      "categoriesTitle": "Categories",
-      "allCategories": "All Categories",
-      "noPostsFound": "No posts found",
-      "noPostsFoundDesc": "Try adjusting your filters or search terms",
-      "comment": "comment",
-      "comments": "comments",
-      "noBlogPostsYet": "No blog posts yet",
-      "beTheFirst": "Be the first to share your insights",
-      "createFirstPost": "Create First Post",
-      "category": {
-        "technology": "Technology",
-        "marketing": "Marketing",
-        "socialmedia": "Social Media",
-        "business": "Business",
-        "development": "Development",
-        "design": "Design",
-        "growth": "Growth",
-        "news": "News",
-        "tips": "Tips"
-      }
-    }
+    "backToApp": "Back to App"
   },
   "notifications": {
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "clearRead": "Clear read",
+    "items": {
+      "newMessageInChannel": "New message in #{channelName}",
+      "taskUnassigned": "Task Unassigned",
+      "taskUnassignedMessage": "Task \"{taskTitle}\" has been unassigned from you"
+    },
     "tabs": {
       "all": "All",
       "unread": "Unread",
@@ -8745,659 +8540,6 @@
     },
     "createdViaAI": "Created via AI command"
   },
-  "budget": {
-    "title": "Budget Management",
-    "subtitle": "Track and manage budgets and project spending",
-    "loading": "Loading budgets...",
-    "createButton": "Create Budget",
-    "stats": {
-      "totalBudgets": "Total Budgets",
-      "activeBudgets": "Active Budgets",
-      "exceededBudgets": "Exceeded Budgets"
-    },
-    "status": {
-      "active": "Active",
-      "exceeded": "Exceeded",
-      "completed": "Completed",
-      "archived": "Archived"
-    },
-    "type": {
-      "project": "Project",
-      "department": "Department",
-      "team": "Team",
-      "operational": "Operational",
-      "capital": "Capital",
-      "other": "Other"
-    },
-    "card": {
-      "totalBudget": "Total Budget",
-      "type": "Type",
-      "project": "Project",
-      "period": "Period",
-      "alertAt": "Alert At"
-    },
-    "empty": {
-      "title": "No budgets yet",
-      "description": "Create your first budget to start tracking project spending"
-    },
-    "modal": {
-      "title": "Create New Budget",
-      "description": "Set up a new budget to track expenses and time",
-      "fields": {
-        "name": {
-          "label": "Budget Name *",
-          "placeholder": "Q1 Marketing Campaign",
-          "required": "Name is required"
-        },
-        "description": {
-          "label": "Description",
-          "placeholder": "Describe the purpose of this budget..."
-        },
-        "project": {
-          "label": "Link to Project (Optional)",
-          "placeholder": "Select a project...",
-          "noProject": "No project",
-          "loading": "Loading projects...",
-          "noProjectsAvailable": "No projects available",
-          "helper": "Link this budget to a specific project for better tracking ({count} projects available)"
-        },
-        "autoCreateCategories": {
-          "label": "Auto-create default budget categories",
-          "helper": "Automatically create 5 standard categories: Labor (40%), Materials (25%), Software (15%), Travel (10%), and Overhead (10%)"
-        },
-        "budgetType": {
-          "label": "Budget Type *",
-          "options": {
-            "project": "Project",
-            "task": "Task",
-            "phase": "Phase",
-            "resource": "Resource"
-          }
-        },
-        "totalBudget": {
-          "label": "Total Budget *",
-          "placeholder": "50000",
-          "required": "Total budget is required",
-          "minValue": "Must be a positive value"
-        },
-        "currency": {
-          "label": "Currency *"
-        },
-        "alertThreshold": {
-          "label": "Alert Threshold (%)",
-          "placeholder": "80",
-          "validation": "Must be between 0 and 100"
-        },
-        "startDate": {
-          "label": "Start Date"
-        },
-        "endDate": {
-          "label": "End Date"
-        }
-      },
-      "categories": {
-        "labor": {
-          "name": "Labor",
-          "description": "Salaries, wages, and contractor costs"
-        },
-        "materials": {
-          "name": "Materials & Equipment",
-          "description": "Physical materials and equipment costs"
-        },
-        "software": {
-          "name": "Software & Tools",
-          "description": "Software licenses and digital tools"
-        },
-        "travel": {
-          "name": "Travel & Expenses",
-          "description": "Business travel, accommodation, and related expenses"
-        },
-        "overhead": {
-          "name": "Overhead & Miscellaneous",
-          "description": "Administrative costs and other overhead"
-        }
-      },
-      "buttons": {
-        "cancel": "Cancel",
-        "create": "Create Budget",
-        "creating": "Creating..."
-      },
-      "success": {
-        "created": "Budget created successfully",
-        "withCategories": "Budget and default categories created successfully",
-        "partialCategories": "Budget created but some categories failed to create"
-      },
-      "error": {
-        "createFailed": "Failed to create budget"
-      },
-      "expense": {
-        "title": "Add Expense",
-        "description": "Record a new expense for this budget",
-        "fields": {
-          "title": {
-            "label": "Expense Title *",
-            "placeholder": "Software license purchase",
-            "required": "Title is required"
-          },
-          "description": {
-            "label": "Description",
-            "placeholder": "Additional details..."
-          },
-          "amount": {
-            "label": "Amount ({currency}) *",
-            "placeholder": "500.00",
-            "required": "Amount is required",
-            "minValue": "Must be positive"
-          },
-          "date": {
-            "label": "Expense Date *",
-            "required": "Date is required"
-          },
-          "category": {
-            "label": "Category",
-            "placeholder": "Select category",
-            "noCategories": "No categories yet"
-          },
-          "type": {
-            "label": "Expense Type *",
-            "manual": "Manual",
-            "invoice": "Invoice",
-            "purchase": "Purchase"
-          },
-          "task": {
-            "label": "Link to Task (Optional)",
-            "placeholder": "Select a task...",
-            "noTask": "No task",
-            "helper": "Link this expense to a specific task ({count} tasks available)"
-          },
-          "vendor": {
-            "label": "Vendor",
-            "placeholder": "Company name"
-          },
-          "invoiceNumber": {
-            "label": "Invoice Number",
-            "placeholder": "INV-001"
-          },
-          "billable": {
-            "label": "This expense is billable to client"
-          },
-          "notes": {
-            "label": "Additional Notes",
-            "placeholder": "Any additional notes..."
-          }
-        },
-        "warning": {
-          "exceed": "This expense will exceed the category budget by {amount}",
-          "remaining": "Only {amount} remaining in this category",
-          "allocated": "Allocated",
-          "currentlySpent": "Currently Spent",
-          "afterExpense": "After this expense"
-        },
-        "cancel": "Cancel",
-        "submit": "Add Expense",
-        "adding": "Adding...",
-        "success": "Expense added successfully",
-        "error": "Failed to add expense"
-      }
-    },
-    "details": {
-      "loading": "Loading budget...",
-      "notFound": "Budget not found",
-      "linkedToProject": "Linked to Project",
-      "viewProject": "View Project",
-      "totalBudget": "Total Budget",
-      "totalSpent": "Total Spent",
-      "remaining": "Remaining",
-      "percentUsed": "{percent}% Used",
-      "percentLeft": "{percent}% Left",
-      "activity": "Activity",
-      "expenses": {
-        "loading": "Loading expenses...",
-        "empty": {
-          "title": "No expenses yet",
-          "description": "Add your first expense to start tracking spending"
-        },
-        "status": {
-          "approved": "Approved",
-          "rejected": "Rejected",
-          "pending": "Pending Approval"
-        },
-        "billable": "Billable",
-        "task": "Task",
-        "note": "Note",
-        "viewRequest": "View Request"
-      },
-      "timeEntries": "Time Entries",
-      "budgetUsage": "Budget Usage",
-      "usageAlert": "⚠️ Alert: {percent}% of budget used",
-      "usageNormal": "{percent}% of budget used",
-      "tabs": {
-        "analytics": "Analytics",
-        "forecasting": "Forecasting",
-        "expenses": "Expenses",
-        "categories": "Categories",
-        "tasks": "Tasks",
-        "timeTracking": "Time Tracking"
-      },
-      "addExpense": "Add Expense",
-      "budgetCategories": "Budget Categories",
-      "addCategory": "Add Category",
-      "categories": {
-        "loading": "Loading categories...",
-        "empty": {
-          "title": "No categories yet",
-          "description": "Create categories to organize your expenses"
-        }
-      },
-      "category": {
-        "fixed": "Fixed",
-        "variable": "Variable",
-        "allocated": "Allocated",
-        "spent": "Spent",
-        "overBudget": "Over Budget",
-        "percentUsed": "{percent}% Used",
-        "overBudgetBadge": "Over Budget",
-        "nearLimit": "Near Limit"
-      },
-      "tasks": {
-        "title": "Task Breakdown",
-        "description": "View expenses grouped by task",
-        "noTasksTitle": "No tasks yet",
-        "noTasksDescription": "Tasks from your linked project will appear here"
-      },
-      "timeTracking": {
-        "title": "Time Tracking",
-        "description": "View all time entries and running timers"
-      }
-    },
-    "charts": {
-      "spent": "Spent",
-      "remaining": "Remaining",
-      "budget": "Budget",
-      "overBudget": "Over Budget",
-      "budgetOverview": "Budget Overview",
-      "budgetOverviewDesc": "Total budget utilization",
-      "used": "Used",
-      "spendingByCategory": "Spending by Category",
-      "spendingByCategoryDesc": "Category-wise expense breakdown",
-      "noExpensesYet": "No expenses recorded yet",
-      "spendingTimeline": "Spending Timeline",
-      "spendingTimelineDesc": "Cumulative spending over time",
-      "totalSpent": "Total Spent",
-      "noTimelineData": "No expense timeline data available",
-      "burnRateAnalysis": "Burn Rate Analysis",
-      "overPacing": "Over-pacing",
-      "burnRateAnalysisDesc": "Budget consumption rate and forecast",
-      "idealDailyRate": "Ideal Daily Rate",
-      "perDay": "per day",
-      "actualDailyRate": "Actual Daily Rate",
-      "aboveTarget": "Above target",
-      "onTrack": "On track",
-      "timelineProgress": "Timeline Progress",
-      "daysProgress": "{elapsed} of {total} days ({remaining} left)",
-      "forecastedTotal": "Forecasted Total",
-      "overBudgetAmount": "{amount} over budget",
-      "withinBudget": "Within budget",
-      "budgetVsTime": "Budget Progress vs Time Progress",
-      "spendingFaster": "Spending faster than time",
-      "onPaceOrUnder": "On pace or under",
-      "budgetUsed": "Budget Used",
-      "timeElapsed": "Time Elapsed"
-    },
-    "forecasting": {
-      "loading": "Loading analytics...",
-      "noData": "Not enough data for projections. Add more expenses to see predictions.",
-      "healthExcellent": "Excellent",
-      "healthGood": "Good",
-      "healthFair": "Fair",
-      "healthAtRisk": "At Risk",
-      "overageRiskTitle": "Budget Overage Risk Detected",
-      "overageRiskDesc": "At the current spending rate, variable costs are projected to exceed allocation by <strong>{amount}</strong> over the next {months} months. Consider adjusting spending or reallocating budget.",
-      "limitedRunwayTitle": "Limited Budget Runway",
-      "limitedRunwayDesc": "At the current burn rate of <strong>{burnRate}/month</strong>, the budget will be exhausted in approximately <strong>{months} months</strong> ({date}).",
-      "healthScore": "Health Score",
-      "burnRate": "Burn Rate",
-      "perMonth": "per month",
-      "runway": "Runway",
-      "budgetSustainable": "Budget sustainable",
-      "monthsRemaining": "months remaining",
-      "completionDate": "Completion Date",
-      "onTrack": "On Track",
-      "withinBudget": "Within budget",
-      "projectedExhaustion": "Projected budget exhaustion",
-      "spendingTrend": "Spending Trend & Forecast",
-      "spendingTrendDesc": "Historical spending and projected future costs over the next {months} months",
-      "actualSpending": "Actual Spending",
-      "projectedSpending": "Projected Spending",
-      "budgetLimit": "Budget Limit",
-      "categoryRisks": "Category Overage Risks",
-      "categoryRisksDesc": "Variable cost categories projected to exceed allocation",
-      "current": "Current",
-      "projected": "Projected",
-      "allocated": "Allocated",
-      "percentOver": "{percent}% over",
-      "monthlyBreakdown": "Projected Monthly Spending by Category",
-      "monthlyBreakdownDesc": "Average monthly spending for each variable cost category",
-      "currentSpent": "Current Spent",
-      "projectedTotal": "Projected Total",
-      "projectionSummary": "Projection Summary",
-      "totalVariableCosts": "Total Variable Costs",
-      "projectionPeriod": "Projection Period",
-      "monthsCount": "{count} Months",
-      "status": "Status",
-      "overBudget": "Over Budget"
-    },
-    "tasks": {
-      "timerStoppedSuccess": "Timer stopped successfully",
-      "timerStoppedError": "Failed to stop timer",
-      "stop": "Stop",
-      "startTimerAnother": "Start Timer for Another Assignee",
-      "startTimer": "Start Timer",
-      "noTasksTitle": "No tasks found",
-      "noTasksDesc": "Add tasks to the project to start tracking time and expenses",
-      "totalTasks": "Total Tasks",
-      "withExpenses": "{count} with expenses",
-      "taskLinkedExpenses": "Task-Linked Expenses",
-      "expensesCount": "{count} expenses",
-      "unlinkedExpenses": "Unlinked Expenses",
-      "allTasks": "All Tasks",
-      "noExpensesYet": "No expenses yet",
-      "percentOfBudget": "% of Total Budget",
-      "expenseDetails": "Expense Details:",
-      "moreExpenses": "+{count} more expenses",
-      "unlinkedExpensesDesc": "These expenses are not linked to any task",
-      "totalUnlinked": "Total Unlinked",
-      "unlinkedCount": "{count} expenses not linked to tasks"
-    },
-    "editModal": {
-      "title": "Edit Budget Settings",
-      "description": "Description",
-      "name": "Budget Name *",
-      "namePlaceholder": "Q1 Marketing Campaign",
-      "nameRequired": "Name is required",
-      "descriptionPlaceholder": "Budget description...",
-      "totalBudget": "Total Budget *",
-      "totalBudgetRequired": "Total budget is required",
-      "mustBePositive": "Must be positive",
-      "currency": "Currency *",
-      "startDate": "Start Date",
-      "endDate": "End Date",
-      "alertThreshold": "Alert Threshold (%) *",
-      "alertThresholdRequired": "Alert threshold is required",
-      "alertThresholdMin": "Must be at least 0",
-      "alertThresholdMax": "Must be at most 100",
-      "alertThresholdHelper": "Get notified when budget usage reaches this percentage",
-      "status": "Status *",
-      "statusActive": "Active",
-      "statusCompleted": "Completed",
-      "statusExceeded": "Exceeded",
-      "statusArchived": "Archived",
-      "dangerZone": "Danger Zone",
-      "dangerZoneDesc": "Deleting this budget will permanently remove all associated data including categories, expenses, and time entries.",
-      "deleteBudget": "Delete Budget",
-      "cancel": "Cancel",
-      "saving": "Saving...",
-      "saveChanges": "Save Changes",
-      "confirmDeleteTitle": "Are you absolutely sure?",
-      "confirmDeleteDesc": "This action cannot be undone. This will permanently delete the budget \"{name}\" and remove all associated categories, expenses, and time entries from the system.",
-      "deleting": "Deleting...",
-      "updateSuccess": "Budget updated successfully",
-      "updateError": "Failed to update budget",
-      "deleteSuccess": "Budget deleted successfully",
-      "deleteError": "Failed to delete budget"
-    },
-    "timeTracking": {
-      "stats": {
-        "totalTime": "Total Time",
-        "totalBilled": "Total Billed",
-        "billableEntries": "Billable Entries",
-        "teamMembers": "Team Members",
-        "entries": "entries",
-        "fromBillableTime": "from billable time",
-        "percentOfTotal": "{percent}% of total",
-        "trackedTime": "Tracked Time"
-      },
-      "filterByTask": "Filter by Task",
-      "allTasks": "All Tasks",
-      "noEntriesTitle": "No time entries yet",
-      "noEntriesDescription": "Start a timer on a task to begin tracking time"
-    },
-    "expenses": {
-      "title": "Expenses",
-      "billable": "Billable",
-      "task": "Task",
-      "status": {
-        "approved": "Approved",
-        "pending": "Pending",
-        "rejected": "Rejected"
-      }
-    },
-    "integrations": {
-      "page": {
-        "title": "Integrations",
-        "subtitle": "Connect your favorite tools and services to streamline your workflow",
-        "loading": "Loading integrations...",
-        "searchPlaceholder": "Search integrations...",
-        "filterBy": "Filtering by:",
-        "noResults": "No integrations found",
-        "noResultsDesc": "Try adjusting your search or filters."
-      },
-      "tabs": {
-        "marketplace": "Marketplace",
-        "connected": "Connected"
-      },
-      "sections": {
-        "popular": "Popular",
-        "all": "All Integrations"
-      },
-      "categories": {
-        "communication": "Communication",
-        "fileStorage": "File Storage",
-        "calendar": "Calendar",
-        "email": "Email",
-        "projectManagement": "Project Management",
-        "crm": "CRM",
-        "development": "Development",
-        "analytics": "Analytics",
-        "marketing": "Marketing",
-        "documentation": "Documentation",
-        "design": "Design",
-        "timeTracking": "Time Tracking",
-        "videoConferencing": "Video Conferencing",
-        "automation": "Automation",
-        "productivity": "Productivity",
-        "hr": "HR",
-        "finance": "Finance",
-        "support": "Support",
-        "security": "Security",
-        "ecommerce": "E-Commerce",
-        "socialMedia": "Social Media",
-        "ai": "AI & Machine Learning",
-        "other": "Other"
-      },
-      "status": {
-        "connected": "Connected",
-        "verified": "Verified",
-        "installed": "Installed",
-        "comingSoon": "Coming Soon"
-      },
-      "pricing": {
-        "free": "Free",
-        "freemium": "Freemium",
-        "paid": "Paid"
-      },
-      "actions": {
-        "connect": "Connect",
-        "disconnect": "Disconnect",
-        "open": "Open",
-        "install": "Install Integration",
-        "uninstall": "Uninstall",
-        "visitWebsite": "Visit Website",
-        "back": "Back",
-        "backToIntegrations": "Back to Integrations"
-      },
-      "connect": "Connect",
-      "disconnect": "Disconnect",
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "connectedDescription": "Successfully connected to {name}",
-      "disconnectedDescription": "Successfully disconnected from {name}",
-      "connectError": "Connection Error",
-      "disconnectError": "Disconnect Error",
-      "connectionError": "Connection error",
-      "tokenExpired": "Token expired. Please reconnect.",
-      "connectWithApiKey": "Connect {name}",
-      "apiKeyDescription": "Enter your {name} API key to connect.",
-      "apiKey": "API Key",
-      "findApiKey": "How to find your API key",
-      "disconnectTitle": "Disconnect {name}?",
-      "disconnectWarning": "This will remove the connection to {name}. You can reconnect at any time.",
-      "connectedAs": "Connected as:",
-      "empty": {
-        "noConnected": "No connected integrations",
-        "noConnectedDesc": "Get started by connecting your first integration from the marketplace.",
-        "browse": "Browse Marketplace"
-      },
-      "detail": {
-        "loading": "Loading integration...",
-        "features": "Features",
-        "screenshots": "Screenshots",
-        "details": "Integration Details",
-        "category": "Category",
-        "authentication": "Authentication",
-        "webhookSupport": "Webhook Support",
-        "supported": "Supported",
-        "notSupported": "Not Supported",
-        "lastUpdated": "Last Updated",
-        "support": "Support & Documentation",
-        "apiDocumentation": "API Documentation",
-        "contactSupport": "Contact Support",
-        "usageStats": "Usage Statistics",
-        "successRate": "Success Rate",
-        "totalRequests": "Total Requests",
-        "avgResponseTime": "Avg Response Time",
-        "overview": "Overview",
-        "configuration": "Configuration",
-        "webhooks": "Webhooks",
-        "logs": "Logs",
-        "installing": "Installing...",
-        "installationFailed": "Installation failed",
-        "integrationInstalled": "Integration installed",
-        "integrationUninstalled": "Integration uninstalled",
-        "reviews": "reviews",
-        "installs": "installs"
-      }
-    },
-    "apps": {
-      "page": {
-        "title": "Connectors",
-        "subtitle": "Connect external apps to extend Nexus's capabilities",
-        "searchPlaceholder": "Search connectors...",
-        "connectorsAvailable": "{count} connector{plural} available",
-        "noConnectorsFound": "No connectors found",
-        "noConnectorsMatch": "No connectors match \"{query}\"",
-        "noConnectorsInCategory": "No connectors in the {category} category",
-        "clearFilters": "Clear filters"
-      },
-      "categories": {
-        "all": "All",
-        "communication": "Communication",
-        "productivity": "Productivity",
-        "development": "Development",
-        "business": "Business",
-        "marketing": "Marketing",
-        "design": "Design",
-        "aiAutomation": "AI & Automation",
-        "security": "Security"
-      },
-      "actions": {
-        "connect": "Connect",
-        "open": "Open",
-        "disconnect": "Disconnect",
-        "connecting": "Connecting...",
-        "notAvailable": "Not Available"
-      },
-      "descriptions": {
-        "gmail": "Send and receive emails directly within Nexus",
-        "googleCalendar": "Sync and manage your Google Calendar events",
-        "googleDrive": "Access and manage your Google Drive files",
-        "github": "Connect your GitHub account to view repositories",
-        "googleSheets": "View, edit, and sync Google Sheets spreadsheets",
-        "dropbox": "Access and manage your Dropbox files"
-      },
-      "categoryLabels": {
-        "email": "EMAIL",
-        "calendar": "CALENDAR",
-        "fileStorage": "FILE STORAGE",
-        "development": "DEVELOPMENT"
-      }
-    },
-    "templates": {
-      "pageTitle": "Project Templates",
-      "pageDescription": "Choose a template to quickly create a new project with predefined tasks and structure.",
-      "refreshButton": "Refresh Templates",
-      "seedSuccess": {
-        "title": "Templates seeded",
-        "description": "System templates have been added successfully."
-      },
-      "seedError": {
-        "title": "Error",
-        "description": "Failed to seed templates."
-      },
-      "workspaceNotFound": "Workspace not found",
-      "searchPlaceholder": "Search templates...",
-      "noTemplatesFound": "No templates found.",
-      "featured": "Featured",
-      "system": "System",
-      "tasks": "tasks",
-      "usedTimes": "Used {count} times",
-      "showingTemplates": "Showing {start} - {end} of {total} templates",
-      "previous": "Previous",
-      "next": "Next",
-      "cancel": "Cancel",
-      "useThisTemplate": "Use This Template",
-      "createFromTemplate": "Create Project from Template",
-      "customizeProject": "Customize your new project before creating it.",
-      "projectName": "Project Name",
-      "enterProjectName": "Enter project name",
-      "description": "Description (optional)",
-      "enterProjectDescription": "Enter project description",
-      "createProject": "Create Project",
-      "templateStructure": "Template Structure",
-      "customFields": "Custom Fields",
-      "boardStages": "Board Stages",
-      "blankProject": "Blank Project",
-      "startFromScratch": "Start from scratch",
-      "projectCreated": "Project created",
-      "projectCreatedDescription": "\"{projectName}\" has been created from the \"{templateName}\" template.",
-      "createProjectError": "Failed to create project from template.",
-      "complexity": "complexity",
-      "moreTasks": "+{count} more tasks...",
-      "categories": {
-        "all": "All",
-        "softwareDevelopment": "Software Development",
-        "marketing": "Marketing",
-        "hr": "HR & People",
-        "design": "Design & Creative",
-        "business": "Business & Operations",
-        "events": "Events & Webinars",
-        "research": "Research & Analysis",
-        "personal": "Personal & Productivity",
-        "sales": "Sales",
-        "finance": "Finance",
-        "itSupport": "IT Support",
-        "education": "Education",
-        "freelance": "Freelance",
-        "operations": "Operations",
-        "healthcare": "Healthcare",
-        "legal": "Legal",
-        "realEstate": "Real Estate",
-        "manufacturing": "Manufacturing",
-        "nonprofit": "Non-Profit",
-        "media": "Media & Entertainment"
-      }
-    }
-  },
   "templates": {
     "categories": {
       "all": "All",
@@ -9462,89 +8604,6 @@
     "createProjectError": "Failed to create project from template.",
     "complexity": "complexity",
     "moreTasks": "+{count} more tasks..."
-  },
-  "whiteboard": {
-    "title": "Whiteboard",
-    "loading": "Loading...",
-    "defaultName": "Untitled Whiteboard",
-    "defaultNameWithDate": "Whiteboard {date}",
-    "updated": "Updated:",
-    "noWhiteboardsYet": "No whiteboards yet. Create one to get started!",
-    "newWhiteboard": "New Whiteboard",
-    "showMenu": "Show Menu",
-    "hideGrid": "Hide Grid",
-    "showGrid": "Show Grid",
-    "canvasBackground": "Canvas Background",
-    "copyData": "Copy Whiteboard Data",
-    "deleteWhiteboard": "Delete Whiteboard",
-    "hideMenuBar": "Hide Menu Bar",
-    "hideHeader": "Hide Header",
-    "showHeader": "Show Header",
-    "error": {
-      "loadFailed": "Failed to load whiteboard",
-      "notFound": "Whiteboard not found",
-      "saveFailed": "Failed to save whiteboard",
-      "createFailed": "Failed to create whiteboard",
-      "deleteFailed": "Failed to delete whiteboard",
-      "exportFailed": "Failed to export whiteboard",
-      "missingWorkspaceId": "Missing Workspace ID",
-      "couldNotExtractWorkspaceId": "Could not extract workspace ID from the URL."
-    },
-    "success": {
-      "saved": "Whiteboard saved successfully",
-      "created": "Whiteboard created successfully",
-      "deleted": "Whiteboard deleted successfully",
-      "exportedPNG": "Exported as PNG",
-      "exportedSVG": "Exported as SVG",
-      "copiedToClipboard": "Whiteboard data copied to clipboard"
-    },
-    "status": {
-      "saving": "Saving...",
-      "failedToSave": "Failed to save",
-      "allChangesSaved": "All changes saved"
-    },
-    "tools": {
-      "lock": "Lock Canvas",
-      "unlock": "Unlock Canvas",
-      "hand": "Hand Tool",
-      "select": "Select",
-      "rectangle": "Rectangle",
-      "diamond": "Diamond",
-      "ellipse": "Ellipse",
-      "arrow": "Arrow",
-      "line": "Line",
-      "draw": "Draw",
-      "text": "Text",
-      "image": "Image",
-      "eraser": "Eraser"
-    },
-    "export": {
-      "png": "Export as PNG",
-      "svg": "Export as SVG"
-    },
-    "dialog": {
-      "createNew": "Create New Whiteboard",
-      "enterName": "Enter a name for your new whiteboard",
-      "name": "Name",
-      "namePlaceholder": "My Whiteboard",
-      "create": "Create",
-      "open": "Open Whiteboard",
-      "select": "Select a whiteboard to open",
-      "selectOrCreate": "Select a whiteboard to open or create a new one",
-      "deleteTitle": "Delete Whiteboard?",
-      "deleteDescription": "Are you sure you want to delete \"{name}\"? This action cannot be undone."
-    },
-    "stickyNote": {
-      "add": "Add Sticky Note",
-      "clickToEdit": "Click to edit",
-      "selectColor": "Select sticky note color:"
-    },
-    "mindMap": {
-      "mode": "Mind Map Mode",
-      "modeShort": "Mind Map",
-      "exit": "Exit Mind Map Mode",
-      "instructions": "Click to add nodes. Connect nodes by clicking and dragging."
-    }
   },
   "approvals": {
     "manageTypes": "Manage Types",

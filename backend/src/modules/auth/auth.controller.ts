@@ -37,12 +37,6 @@ import {
   ResendEmailVerificationDto,
   DeleteAccountDto,
 } from './dto/auth.dto';
-import {
-  SubmitDeletionFeedbackDto,
-  UpdateDeletionFeedbackDto,
-  GetDeletionFeedbackQueryDto,
-  DeletionFeedbackResponseDto,
-} from './dto/deletion-feedback.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Authentication')
@@ -189,70 +183,4 @@ export class AuthController {
     return await this.authService.deleteAccount(userId, email, dto.password);
   }
 
-  // ==================== ACCOUNT DELETION FEEDBACK (EXIT SURVEY) ====================
-
-  @Post('deletion-feedback')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Submit account deletion feedback (exit survey)' })
-  @ApiResponse({ status: 201, description: 'Feedback submitted successfully' })
-  async submitDeletionFeedback(@Request() req, @Body() dto: SubmitDeletionFeedbackDto) {
-    const userId = req.user.sub || req.user.userId;
-    const userEmail = req.user.email;
-    const userName = req.user.name || null;
-    return await this.authService.submitDeletionFeedback(userId, userEmail, userName, dto);
-  }
-
-  @Get('deletion-feedback')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all deletion feedback (admin only)' })
-  @ApiResponse({ status: 200, description: 'Deletion feedback retrieved successfully' })
-  async getDeletionFeedback(@Request() req, @Query() query: GetDeletionFeedbackQueryDto) {
-    // TODO: Add admin role check
-    return await this.authService.getDeletionFeedback(query);
-  }
-
-  @Get('deletion-feedback/stats')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get deletion feedback statistics (admin only)' })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
-  async getDeletionFeedbackStats(@Request() req) {
-    // TODO: Add admin role check
-    return await this.authService.getDeletionFeedbackStats();
-  }
-
-  @Get('deletion-feedback/:id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get deletion feedback by ID (admin only)' })
-  @ApiResponse({
-    status: 200,
-    description: 'Feedback retrieved successfully',
-    type: DeletionFeedbackResponseDto,
-  })
-  async getDeletionFeedbackById(@Request() req, @Param('id') id: string) {
-    // TODO: Add admin role check
-    return await this.authService.getDeletionFeedbackById(id);
-  }
-
-  @Patch('deletion-feedback/:id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update deletion feedback (admin only)' })
-  @ApiResponse({
-    status: 200,
-    description: 'Feedback updated successfully',
-    type: DeletionFeedbackResponseDto,
-  })
-  async updateDeletionFeedback(
-    @Request() req,
-    @Param('id') id: string,
-    @Body() dto: UpdateDeletionFeedbackDto,
-  ) {
-    // TODO: Add admin role check
-    const adminUserId = req.user.sub || req.user.userId;
-    return await this.authService.updateDeletionFeedback(id, adminUserId, dto);
-  }
 }

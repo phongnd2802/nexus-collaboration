@@ -73,7 +73,7 @@ export class IntegrationFrameworkController {
 
   @Get('catalog/:slug')
   @ApiOperation({ summary: 'Get integration details by slug' })
-  @ApiParam({ name: 'slug', description: 'Integration slug (e.g., google-drive, slack)' })
+  @ApiParam({ name: 'slug', description: 'Integration slug (e.g., github)' })
   @ApiResponse({ status: 200, type: IntegrationCatalogResponseDto })
   async getIntegrationBySlug(@Param('slug') slug: string): Promise<IntegrationCatalogResponseDto> {
     return this.catalogService.getBySlug(slug);
@@ -330,7 +330,7 @@ export class IntegrationFrameworkController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Run OAuth integration tests (uses nock + jest). Query params: ?slug=asana&type=oauth (or type=actions or type=all). Leave slug empty to test all',
+      'Run OAuth integration tests (uses nock + jest). Query params: ?slug=github&type=oauth (or type=actions or type=all). Leave slug empty to test all',
   })
   async runIntegrationTests(
     @Query('slug') slug?: string,
@@ -354,30 +354,14 @@ export class IntegrationFrameworkController {
         if (testType === 'oauth') {
           // OAuth connection tests
           const oauthPatternMap: Record<string, string> = {
-            'google-drive': 'integration-framework/google-drive.*oauth',
-            'google-sheets': 'integration-framework/google-sheets.*oauth',
             'google-calendar': 'calendar.*oauth',
             gmail: 'integration-framework/email.*oauth',
-            slack: 'integration-framework.*slack-oauth',
             github: 'integration-framework/github.*oauth',
-            asana: 'integration-framework/asana.*asana-oauth',
-            clickup: 'integration-framework/clickup.*clickup-oauth',
-            jira: 'integration-framework/jira.*jira-oauth',
-            linear: 'integration-framework/linear.*linear-oauth',
-            notion: 'integration-framework/notion.*notion-oauth',
-            trello: 'integration-framework/trello.*trello-oauth',
           };
           testPattern = oauthPatternMap[slug];
         } else if (testType === 'actions') {
           // Action tests (service methods)
-          const actionPatternMap: Record<string, string> = {
-            asana: 'integration-framework/asana/.*asana.service.spec',
-            clickup: 'integration-framework/clickup/.*clickup.service.spec',
-            jira: 'integration-framework/jira/.*jira.service.spec',
-            linear: 'integration-framework/linear/.*linear.service.spec',
-            notion: 'integration-framework/notion/.*notion.service.spec',
-            trello: 'integration-framework/trello/.*trello.service.spec',
-          };
+          const actionPatternMap: Record<string, string> = {};
           testPattern = actionPatternMap[slug];
         } else {
           // Run all tests for the app (both OAuth + actions)
@@ -387,7 +371,7 @@ export class IntegrationFrameworkController {
         if (!testPattern) {
           return {
             success: false,
-            error: `No test found for integration: ${slug}. Available: asana, clickup, jira, linear, notion, trello`,
+            error: `No test found for integration: ${slug}. Available: google-calendar, gmail, github`,
           };
         }
 

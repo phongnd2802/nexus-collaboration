@@ -4,12 +4,10 @@
  * Pick a provider by setting EMAIL_PROVIDER in your .env to one of:
  *
  *   smtp      - Any SMTP server via nodemailer (Gmail app passwords,
- *               Mailtrap, Postfix, Resend SMTP, SendGrid SMTP, etc.).
+ *               Mailtrap, Postfix, Resend SMTP, etc.).
  *               The default. Zero vendor lock-in.
  *
  *   resend    - Resend REST API. Modern, generous free tier.
- *
- *   sendgrid  - SendGrid REST API. Enterprise standard.
  *
  *   postmark  - Postmark REST API. Strong deliverability for transactional.
  *
@@ -70,12 +68,12 @@ export interface SendEmailResult {
 
 /**
  * Common interface implemented by every email provider. Methods a provider
- * can't support should throw EmailProviderNotSupportedError — never
+ * can't support should throw EmailProviderNotSupportedError - never
  * silently no-op.
  */
 export interface EmailProvider {
   /** Stable provider name for logging / clients. */
-  readonly name: 'smtp' | 'resend' | 'sendgrid' | 'postmark' | 'ses' | 'mailgun' | 'none';
+  readonly name: 'smtp' | 'resend' | 'postmark' | 'ses' | 'mailgun' | 'none';
 
   /** True if the provider has the credentials it needs to function. */
   isAvailable(): boolean;
@@ -85,7 +83,7 @@ export interface EmailProvider {
 
   /**
    * Send many emails in one batch. Default implementation just loops
-   * `send()`; providers with a real batch API (Resend, SendGrid) override.
+   * `send()`; providers with a real batch API can override.
    */
   sendBulk(inputs: SendEmailInput[]): Promise<SendEmailResult[]>;
 }

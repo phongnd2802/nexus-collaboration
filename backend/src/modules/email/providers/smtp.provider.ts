@@ -2,7 +2,7 @@
  * SMTP email provider (via nodemailer).
  *
  * Works with any SMTP server: Gmail app passwords, Mailtrap for dev,
- * Postfix, Resend's SMTP bridge, SendGrid SMTP, self-hosted, etc. Zero
+ * Postfix, Resend's SMTP bridge, self-hosted, etc. Zero
  * vendor lock-in.
  *
  * Required env vars:

@@ -32,27 +32,6 @@ const communicationIntegrations = [
     isFeatured: false
   },
   {
-    slug: 'telegram',
-    name: 'Telegram',
-    description: 'Connect Telegram bot to send notifications and messages.',
-    category: 'COMMUNICATION',
-    provider: 'Telegram',
-    logoUrl: 'https://telegram.org/img/t_logo.svg',
-    website: 'https://telegram.org',
-    documentationUrl: 'https://core.telegram.org/bots/api',
-    authType: 'api_key',
-    authConfig: {
-      fieldLabel: 'Bot Token',
-      helpText: 'Create a bot via @BotFather and copy the token'
-    },
-    apiBaseUrl: 'https://api.telegram.org',
-    capabilities: ['send_messages', 'receive_messages', 'manage_groups'],
-    features: ['Bot messaging', 'Group notifications', 'Inline keyboards'],
-    pricingType: 'free',
-    isVerified: true,
-    isFeatured: false
-  },
-  {
     slug: 'whatsapp',
     name: 'WhatsApp Business',
     description: 'Connect WhatsApp Business to send notifications and messages to customers.',

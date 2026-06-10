@@ -257,12 +257,12 @@ export default function VerifyEmail() {
               
               <p className="text-sm text-gray-600">
                 Need help?{' '}
-                <Link 
-                  to="/contact" 
+                <a 
+                  href="mailto:support@nexusapp.io" 
                   className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                 >
                   Contact Support
-                </Link>
+                </a>
               </p>
             </div>
           </CardContent>
