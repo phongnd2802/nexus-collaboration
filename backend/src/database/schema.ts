@@ -1647,37 +1647,6 @@ export const schema = {
     ],
   },
 
-  // ==================== DROPBOX INTEGRATION ====================
-  // User-specific connection within workspace: Each user connects their own Dropbox
-  // Any workspace member can connect/disconnect their own Dropbox
-  dropbox_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who connected this Dropbox
-      { name: 'access_token', type: 'text', nullable: false },
-      { name: 'refresh_token', type: 'text', nullable: true },
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      { name: 'account_id', type: 'string', nullable: true }, // Dropbox account ID
-      { name: 'dropbox_email', type: 'string', nullable: true },
-      { name: 'dropbox_name', type: 'string', nullable: true },
-      { name: 'dropbox_picture', type: 'text', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true }, // One connection per user per workspace
-      { columns: ['is_active'] },
-      { columns: ['dropbox_email'] },
-      { columns: ['account_id'] },
-    ],
-  },
 
   // ==================== OPENAI INTEGRATION ====================
   // User-specific OpenAI connection within workspace (API key based, not OAuth)

@@ -58,10 +58,7 @@ import {
   FilePreviewDialog,
   FilePropertiesDialog,
 } from './FileOperationDialogs';
-import { DropboxImportModal } from './DropboxImportModal';
-import { DropboxExportModal } from './DropboxExportModal';
 import { FileCommentsModal } from './FileCommentsModal';
-import dropboxApi from '../../lib/api/dropbox-api';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
 import { useOfflineSync } from '../../hooks/useOfflineSync';
 import { OfflineStatusBadge } from './OfflineStatusBadge';
@@ -225,9 +222,6 @@ export function FileExplorer({
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  const [showDropboxImport, setShowDropboxImport] = useState(false);
-
-  const [isDropboxConnected, setIsDropboxConnected] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [aiCreationPanel, setAICreationPanel] = useState<{ isOpen: boolean; type: 'image' | 'audio' | 'video' | 'document' }>({ isOpen: false, type: 'image' });
   const [renameDialog, setRenameDialog] = useState<{ id: string; name: string; type: 'file' | 'folder' } | null>(null);
@@ -236,8 +230,6 @@ export function FileExplorer({
   const [propertiesFile, setPropertiesFile] = useState<FileItem | null>(null);
   const [shareFile, setShareFile] = useState<{ id: string; name: string } | null>(null);
   const [commentsFile, setCommentsFile] = useState<{ id: string; name: string } | null>(null);
-
-  const [exportToDropboxFile, setExportToDropboxFile] = useState<FileItem | null>(null);
 
   const getFileIcon = (file: FileItem, size: 'small' | 'large' = 'small') => {
     if (file.type === 'folder') return <Folder className={size === 'large' ? 'h-12 w-12' : 'h-5 w-5'} style={{ color: '#3b82f6' }} />;
@@ -902,21 +894,6 @@ export function FileExplorer({
     };
   }, []);
 
-  // Check Dropbox connection status
-  React.useEffect(() => {
-    const checkDropboxConnection = async () => {
-      if (!workspaceId) return;
-      try {
-        const connection = await dropboxApi.getConnection(workspaceId);
-        setIsDropboxConnected(connection?.isActive || false);
-      } catch (error) {
-        console.warn('Failed to check Dropbox connection:', error);
-        setIsDropboxConnected(false);
-      }
-    };
-    checkDropboxConnection();
-  }, [workspaceId]);
-
   return (
     <div className="flex flex-col h-full">
       {/* Selection Bar with Bulk Actions */}
@@ -1198,12 +1175,10 @@ export function FileExplorer({
                       isSharedWithMeView={isSharedWithMeView}
                       onDownload={file.type === 'file' ? () => onFileDownload?.(file.id, file.name) : undefined}
                       onInfo={() => setPropertiesFile(file)}
-                      onExportToDropbox={file.type === 'file' ? () => setExportToDropboxFile(file) : undefined}
                       onToggleOffline={file.type === 'file' ? () => handleToggleOffline(file) : undefined}
                       isTrashView={isTrashView}
                       isSearchView={isSearchView}
                       allowCutCopyPaste={allowCutCopyPaste}
-                      isDropboxConnected={isDropboxConnected}
                     />
                   </div>
                   <div className="mb-2 relative">
@@ -1305,12 +1280,10 @@ export function FileExplorer({
                         isSharedWithMeView={isSharedWithMeView}
                         onDownload={file.type === 'file' ? () => onFileDownload?.(file.id, file.name) : undefined}
                         onInfo={() => setPropertiesFile(file)}
-                        onExportToDropbox={file.type === 'file' ? () => setExportToDropboxFile(file) : undefined}
                         onToggleOffline={file.type === 'file' ? () => handleToggleOffline(file) : undefined}
                         isTrashView={isTrashView}
                         isSearchView={isSearchView}
                         allowCutCopyPaste={allowCutCopyPaste}
-                        isDropboxConnected={isDropboxConnected}
                       />
                     </div>
                   </div>
@@ -1398,34 +1371,6 @@ export function FileExplorer({
         currentFolderId={parentFolderId}
       />
 
-      <DropboxImportModal
-        isOpen={showDropboxImport}
-        onClose={() => setShowDropboxImport(false)}
-        onImportSuccess={() => {
-          console.log('Files imported from Dropbox');
-          queryClient.invalidateQueries({
-            predicate: (query) => {
-              const queryKey = query.queryKey as string[];
-              return queryKey[0] === 'files' &&
-                     queryKey[1] === 'list' &&
-                     queryKey[2] === workspaceId;
-            }
-          });
-          queryClient.invalidateQueries({ queryKey: ['files', 'recent', workspaceId] });
-          queryClient.invalidateQueries({ queryKey: ['files', 'storage', workspaceId] });
-          console.log('✅ Cache invalidated after Dropbox import');
-          onUploadFiles?.();
-        }}
-        targetFolderId={currentFolderId}
-      />
-
-      <DropboxExportModal
-        isOpen={!!exportToDropboxFile}
-        onClose={() => setExportToDropboxFile(null)}
-        fileId={exportToDropboxFile?.id || ''}
-        fileName={exportToDropboxFile?.name || ''}
-        fileUrl={exportToDropboxFile?.url as string || ''}
-      />
     </div>
   );
 }

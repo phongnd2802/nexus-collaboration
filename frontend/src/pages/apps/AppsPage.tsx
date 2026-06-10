@@ -5,7 +5,6 @@ import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { emailService, type EmailConnection } from '@/lib/api/email-api';
 import { googleCalendarApi, type GoogleCalendarConnection } from '@/lib/api/calendar-api';
 import { githubApi, type GitHubConnection } from '@/lib/api/github-api';
-import dropboxApi, { type DropboxConnection } from '@/lib/api/dropbox-api';
 import {
   useIntegrationCatalog,
   useUserConnections,
@@ -54,10 +53,6 @@ const GitHubLogo = () => (
   <div className="w-10 h-10 flex items-center justify-center">
     <Github className="w-8 h-8 text-foreground" />
   </div>
-);
-
-const DropboxLogo = () => (
-  <img src="https://cfl.dropboxstatic.com/static/images/logo_catalog/dropbox_logo_glyph_2024.svg" alt="Dropbox" className="w-10 h-10 object-contain" />
 );
 
 interface AppCardProps {
@@ -239,8 +234,6 @@ function AppsGrid() {
   const [gmailConnection, setGmailConnection] = useState<EmailConnection | null>(null);
   const [calendarConnection, setCalendarConnection] = useState<GoogleCalendarConnection | null>(null);
   const [githubConnection, setGithubConnection] = useState<GitHubConnection | null>(null);
-  const [dropboxConnection, setDropboxConnection] = useState<DropboxConnection | null>(null);
-
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
   const [isConnectingGmail, setIsConnectingGmail] = useState(false);
@@ -249,15 +242,12 @@ function AppsGrid() {
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
   const [isConnectingGithub, setIsConnectingGithub] = useState(false);
   const [isDisconnectingGithub, setIsDisconnectingGithub] = useState(false);
-  const [isConnectingDropbox, setIsConnectingDropbox] = useState(false);
-  const [isDisconnectingDropbox, setIsDisconnectingDropbox] = useState(false);
-
   // Fetch catalog integrations
   const { data: catalogData, isLoading: catalogLoading } = useIntegrationCatalog({ limit: 200 });
   const { data: connectionsData } = useUserConnections(workspaceId || '');
 
   // Slugs of integrations that have hardcoded handlers
-  const hardcodedSlugs = ['gmail', 'google-calendar', 'github', 'dropbox'];
+  const hardcodedSlugs = ['gmail', 'google-calendar', 'github'];
 
   // Filter integrations by selected tab and search query
   const filteredIntegrations = useMemo(() => {
@@ -323,17 +313,14 @@ function AppsGrid() {
 
     try {
       setIsLoading(true);
-      const [emailConn, calendarConn, githubConn, dropboxConn] = await Promise.all([
+      const [emailConn, calendarConn, githubConn] = await Promise.all([
         emailService.getConnection(workspaceId).catch(() => null),
         googleCalendarApi.getConnection(workspaceId).catch(() => null),
         githubApi.getConnection(workspaceId).catch(() => null),
-        dropboxApi.getConnection(workspaceId).catch(() => null),
       ]);
-
-      setGmailConnection(emailConn?.data ?? null);
-      setCalendarConnection(calendarConn?.data ?? null);
+      setGmailConnection(emailConn);
+      setCalendarConnection(calendarConn);
       setGithubConnection(githubConn);
-      setDropboxConnection(dropboxConn);
     } catch (error) {
       console.error('Failed to load connections:', error);
     } finally {
@@ -430,34 +417,6 @@ function AppsGrid() {
     }
   };
 
-  const handleConnectDropbox = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingDropbox(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await dropboxApi.getAuthUrl(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get Dropbox auth URL:', error);
-      setIsConnectingDropbox(false);
-    }
-  };
-
-  const handleDisconnectDropbox = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingDropbox(true);
-      await dropboxApi.disconnect(workspaceId);
-      setDropboxConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect Dropbox:', error);
-    } finally {
-      setIsDisconnectingDropbox(false);
-    }
-  };
-
-  const handleOpenDropbox = () => navigate(`/workspaces/${workspaceId}/apps/dropbox`);
-
   // Check if hardcoded apps should show based on selected category
   const shouldShowHardcodedApps = useMemo(() => {
     if (selectedTab === 'all') return true;
@@ -469,7 +428,6 @@ function AppsGrid() {
       gmail: ['EMAIL', 'PRODUCTIVITY'],
       'google-calendar': ['CALENDAR', 'PRODUCTIVITY'],
       github: ['DEVELOPMENT'],
-      dropbox: ['FILE_STORAGE', 'PRODUCTIVITY'],
     };
 
     // Check if any hardcoded app matches the selected category
@@ -482,21 +440,19 @@ function AppsGrid() {
   const showGmail = selectedTab === 'all' || selectedTab === 'productivity';
   const showCalendar = selectedTab === 'all' || selectedTab === 'productivity';
   const showGithub = selectedTab === 'all' || selectedTab === 'development';
-  const showDropbox = selectedTab === 'all' || selectedTab === 'productivity';
-
   // Filter hardcoded apps by search
   const searchFilteredHardcoded = useMemo(() => {
     if (!searchQuery.trim()) {
-      return { gmail: showGmail, calendar: showCalendar, github: showGithub, dropbox: showDropbox };
+      return { gmail: showGmail, calendar: showCalendar, github: showGithub };
     }
     const query = searchQuery.toLowerCase();
     return {
       gmail: showGmail && 'gmail email'.includes(query),
       calendar: showCalendar && 'google calendar'.includes(query),
       github: showGithub && 'github development code'.includes(query),
-      dropbox: showDropbox && 'dropbox storage files'.includes(query),
+
     };
-  }, [searchQuery, showGmail, showCalendar, showGithub, showDropbox]);
+  }, [searchQuery, showGmail, showCalendar, showGithub]);
 
   const hasHardcodedApps = Object.values(searchFilteredHardcoded).some(Boolean);
 
@@ -615,21 +571,6 @@ function AppsGrid() {
             onConnect={handleConnectGithub}
             onOpen={handleOpenGithub}
             onDisconnect={handleDisconnectGithub}
-          />
-        )}
-
-        {searchFilteredHardcoded.dropbox && (
-          <AppCard
-            name="Dropbox"
-            description={intl.formatMessage({ id: 'apps.descriptions.dropbox', defaultMessage: 'Access and manage your Dropbox files' })}
-            icon={<DropboxLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.fileStorage', defaultMessage: 'File Storage' })}
-            isConnected={!!dropboxConnection}
-            isLoading={isConnectingDropbox || isDisconnectingDropbox}
-            connectionInfo={dropboxConnection?.dropboxEmail ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} ${dropboxConnection.dropboxEmail}` : undefined}
-            onConnect={handleConnectDropbox}
-            onOpen={handleOpenDropbox}
-            onDisconnect={handleDisconnectDropbox}
           />
         )}
 

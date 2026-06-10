@@ -81,12 +81,6 @@ export const OAUTH_PROVIDERS = {
     userInfoUrl: 'https://api.hubapi.com',
     userInfoPath: '/oauth/v1/access-tokens',
   },
-  dropbox: {
-    tokenUrl: 'https://api.dropboxapi.com',
-    tokenPath: '/oauth2/token',
-    userInfoUrl: 'https://api.dropboxapi.com',
-    userInfoPath: '/2/users/get_current_account',
-  },
 } as const;
 
 export type OAuthProvider = keyof typeof OAUTH_PROVIDERS;
@@ -264,14 +258,6 @@ export const MOCK_TOKENS: Record<OAuthProvider, MockTokenResponse> = {
     expires_in: 1800,
     token_type: 'Bearer',
   },
-  dropbox: {
-    access_token: 'sl.mock-dropbox-access-token-xyz123',
-    refresh_token: 'mock-dropbox-refresh-token-abc456',
-    expires_in: 14400, // 4 hours
-    token_type: 'bearer',
-    account_id: 'dbid:AAMock-dropbox-account-id-12345',
-    uid: '12345678',
-  },
 };
 
 // ============================================================================
@@ -374,18 +360,6 @@ export const MOCK_USER_INFO = {
     user_id: 'mock-hubspot-user-id',
     hub_domain: 'test-company',
     hub_id: 123456,
-  },
-  dropbox: {
-    account_id: 'dbid:AAMock-dropbox-account-id-12345',
-    email: 'test@example.com',
-    email_verified: true,
-    name: {
-      given_name: 'Test',
-      surname: 'User',
-      familiar_name: 'Test',
-      display_name: 'Test User',
-    },
-    profile_photo_url: 'https://db.tt/mock-profile-photo',
   },
 };
 

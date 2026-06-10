@@ -248,56 +248,6 @@
       "isFeatured": false
     },
     {
-      "slug": "dropbox",
-      "name": "Dropbox",
-      "description": "Connect Dropbox to access, upload, and share files from your cloud storage.",
-      "category": "FILE_STORAGE",
-      "provider": "Dropbox",
-      "logoUrl": "https://cdn-dev.nexusapp.io/projects/4493aede-e31a-4da4-8645-ca3c3a3d99a4/f521a573-eadb-48c9-90c4-bbb25611811e-1769423380547-1769423379343-dropbox.png",
-      "website": "https://dropbox.com",
-      "documentationUrl": "https://www.dropbox.com/developers/documentation",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://www.dropbox.com/oauth2/authorize",
-        "tokenUrl": "https://api.dropboxapi.com/oauth2/token",
-        "revokeUrl": "https://api.dropboxapi.com/2/auth/token/revoke",
-        "userInfoUrl": "https://api.dropboxapi.com/2/users/get_current_account",
-        "scopes": [
-          "account_info.read",
-          "files.metadata.read",
-          "files.content.read",
-          "files.content.write"
-        ],
-        "clientIdEnvKey": "DROPBOX_CLIENT_ID",
-        "clientSecretEnvKey": "DROPBOX_CLIENT_SECRET",
-        "extraAuthParams": {
-          "token_access_type": "offline"
-        },
-        "userInfoMapping": {
-          "id": "account_id",
-          "email": "email",
-          "name": "name.display_name",
-          "avatar": "profile_photo_url"
-        }
-      },
-      "apiBaseUrl": "https://api.dropboxapi.com/2",
-      "capabilities": [
-        "read_files",
-        "write_files",
-        "list_folders",
-        "share_files"
-      ],
-      "features": [
-        "File sync",
-        "Folder browsing",
-        "File sharing",
-        "Search files"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
       "slug": "zoom",
       "name": "Zoom",
       "description": "Connect Zoom to schedule and manage video meetings directly from Nexus.",
