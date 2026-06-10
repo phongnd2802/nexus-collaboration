@@ -53,6 +53,27 @@ export class NotesService {
     return result;
   }
 
+  private isSharedWithUser(note: any, userId?: string): boolean {
+    if (!userId || !note?.collaborative_data) {
+      return false;
+    }
+
+    const collaborativeData = this.parseCollaborativeData(note.collaborative_data);
+    const sharedWith = Array.isArray(collaborativeData?.shared_with)
+      ? collaborativeData.shared_with
+      : [];
+
+    return sharedWith.includes(userId);
+  }
+
+  private canAccessNote(note: any, userId?: string): boolean {
+    if (!userId) {
+      return false;
+    }
+
+    return note.created_by === userId || this.isSharedWithUser(note, userId);
+  }
+
   async createNote(workspaceId: string, createNoteDto: CreateNoteDto, userId: string) {
     const noteData = {
       workspace_id: workspaceId,
@@ -184,15 +205,11 @@ export class NotesService {
         }
 
         // Note is public
-        if (n.is_public || n.visibility === 'public') {
-          console.log('[NotesService] Note included - note is public:', n.id, n.title);
-          return true;
-        }
-
-        // Note is shared with the user (check collaborative_data.shared_with)
         if (n.collaborative_data) {
           const collaborativeData = this.parseCollaborativeData(n.collaborative_data);
-          const sharedWith = collaborativeData?.shared_with || [];
+          const sharedWith = Array.isArray(collaborativeData?.shared_with)
+            ? collaborativeData.shared_with
+            : [];
 
           console.log('[NotesService] Checking shared_with for note:', {
             noteId: n.id,
@@ -204,7 +221,7 @@ export class NotesService {
             includes: sharedWith.includes(userId),
           });
 
-          if (Array.isArray(sharedWith) && sharedWith.includes(userId)) {
+          if (this.isSharedWithUser(n, userId)) {
             console.log('[NotesService] Note included - user in shared_with:', n.id, n.title);
             return true;
           }
@@ -302,6 +319,10 @@ export class NotesService {
     }
 
     const note = noteData[0];
+
+    if (!this.canAccessNote(note, userId)) {
+      throw new BadRequestException('You do not have permission to access this note');
+    }
 
     // Update view count
     await this.db.update('notes', noteId, {
@@ -933,8 +954,10 @@ export class NotesService {
     });
 
     // Verify all users exist in workspace
+    const userIdsToShare = Array.isArray(shareNoteDto.user_ids) ? shareNoteDto.user_ids : [];
+
     const userVerifications = await Promise.all(
-      shareNoteDto.user_ids.map(async (targetUserId) => {
+      userIdsToShare.map(async (targetUserId) => {
         const targetUserResult = await this.db
           .table('workspace_members')
           .select('*')
@@ -968,7 +991,7 @@ export class NotesService {
       : [];
 
     // Create new shared_with array with unique user IDs
-    const newSharedWith = Array.from(new Set([...existingSharedWith, ...shareNoteDto.user_ids]));
+    const newSharedWith = Array.from(new Set([...existingSharedWith, ...userIdsToShare]));
 
     // Update collaborative_data with new shared_with array
     const updatedCollaborativeData = {
@@ -985,7 +1008,7 @@ export class NotesService {
     console.log('[NotesService] Note shared successfully with users:', newSharedWith);
 
     // Send notifications to newly shared users
-    const newlySharedUsers = shareNoteDto.user_ids.filter((id) => id !== userId);
+    const newlySharedUsers = userIdsToShare.filter((id) => id !== userId);
     console.log(
       `[NotesService] Sending notifications to ${newlySharedUsers.length} newly shared users`,
     );
@@ -1027,7 +1050,7 @@ export class NotesService {
     return {
       success: true,
       message: 'Note shared successfully',
-      shared_count: shareNoteDto.user_ids.length,
+      shared_count: userIdsToShare.length,
       total_shared_users: newSharedWith.length,
     };
   }
@@ -1050,7 +1073,7 @@ export class NotesService {
         (n) =>
           n.workspace_id === workspaceId &&
           !n.deleted_at &&
-          (n.created_by === userId || n.is_public),
+          this.canAccessNote(n, userId),
       );
     }
 
@@ -1084,7 +1107,7 @@ export class NotesService {
       const accessibleResults = searchResult.results
         .filter((result) => {
           const note = result.data;
-          return note.created_by === userId || note.is_public;
+          return this.canAccessNote(note, userId);
         })
         .map((result) => ({
           ...result.data,
@@ -1104,7 +1127,7 @@ export class NotesService {
         (n) =>
           n.workspace_id === workspaceId &&
           !n.deleted_at &&
-          (n.created_by === userId || n.is_public),
+          this.canAccessNote(n, userId),
       );
 
       const searchTerm = query.toLowerCase();
@@ -1145,7 +1168,7 @@ export class NotesService {
       const note = noteData[0];
 
       // Check access permissions
-      if (note.created_by !== userId && !note.is_public) {
+      if (!this.canAccessNote(note, userId)) {
         throw new BadRequestException(`You don't have access to note: ${note.title}`);
       }
 
@@ -1318,24 +1341,7 @@ export class NotesService {
 
     const note = noteData[0];
 
-    // Check if user is the owner
-    const isOwner = note.created_by === userId;
-
-    // Check if user is in the shared_with list (from collaborative_data)
-    let isSharedWithUser = false;
-    if (note.collaborative_data) {
-      const collaborativeData =
-        typeof note.collaborative_data === 'string'
-          ? JSON.parse(note.collaborative_data)
-          : note.collaborative_data;
-      const sharedWith = Array.isArray(collaborativeData?.shared_with)
-        ? collaborativeData.shared_with
-        : [];
-      isSharedWithUser = sharedWith.includes(userId);
-    }
-
-    // Allow access if user is owner or the note is shared with them
-    if (!isOwner && !isSharedWithUser) {
+    if (!this.canAccessNote(note, userId)) {
       throw new BadRequestException('You do not have permission to edit this note');
     }
 

@@ -627,57 +627,6 @@ export const automationTemplates = [
     },
     variables: [],
   },
-
-  // ============================================
-  // INTEGRATIONS
-  // ============================================
-  {
-    name: 'Slack Channel Notification',
-    description: 'Post updates to a Slack channel when important events occur',
-    category: 'integrations',
-    icon: 'chat',
-    color: '#611f69',
-    is_featured: false,
-    is_system: true,
-    template_config: {
-      trigger: {
-        type: 'entity_change',
-        config: {
-          entityType: 'task',
-          eventType: 'completed',
-          filters: {
-            priorityValues: ['high', 'urgent'],
-          },
-        },
-      },
-      steps: [
-        {
-          type: 'action',
-          name: 'Post to Slack',
-          config: {
-            action: 'call_webhook',
-            params: {
-              url: '{{slack_webhook_url}}',
-              method: 'POST',
-              body: {
-                text: ':white_check_mark: Task completed: "{{trigger.entity.title}}"',
-                channel: '{{slack_channel}}',
-              },
-            },
-          },
-        },
-      ],
-    },
-    variables: [
-      { name: 'slack_webhook_url', type: 'string', description: 'Slack incoming webhook URL' },
-      {
-        name: 'slack_channel',
-        type: 'string',
-        default: '#general',
-        description: 'Slack channel name',
-      },
-    ],
-  },
 ];
 
 export default automationTemplates;

@@ -9,7 +9,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
   // Marketing
   brevo: { apiKey: 'xkeysib-mock-key-12345' },
   mailchimp: { apiKey: 'mock-mailchimp-key-us1' },
-  sendgrid: { apiKey: 'SG.mock-sendgrid-key' },
   hubspot: { accessToken: 'mock-hubspot-token' },
   klaviyo: { apiKey: 'pk_mock_klaviyo_key' },
 
@@ -66,10 +65,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
     region: 'us-east-1',
   },
   google_drive: { accessToken: 'mock-google-drive-token' },
-  dropbox: {
-    accessToken: 'sl.mock-dropbox-access-token',
-    refreshToken: 'mock-dropbox-refresh-token',
-  },
 
   // Marketing - Google Ads
   google_ads: {
@@ -104,13 +99,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
   // Development
   github: { accessToken: 'ghp_mock_github_token' },
   gitlab: { accessToken: 'glpat-mock-token' },
-  jira: {
-    domain: 'test-company.atlassian.net',
-    username: 'test@test.com',
-    password: 'mock-jira-api-token',
-    email: 'test@test.com',
-    apiToken: 'mock-jira-token',
-  },
   bitbucket: { username: 'mock-bitbucket-user', appPassword: 'mock-bitbucket-app-password' },
   netlify: { accessToken: 'mock-netlify-access-token-12345' },
 
@@ -119,9 +107,6 @@ export const MOCK_CREDENTIALS: Record<string, any> = {
 
   // Project Management
   asana: { accessToken: 'mock-asana-access-token-123456789' },
-  clickup: { accessToken: 'pk_mock_clickup_access_token_12345' },
-  trello: { apiKey: 'mock-trello-api-key', apiToken: 'mock-trello-api-token' },
-
   // Analytics
   google_analytics: { accessToken: 'mock-ga-token' },
   mixpanel: { projectToken: 'mock-mixpanel-token' },
@@ -410,20 +395,6 @@ export const OAUTH_MOCK_CREDENTIALS = {
     accessToken: 'pina_mock-pinterest-access-token',
     refreshToken: 'pinr_mock-pinterest-refresh-token',
     expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30 days
-  },
-  clickup: {
-    clientId: 'mock-clickup-client-id',
-    clientSecret: 'mock-clickup-client-secret',
-    accessToken: 'pk_mock_clickup_access_token_12345',
-  },
-  dropbox: {
-    clientId: 'mock-dropbox-client-id',
-    clientSecret: 'mock-dropbox-client-secret',
-    accessToken: 'sl.mock-dropbox-access-token',
-    refreshToken: 'mock-dropbox-refresh-token',
-    expiresAt: new Date(Date.now() + 4 * 3600 * 1000), // 4 hours
-    accountId: 'dbid:mock-dropbox-account-id',
-    uid: 'mock-dropbox-uid',
   },
   teams: {
     clientId: 'mock-teams-client-id',

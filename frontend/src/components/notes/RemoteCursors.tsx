@@ -162,7 +162,7 @@ export function PresenceIndicator({ users, currentUserId, maxDisplay = 5 }: Pres
   const remainingCount = otherUsers.length - maxDisplay;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center">
       <div className="flex -space-x-2">
         {displayUsers.map((user) => (
           <div
@@ -197,12 +197,6 @@ export function PresenceIndicator({ users, currentUserId, maxDisplay = 5 }: Pres
           </div>
         )}
       </div>
-
-      <span className="ml-2 text-xs text-muted-foreground">
-        {otherUsers.length === 1
-          ? '1 person editing'
-          : `${otherUsers.length} people editing`}
-      </span>
     </div>
   );
 }

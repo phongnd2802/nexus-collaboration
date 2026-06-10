@@ -22,7 +22,6 @@ import {
   Bell,
   Search,
   Home,
-  MessageSquare,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -66,50 +65,6 @@ const AdminLayout: React.FC = () => {
       label: intl.formatMessage({ id: 'admin.organizations' }),
       href: '/admin/organizations',
       icon: Building2,
-    },
-    {
-      label: intl.formatMessage({ id: 'admin.blogManagement' }),
-      href: '/admin/blog',
-      icon: FileText,
-      children: [
-        {
-          label: intl.formatMessage({ id: 'admin.blog.allPosts' }),
-          href: '/admin/blog',
-          icon: FileText,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.blog.createPost' }),
-          href: '/admin/blog/create',
-          icon: FileText,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.blog.categories' }),
-          href: '/admin/blog/categories',
-          icon: FileText,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.blog.tags' }),
-          href: '/admin/blog/tags',
-          icon: FileText,
-        },
-      ],
-    },
-    {
-      label: intl.formatMessage({ id: 'admin.feedback', defaultMessage: 'Feedback' }),
-      href: '/admin/feedback',
-      icon: MessageSquare,
-      children: [
-        {
-          label: intl.formatMessage({ id: 'admin.feedback.all', defaultMessage: 'All Feedback' }),
-          href: '/admin/feedback',
-          icon: MessageSquare,
-        },
-        {
-          label: intl.formatMessage({ id: 'admin.feedback.deletion', defaultMessage: 'Deletion Feedback' }),
-          href: '/admin/feedback/deletion',
-          icon: MessageSquare,
-        },
-      ],
     },
     {
       label: intl.formatMessage({ id: 'admin.systemSettings' }),

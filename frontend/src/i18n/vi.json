@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
@@ -284,14 +284,11 @@
     "calendar": "Lịch",
     "videoCall": "Cuộc gọi video",
     "files": "Tệp",
-    "whiteboard": "Bảng trắng",
     "search": "Tìm kiếm",
     "settings": "Cài đặt",
     "integrations": "Tích hợp",
     "analytics": "Phân tích",
-    "monitoring": "Giám sát",
     "support": "Hỗ trợ",
-    "blog": "Blog",
     "tutorial": "Hướng dẫn",
     "apps": "Ứng dụng",
     "more": "Thêm",
@@ -500,7 +497,7 @@
     "subtitle": "AI Autopilot kết nối mọi công cụ, tự động hóa quy trình và giữ mọi thứ đồng bộ.",
     "botCapabilities": "KHẢ NĂNG BOT",
     "keyFeatures": "Tính năng chính:",
-  "integrations": {
+    "integrations": {
       "badge": "180+ Tích hợp",
       "title": "Tích hợp liền mạch",
       "subtitle": "Kết nối với các công cụ và ứng dụng yêu thích",
@@ -649,7 +646,7 @@
         "name": "Công cụ",
         "desc": "Công cụ năng suất",
         "features": [
-          "Bảng trắng",
+          "Lập kế hoạch chia sẻ",
           "Trình tạo tài liệu",
           "Yêu cầu & Phê duyệt",
           "Ngân sách",
@@ -5185,8 +5182,8 @@
           "description": "Khử tiếng ồn hỗ trợ AI cho âm thanh rõ nét"
         },
         "whiteboard": {
-          "title": "Bảng trắng tương tác",
-          "description": "Cộng tác ý tưởng với chia sẻ bảng trắng thời gian thực"
+          "title": "Khung lập kế hoạch chia sẻ",
+          "description": "Cộng tác ý tưởng với bề mặt lập kế hoạch dùng chung theo thời gian thực"
         },
         "export": {
           "title": "Xuất & Tải xuống",
@@ -5531,22 +5528,6 @@
         "businessTitle": "Xây dựng cho doanh nghiệp",
         "businessSubtitle": "Trình kết nối dựng sẵn cho CRM, marketing, tài chính và công cụ kinh doanh thông minh",
         "essentialsSubtitle": "Mọi thứ bạn cần để thống nhất quy trình"
-      }
-    },
-    "monitoring": {
-      "badge": "Giám sát hệ thống",
-      "title": "Đón đầu sự cố",
-      "titleHighlight": "Trước khi ảnh hưởng đến người dùng.",
-      "subtitle": "Giám sát toàn bộ cơ sở hạ tầng với cảnh báo thời gian thực, số liệu toàn diện và phát hiện bất thường thông minh. Có cái nhìn đầy đủ về sức khỏe và hiệu suất hệ thống.",
-      "cta": "Bắt đầu giám sát",
-      "sections": {
-        "visibilityTitle": "Khả năng hiển thị cơ sở hạ tầng hoàn chỉnh",
-        "visibilitySubtitle": "Giám sát mọi thứ từ máy chủ đến ứng dụng với công cụ quan sát toàn diện",
-        "alertsTitle": "Cảnh báo thông minh",
-        "alertsSubtitle": "Cảnh báo thông minh với ngưỡng tùy chỉnh, chính sách leo thang và thông báo đa kênh",
-        "performanceTitle": "Phân tích hiệu suất",
-        "performanceSubtitle": "Số liệu chi tiết, phân tích xu hướng và lập kế hoạch dung lượng để tối ưu hệ thống",
-        "essentialsSubtitle": "Mọi thứ bạn cần để hiển thị hệ thống đầy đủ"
       }
     },
     "automation": {
@@ -6032,9 +6013,9 @@
       "tools": {
         "title": "Công cụ cộng tác",
         "tagline": "Sáng tạo cùng nhau",
-        "description": "Mở khóa sáng tạo với công cụ cộng tác mạnh mẽ. Sử dụng bảng trắng tương tác để động não, lập kế hoạch trực quan và cộng tác thời gian thực. Hoàn hảo cho sprint thiết kế, phiên chiến lược và hội thảo sáng tạo.",
+        "description": "Mở khóa sáng tạo với công cụ cộng tác mạnh mẽ cho động não, lập kế hoạch trực quan và cộng tác thời gian thực. Hoàn hảo cho sprint thiết kế, phiên chiến lược và hội thảo sáng tạo.",
         "features": [
-          "Bảng trắng tương tác với công cụ vẽ",
+          "Khung lập kế hoạch chia sẻ",
           "Cộng tác đa người dùng thời gian thực",
           "Mẫu cho quy trình phổ biến",
           "Xuất và chia sẻ tác phẩm của bạn"
@@ -6062,36 +6043,6 @@
           "Hỗ trợ nền tảng Zapier và tự động hóa"
         ]
       }
-    }
-  },
-  "contact": {
-    "badge": "Liên hệ",
-    "title": "Chúng tôi rất muốn nghe từ bạn",
-    "subtitle": "Có câu hỏi hoặc phản hồi? Đội ngũ của chúng tôi sẵn sàng hỗ trợ. Gửi tin nhắn và chúng tôi sẽ phản hồi trong vòng 24 giờ.",
-    "form": {
-      "name": "Tên",
-      "namePlaceholder": "Họ và tên của bạn",
-      "nameRequired": "Yêu cầu tên",
-      "email": "Email",
-      "emailPlaceholder": "your@email.com",
-      "emailRequired": "Yêu cầu email",
-      "emailInvalid": "Địa chỉ email không hợp lệ",
-      "company": "Công ty",
-      "companyPlaceholder": "Tên công ty của bạn",
-      "message": "Tin nhắn",
-      "messagePlaceholder": "Cho chúng tôi biết về dự án hoặc câu hỏi của bạn...",
-      "messageRequired": "Yêu cầu tin nhắn",
-      "submit": "Gửi tin nhắn",
-      "submitting": "Đang gửi...",
-      "success": "Đã gửi tin nhắn thành công!",
-      "error": "Không thể gửi tin nhắn. Vui lòng thử lại.",
-      "subject": "Tiêu đề",
-      "selectTopic": "Chọn chủ đề",
-      "subjectGeneral": "Câu hỏi chung",
-      "subjectSales": "Sales",
-      "subjectSupport": "Hỗ trợ",
-      "subjectPartnership": "Hợp tác",
-      "subjectOther": "Khác"
     }
   },
   "featureHighlights": {
@@ -6980,9 +6931,9 @@
           "title": "5. Lưu trữ Dữ liệu",
           "content": {
             "0": "Chúng tôi lưu giữ thông tin của bạn miễn là tài khoản của bạn đang hoạt động hoặc khi cần thiết để cung cấp dịch vụ cho bạn.",
-            "1": "Tích hợp Slack: Khi bạn ngắt kết nối Nexus khỏi Slack hoặc gỡ cài đặt ứng dụng, dữ liệu liên quan đến Slack (token, liên kết kênh) sẽ bị vô hiệu hóa ngay lập tức. Dữ liệu không gian làm việc của bạn (dự án, sự kiện, bảng trắng) vẫn có thể truy cập được qua nền tảng web Nexus và có thể bị xóa vĩnh viễn theo yêu cầu.",
+            "1": "Khi bạn ngắt kết nối một tích hợp bên thứ ba, các token hoặc liên kết liên quan sẽ bị vô hiệu hóa. Dữ liệu cốt lõi của không gian làm việc vẫn có thể truy cập trong Nexus và có thể bị xóa vĩnh viễn theo yêu cầu.",
             "2": "Bản sao lưu dữ liệu của bạn có thể được lưu giữ tối đa 90 ngày cho mục đích khôi phục sau thảm họa.",
-            "3": "Bạn có thể yêu cầu xóa dữ liệu của mình bất cứ lúc nào bằng cách liên hệ với chúng tôi tại support@Nexus.com hoặc sử dụng tùy chọn ngắt kết nối trong Slack App Home."
+            "3": "Bạn có thể yêu cầu xóa dữ liệu của mình bất cứ lúc nào bằng cách liên hệ với chúng tôi tại support@nexusapp.io."
           }
         },
         "section6": {
@@ -7641,6 +7592,7 @@
       "actions": {
         "viewProject": "Xem dự án",
         "joinMeeting": "Tham gia cuộc họp",
+        "viewEvent": "Xem sự kiện",
         "viewMessages": "Xem tin nhắn",
         "openNote": "Mở ghi chú",
         "viewTask": "Xem nhiệm vụ"
@@ -7648,6 +7600,18 @@
       "taskBalance": {
         "title": "Mất cân bằng nhiệm vụ trong {projectName}",
         "description": "{overloadedName} có {overloadedCount} nhiệm vụ trong khi {underloadedName} có {underloadedCount}. Mức lý tưởng là khoảng {idealCount} nhiệm vụ mỗi thành viên."
+      },
+      "overdueTask": {
+        "title": "Quá hạn: {taskTitle}",
+        "description": "Nhiệm vụ này đã quá hạn {daysOverdue} {daysOverdue, plural, one {ngày} other {ngày}} trong {projectName}"
+      },
+      "missedEvent": {
+        "title": "Lỡ sự kiện",
+        "description": "Bạn đã lỡ \"{eventTitle}\""
+      },
+      "activeMeeting": {
+        "title": "Cuộc họp đang diễn ra: {meetingTitle}",
+        "description": "Cuộc họp này hiện đang diễn ra. Tham gia ngay để tham dự."
       },
       "priority": {
         "high": "Ưu tiên cao",
@@ -8220,102 +8184,7 @@
     },
     "title": "Cài đặt",
     "description": "Quản lý cài đặt và tùy chọn tài khoản của bạn",
-    "error": "Lỗi khi tải cài đặt",
-    "feedback": {
-      "title": "Phản hồi & Hỗ trợ",
-      "description": "Báo cáo lỗi, yêu cầu tính năng hoặc chia sẻ gợi ý để giúp chúng tôi cải thiện Nexus.",
-      "newFeedback": "Phản hồi mới",
-      "tabs": {
-        "all": "Tất cả",
-        "pending": "Đang chờ",
-        "resolved": "Đã giải quyết"
-      },
-      "noFeedback": "Chưa có phản hồi",
-      "clickToSubmit": "Nhấp \"Phản hồi mới\" để gửi phản hồi đầu tiên của bạn",
-      "types": {
-        "bug": "Lỗi",
-        "issue": "Vấn đề",
-        "improvement": "Cải tiến",
-        "feature_request": "Yêu cầu tính năng"
-      },
-      "statuses": {
-        "pending": "Đang chờ",
-        "in_review": "Đang xem xét",
-        "in_progress": "Đang thực hiện",
-        "resolved": "Đã giải quyết",
-        "wont_fix": "Không sửa",
-        "duplicate": "Trùng lặp"
-      },
-      "attachmentCount": "{count} tệp đính kèm",
-      "attachmentCount_plural": "{count} tệp đính kèm",
-      "dialog": {
-        "create": {
-          "title": "Gửi phản hồi",
-          "type": {
-            "label": "Loại phản hồi",
-            "bug": "Lỗi",
-            "issue": "Vấn đề",
-            "improvement": "Cải tiến",
-            "featureRequest": "Yêu cầu tính năng"
-          },
-          "title_field": {
-            "label": "Tiêu đề *",
-            "placeholder": "Mô tả ngắn gọn về vấn đề",
-            "counter": "{current}/{max}"
-          },
-          "description": {
-            "label": "Mô tả *",
-            "placeholder": "Cung cấp thông tin chi tiết...",
-            "counter": "{current}/{max}"
-          },
-          "category": {
-            "label": "Danh mục (Tùy chọn)",
-            "placeholder": "Chọn danh mục",
-            "ui": "UI/UX",
-            "performance": "Hiệu suất",
-            "feature": "Tính năng",
-            "security": "Bảo mật",
-            "other": "Khác"
-          },
-          "attachments": {
-            "label": "Tệp đính kèm (Tùy chọn)",
-            "description": "Thêm ảnh chụp màn hình hoặc tệp để giúp chúng tôi hiểu vấn đề (tối đa 5 tệp, 10MB mỗi tệp)",
-            "button": "Đính kèm tệp",
-            "uploading": "Đang tải lên...",
-            "remove": "Xóa"
-          },
-          "errors": {
-            "maxAttachments": "Tối đa 5 tệp đính kèm được phép",
-            "fileTooBig": "Tệp {fileName} quá lớn (tối đa 10MB)",
-            "uploadFailed": "Không thể tải tệp lên",
-            "titleTooShort": "Tiêu đề phải có ít nhất 5 ký tự",
-            "descriptionTooShort": "Mô tả phải có ít nhất 20 ký tự",
-            "submitFailed": "Không thể gửi phản hồi"
-          },
-          "buttons": {
-            "cancel": "Hủy",
-            "submit": "Gửi phản hồi",
-            "submitting": "Đang gửi..."
-          }
-        },
-        "detail": {
-          "title": "Chi tiết phản hồi",
-          "submittedOn": "Đã gửi vào {date}",
-          "description": "Mô tả",
-          "category": "Danh mục",
-          "attachments": "Tệp đính kèm",
-          "deviceInfo": "Thông tin thiết bị",
-          "appVersion": "Phiên bản ứng dụng",
-          "platform": "Nền tảng",
-          "os": "Hệ điều hành",
-          "device": "Thiết bị",
-          "resolved": {
-            "title": "Đã giải quyết",
-            "resolvedOn": "Đã giải quyết vào {date}"
-          }
-        }
-      }
-    }
+    "error": "Lỗi khi tải cài đặt"
   },
   "sidebar": {
     "dashboard": "Bảng điều khiển",
@@ -8326,7 +8195,6 @@
     "videoCalls": "Cuộc gọi video",
     "notes": "Ghi chú",
     "analytics": "Phân tích",
-    "monitoring": "Giám sát",
     "integrations": "Tích hợp",
     "settings": {
       "title": "Cài đặt",
@@ -8337,8 +8205,7 @@
       "billing": "Thanh toán",
       "billingBadge": "Quan trọng",
       "workspaceSection": "KHÔNG GIAN LÀM VIỆC",
-      "workspace": "Cài đặt không gian làm việc",
-      "feedback": "Phản hồi"
+      "workspace": "Cài đặt không gian làm việc"
     }
   },
   "admin": {
@@ -8346,92 +8213,20 @@
     "dashboard": "Bảng điều khiển",
     "userManagement": "Quản lý người dùng",
     "organizations": "Tổ chức",
-    "blogManagement": "Quản lý bài viết",
     "systemSettings": "Cài đặt hệ thống",
     "auditLogs": "Nhật ký kiểm tra",
     "security": "Bảo mật",
-    "backToApp": "Quay lại ứng dụng",
-    "blog": {
-      "post": {
-        "backToBlog": "Quay lại Blog",
-        "ratingsReviews": "Đánh giá & Nhận xét",
-        "rating": "đánh giá",
-        "ratings": "đánh giá",
-        "star": "sao",
-        "yourRating": "Đánh giá của bạn",
-        "rateThisPost": "Đánh giá bài viết này",
-        "yourReview": "Nhận xét của bạn (Tùy chọn)",
-        "reviewPlaceholder": "Chia sẻ suy nghĩ của bạn về bài viết này...",
-        "submitRating": "Gửi đánh giá",
-        "updateRating": "Cập nhật đánh giá",
-        "recentReviews": "Nhận xét gần đây",
-        "noReviews": "Chưa có nhận xét nào",
-        "beFirst": "Hãy là người đầu tiên chia sẻ suy nghĩ của bạn!",
-        "comments": "Bình luận",
-        "comment": "bình luận",
-        "collapse": "Thu gọn",
-        "expand": "Mở rộng",
-        "writeComment": "Viết bình luận...",
-        "postComment": "Đăng bình luận",
-        "reply": "Trả lời",
-        "postReply": "Đăng trả lời",
-        "cancel": "Hủy",
-        "noComments": "Chưa có bình luận nào",
-        "startConversation": "Hãy là người đầu tiên bắt đầu cuộc trò chuyện!",
-        "loginToComment": "Đăng nhập để bình luận",
-        "loginToRate": "Đăng nhập để đánh giá"
-      },
-      "section": {
-        "title": "Blog của chúng tôi",
-        "latest": "Mới nhất",
-        "insights": "Góc nhìn chuyên sâu",
-        "subtitle": "Khám phá mẹo năng suất, hướng dẫn cộng tác và góc nhìn về nơi làm việc từ đội ngũ của chúng tôi",
-        "noPosts": "Chưa có bài viết nào",
-        "noPostsDesc": "Quay lại sớm để xem các bài viết và cập nhật từ đội ngũ",
-        "viewAll": "Xem tất cả bài viết"
-      },
-      "allPosts": "Tất cả bài viết",
-      "createPost": "Tạo bài viết",
-      "categories": "Danh mục",
-      "tags": "Thẻ",
-      "title": "Blog",
-      "subtitle": "Góc nhìn về tiếp thị & phát triển mạng xã hội",
-      "newPost": "Bài viết mới",
-      "searchPlaceholder": "Tìm kiếm bài viết...",
-      "browse": "Duyệt",
-      "filter": {
-        "latest": "Mới nhất",
-        "popular": "Phổ biến",
-        "featured": "Nổi bật",
-        "allPosts": "Tất cả bài viết"
-      },
-      "myPosts": "Bài viết của tôi",
-      "categoriesTitle": "Danh mục",
-      "allCategories": "Tất cả danh mục",
-      "noPostsFound": "Không tìm thấy bài viết nào",
-      "noPostsFoundDesc": "Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm",
-      "comment": "bình luận",
-      "comments": "bình luận",
-      "noBlogPostsYet": "Chưa có bài viết blog nào",
-      "beTheFirst": "Hãy là người đầu tiên chia sẻ kiến thức",
-      "createFirstPost": "Tạo bài viết đầu tiên",
-      "category": {
-        "technology": "Công nghệ",
-        "marketing": "Tiếp thị",
-        "socialmedia": "Mạng xã hội",
-        "business": "Kinh doanh",
-        "development": "Phát triển",
-        "design": "Thiết kế",
-        "growth": "Tăng trưởng",
-        "news": "Tin tức",
-        "tips": "Mẹo"
-      }
-    }
+    "backToApp": "Quay lại ứng dụng"
   },
   "notifications": {
     "title": "Thông báo",
     "markAllRead": "Đánh dấu tất cả là đã đọc",
     "clearRead": "Xóa đã đọc",
+    "items": {
+      "newMessageInChannel": "Tin nhắn mới trong #{channelName}",
+      "taskUnassigned": "Bỏ giao nhiệm vụ",
+      "taskUnassignedMessage": "Nhiệm vụ \"{taskTitle}\" đã được bỏ giao khỏi bạn"
+    },
     "tabs": {
       "all": "Tất cả",
       "unread": "Chưa đọc",
@@ -8745,659 +8540,6 @@
     },
     "createdViaAI": "Được tạo qua lệnh AI"
   },
-  "budget": {
-    "title": "Quản lý Ngân sách",
-    "subtitle": "Theo dõi và quản lý ngân sách cũng như chi tiêu dự án",
-    "loading": "Đang tải ngân sách...",
-    "createButton": "Tạo Ngân sách",
-    "stats": {
-      "totalBudgets": "Tổng Ngân sách",
-      "activeBudgets": "Ngân sách Đang hoạt động",
-      "exceededBudgets": "Ngân sách Vượt mức"
-    },
-    "status": {
-      "active": "Đang hoạt động",
-      "exceeded": "Đã vượt mức",
-      "completed": "Hoàn thành",
-      "archived": "Đã lưu trữ"
-    },
-    "type": {
-      "project": "Dự án",
-      "department": "Phòng ban",
-      "team": "Nhóm",
-      "operational": "Vận hành",
-      "capital": "Vốn",
-      "other": "Khác"
-    },
-    "card": {
-      "totalBudget": "Tổng Ngân sách",
-      "type": "Loại",
-      "project": "Dự án",
-      "period": "Thời gian",
-      "alertAt": "Cảnh báo tại"
-    },
-    "empty": {
-      "title": "Chưa có ngân sách nào",
-      "description": "Tạo ngân sách đầu tiên để bắt đầu theo dõi chi tiêu dự án"
-    },
-    "modal": {
-      "title": "Tạo Ngân sách Mới",
-      "description": "Thiết lập ngân sách mới để theo dõi chi phí và thời gian",
-      "fields": {
-        "name": {
-          "label": "Tên Ngân sách *",
-          "placeholder": "Chiến dịch Marketing Q1",
-          "required": "Tên là bắt buộc"
-        },
-        "description": {
-          "label": "Mô tả",
-          "placeholder": "Mô tả mục đích của ngân sách này..."
-        },
-        "project": {
-          "label": "Liên kết với Dự án (Tùy chọn)",
-          "placeholder": "Chọn một dự án...",
-          "noProject": "Không có dự án",
-          "loading": "Đang tải dự án...",
-          "noProjectsAvailable": "Không có dự án khả dụng",
-          "helper": "Liên kết ngân sách này với một dự án cụ thể để theo dõi tốt hơn ({count} dự án khả dụng)"
-        },
-        "autoCreateCategories": {
-          "label": "Tự động tạo danh mục ngân sách mặc định",
-          "helper": "Tự động tạo 5 danh mục tiêu chuẩn: Nhân sự (40%), Vật liệu (25%), Phần mềm (15%), Đi lại (10%) và Chi phí chung (10%)"
-        },
-        "budgetType": {
-          "label": "Loại Ngân sách *",
-          "options": {
-            "project": "Dự án",
-            "task": "Tác vụ",
-            "phase": "Giai đoạn",
-            "resource": "Tài nguyên"
-          }
-        },
-        "totalBudget": {
-          "label": "Tổng Ngân sách *",
-          "placeholder": "50000",
-          "required": "Tổng ngân sách là bắt buộc",
-          "minValue": "Phải là giá trị dương"
-        },
-        "currency": {
-          "label": "Tiền tệ *"
-        },
-        "alertThreshold": {
-          "label": "Ngưỡng Cảnh báo (%)",
-          "placeholder": "80",
-          "validation": "Phải trong khoảng từ 0 đến 100"
-        },
-        "startDate": {
-          "label": "Ngày bắt đầu"
-        },
-        "endDate": {
-          "label": "Ngày kết thúc"
-        }
-      },
-      "categories": {
-        "labor": {
-          "name": "Nhân sự",
-          "description": "Lương, tiền công và chi phí thuê ngoài"
-        },
-        "materials": {
-          "name": "Vật liệu & Thiết bị",
-          "description": "Chi phí vật liệu và thiết bị thực tế"
-        },
-        "software": {
-          "name": "Phần mềm & Công cụ",
-          "description": "Giấy phép phần mềm và công cụ kỹ thuật số"
-        },
-        "travel": {
-          "name": "Đi lại & Chi phí",
-          "description": "Công tác, chỗ ở và các chi phí liên quan"
-        },
-        "overhead": {
-          "name": "Chi phí chung & Khác",
-          "description": "Chi phí hành chính và các chi phí quản lý khác"
-        }
-      },
-      "buttons": {
-        "cancel": "Hủy",
-        "create": "Tạo Ngân sách",
-        "creating": "Đang tạo..."
-      },
-      "success": {
-        "created": "Tạo ngân sách thành công",
-        "withCategories": "Tạo ngân sách và các danh mục mặc định thành công",
-        "partialCategories": "Đã tạo ngân sách nhưng một số danh mục không tạo được"
-      },
-      "error": {
-        "createFailed": "Không thể tạo ngân sách"
-      }
-    },
-    "expense": {
-      "title": "Thêm Chi phí",
-      "description": "Ghi nhận một khoản chi phí mới cho ngân sách này",
-      "fields": {
-        "title": {
-          "label": "Tiêu đề Chi phí *",
-          "placeholder": "Mua giấy phép phần mềm",
-          "required": "Tiêu đề là bắt buộc"
-        },
-        "description": {
-          "label": "Mô tả",
-          "placeholder": "Chi tiết bổ sung..."
-        },
-        "amount": {
-          "label": "Số tiền ({currency}) *",
-          "placeholder": "500.00",
-          "required": "Số tiền là bắt buộc",
-          "minValue": "Phải là số dương"
-        },
-        "date": {
-          "label": "Ngày chi *",
-          "required": "Ngày là bắt buộc"
-        },
-        "category": {
-          "label": "Danh mục",
-          "placeholder": "Chọn danh mục",
-          "noCategories": "Chưa có danh mục nào"
-        },
-        "type": {
-          "label": "Loại Chi phí *",
-          "manual": "Thủ công",
-          "invoice": "Hóa đơn",
-          "purchase": "Mua hàng"
-        },
-        "task": {
-          "label": "Liên kết với Tác vụ (Tùy chọn)",
-          "placeholder": "Chọn một tác vụ...",
-          "noTask": "Không có tác vụ",
-          "helper": "Liên kết chi phí này với một tác vụ cụ thể ({count} tác vụ khả dụng)"
-        },
-        "vendor": {
-          "label": "Nhà cung cấp",
-          "placeholder": "Tên công ty"
-        },
-        "invoiceNumber": {
-          "label": "Số hóa đơn",
-          "placeholder": "INV-001"
-        },
-        "billable": {
-          "label": "Khoản chi này có tính phí cho khách hàng"
-        },
-        "notes": {
-          "label": "Ghi chú thêm",
-          "placeholder": "Bất kỳ ghi chú bổ sung nào..."
-        }
-      },
-      "warning": {
-        "exceed": "Khoản chi này sẽ vượt ngân sách danh mục {amount}",
-        "remaining": "Chỉ còn {amount} trong danh mục này",
-        "allocated": "Đã phân bổ",
-        "currentlySpent": "Đã chi hiện tại",
-        "afterExpense": "Sau khoản chi này"
-      },
-      "cancel": "Hủy",
-      "submit": "Thêm Chi phí",
-      "adding": "Đang thêm...",
-      "success": "Thêm chi phí thành công",
-      "error": "Không thể thêm chi phí"
-    },
-    "details": {
-      "loading": "Đang tải ngân sách...",
-      "notFound": "Không tìm thấy ngân sách",
-      "linkedToProject": "Liên kết với Dự án",
-      "viewProject": "Xem Dự án",
-      "totalBudget": "Tổng Ngân sách",
-      "totalSpent": "Tổng Đã Chi",
-      "remaining": "Còn lại",
-      "percentUsed": "{percent}% Đã Sử dụng",
-      "percentLeft": "{percent}% Còn lại",
-      "activity": "Hoạt động",
-      "expenses": {
-        "loading": "Đang tải chi phí...",
-        "empty": {
-          "title": "Chưa có chi phí nào",
-          "description": "Thêm chi phí đầu tiên để bắt đầu theo dõi chi tiêu"
-        },
-        "status": {
-          "approved": "Đã duyệt",
-          "rejected": "Đã từ chối",
-          "pending": "Chờ duyệt"
-        },
-        "billable": "Có tính phí",
-        "task": "Tác vụ",
-        "note": "Ghi chú",
-        "viewRequest": "Xem yêu cầu"
-      },
-      "timeEntries": "Bảng ghi thời gian",
-      "budgetUsage": "Mức sử dụng ngân sách",
-      "usageAlert": "⚠️ Cảnh báo: Đã sử dụng {percent}% ngân sách",
-      "usageNormal": "Đã sử dụng {percent}% ngân sách",
-      "tabs": {
-        "analytics": "Phân tích",
-        "forecasting": "Dự báo",
-        "expenses": "Chi phí",
-        "categories": "Danh mục",
-        "tasks": "Tác vụ",
-        "timeTracking": "Theo dõi thời gian"
-      },
-      "addExpense": "Thêm Chi phí",
-      "budgetCategories": "Danh mục Ngân sách",
-      "addCategory": "Thêm Danh mục",
-      "categories": {
-        "loading": "Đang tải danh mục...",
-        "empty": {
-          "title": "Chưa có danh mục nào",
-          "description": "Tạo danh mục để sắp xếp chi phí của bạn"
-        }
-      },
-      "category": {
-        "fixed": "Cố định",
-        "variable": "Biến đổi",
-        "allocated": "Đã phân bổ",
-        "spent": "Đã chi",
-        "overBudget": "Vượt ngân sách",
-        "percentUsed": "{percent}% Đã sử dụng",
-        "overBudgetBadge": "Vượt ngân sách",
-        "nearLimit": "Gần giới hạn"
-      },
-      "tasks": {
-        "title": "Phân tích Tác vụ",
-        "description": "Xem chi phí được nhóm theo tác vụ",
-        "noTasksTitle": "Chưa có tác vụ nào",
-        "noTasksDescription": "Các tác vụ từ dự án liên kết sẽ xuất hiện tại đây"
-      },
-      "timeTracking": {
-        "title": "Theo dõi Thời gian",
-        "description": "Xem tất cả bảng ghi thời gian và bộ đếm đang chạy"
-      }
-    },
-    "charts": {
-      "spent": "Đã chi",
-      "remaining": "Còn lại",
-      "budget": "Ngân sách",
-      "overBudget": "Vượt ngân sách",
-      "budgetOverview": "Tổng quan Ngân sách",
-      "budgetOverviewDesc": "Mức sử dụng tổng ngân sách",
-      "used": "Đã dùng",
-      "spendingByCategory": "Chi tiêu theo Danh mục",
-      "spendingByCategoryDesc": "Phân tích chi phí theo từng danh mục",
-      "noExpensesYet": "Chưa có chi phí nào được ghi nhận",
-      "spendingTimeline": "Dòng thời gian Chi tiêu",
-      "spendingTimelineDesc": "Chi tiêu tích lũy theo thời gian",
-      "totalSpent": "Tổng Đã Chi",
-      "noTimelineData": "Không có dữ liệu dòng thời gian chi phí",
-      "burnRateAnalysis": "Phân tích Tốc độ Chi tiêu",
-      "overPacing": "Chi tiêu nhanh hơn kế hoạch",
-      "burnRateAnalysisDesc": "Tốc độ tiêu thụ ngân sách và dự báo",
-      "idealDailyRate": "Tốc độ lý tưởng mỗi ngày",
-      "perDay": "mỗi ngày",
-      "actualDailyRate": "Tốc độ thực tế mỗi ngày",
-      "aboveTarget": "Trên mục tiêu",
-      "onTrack": "Đúng tiến độ",
-      "timelineProgress": "Tiến độ Thời gian",
-      "daysProgress": "{elapsed} trên {total} ngày (còn {remaining})",
-      "forecastedTotal": "Tổng Dự báo",
-      "overBudgetAmount": "Vượt ngân sách {amount}",
-      "withinBudget": "Trong ngân sách",
-      "budgetVsTime": "Tiến độ Ngân sách so với Thời gian",
-      "spendingFaster": "Chi tiêu nhanh hơn thời gian trôi qua",
-      "onPaceOrUnder": "Đúng tiến độ hoặc thấp hơn",
-      "budgetUsed": "Ngân sách Đã Dùng",
-      "timeElapsed": "Thời Gian Đã Trôi Qua"
-    },
-    "forecasting": {
-      "loading": "Đang tải phân tích...",
-      "noData": "Không đủ dữ liệu để dự báo. Hãy thêm nhiều chi phí hơn để xem dự đoán.",
-      "healthExcellent": "Xuất sắc",
-      "healthGood": "Tốt",
-      "healthFair": "Trung bình",
-      "healthAtRisk": "Có nguy cơ",
-      "overageRiskTitle": "Phát hiện Nguy cơ Vượt Ngân sách",
-      "overageRiskDesc": "Với tốc độ chi tiêu hiện tại, chi phí biến đổi dự kiến sẽ vượt mức phân bổ khoảng {amount} trong {months} tháng tới. Cân nhắc điều chỉnh chi tiêu hoặc phân bổ lại ngân sách.",
-      "limitedRunwayTitle": "Thời gian sử dụng Ngân sách Hạn chế",
-      "limitedRunwayDesc": "Với tốc độ tiêu {burnRate}/tháng, ngân sách sẽ cạn kiệt trong khoảng {months} tháng ({date}).",
-      "healthScore": "Điểm Sức khỏe",
-      "burnRate": "Tốc độ Tiêu",
-      "perMonth": "mỗi tháng",
-      "runway": "Thời gian sử dụng",
-      "budgetSustainable": "Ngân sách bền vững",
-      "monthsRemaining": "tháng còn lại",
-      "completionDate": "Ngày Hoàn thành",
-      "onTrack": "Đúng tiến độ",
-      "withinBudget": "Trong ngân sách",
-      "projectedExhaustion": "Dự báo cạn kiệt ngân sách",
-      "spendingTrend": "Xu hướng & Dự báo Chi tiêu",
-      "spendingTrendDesc": "Chi tiêu lịch sử và chi phí tương lai dự kiến trong {months} tháng tới",
-      "actualSpending": "Chi tiêu Thực tế",
-      "projectedSpending": "Chi tiêu Dự kiến",
-      "budgetLimit": "Giới hạn Ngân sách",
-      "categoryRisks": "Nguy cơ Vượt mức theo Danh mục",
-      "categoryRisksDesc": "Danh mục chi phí biến đổi dự kiến vượt mức phân bổ",
-      "current": "Hiện tại",
-      "projected": "Dự kiến",
-      "allocated": "Đã phân bổ",
-      "percentOver": "Vượt {percent}%",
-      "monthlyBreakdown": "Dự báo Chi tiêu Hàng tháng theo Danh mục",
-      "monthlyBreakdownDesc": "Chi tiêu trung bình hàng tháng cho từng danh mục chi phí biến đổi",
-      "currentSpent": "Đã Chi Hiện tại",
-      "projectedTotal": "Tổng Dự kiến",
-      "projectionSummary": "Tóm tắt Dự báo",
-      "totalVariableCosts": "Tổng Chi phí Biến đổi",
-      "projectionPeriod": "Kỳ Dự báo",
-      "monthsCount": "{count} Tháng",
-      "status": "Trạng thái",
-      "overBudget": "Vượt ngân sách"
-    },
-    "tasks": {
-      "timerStoppedSuccess": "Đã dừng bộ đếm thời gian thành công",
-      "timerStoppedError": "Không thể dừng bộ đếm thời gian",
-      "stop": "Dừng",
-      "startTimerAnother": "Bắt đầu Bộ đếm cho Người được giao Khác",
-      "startTimer": "Bắt đầu Bộ đếm",
-      "noTasksTitle": "Không tìm thấy tác vụ nào",
-      "noTasksDesc": "Thêm tác vụ vào dự án để bắt đầu theo dõi thời gian và chi phí",
-      "totalTasks": "Tổng Tác vụ",
-      "withExpenses": "{count} có chi phí",
-      "taskLinkedExpenses": "Chi phí Liên kết Tác vụ",
-      "expensesCount": "{count} chi phí",
-      "unlinkedExpenses": "Chi phí Chưa liên kết",
-      "allTasks": "Tất cả Tác vụ",
-      "noExpensesYet": "Chưa có chi phí nào",
-      "percentOfBudget": "% Tổng Ngân sách",
-      "expenseDetails": "Chi tiết Chi phí:",
-      "moreExpenses": "+{count} chi phí khác",
-      "unlinkedExpensesDesc": "Các chi phí này không liên kết với bất kỳ tác vụ nào",
-      "totalUnlinked": "Tổng Chưa liên kết",
-      "unlinkedCount": "{count} chi phí không liên kết với tác vụ"
-    },
-    "editModal": {
-      "title": "Chỉnh sửa Cài đặt Ngân sách",
-      "description": "Mô tả",
-      "name": "Tên Ngân sách *",
-      "namePlaceholder": "Chiến dịch Marketing Q1",
-      "nameRequired": "Tên là bắt buộc",
-      "descriptionPlaceholder": "Mô tả ngân sách...",
-      "totalBudget": "Tổng Ngân sách *",
-      "totalBudgetRequired": "Tổng ngân sách là bắt buộc",
-      "mustBePositive": "Phải là số dương",
-      "currency": "Tiền tệ *",
-      "startDate": "Ngày bắt đầu",
-      "endDate": "Ngày kết thúc",
-      "alertThreshold": "Ngưỡng Cảnh báo (%) *",
-      "alertThresholdRequired": "Ngưỡng cảnh báo là bắt buộc",
-      "alertThresholdMin": "Phải ít nhất là 0",
-      "alertThresholdMax": "Phải nhiều nhất là 100",
-      "alertThresholdHelper": "Nhận thông báo khi mức sử dụng ngân sách đạt ngưỡng này",
-      "status": "Trạng thái *",
-      "statusActive": "Đang hoạt động",
-      "statusCompleted": "Hoàn thành",
-      "statusExceeded": "Vượt mức",
-      "statusArchived": "Đã lưu trữ",
-      "dangerZone": "Khu vực Nguy hiểm",
-      "dangerZoneDesc": "Xóa ngân sách này sẽ xóa vĩnh viễn tất cả dữ liệu liên quan bao gồm danh mục, chi phí và bảng ghi thời gian.",
-      "deleteBudget": "Xóa Ngân sách",
-      "cancel": "Hủy",
-      "saving": "Đang lưu...",
-      "saveChanges": "Lưu Thay đổi",
-      "confirmDeleteTitle": "Bạn có chắc chắn không?",
-      "confirmDeleteDesc": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn ngân sách \"{name}\" và xóa tất cả danh mục, chi phí và bảng ghi thời gian liên quan khỏi hệ thống.",
-      "deleting": "Đang xóa...",
-      "updateSuccess": "Cập nhật ngân sách thành công",
-      "updateError": "Không thể cập nhật ngân sách",
-      "deleteSuccess": "Xóa ngân sách thành công",
-      "deleteError": "Không thể xóa ngân sách"
-    },
-    "timeTracking": {
-      "stats": {
-        "totalTime": "Tổng Thời gian",
-        "totalBilled": "Tổng Đã tính phí",
-        "billableEntries": "Bảng ghi Có tính phí",
-        "teamMembers": "Thành viên Nhóm",
-        "entries": "bảng ghi",
-        "fromBillableTime": "từ thời gian tính phí",
-        "percentOfTotal": "{percent}% tổng số",
-        "trackedTime": "Thời gian Đã theo dõi"
-      },
-      "filterByTask": "Lọc theo Tác vụ",
-      "allTasks": "Tất cả Tác vụ",
-      "noEntriesTitle": "Chưa có bảng ghi thời gian nào",
-      "noEntriesDescription": "Bắt đầu bộ đếm trên một tác vụ để bắt đầu theo dõi thời gian"
-    },
-    "expenses": {
-      "title": "Chi phí",
-      "billable": "Có tính phí",
-      "task": "Tác vụ",
-      "status": {
-        "approved": "Đã duyệt",
-        "pending": "Chờ xử lý",
-        "rejected": "Đã từ chối"
-      }
-    },
-    "integrations": {
-      "page": {
-        "title": "Tích hợp",
-        "subtitle": "Kết nối các công cụ và dịch vụ yêu thích để tối ưu hóa quy trình làm việc",
-        "loading": "Đang tải tích hợp...",
-        "searchPlaceholder": "Tìm kiếm tích hợp...",
-        "filterBy": "Lọc theo:",
-        "noResults": "Không tìm thấy tích hợp nào",
-        "noResultsDesc": "Thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn."
-      },
-      "tabs": {
-        "marketplace": "Cửa hàng",
-        "connected": "Đã kết nối"
-      },
-      "sections": {
-        "popular": "Phổ biến",
-        "all": "Tất cả Tích hợp"
-      },
-      "categories": {
-        "communication": "Giao tiếp",
-        "fileStorage": "Lưu trữ Tệp",
-        "calendar": "Lịch",
-        "email": "Email",
-        "projectManagement": "Quản lý Dự án",
-        "crm": "CRM",
-        "development": "Phát triển",
-        "analytics": "Phân tích",
-        "marketing": "Marketing",
-        "documentation": "Tài liệu",
-        "design": "Thiết kế",
-        "timeTracking": "Theo dõi Thời gian",
-        "videoConferencing": "Hội nghị Truyền hình",
-        "automation": "Tự động hóa",
-        "productivity": "Năng suất",
-        "hr": "Nhân sự",
-        "finance": "Tài chính",
-        "support": "Hỗ trợ",
-        "security": "Bảo mật",
-        "ecommerce": "Thương mại Điện tử",
-        "socialMedia": "Mạng Xã hội",
-        "ai": "AI & Học máy",
-        "other": "Khác"
-      },
-      "status": {
-        "connected": "Đã kết nối",
-        "verified": "Đã xác minh",
-        "installed": "Đã cài đặt",
-        "comingSoon": "Sắp ra mắt"
-      },
-      "pricing": {
-        "free": "Miễn phí",
-        "freemium": "Miễn phí có giới hạn",
-        "paid": "Trả phí"
-      },
-      "actions": {
-        "connect": "Kết nối",
-        "disconnect": "Ngắt kết nối",
-        "open": "Mở",
-        "install": "Cài đặt Tích hợp",
-        "uninstall": "Gỡ cài đặt",
-        "visitWebsite": "Truy cập Website",
-        "back": "Quay lại",
-        "backToIntegrations": "Quay lại Tích hợp"
-      },
-      "connect": "Kết nối",
-      "disconnect": "Ngắt kết nối",
-      "connected": "Đã kết nối",
-      "disconnected": "Đã ngắt kết nối",
-      "connectedDescription": "Kết nối thành công với {name}",
-      "disconnectedDescription": "Đã ngắt kết nối với {name} thành công",
-      "connectError": "Lỗi Kết nối",
-      "disconnectError": "Lỗi Ngắt kết nối",
-      "connectionError": "Lỗi kết nối",
-      "tokenExpired": "Token hết hạn. Vui lòng kết nối lại.",
-      "connectWithApiKey": "Kết nối {name}",
-      "apiKeyDescription": "Nhập API key {name} của bạn để kết nối.",
-      "apiKey": "API Key",
-      "findApiKey": "Cách tìm API key của bạn",
-      "disconnectTitle": "Ngắt kết nối {name}?",
-      "disconnectWarning": "Thao tác này sẽ xóa kết nối tới {name}. Bạn có thể kết nối lại bất cứ lúc nào.",
-      "connectedAs": "Đã kết nối với:",
-      "empty": {
-        "noConnected": "Chưa có tích hợp nào được kết nối",
-        "noConnectedDesc": "Bắt đầu bằng cách kết nối tích hợp đầu tiên từ cửa hàng.",
-        "browse": "Duyệt Cửa hàng"
-      },
-      "detail": {
-        "loading": "Đang tải tích hợp...",
-        "features": "Tính năng",
-        "screenshots": "Ảnh chụp màn hình",
-        "details": "Chi tiết Tích hợp",
-        "category": "Danh mục",
-        "authentication": "Xác thực",
-        "webhookSupport": "Hỗ trợ Webhook",
-        "supported": "Đã hỗ trợ",
-        "notSupported": "Không hỗ trợ",
-        "lastUpdated": "Cập nhật lần cuối",
-        "support": "Hỗ trợ & Tài liệu",
-        "apiDocumentation": "Tài liệu API",
-        "contactSupport": "Liên hệ Hỗ trợ",
-        "usageStats": "Thống kê Sử dụng",
-        "successRate": "Tỷ lệ Thành công",
-        "totalRequests": "Tổng Yêu cầu",
-        "avgResponseTime": "Thời gian Phản hồi TB",
-        "overview": "Tổng quan",
-        "configuration": "Cấu hình",
-        "webhooks": "Webhooks",
-        "logs": "Nhật ký",
-        "installing": "Đang cài đặt...",
-        "installationFailed": "Cài đặt thất bại",
-        "integrationInstalled": "Đã cài đặt tích hợp",
-        "integrationUninstalled": "Đã gỡ cài đặt tích hợp",
-        "reviews": "đánh giá",
-        "installs": "lượt cài đặt"
-      }
-    },
-    "apps": {
-      "page": {
-        "title": "Trình kết nối",
-        "subtitle": "Kết nối ứng dụng bên ngoài để mở rộng khả năng của Nexus",
-        "searchPlaceholder": "Tìm kiếm trình kết nối...",
-        "connectorsAvailable": "{count} trình kết nối khả dụng",
-        "noConnectorsFound": "Không tìm thấy trình kết nối nào",
-        "noConnectorsMatch": "Không có trình kết nối nào khớp với \"{query}\"",
-        "noConnectorsInCategory": "Không có trình kết nối trong danh mục {category}",
-        "clearFilters": "Xóa bộ lọc"
-      },
-      "categories": {
-        "all": "Tất cả",
-        "communication": "Giao tiếp",
-        "productivity": "Năng suất",
-        "development": "Phát triển",
-        "business": "Kinh doanh",
-        "marketing": "Marketing",
-        "design": "Thiết kế",
-        "aiAutomation": "AI & Tự động hóa",
-        "security": "Bảo mật"
-      },
-      "actions": {
-        "connect": "Kết nối",
-        "open": "Mở",
-        "disconnect": "Ngắt kết nối",
-        "connecting": "Đang kết nối...",
-        "notAvailable": "Không khả dụng"
-      },
-      "descriptions": {
-        "gmail": "Gửi và nhận email trực tiếp trong Nexus",
-        "googleCalendar": "Đồng bộ và quản lý sự kiện Google Calendar",
-        "googleDrive": "Truy cập và quản lý tệp Google Drive",
-        "github": "Kết nối tài khoản GitHub để xem kho lưu trữ",
-        "googleSheets": "Xem, chỉnh sửa và đồng bộ bảng tính Google Sheets",
-        "dropbox": "Truy cập và quản lý tệp Dropbox"
-      },
-      "categoryLabels": {
-        "email": "EMAIL",
-        "calendar": "LỊCH",
-        "fileStorage": "LƯU TRỮ TỆP",
-        "development": "PHÁT TRIỂN"
-      }
-    },
-    "templates": {
-      "pageTitle": "Mẫu Dự án",
-      "pageDescription": "Chọn một mẫu để nhanh chóng tạo dự án mới với các tác vụ và cấu trúc được xác định trước.",
-      "refreshButton": "Làm mới Mẫu",
-      "seedSuccess": {
-        "title": "Đã thêm mẫu hệ thống",
-        "description": "Các mẫu hệ thống đã được thêm thành công."
-      },
-      "seedError": {
-        "title": "Lỗi",
-        "description": "Không thể thêm mẫu hệ thống."
-      },
-      "workspaceNotFound": "Không tìm thấy Workspace",
-      "searchPlaceholder": "Tìm kiếm mẫu...",
-      "noTemplatesFound": "Không tìm thấy mẫu nào.",
-      "featured": "Nổi bật",
-      "system": "Hệ thống",
-      "tasks": "tác vụ",
-      "usedTimes": "Đã dùng {count} lần",
-      "showingTemplates": "Hiển thị {start} - {end} trên tổng số {total} mẫu",
-      "previous": "Trước",
-      "next": "Tiếp",
-      "cancel": "Hủy",
-      "useThisTemplate": "Sử dụng Mẫu này",
-      "createFromTemplate": "Tạo Dự án từ Mẫu",
-      "customizeProject": "Tùy chỉnh dự án mới của bạn trước khi tạo.",
-      "projectName": "Tên Dự án",
-      "enterProjectName": "Nhập tên dự án",
-      "description": "Mô tả (tùy chọn)",
-      "enterProjectDescription": "Nhập mô tả dự án",
-      "createProject": "Tạo Dự án",
-      "templateStructure": "Cấu trúc Mẫu",
-      "customFields": "Trường Tùy chỉnh",
-      "boardStages": "Giai đoạn Bảng",
-      "blankProject": "Dự án Trống",
-      "startFromScratch": "Bắt đầu từ đầu",
-      "projectCreated": "Đã tạo dự án",
-      "projectCreatedDescription": "\"{projectName}\" đã được tạo từ mẫu \"{templateName}\".",
-      "createProjectError": "Không thể tạo dự án từ mẫu.",
-      "complexity": "độ phức tạp",
-      "moreTasks": "+{count} tác vụ khác...",
-      "categories": {
-        "all": "Tất cả",
-        "softwareDevelopment": "Phát triển Phần mềm",
-        "marketing": "Marketing",
-        "hr": "Nhân sự & Con người",
-        "design": "Thiết kế & Sáng tạo",
-        "business": "Kinh doanh & Vận hành",
-        "events": "Sự kiện & Webinar",
-        "research": "Nghiên cứu & Phân tích",
-        "personal": "Cá nhân & Năng suất",
-        "sales": "Bán hàng",
-        "finance": "Tài chính",
-        "itSupport": "Hỗ trợ IT",
-        "education": "Giáo dục",
-        "freelance": "Freelance",
-        "operations": "Vận hành",
-        "healthcare": "Chăm sóc Sức khỏe",
-        "legal": "Pháp lý",
-        "realEstate": "Bất động sản",
-        "manufacturing": "Sản xuất",
-        "nonprofit": "Phi lợi nhuận",
-        "media": "Truyền thông & Giải trí"
-      }
-    }
-  },
   "templates": {
     "categories": {
       "all": "Tất cả",
@@ -9462,89 +8604,6 @@
     "createProjectError": "Không thể tạo dự án từ mẫu.",
     "complexity": "độ phức tạp",
     "moreTasks": "+{count} tác vụ khác..."
-  },
-  "whiteboard": {
-    "title": "Bảng Trắng",
-    "loading": "Đang tải...",
-    "defaultName": "Bảng Trắng Chưa Đặt Tên",
-    "defaultNameWithDate": "Bảng Trắng {date}",
-    "updated": "Cập nhật:",
-    "noWhiteboardsYet": "Chưa có bảng trắng nào. Tạo một bảng để bắt đầu!",
-    "newWhiteboard": "Bảng Trắng Mới",
-    "showMenu": "Hiện Menu",
-    "hideGrid": "Ẩn Lưới",
-    "showGrid": "Hiện Lưới",
-    "canvasBackground": "Nền Canvas",
-    "copyData": "Sao chép Dữ liệu Bảng Trắng",
-    "deleteWhiteboard": "Xóa Bảng Trắng",
-    "hideMenuBar": "Ẩn Thanh Menu",
-    "hideHeader": "Ẩn Tiêu Đề",
-    "showHeader": "Hiện Tiêu Đề",
-    "error": {
-      "loadFailed": "Không thể tải bảng trắng",
-      "notFound": "Không tìm thấy bảng trắng",
-      "saveFailed": "Không thể lưu bảng trắng",
-      "createFailed": "Không thể tạo bảng trắng",
-      "deleteFailed": "Không thể xóa bảng trắng",
-      "exportFailed": "Không thể xuất bảng trắng",
-      "missingWorkspaceId": "Thiếu ID Không gian làm việc",
-      "couldNotExtractWorkspaceId": "Không thể trích xuất ID không gian làm việc từ URL."
-    },
-    "success": {
-      "saved": "Đã lưu bảng trắng thành công",
-      "created": "Đã tạo bảng trắng thành công",
-      "deleted": "Đã xóa bảng trắng thành công",
-      "exportedPNG": "Đã xuất dưới dạng PNG",
-      "exportedSVG": "Đã xuất dưới dạng SVG",
-      "copiedToClipboard": "Đã sao chép dữ liệu bảng trắng vào clipboard"
-    },
-    "status": {
-      "saving": "Đang lưu...",
-      "failedToSave": "Lưu thất bại",
-      "allChangesSaved": "Tất cả thay đổi đã được lưu"
-    },
-    "tools": {
-      "lock": "Khóa Canvas",
-      "unlock": "Mở khóa Canvas",
-      "hand": "Công cụ Di chuyển",
-      "select": "Chọn",
-      "rectangle": "Hình chữ nhật",
-      "diamond": "Hình thoi",
-      "ellipse": "Hình elip",
-      "arrow": "Mũi tên",
-      "line": "Đường thẳng",
-      "draw": "Vẽ",
-      "text": "Văn bản",
-      "image": "Hình ảnh",
-      "eraser": "Tẩy"
-    },
-    "export": {
-      "png": "Xuất PNG",
-      "svg": "Xuất SVG"
-    },
-    "dialog": {
-      "createNew": "Tạo Bảng Trắng Mới",
-      "enterName": "Nhập tên cho bảng trắng mới của bạn",
-      "name": "Tên",
-      "namePlaceholder": "Bảng Trắng Của Tôi",
-      "create": "Tạo",
-      "open": "Mở Bảng Trắng",
-      "select": "Chọn một bảng trắng để mở",
-      "selectOrCreate": "Chọn một bảng trắng để mở hoặc tạo mới",
-      "deleteTitle": "Xóa Bảng Trắng?",
-      "deleteDescription": "Bạn có chắc chắn muốn xóa \"{name}\"? Hành động này không thể hoàn tác."
-    },
-    "stickyNote": {
-      "add": "Thêm Ghi Chú",
-      "clickToEdit": "Nhấp để chỉnh sửa",
-      "selectColor": "Chọn màu ghi chú:"
-    },
-    "mindMap": {
-      "mode": "Chế độ Bản Đồ Tư Duy",
-      "modeShort": "BĐTD",
-      "exit": "Thoát Chế độ BĐTD",
-      "instructions": "Nhấp để thêm nút. Kết nối các nút bằng cách nhấp và kéo."
-    }
   },
   "approvals": {
     "manageTypes": "Quản lý Loại",

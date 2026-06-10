@@ -71,6 +71,7 @@ export function NotionStyleNoteEditor({
 
   // Editor container ref for RemoteCursors
   const editorContainerRef = useRef<HTMLDivElement>(null)
+  const toolbarStickyRef = useRef<HTMLDivElement>(null)
 
   // Check if note is shared (has collaborators or shared with others)
   const isNoteShared = useMemo(() => {
@@ -266,6 +267,34 @@ export function NotionStyleNoteEditor({
   const historyRef = useRef<string[]>([])
   const historyIndexRef = useRef<number>(-1)
   const isUndoRedoRef = useRef<boolean>(false)
+
+  useEffect(() => {
+    if (!isEditorReady || !quillRef.current || !toolbarStickyRef.current) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      try {
+        const quill = quillRef.current?.getEditor()
+        const editorRoot = quill?.root?.parentElement
+        const toolbar = editorRoot?.parentElement?.querySelector('.ql-toolbar')
+
+        if (!toolbar || !toolbarStickyRef.current) {
+          return
+        }
+
+        if (toolbar.parentElement !== toolbarStickyRef.current) {
+          toolbarStickyRef.current.appendChild(toolbar)
+        }
+      } catch (error) {
+        console.error('Failed to move editor toolbar into sticky container:', error)
+      }
+    }, 0)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [isEditorReady, editorKey, note.id])
 
   // Memoized values for optimization
   const canUndo = useMemo(() => historyIndex > 0, [historyIndex])
@@ -1776,7 +1805,9 @@ export function NotionStyleNoteEditor({
           const quill = quillRef.current?.getEditor()
           if (!quill || !quill.container) return
 
-          const toolbar = quill.container.previousSibling
+          const toolbar = toolbarStickyRef.current?.querySelector('.ql-toolbar')
+            ?? quill.container.parentElement?.querySelector('.ql-toolbar')
+            ?? quill.container.previousSibling
           if (toolbar && toolbar.classList.contains('ql-toolbar')) {
             // Check if buttons already exist
             if (toolbar.querySelector('.undo-redo-container')) {
@@ -1989,11 +2020,7 @@ export function NotionStyleNoteEditor({
                       <span>Connecting...</span>
                     </div>
                   ) : isCollaborationConnected && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 text-sm text-green-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full" />
-                        <span>Live</span>
-                      </div>
+                    <div className="flex items-center">
                       <PresenceIndicator
                         users={collaborationUsers}
                         currentUserId={user?.id}
@@ -2080,35 +2107,50 @@ export function NotionStyleNoteEditor({
       {/* Editor Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="max-w-4xl mx-auto relative">
-          {/* Simple AI Toolbar */}
-          <div className="sticky top-0 z-[5] bg-background border-b px-8">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-3">
-                <AIToolsMenu
-                  selectedText={selectedText}
-                  getPlainTextContent={getPlainTextContent}
-                  translateLoading={translateLoading}
-                  summaryLoading={summaryLoading}
-                  textGenerationLoading={textGenerationLoading}
-                  onTranslate={translateText}
-                  onSummarize={summarizeText}
-                  onImproveWriting={improveWriting}
-                  onFixGrammar={fixGrammar}
-                  onMakeLonger={makeLonger}
-                  onMakeShorter={makeShorter}
-                />
+          <div className="sticky top-0 z-[5] bg-background">
+            {/* Simple AI Toolbar */}
+            <div className="border-b px-8">
+              <div className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <AIToolsMenu
+                    selectedText={selectedText}
+                    getPlainTextContent={getPlainTextContent}
+                    translateLoading={translateLoading}
+                    summaryLoading={summaryLoading}
+                    textGenerationLoading={textGenerationLoading}
+                    onTranslate={translateText}
+                    onSummarize={summarizeText}
+                    onImproveWriting={improveWriting}
+                    onFixGrammar={fixGrammar}
+                    onMakeLonger={makeLonger}
+                    onMakeShorter={makeShorter}
+                  />
 
-                {selectedText && (
-                  <div className="text-sm text-muted-foreground">
-                    {selectedText.length} chars selected
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{getPlainTextContent().length} characters</span>
+                  {selectedText && (
+                    <div className="text-sm text-muted-foreground">
+                      {intl.formatMessage(
+                        { id: 'modules.notes.editor.charsSelected' },
+                        { count: selectedText.length }
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>
+                    {intl.formatMessage(
+                      { id: 'modules.notes.editor.charactersCount' },
+                      { count: getPlainTextContent().length }
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
+
+            <div
+              ref={toolbarStickyRef}
+              className="note-editor-toolbar-sticky bg-background px-8"
+            />
           </div>
 
           {/* Editor Section */}
@@ -2351,17 +2393,20 @@ export function NotionStyleNoteEditor({
         .notion-editor-wrapper .ql-toolbar {
           border: none;
           border-bottom: 1px solid hsl(var(--border));
-          padding: 8px 16px;
+          padding: 0 16px 8px;
           display: flex;
           flex-wrap: nowrap;
           overflow: visible !important;
           align-items: center;
-          position: relative;
-          z-index: 20;
+          background-color: hsl(var(--background));
         }
 
         .notion-editor-wrapper {
           position: relative;
+        }
+
+        .note-editor-toolbar-sticky {
+          border-bottom: 1px solid hsl(var(--border));
         }
 
         .notion-editor-wrapper .ql-snow.ql-toolbar {

@@ -21,7 +21,6 @@ import {
   FolderOpen,
   Slash,
   Loader2,
-  HardDrive,
   ImagePlay,
   BarChart2,
   Clock,
@@ -120,16 +119,11 @@ export interface AttachedContent {
   id: string
   title?: string
   name?: string
-  type: 'notes' | 'events' | 'files' | 'drive' | 'poll' | 'youtube'
+  type: 'notes' | 'events' | 'files' | 'drive' | 'poll'
   subtitle?: string
   url?: string
   thumbnail?: string
   metadata?: any
-  // Drive-specific fields
-  driveFileUrl?: string
-  driveThumbnailUrl?: string
-  driveMimeType?: string
-  driveFileSize?: number
   // Poll-specific fields
   poll?: Poll
 }
@@ -185,14 +179,6 @@ export interface MessageInputProps {
   isSending?: boolean
   /** Enable slash command menu for content mentions */
   enableSlashCommands?: boolean
-  /** Show Google Drive picker option */
-  showDrivePicker?: boolean
-  /** Called when Drive picker is opened */
-  onOpenDrivePicker?: () => void
-  /** Show YouTube picker option */
-  showYoutubePicker?: boolean
-  /** Called when YouTube picker is opened */
-  onOpenYoutubePicker?: () => void
   /** Show poll creator option */
   showPollButton?: boolean
   /** Called when poll button is clicked */
@@ -241,10 +227,6 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
   className,
   isSending = false,
   enableSlashCommands = true,
-  showDrivePicker = true,
-  onOpenDrivePicker,
-  showYoutubePicker = true,
-  onOpenYoutubePicker,
   showPollButton = true,
   onOpenPollCreator,
 }, ref) => {
@@ -874,7 +856,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
   }
 
   // Get icon for content type
-  const getContentIcon = (type: 'notes' | 'events' | 'files' | 'drive' | 'poll' | 'youtube') => {
+  const getContentIcon = (type: 'notes' | 'events' | 'files' | 'drive' | 'poll') => {
     switch (type) {
       case 'notes':
         return <FileText className="h-3.5 w-3.5" />
@@ -882,17 +864,13 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
         return <Calendar className="h-3.5 w-3.5" />
       case 'files':
         return <FolderOpen className="h-3.5 w-3.5" />
-      case 'drive':
-        return <HardDrive className="h-3.5 w-3.5" />
       case 'poll':
         return <BarChart2 className="h-3.5 w-3.5" />
-      case 'youtube':
-        return <Video className="h-3.5 w-3.5" />
     }
   }
 
   // Get color for content type
-  const getContentColor = (type: 'notes' | 'events' | 'files' | 'drive' | 'poll' | 'youtube') => {
+  const getContentColor = (type: 'notes' | 'events' | 'files' | 'drive' | 'poll') => {
     switch (type) {
       case 'notes':
         return 'text-blue-500 bg-blue-500/10 border-blue-200 dark:border-blue-800'
@@ -900,12 +878,8 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
         return 'text-orange-500 bg-orange-500/10 border-orange-200 dark:border-orange-800'
       case 'files':
         return 'text-purple-500 bg-purple-500/10 border-purple-200 dark:border-purple-800'
-      case 'drive':
-        return 'text-green-500 bg-green-500/10 border-green-200 dark:border-green-800'
       case 'poll':
         return 'text-indigo-500 bg-indigo-500/10 border-indigo-200 dark:border-indigo-800'
-      case 'youtube':
-        return 'text-red-500 bg-red-500/10 border-red-200 dark:border-red-800'
     }
   }
 
@@ -1135,34 +1109,6 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
             </Button>
           )}
 
-          {/* Google Drive picker */}
-          {showDrivePicker && onOpenDrivePicker && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onOpenDrivePicker}
-              className="h-7 w-7 p-0"
-              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.attachFromDrive', defaultMessage: 'Attach from Google Drive' })}
-              disabled={disabled}
-            >
-              <HardDrive className="h-4 w-4" />
-            </Button>
-          )}
-
-          {/* YouTube video picker */}
-          {showYoutubePicker && onOpenYoutubePicker && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onOpenYoutubePicker}
-              className="h-7 w-7 p-0"
-              title={intl.formatMessage({ id: 'modules.chat.input.toolbar.shareYoutube', defaultMessage: 'Share YouTube Video' })}
-              disabled={disabled}
-            >
-              <Video className="h-4 w-4 text-red-600" />
-            </Button>
-          )}
-
           {/* Emoji picker */}
           {showEmojiPicker && (
             <DropdownMenu open={showEmojiDropdown} onOpenChange={setShowEmojiDropdown}>
@@ -1355,7 +1301,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(({
                           {item.type === 'notes' ? 'Note' :
                            item.type === 'events' ? 'Event' :
                            item.type === 'drive' ? 'Drive' :
-                           item.type === 'youtube' ? 'YouTube' :
+                           
                            item.type === 'poll' ? 'Poll' : 'File'}
                         </Badge>
                         <span className="text-sm font-medium truncate max-w-32">{item.title || item.name}</span>

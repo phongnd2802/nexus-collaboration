@@ -128,11 +128,11 @@ export class IntegrationFiltersDto {
 }
 
 export class CreateIntegrationDto {
-  @ApiProperty({ description: 'Unique slug identifier', example: 'slack' })
+  @ApiProperty({ description: 'Unique slug identifier', example: 'github' })
   @IsString()
   slug: string;
 
-  @ApiProperty({ description: 'Integration name', example: 'Slack' })
+  @ApiProperty({ description: 'Integration name', example: 'Notion' })
   @IsString()
   name: string;
 
@@ -145,7 +145,7 @@ export class CreateIntegrationDto {
   @IsString()
   category: IntegrationCategory;
 
-  @ApiPropertyOptional({ description: 'Provider name', example: 'Slack Technologies' })
+  @ApiPropertyOptional({ description: 'Provider name', example: 'Notion Labs' })
   @IsOptional()
   @IsString()
   provider?: string;

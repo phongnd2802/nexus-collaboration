@@ -45,17 +45,6 @@
       "version": "1.0"
     },
     {
-      "id": "tools",
-      "title": "Collaborative Tools",
-      "description": "Unlock creativity with powerful collaborative tools. Use interactive whiteboards for brainstorming, visual planning, and real-time collaboration. Perfect for design sprints and creative workshops.",
-      "videoSrc": "https://cdn-dev.nexusapp.io/projects/4493aede-e31a-4da4-8645-ca3c3a3d99a4/8176683b-15f8-431f-a56d-cde57cf9301b-1768813961001-1768813954980-deskive_whiteboard.mp4",
-      "isNew": true,
-      "isFeatured": true,
-      "isPopular": true,
-      "addedDate": "2024-01-08",
-      "version": "1.0"
-    },
-    {
       "id": "notes",
       "title": "Collaborative Notes",
       "description": "Create, share, and collaborate on documents in real-time. Build your team's knowledge base with powerful editing tools, templates, and AI-assisted writing.",

@@ -12,7 +12,7 @@ import {
   convertFiltersToParams,
   type SearchResultItem
 } from '../../services/searchService';
-import { googleDriveApi, type GoogleDriveFile } from '../../lib/api/google-drive-api';
+
 import { calendarApi } from '../../lib/api/calendar-api';
 import { emailService, type EmailListItem } from '../../lib/api/email-api';
 import type {
@@ -27,56 +27,7 @@ import type {
   EmailSearchResult
 } from '../../types/search';
 
-/**
- * Transform Google Drive file to search result format (merged into files/folders)
- */
-const transformDriveFile = (file: GoogleDriveFile): FileSearchResult | FolderSearchResult => {
-  const baseResult = {
-    id: `drive-${file.id}`, // Prefix to avoid ID conflicts with Nexus files
-    title: file.name,
-    snippet: `Google Drive • ${file.mimeType}`,
-    author: {
-      id: 'google-drive',
-      name: 'Google Drive',
-      email: undefined,
-      imageUrl: undefined,
-    },
-    workspace: undefined,
-    highlights: [],
-    relevanceScore: undefined,
-    updatedAt: file.modifiedTime || file.createdTime || new Date().toISOString(),
-    metadata: {
-      ...file,
-      driveFileType: file.fileType,
-      thumbnailLink: file.thumbnailLink,
-    },
-    source: 'google-drive' as const,
-    externalUrl: file.webViewLink,
-  };
 
-  // Return as folder or file based on type
-  if (file.fileType === 'folder') {
-    return {
-      ...baseResult,
-      type: 'folder',
-      parentId: file.parentId,
-      itemCount: undefined,
-      sharedWith: [],
-    } as FolderSearchResult;
-  }
-
-  return {
-    ...baseResult,
-    type: 'file',
-    fileType: file.mimeType,
-    fileSize: file.size || 0,
-    filePath: '',
-    downloadUrl: file.webContentLink,
-    previewUrl: file.webViewLink,
-    sharedWith: [],
-    parentId: file.parentId,
-  } as FileSearchResult;
-};
 
 /**
  * Google Calendar event type from the calendar API
@@ -336,9 +287,6 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
         // Convert filters to API params
         const filterParams = convertFiltersToParams(query.filters || {});
 
-        // Determine if we should search Google Drive (for all, files, or folders searches)
-        const shouldSearchDrive = query.type === 'all' || query.type === 'files' || query.type === 'folders';
-
         // Determine if we should search Google Calendar (for all or calendar searches)
         const shouldSearchGoogleCalendar = query.type === 'all' || query.type === 'calendar';
 
@@ -346,7 +294,7 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
         const shouldSearchEmails = query.type === 'all' || query.type === 'emails';
 
         // Run searches in parallel
-        const [backendResponse, driveResponse, calendarEventsResponse, gmailResponse, imapResponse] = await Promise.all([
+        const [backendResponse, calendarEventsResponse, gmailResponse, imapResponse] = await Promise.all([
           // Backend search
           universalSearch(workspaceId, {
             query: query.query,
@@ -356,16 +304,6 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
             semantic: query.mode === 'semantic' || query.mode === 'hybrid',
             ...filterParams,
           }),
-          // Google Drive search (merged into files/folders)
-          shouldSearchDrive
-            ? googleDriveApi.listFiles(workspaceId, {
-                query: query.query,
-                pageSize: 50,
-              }).catch((err) => {
-                console.warn('[useUniversalSearch] Drive search failed (may not be connected):', err.message);
-                return { files: [] };
-              })
-            : Promise.resolve({ files: [] }),
           // Google Calendar events (fetch upcoming events which includes Google Calendar)
           shouldSearchGoogleCalendar
             ? calendarApi.getUpcomingEvents(workspaceId, 365).catch((err) => {
@@ -439,27 +377,6 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
           }
           transformedResults[groupKey]!.push(transformed as any);
         });
-
-        // Process Google Drive results - merge into files/folders
-        if (driveResponse.files && driveResponse.files.length > 0) {
-          driveResponse.files.forEach((file) => {
-            const transformed = transformDriveFile(file);
-            allResults.push(transformed);
-
-            // Merge into appropriate category based on type
-            if (transformed.type === 'folder') {
-              if (!transformedResults.folders) {
-                transformedResults.folders = [];
-              }
-              transformedResults.folders.push(transformed as FolderSearchResult);
-            } else {
-              if (!transformedResults.files) {
-                transformedResults.files = [];
-              }
-              transformedResults.files.push(transformed as FileSearchResult);
-            }
-          });
-        }
 
         // Process Google Calendar events - filter by search query and merge into calendar
         if (calendarEventsResponse && calendarEventsResponse.length > 0) {

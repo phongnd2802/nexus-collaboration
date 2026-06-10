@@ -9,9 +9,7 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { GoogleSheetsService } from '../integration-framework/google-sheets/google-sheets.service';
 import { AppGateway } from '../../common/gateways/app.gateway';
-import { BudgetService } from '../budget/budget.service';
 import { NotificationType, NotificationPriority } from '../notifications/dto';
 import {
   CreateRequestTypeDto,
@@ -38,11 +36,8 @@ export class ApprovalsService {
   constructor(
     private readonly db: DatabaseService,
     private notificationsService: NotificationsService,
-    private googleSheetsService: GoogleSheetsService,
     @Inject(forwardRef(() => AppGateway))
     private appGateway: AppGateway,
-    @Inject(forwardRef(() => BudgetService))
-    private budgetService: BudgetService,
   ) {}
 
   // ==================== Helper Methods ====================
@@ -227,13 +222,6 @@ export class ApprovalsService {
       }
     }
 
-    // Export to Google Sheets (async, don't block the request)
-    this.exportRequestToGoogleSheets(workspaceId, result.id, requestType, dto, userId).catch(
-      (error) => {
-        this.logger.warn(`Failed to export request to Google Sheets: ${error.message}`);
-      },
-    );
-
     // Get the full request with approvers for the response and WebSocket event
     const createdRequest = await this.getApprovalRequest(workspaceId, result.id, userId);
 
@@ -241,289 +229,6 @@ export class ApprovalsService {
     this.emitApprovalRequestCreated(workspaceId, createdRequest, approverIds, userId);
 
     return createdRequest;
-  }
-
-  /**
-   * Export approval request to Google Sheets
-   * Creates a spreadsheet if needed, creates a sheet for the request type if needed,
-   * and appends the request data as a new row
-   */
-  private async exportRequestToGoogleSheets(
-    workspaceId: string,
-    requestId: string,
-    requestType: RequestTypeResponseDto,
-    dto: CreateApprovalRequestDto,
-    requesterId: string,
-  ): Promise<void> {
-    this.logger.log(
-      `[Google Sheets Export] Starting export for request ${requestId} in workspace ${workspaceId}`,
-    );
-
-    try {
-      // Get any active Google Sheets connection for this workspace
-      const connectionResult = await this.googleSheetsService.getWorkspaceConnection(workspaceId);
-      if (!connectionResult) {
-        this.logger.log(
-          `[Google Sheets Export] No active Google Sheets connection found for workspace ${workspaceId}, skipping export`,
-        );
-        return;
-      }
-
-      this.logger.log(
-        `[Google Sheets Export] Found connection for user ${connectionResult.userId}, email: ${connectionResult.connection.googleEmail}`,
-      );
-      const connectedUserId = connectionResult.userId;
-
-      // Get workspace name for spreadsheet title
-      const workspaceResult = await this.db
-        .table('workspaces')
-        .select('name')
-        .where('id', '=', workspaceId)
-        .execute();
-
-      const workspaceName = workspaceResult.data?.[0]?.name || 'Workspace';
-
-      // Get or create the approval spreadsheet for this workspace
-      let spreadsheetId = await this.getApprovalSpreadsheetId(workspaceId);
-      this.logger.log(`[Google Sheets Export] Existing spreadsheet ID: ${spreadsheetId || 'none'}`);
-
-      if (!spreadsheetId) {
-        // Create new spreadsheet
-        this.logger.log(
-          `[Google Sheets Export] Creating new spreadsheet for workspace: ${workspaceName}`,
-        );
-        const spreadsheet = await this.googleSheetsService.createSpreadsheet(
-          connectedUserId,
-          workspaceId,
-          `Nexus Approvals - ${workspaceName}`,
-          ['Sheet1'], // Default sheet, will be renamed or we'll add new sheets
-        );
-        spreadsheetId = spreadsheet.spreadsheetId;
-        this.logger.log(`[Google Sheets Export] Created spreadsheet with ID: ${spreadsheetId}`);
-
-        // Store the spreadsheet ID
-        await this.saveApprovalSpreadsheetId(workspaceId, spreadsheetId);
-      }
-
-      // Get requester info (name and email)
-      let requesterName = '';
-      let requesterEmail = '';
-      try {
-        const requesterProfile = await this.db.getUserById(requesterId);
-        if (requesterProfile) {
-          requesterName = requesterProfile.name || (requesterProfile as any).fullName || '';
-          requesterEmail = requesterProfile.email || '';
-        }
-      } catch (error) {
-        this.logger.warn(`[Google Sheets Export] Failed to get requester info: ${error.message}`);
-      }
-
-      // Get or create sheet for this request type
-      const sheetName = this.sanitizeSheetName(requestType.name);
-      const headers = [
-        'Request ID',
-        'Title',
-        'Description',
-        'Status',
-        'Priority',
-        'Due Date',
-        'Requester Name',
-        'Requester Email',
-        'Created At',
-        ...this.getCustomFieldHeaders(requestType.fieldsConfig || []),
-      ];
-
-      this.logger.log(`[Google Sheets Export] Getting or creating sheet: ${sheetName}`);
-      await this.googleSheetsService.getOrCreateSheet(
-        connectedUserId,
-        workspaceId,
-        spreadsheetId,
-        sheetName,
-        headers,
-      );
-
-      // Prepare row data
-      const customFieldValues = this.getCustomFieldValues(
-        requestType.fieldsConfig || [],
-        dto.data || {},
-      );
-      const rowData = [
-        requestId,
-        dto.title,
-        dto.description || '',
-        RequestStatus.PENDING,
-        dto.priority || 'normal',
-        dto.dueDate || '',
-        requesterName,
-        requesterEmail,
-        new Date().toISOString(),
-        ...customFieldValues,
-      ];
-
-      // Append row
-      this.logger.log(`[Google Sheets Export] Appending row to sheet: ${sheetName}`);
-      await this.googleSheetsService.appendRow(
-        connectedUserId,
-        workspaceId,
-        spreadsheetId,
-        sheetName,
-        [rowData],
-      );
-
-      this.logger.log(
-        `[Google Sheets Export] Successfully exported request ${requestId} to Google Sheets`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `[Google Sheets Export] Failed to export request ${requestId}: ${error.message}`,
-        error.stack,
-      );
-      // Don't throw - this is a non-critical operation
-    }
-  }
-
-  /**
-   * Get the approval spreadsheet ID for a workspace
-   */
-  private async getApprovalSpreadsheetId(workspaceId: string): Promise<string | null> {
-    const result = await this.db
-      .table('workspace_settings')
-      .select('value')
-      .where('workspace_id', '=', workspaceId)
-      .where('key', '=', 'approval_spreadsheet_id')
-      .execute();
-
-    return result.data?.[0]?.value || null;
-  }
-
-  /**
-   * Save the approval spreadsheet ID for a workspace
-   */
-  private async saveApprovalSpreadsheetId(
-    workspaceId: string,
-    spreadsheetId: string,
-  ): Promise<void> {
-    // Check if setting exists
-    const existing = await this.db
-      .table('workspace_settings')
-      .select('id')
-      .where('workspace_id', '=', workspaceId)
-      .where('key', '=', 'approval_spreadsheet_id')
-      .execute();
-
-    if (existing.data?.[0]) {
-      await this.db.update('workspace_settings', existing.data[0].id, {
-        value: spreadsheetId,
-        updated_at: new Date().toISOString(),
-      });
-    } else {
-      await this.db.insert('workspace_settings', {
-        workspace_id: workspaceId,
-        key: 'approval_spreadsheet_id',
-        value: spreadsheetId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-    }
-  }
-
-  /**
-   * Sanitize sheet name (Google Sheets has restrictions)
-   */
-  private sanitizeSheetName(name: string): string {
-    // Remove invalid characters and limit length
-    return (
-      name
-        .replace(/[\\/*?:[\]]/g, '') // Remove invalid chars
-        .substring(0, 100) // Max 100 chars
-        .trim() || 'Requests'
-    );
-  }
-
-  /**
-   * Get headers from custom field config
-   */
-  private getCustomFieldHeaders(fieldsConfig: any[]): string[] {
-    return fieldsConfig.map((field) => field.label || field.id);
-  }
-
-  /**
-   * Get values from custom field data matching the field config order
-   */
-  private getCustomFieldValues(fieldsConfig: any[], data: Record<string, any>): string[] {
-    return fieldsConfig.map((field) => {
-      const value = data[field.id];
-      if (value === undefined || value === null) return '';
-      if (typeof value === 'object') return JSON.stringify(value);
-      return String(value);
-    });
-  }
-
-  /**
-   * Update the status of an approval request in Google Sheets
-   * Finds the row by Request ID and updates the Status column
-   */
-  private async updateRequestStatusInGoogleSheets(
-    workspaceId: string,
-    requestId: string,
-    requestTypeName: string,
-    newStatus: RequestStatus,
-  ): Promise<void> {
-    this.logger.log(
-      `[Google Sheets Update] Starting status update for request ${requestId} to ${newStatus}`,
-    );
-
-    try {
-      // Get any active Google Sheets connection for this workspace
-      const connectionResult = await this.googleSheetsService.getWorkspaceConnection(workspaceId);
-      if (!connectionResult) {
-        this.logger.log(
-          `[Google Sheets Update] No active Google Sheets connection found for workspace ${workspaceId}, skipping update`,
-        );
-        return;
-      }
-
-      const connectedUserId = connectionResult.userId;
-
-      // Get the approval spreadsheet ID for this workspace
-      const spreadsheetId = await this.getApprovalSpreadsheetId(workspaceId);
-      if (!spreadsheetId) {
-        this.logger.log(
-          `[Google Sheets Update] No spreadsheet found for workspace ${workspaceId}, skipping update`,
-        );
-        return;
-      }
-
-      // Get the sheet name for this request type
-      const sheetName = this.sanitizeSheetName(requestTypeName);
-
-      // Update the row using appendOrUpdateRow with match on Request ID
-      await this.googleSheetsService.appendOrUpdateRow(
-        connectedUserId,
-        workspaceId,
-        spreadsheetId,
-        sheetName,
-        {
-          'Request ID': requestId,
-          Status: newStatus,
-        },
-        {
-          columnToMatchOn: 'Request ID',
-          valueToMatch: requestId,
-          appendIfNotFound: false, // Don't append if not found, just skip
-        },
-      );
-
-      this.logger.log(
-        `[Google Sheets Update] Successfully updated status for request ${requestId} to ${newStatus}`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `[Google Sheets Update] Failed to update status for request ${requestId}: ${error.message}`,
-        error.stack,
-      );
-      // Don't throw - this is a non-critical operation
-    }
   }
 
   async getApprovalRequests(
@@ -716,22 +421,6 @@ export class ApprovalsService {
         updated_at: new Date().toISOString(),
       });
 
-      // Handle expense approval if this is a Budget Expense Approval
-      if (request.requestType?.name === 'Budget Expense Approval' && request.data?.expenseId) {
-        try {
-          await this.budgetService.handleExpenseApproval(
-            workspaceId,
-            request.data.expenseId,
-            userId,
-          );
-          this.logger.log(
-            `Expense ${request.data.expenseId} approved via approval request ${requestId}`,
-          );
-        } catch (error) {
-          this.logger.error(`Failed to approve expense ${request.data.expenseId}:`, error);
-        }
-      }
-
       // Notify requester
       try {
         await this.notificationsService.sendNotification({
@@ -754,18 +443,6 @@ export class ApprovalsService {
         });
       } catch (error) {
         console.error('Failed to send approval notification:', error);
-      }
-
-      // Update status in Google Sheets (async, don't block the request)
-      if (request.requestType?.name) {
-        this.updateRequestStatusInGoogleSheets(
-          workspaceId,
-          requestId,
-          request.requestType.name,
-          RequestStatus.APPROVED,
-        ).catch((error) => {
-          this.logger.warn(`Failed to update Google Sheets status: ${error.message}`);
-        });
       }
 
       // Emit WebSocket event for real-time status update
@@ -835,22 +512,6 @@ export class ApprovalsService {
       updated_at: new Date().toISOString(),
     });
 
-    // Handle expense rejection if this is a Budget Expense Approval
-    if (request.requestType?.name === 'Budget Expense Approval' && request.data?.expenseId) {
-      try {
-        await this.budgetService.handleExpenseRejection(
-          workspaceId,
-          request.data.expenseId,
-          dto.reason,
-        );
-        this.logger.log(
-          `Expense ${request.data.expenseId} rejected via approval request ${requestId}`,
-        );
-      } catch (error) {
-        this.logger.error(`Failed to reject expense ${request.data.expenseId}:`, error);
-      }
-    }
-
     // Notify requester
     try {
       await this.notificationsService.sendNotification({
@@ -874,18 +535,6 @@ export class ApprovalsService {
       });
     } catch (error) {
       console.error('Failed to send rejection notification:', error);
-    }
-
-    // Update status in Google Sheets (async, don't block the request)
-    if (request.requestType?.name) {
-      this.updateRequestStatusInGoogleSheets(
-        workspaceId,
-        requestId,
-        request.requestType.name,
-        RequestStatus.REJECTED,
-      ).catch((error) => {
-        this.logger.warn(`Failed to update Google Sheets status: ${error.message}`);
-      });
     }
 
     // Emit WebSocket event for real-time status update

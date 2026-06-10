@@ -51,7 +51,6 @@ import { TaskListView } from './task-list-view'
 import { TimelineView } from './timeline-view'
 import { GanttView } from './gantt-view'
 import { TeamView } from './team-view'
-import { ProjectBudgets } from './ProjectBudgets'
 import { CreateTaskModal } from './create-task-modal'
 import { TaskDetailModal } from './task-detail-modal'
 import { useAuth } from '@/contexts/AuthContext'
@@ -100,14 +99,6 @@ export function UnifiedTaskView({
   const { user } = useAuth()
   const { members } = useWorkspace()
   const intl = useIntl()
-
-  // Check user permissions for budgets
-  const userRole = useMemo(() => {
-    const currentUserMembership = members.find(m => m.user_id === user?.id);
-    return currentUserMembership?.role || 'member';
-  }, [members, user?.id]);
-
-  const canManageBudgets = userRole === 'admin' || userRole === 'owner';
 
   // Delete task mutation
   const deleteTaskMutation = useDeleteTask()
@@ -1325,15 +1316,7 @@ export function UnifiedTaskView({
           <TeamView tasks={filteredTasks} onAddTask={handleAddTask} />
         )}
 
-        {currentView === 'budgets' && (
-          <ProjectBudgets
-            workspaceId={workspaceId}
-            projectId={projectId}
-            canManageBudgets={canManageBudgets}
-          />
-        )}
-
-        {!['board', 'list', 'timeline', 'gantt', 'team', 'budgets'].includes(currentView) && (
+        {!['board', 'list', 'timeline', 'gantt', 'team'].includes(currentView) && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <p className="text-gray-500">This view is coming soon</p>

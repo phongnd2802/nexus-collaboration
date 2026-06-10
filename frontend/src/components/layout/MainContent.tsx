@@ -18,7 +18,6 @@ import {
   Search,
   Link2,
   BarChart3,
-  Radio,
   FileIcon,
   Mail,
 } from 'lucide-react'
@@ -44,7 +43,6 @@ const viewConfigs: Record<string, { titleKey: string; icon: LucideIcon }> = {
   settings: { titleKey: 'navigation.settings', icon: Settings },
   integrations: { titleKey: 'pageTitle.integrations', icon: Link2 },
   analytics: { titleKey: 'pageTitle.analytics', icon: BarChart3 },
-  monitoring: { titleKey: 'pageTitle.monitoring', icon: Radio },
 }
 
 export function MainContent({
@@ -55,12 +53,6 @@ export function MainContent({
 }: MainContentProps) {
   const intl = useIntl()
   const location = useLocation()
-
-  // Check if we're on the whiteboard page - should be full screen without header
-  const isWhiteboardPage = location.pathname.includes('/whiteboard')
-
-  // Check if we're on a budget page - should not show the header
-  const isBudgetPage = location.pathname.includes('/budget')
 
   const config = viewConfigs[currentView] || { titleKey: 'pageTitle.view', icon: FileIcon }
   const title = intl.formatMessage({ id: config.titleKey, defaultMessage: 'View' })
@@ -74,17 +66,6 @@ export function MainContent({
     window.dispatchEvent(new Event('nexus:layout-changed'))
     onToggleSidebar('left')
     setTimeout(() => window.dispatchEvent(new Event('nexus:layout-changed')), 320)
-  }
-
-  // For whiteboard and budget, render full-screen content without header
-  if (isWhiteboardPage || isBudgetPage) {
-    return (
-      <main className="flex-1 bg-background flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
-      </main>
-    )
   }
 
   return (

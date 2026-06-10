@@ -16,11 +16,9 @@ import {
   FolderOpen,
   FileText,
   Calendar,
-  PenTool,
   Bot,
   FormInput,
   CheckSquare,
-  Wallet,
   Plug,
   Search,
   Globe,
@@ -64,12 +62,10 @@ const CAPABILITIES: Array<{ icon: typeof MessageSquare; title: string; desc: str
   { icon: FolderOpen,    accent: 'amber',   title: 'File Management',       desc: 'Versioning, sharing, and Google Drive integration.' },
   { icon: FileText,      accent: 'emerald', title: 'Collaborative Notes',   desc: 'Block-based editor with real-time collaboration.' },
   { icon: Calendar,      accent: 'indigo',  title: 'Calendar & Scheduling', desc: 'Events, recurring meetings, rooms, availability.' },
-  { icon: PenTool,       accent: 'cyan',    title: 'Whiteboard',            desc: 'Visual workspace for brainstorming and planning.' },
   { icon: Bot,           accent: 'fuchsia', title: 'AI AutoPilot',          desc: 'Scheduling, meeting intelligence, document analysis.' },
   { icon: FormInput,     accent: 'sky',     title: 'Forms & Analytics',     desc: 'Custom form builder with response tracking.' },
   { icon: CheckSquare,   accent: 'emerald', title: 'Approval Workflows',    desc: 'Built-in approvals for documents and processes.' },
-  { icon: Wallet,        accent: 'amber',   title: 'Budget Tracking',       desc: 'Expenses, billing rates, budget monitoring.' },
-  { icon: Plug,          accent: 'violet',  title: 'Integrations',          desc: 'Slack, Google Drive, GitHub, Dropbox, and more.' },
+  { icon: Plug,          accent: 'violet',  title: 'Integrations',          desc: 'Google Drive, GitHub, Dropbox, and more.' },
   { icon: Search,        accent: 'indigo',  title: 'Semantic Search',       desc: 'AI-powered search across all content types.' },
   { icon: Globe,         accent: 'cyan',    title: 'Internationalization',  desc: 'Multi-language support, expandable.' },
 ];
@@ -78,7 +74,7 @@ const STEPS = [
   { n: 1, title: 'Create Your Workspace',     desc: 'Set up team workspaces with channels, projects, and custom roles.' },
   { n: 2, title: 'Communicate in Real-Time',  desc: 'Chat with threads, reactions, mentions, GIFs, and HD video calls.' },
   { n: 3, title: 'Manage Projects',           desc: 'Kanban boards, sprints, task dependencies, and time tracking.' },
-  { n: 4, title: 'Collaborate on Documents',  desc: 'Share notes, whiteboards, and files with version control.' },
+  { n: 4, title: 'Collaborate on Documents',  desc: 'Share notes and files with version control.' },
   { n: 5, title: 'Automate with AI',          desc: 'Let AutoPilot handle scheduling, summaries, and daily briefings.' },
 ];
 
@@ -123,8 +119,8 @@ const COMPARISON_ROWS = [
 const MODULE_CATEGORIES = [
   { title: 'Communication',      modules: 'Chat, Video Calls, Email (Gmail OAuth, SMTP/IMAP), Notifications' },
   { title: 'Project Management', modules: 'Tasks, Milestones, Sprints, Kanban, Time Tracking, Dependencies' },
-  { title: 'Content',            modules: 'Notes, Documents (digital signatures), Whiteboards, File Management' },
-  { title: 'Productivity',       modules: 'Calendar, Forms, Approvals, Budgets' },
+  { title: 'Content',            modules: 'Notes, Documents (digital signatures), File Management' },
+  { title: 'Productivity',       modules: 'Calendar, Forms, Approvals' },
   { title: 'AI & Automation',    modules: 'AutoPilot, Meeting Intelligence, Document Analysis, Bots' },
   { title: 'Platform',           modules: 'Auth (OAuth, SSO), Roles & Permissions, Search, Analytics, Integrations' },
 ];

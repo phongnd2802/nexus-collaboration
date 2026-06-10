@@ -2,12 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { googleDriveApi, type GoogleDriveConnection } from '@/lib/api/google-drive-api';
 import { emailService, type EmailConnection } from '@/lib/api/email-api';
 import { googleCalendarApi, type GoogleCalendarConnection } from '@/lib/api/calendar-api';
 import { githubApi, type GitHubConnection } from '@/lib/api/github-api';
-import { googleSheetsApi, type GoogleSheetsConnection } from '@/lib/api/google-sheets-api';
-import dropboxApi, { type DropboxConnection } from '@/lib/api/dropbox-api';
 import {
   useIntegrationCatalog,
   useUserConnections,
@@ -20,9 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Loader2, Check, ExternalLink, LogOut, Github, FileSpreadsheet, Search, Grid3X3, List } from 'lucide-react';
-import { GoogleDriveBrowser } from './GoogleDriveBrowser';
-import GoogleSheetsBrowser from './GoogleSheetsBrowser';
+import { Loader2, Check, ExternalLink, LogOut, Github, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Whether a catalog integration is "connectable right now" is decided
@@ -46,10 +41,6 @@ const CATEGORY_TABS: Array<{ id: string; categories: string[] }> = [
 ];
 
 // App logos
-const GoogleDriveLogo = () => (
-  <img src="/icons/drive.png" alt="Google Drive" className="w-10 h-10 object-contain" />
-);
-
 const GmailLogo = () => (
   <img src="/icons/gmail.png" alt="Gmail" className="w-10 h-10 object-contain" />
 );
@@ -62,16 +53,6 @@ const GitHubLogo = () => (
   <div className="w-10 h-10 flex items-center justify-center">
     <Github className="w-8 h-8 text-foreground" />
   </div>
-);
-
-const GoogleSheetsLogo = () => (
-  <div className="w-10 h-10 flex items-center justify-center rounded bg-green-100 dark:bg-green-900/30">
-    <FileSpreadsheet className="w-7 h-7 text-green-600 dark:text-green-400" />
-  </div>
-);
-
-const DropboxLogo = () => (
-  <img src="https://cfl.dropboxstatic.com/static/images/logo_catalog/dropbox_logo_glyph_2024.svg" alt="Dropbox" className="w-10 h-10 object-contain" />
 );
 
 interface AppCardProps {
@@ -250,34 +231,23 @@ function AppsGrid() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Connection states for hardcoded integrations
-  const [googleDriveConnection, setGoogleDriveConnection] = useState<GoogleDriveConnection | null>(null);
   const [gmailConnection, setGmailConnection] = useState<EmailConnection | null>(null);
   const [calendarConnection, setCalendarConnection] = useState<GoogleCalendarConnection | null>(null);
   const [githubConnection, setGithubConnection] = useState<GitHubConnection | null>(null);
-  const [googleSheetsConnection, setGoogleSheetsConnection] = useState<GoogleSheetsConnection | null>(null);
-  const [dropboxConnection, setDropboxConnection] = useState<DropboxConnection | null>(null);
-
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
-  const [isConnectingDrive, setIsConnectingDrive] = useState(false);
-  const [isDisconnectingDrive, setIsDisconnectingDrive] = useState(false);
   const [isConnectingGmail, setIsConnectingGmail] = useState(false);
   const [isDisconnectingGmail, setIsDisconnectingGmail] = useState(false);
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
   const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
   const [isConnectingGithub, setIsConnectingGithub] = useState(false);
   const [isDisconnectingGithub, setIsDisconnectingGithub] = useState(false);
-  const [isConnectingSheets, setIsConnectingSheets] = useState(false);
-  const [isDisconnectingSheets, setIsDisconnectingSheets] = useState(false);
-  const [isConnectingDropbox, setIsConnectingDropbox] = useState(false);
-  const [isDisconnectingDropbox, setIsDisconnectingDropbox] = useState(false);
-
   // Fetch catalog integrations
   const { data: catalogData, isLoading: catalogLoading } = useIntegrationCatalog({ limit: 200 });
   const { data: connectionsData } = useUserConnections(workspaceId || '');
 
   // Slugs of integrations that have hardcoded handlers
-  const hardcodedSlugs = ['google-drive', 'gmail', 'google-calendar', 'github', 'google-sheets', 'dropbox'];
+  const hardcodedSlugs = ['gmail', 'google-calendar', 'github'];
 
   // Filter integrations by selected tab and search query
   const filteredIntegrations = useMemo(() => {
@@ -319,20 +289,16 @@ function AppsGrid() {
   // Check for OAuth callback result in URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const driveSuccess = urlParams.get('google_drive_success');
-    const driveError = urlParams.get('google_drive_error');
     const emailConnected = urlParams.get('emailConnected');
     const calendarConnected = urlParams.get('calendarConnected');
     const githubConnected = urlParams.get('githubConnected');
     const githubError = urlParams.get('githubError');
-    const sheetsConnected = urlParams.get('google_sheets_success');
-    const sheetsError = urlParams.get('google_sheets_error');
 
-    if (driveSuccess === 'true' || emailConnected || calendarConnected || githubConnected || sheetsConnected === 'true') {
+    if (emailConnected || calendarConnected || githubConnected) {
       window.history.replaceState({}, '', window.location.pathname);
       loadConnections();
-    } else if (driveError || githubError || sheetsError) {
-      console.error('OAuth error:', driveError || githubError || sheetsError);
+    } else if (githubError) {
+      console.error('OAuth error:', githubError);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
@@ -347,21 +313,14 @@ function AppsGrid() {
 
     try {
       setIsLoading(true);
-      const [driveConn, emailConn, calendarConn, githubConn, sheetsConn, dropboxConn] = await Promise.all([
-        googleDriveApi.getConnection(workspaceId).catch(() => null),
+      const [emailConn, calendarConn, githubConn] = await Promise.all([
         emailService.getConnection(workspaceId).catch(() => null),
         googleCalendarApi.getConnection(workspaceId).catch(() => null),
         githubApi.getConnection(workspaceId).catch(() => null),
-        googleSheetsApi.getConnection(workspaceId).catch(() => null),
-        dropboxApi.getConnection(workspaceId).catch(() => null),
       ]);
-
-      setGoogleDriveConnection(driveConn);
-      setGmailConnection(emailConn?.data ?? null);
-      setCalendarConnection(calendarConn?.data ?? null);
+      setGmailConnection(emailConn);
+      setCalendarConnection(calendarConn);
       setGithubConnection(githubConn);
-      setGoogleSheetsConnection(sheetsConn);
-      setDropboxConnection(dropboxConn);
     } catch (error) {
       console.error('Failed to load connections:', error);
     } finally {
@@ -370,34 +329,6 @@ function AppsGrid() {
   };
 
   // Handlers for hardcoded integrations
-  const handleConnectGoogleDrive = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingDrive(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await googleDriveApi.getAuthUrl(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get Google Drive auth URL:', error);
-      setIsConnectingDrive(false);
-    }
-  };
-
-  const handleDisconnectGoogleDrive = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingDrive(true);
-      await googleDriveApi.disconnect(workspaceId);
-      setGoogleDriveConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect Google Drive:', error);
-    } finally {
-      setIsDisconnectingDrive(false);
-    }
-  };
-
-  const handleOpenGoogleDrive = () => navigate(`/workspaces/${workspaceId}/apps/google-drive`);
-
   const handleConnectGmail = async () => {
     if (!workspaceId) return;
     try {
@@ -486,62 +417,6 @@ function AppsGrid() {
     }
   };
 
-  const handleConnectGoogleSheets = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingSheets(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await googleSheetsApi.connect(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get Google Sheets auth URL:', error);
-      setIsConnectingSheets(false);
-    }
-  };
-
-  const handleDisconnectGoogleSheets = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingSheets(true);
-      await googleSheetsApi.disconnect(workspaceId);
-      setGoogleSheetsConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect Google Sheets:', error);
-    } finally {
-      setIsDisconnectingSheets(false);
-    }
-  };
-
-  const handleOpenGoogleSheets = () => navigate(`/workspaces/${workspaceId}/apps/google-sheets`);
-
-  const handleConnectDropbox = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingDropbox(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await dropboxApi.getAuthUrl(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get Dropbox auth URL:', error);
-      setIsConnectingDropbox(false);
-    }
-  };
-
-  const handleDisconnectDropbox = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingDropbox(true);
-      await dropboxApi.disconnect(workspaceId);
-      setDropboxConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect Dropbox:', error);
-    } finally {
-      setIsDisconnectingDropbox(false);
-    }
-  };
-
-  const handleOpenDropbox = () => navigate(`/workspaces/${workspaceId}/apps/dropbox`);
-
   // Check if hardcoded apps should show based on selected category
   const shouldShowHardcodedApps = useMemo(() => {
     if (selectedTab === 'all') return true;
@@ -552,10 +427,7 @@ function AppsGrid() {
     const hardcodedCategories: Record<string, string[]> = {
       gmail: ['EMAIL', 'PRODUCTIVITY'],
       'google-calendar': ['CALENDAR', 'PRODUCTIVITY'],
-      'google-drive': ['FILE_STORAGE', 'PRODUCTIVITY'],
       github: ['DEVELOPMENT'],
-      'google-sheets': ['FILE_STORAGE', 'PRODUCTIVITY'],
-      dropbox: ['FILE_STORAGE', 'PRODUCTIVITY'],
     };
 
     // Check if any hardcoded app matches the selected category
@@ -567,26 +439,20 @@ function AppsGrid() {
   // Individual hardcoded app visibility
   const showGmail = selectedTab === 'all' || selectedTab === 'productivity';
   const showCalendar = selectedTab === 'all' || selectedTab === 'productivity';
-  const showDrive = selectedTab === 'all' || selectedTab === 'productivity';
   const showGithub = selectedTab === 'all' || selectedTab === 'development';
-  const showSheets = selectedTab === 'all' || selectedTab === 'productivity';
-  const showDropbox = selectedTab === 'all' || selectedTab === 'productivity';
-
   // Filter hardcoded apps by search
   const searchFilteredHardcoded = useMemo(() => {
     if (!searchQuery.trim()) {
-      return { gmail: showGmail, calendar: showCalendar, drive: showDrive, github: showGithub, sheets: showSheets, dropbox: showDropbox };
+      return { gmail: showGmail, calendar: showCalendar, github: showGithub };
     }
     const query = searchQuery.toLowerCase();
     return {
       gmail: showGmail && 'gmail email'.includes(query),
       calendar: showCalendar && 'google calendar'.includes(query),
-      drive: showDrive && 'google drive storage'.includes(query),
       github: showGithub && 'github development code'.includes(query),
-      sheets: showSheets && 'google sheets spreadsheet'.includes(query),
-      dropbox: showDropbox && 'dropbox storage files'.includes(query),
+
     };
-  }, [searchQuery, showGmail, showCalendar, showDrive, showGithub, showSheets, showDropbox]);
+  }, [searchQuery, showGmail, showCalendar, showGithub]);
 
   const hasHardcodedApps = Object.values(searchFilteredHardcoded).some(Boolean);
 
@@ -693,21 +559,6 @@ function AppsGrid() {
           />
         )}
 
-        {searchFilteredHardcoded.drive && (
-          <AppCard
-            name="Google Drive"
-            description={intl.formatMessage({ id: 'apps.descriptions.googleDrive', defaultMessage: 'Access and manage your Google Drive files' })}
-            icon={<GoogleDriveLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.fileStorage', defaultMessage: 'File Storage' })}
-            isConnected={!!googleDriveConnection}
-            isLoading={isConnectingDrive || isDisconnectingDrive}
-            connectionInfo={googleDriveConnection?.googleEmail ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} ${googleDriveConnection.googleEmail}` : undefined}
-            onConnect={handleConnectGoogleDrive}
-            onOpen={handleOpenGoogleDrive}
-            onDisconnect={handleDisconnectGoogleDrive}
-          />
-        )}
-
         {searchFilteredHardcoded.github && (
           <AppCard
             name="GitHub"
@@ -720,36 +571,6 @@ function AppsGrid() {
             onConnect={handleConnectGithub}
             onOpen={handleOpenGithub}
             onDisconnect={handleDisconnectGithub}
-          />
-        )}
-
-        {searchFilteredHardcoded.sheets && (
-          <AppCard
-            name="Google Sheets"
-            description={intl.formatMessage({ id: 'apps.descriptions.googleSheets', defaultMessage: 'Work with Google Sheets spreadsheets' })}
-            icon={<GoogleSheetsLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.fileStorage', defaultMessage: 'File Storage' })}
-            isConnected={!!googleSheetsConnection}
-            isLoading={isConnectingSheets || isDisconnectingSheets}
-            connectionInfo={googleSheetsConnection?.googleEmail ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} ${googleSheetsConnection.googleEmail}` : undefined}
-            onConnect={handleConnectGoogleSheets}
-            onOpen={handleOpenGoogleSheets}
-            onDisconnect={handleDisconnectGoogleSheets}
-          />
-        )}
-
-        {searchFilteredHardcoded.dropbox && (
-          <AppCard
-            name="Dropbox"
-            description={intl.formatMessage({ id: 'apps.descriptions.dropbox', defaultMessage: 'Access and manage your Dropbox files' })}
-            icon={<DropboxLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.fileStorage', defaultMessage: 'File Storage' })}
-            isConnected={!!dropboxConnection}
-            isLoading={isConnectingDropbox || isDisconnectingDropbox}
-            connectionInfo={dropboxConnection?.dropboxEmail ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} ${dropboxConnection.dropboxEmail}` : undefined}
-            onConnect={handleConnectDropbox}
-            onOpen={handleOpenDropbox}
-            onDisconnect={handleDisconnectDropbox}
           />
         )}
 
@@ -818,8 +639,6 @@ export function AppsPage() {
   return (
     <Routes>
       <Route path="/" element={<AppsGrid />} />
-      <Route path="/google-drive/*" element={<GoogleDriveBrowser />} />
-      <Route path="/google-sheets/*" element={<GoogleSheetsBrowser />} />
     </Routes>
   );
 }

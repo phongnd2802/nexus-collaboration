@@ -8,7 +8,6 @@ import { useParams } from 'react-router-dom';
 import { Loader2, Link, Unlink, Key, ExternalLink, AlertCircle } from 'lucide-react';
 import { useIntl } from 'react-intl';
 import { Button } from '@/components/ui/button';
-import dropboxApi from '@/lib/api/dropbox-api';
 import {
   Dialog,
   DialogContent,
@@ -90,14 +89,7 @@ export function IntegrationConnectButton({
       setIsRedirecting(true);
       const returnUrl = `${window.location.origin}/workspaces/${workspaceId}/apps`;
 
-      // Use dedicated Dropbox API instead of generic
-      if (integration.slug === 'dropbox') {
-        const response = await dropboxApi.getAuthUrl(workspaceId, returnUrl);
-        window.location.href = response.authorizationUrl;
-        return;
-      }
-
-      // Generic OAuth for other integrations
+      // Generic OAuth flow
       const response = await initiateOAuth.mutateAsync({
         workspaceId,
         slug: integration.slug,
@@ -158,15 +150,10 @@ export function IntegrationConnectButton({
     if (!workspaceId || !connection) return;
 
     try {
-      // Use dedicated Dropbox API instead of generic
-      if (integration.slug === 'dropbox') {
-        await dropboxApi.disconnect(workspaceId);
-      } else {
-        await disconnectIntegration.mutateAsync({
-          workspaceId,
-          connectionId: connection.id,
-        });
-      }
+      await disconnectIntegration.mutateAsync({
+        workspaceId,
+        connectionId: connection.id,
+      });
 
       setShowDisconnectDialog(false);
 

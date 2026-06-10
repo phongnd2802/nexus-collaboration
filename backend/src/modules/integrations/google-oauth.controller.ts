@@ -1,8 +1,6 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
-import { GoogleDriveService } from '../integration-framework/google-drive/google-drive.service';
-import { GoogleSheetsService } from '../integration-framework/google-sheets/google-sheets.service';
 import { EmailService } from '../integration-framework/email/email.service';
 import { GoogleCalendarSyncService } from '../calendar/google-calendar-sync.service';
 import { GenericOAuthService } from '../integration-framework/services/generic-oauth.service';
@@ -12,7 +10,7 @@ import { CatalogService } from '../integration-framework/services/catalog.servic
 /**
  * Unified Google OAuth Callback Controller
  *
- * This controller handles OAuth callbacks for all Google services (Drive, Gmail, etc.)
+ * This controller handles OAuth callbacks for Google services (Gmail, etc.)
  * using a single redirect URI. The 'service' field in the state parameter determines
  * which service handler to use.
  *
@@ -21,26 +19,25 @@ import { CatalogService } from '../integration-framework/services/catalog.servic
  * Supported services:
  * - gmail, email: Gmail integration
  * - calendar, google-calendar: Google Calendar
- * - sheets, google-sheets: Google Sheets
- * - drive, google-drive: Google Drive (default)
  * - google-chat: Google Chat
  * - google-meet: Google Meet
  * - google-cloud: Google Cloud Platform
  * - google-analytics: Google Analytics
- * - youtube: YouTube
  */
 @ApiTags('integrations')
 @Controller('integrations/google')
 export class GoogleOAuthController {
   constructor(
-    private readonly googleDriveService: GoogleDriveService,
-    private readonly googleSheetsService: GoogleSheetsService,
     private readonly emailService: EmailService,
     private readonly googleCalendarSyncService: GoogleCalendarSyncService,
     private readonly genericOAuthService: GenericOAuthService,
     private readonly connectionService: ConnectionService,
     private readonly catalogService: CatalogService,
   ) {}
+
+  private getErrorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : 'unknown_error';
+  }
 
   @Get('callback')
   @ApiOperation({ summary: 'Unified Google OAuth callback for all services' })
@@ -75,7 +72,7 @@ export class GoogleOAuthController {
         return res.redirect(`${frontendUrl}?google_error=invalid_state`);
       }
 
-      const service = stateData.service || 'drive'; // Default to drive for backwards compatibility
+      const service = stateData.service || 'gmail';
       const workspaceId = stateData.workspaceId;
 
       console.log(`Google OAuth callback for service: ${service}, workspace: ${workspaceId}`);
@@ -90,29 +87,20 @@ export class GoogleOAuthController {
         case 'google-calendar':
           return await this.handleCalendarCallback(code, stateData, res, frontendUrl);
 
-        case 'sheets':
-        case 'google-sheets':
-          return await this.handleSheetsCallback(code, state, stateData, res, frontendUrl);
-
-        case 'drive':
-        case 'google-drive':
-          return await this.handleDriveCallback(code, state, stateData, res, frontendUrl);
-
         // New Google services using generic OAuth handler
         case 'google-chat':
         case 'google-meet':
         case 'google-cloud':
         case 'google-analytics':
-        case 'youtube':
           return await this.handleGenericGoogleCallback(code, service, stateData, res, frontendUrl);
 
         default:
-          return await this.handleDriveCallback(code, state, stateData, res, frontendUrl);
+          return await this.handleGmailCallback(code, state, stateData, res, frontendUrl);
       }
     } catch (err) {
       console.error('Google OAuth callback error:', err);
       return res.redirect(
-        `${frontendUrl}?google_error=${encodeURIComponent(err.message || 'unknown_error')}`,
+        `${frontendUrl}?google_error=${encodeURIComponent(this.getErrorMessage(err))}`,
       );
     }
   }
@@ -151,7 +139,7 @@ export class GoogleOAuthController {
         stateData.returnUrl || `${frontendUrl}/workspaces/${stateData.workspaceId}/email`;
 
       const separator = returnUrl.includes('?') ? '&' : '?';
-      const errorUrl = `${returnUrl}${separator}emailError=${encodeURIComponent(err.message || 'unknown_error')}`;
+      const errorUrl = `${returnUrl}${separator}emailError=${encodeURIComponent(this.getErrorMessage(err))}`;
 
       // Check if returnUrl is a custom scheme (mobile app deep link)
       if (this.isCustomScheme(returnUrl)) {
@@ -314,7 +302,7 @@ export class GoogleOAuthController {
         stateData.returnUrl || `${frontendUrl}/workspaces/${stateData.workspaceId}/calendar`;
 
       const separator = returnUrl.includes('?') ? '&' : '?';
-      const errorUrl = `${returnUrl}${separator}calendarError=${encodeURIComponent(err.message || 'unknown_error')}`;
+      const errorUrl = `${returnUrl}${separator}calendarError=${encodeURIComponent(this.getErrorMessage(err))}`;
 
       // Check if returnUrl is a custom scheme (mobile app deep link)
       if (this.isCustomScheme(returnUrl)) {
@@ -322,140 +310,6 @@ export class GoogleOAuthController {
       }
 
       return res.redirect(errorUrl);
-    }
-  }
-
-  /**
-   * Handle Google Sheets OAuth callback
-   */
-  private async handleSheetsCallback(
-    code: string,
-    state: string,
-    stateData: any,
-    res: Response,
-    frontendUrl: string,
-  ) {
-    try {
-      const connection = await this.googleSheetsService.handleOAuthCallback(code, state);
-
-      // Check if returnUrl was provided (for mobile deep link)
-      const returnUrl = stateData.returnUrl;
-
-      if (returnUrl) {
-        // Build redirect URL with success params
-        const separator = returnUrl.includes('?') ? '&' : '?';
-        const redirectUrl = `${returnUrl}${separator}success=true&google_sheets_connected=true&email=${encodeURIComponent(connection.googleEmail || '')}`;
-
-        console.log('Google Sheets OAuth redirect URL:', redirectUrl);
-
-        // Check if returnUrl is a custom scheme (mobile app deep link)
-        if (this.isCustomScheme(returnUrl)) {
-          return this.sendDeepLinkPage(res, redirectUrl, 'Google Sheets Connected Successfully');
-        }
-
-        return res.redirect(redirectUrl);
-      }
-
-      // Default: redirect to web frontend
-      return res.redirect(
-        `${frontendUrl}/workspaces/${connection.workspaceId}/settings/integrations?google_sheets_success=true`,
-      );
-    } catch (err) {
-      console.error('Google Sheets OAuth callback error:', err);
-
-      const errorMessage = err.message || 'unknown_error';
-
-      // Check if returnUrl was provided (for mobile deep link)
-      const returnUrl = stateData.returnUrl;
-
-      if (returnUrl) {
-        const separator = returnUrl.includes('?') ? '&' : '?';
-        const errorUrl = `${returnUrl}${separator}error=${encodeURIComponent(errorMessage)}`;
-
-        // Check if returnUrl is a custom scheme (mobile app deep link)
-        if (this.isCustomScheme(returnUrl)) {
-          return this.sendDeepLinkPage(
-            res,
-            errorUrl,
-            'Google Sheets Connection Failed',
-            errorMessage,
-          );
-        }
-
-        return res.redirect(errorUrl);
-      }
-
-      // Default: redirect to web frontend
-      return res.redirect(
-        `${frontendUrl}/settings/integrations?google_sheets_error=${encodeURIComponent(errorMessage)}`,
-      );
-    }
-  }
-
-  /**
-   * Handle Google Drive OAuth callback
-   */
-  private async handleDriveCallback(
-    code: string,
-    state: string,
-    stateData: any,
-    res: Response,
-    frontendUrl: string,
-  ) {
-    try {
-      const connection = await this.googleDriveService.handleOAuthCallback(code, state);
-
-      // Check if returnUrl was provided (for mobile deep link)
-      const returnUrl = stateData.returnUrl;
-
-      if (returnUrl) {
-        // Build redirect URL with success params
-        const separator = returnUrl.includes('?') ? '&' : '?';
-        const redirectUrl = `${returnUrl}${separator}success=true&google_drive_connected=true&email=${encodeURIComponent(connection.googleEmail || '')}`;
-
-        console.log('Google Drive OAuth redirect URL:', redirectUrl);
-
-        // Check if returnUrl is a custom scheme (mobile app deep link)
-        if (this.isCustomScheme(returnUrl)) {
-          return this.sendDeepLinkPage(res, redirectUrl, 'Google Drive Connected Successfully');
-        }
-
-        return res.redirect(redirectUrl);
-      }
-
-      // Default: redirect to web frontend
-      return res.redirect(
-        `${frontendUrl}/workspaces/${connection.workspaceId}/settings/integrations?google_drive_success=true`,
-      );
-    } catch (err) {
-      console.error('Google Drive OAuth callback error:', err);
-
-      const errorMessage = err.message || 'unknown_error';
-
-      // Check if returnUrl was provided (for mobile deep link)
-      const returnUrl = stateData.returnUrl;
-
-      if (returnUrl) {
-        const separator = returnUrl.includes('?') ? '&' : '?';
-        const errorUrl = `${returnUrl}${separator}error=${encodeURIComponent(errorMessage)}`;
-
-        // Check if returnUrl is a custom scheme (mobile app deep link)
-        if (this.isCustomScheme(returnUrl)) {
-          return this.sendDeepLinkPage(
-            res,
-            errorUrl,
-            'Google Drive Connection Failed',
-            errorMessage,
-          );
-        }
-
-        return res.redirect(errorUrl);
-      }
-
-      // Default: redirect to web frontend
-      return res.redirect(
-        `${frontendUrl}/settings/integrations?google_drive_error=${encodeURIComponent(errorMessage)}`,
-      );
     }
   }
 
@@ -510,7 +364,7 @@ export class GoogleOAuthController {
     } catch (err) {
       console.error(`${service} OAuth callback error:`, err);
 
-      const errorMessage = err.message || 'unknown_error';
+      const errorMessage = this.getErrorMessage(err);
       const returnUrl =
         stateData.returnUrl ||
         `${frontendUrl}/workspaces/${stateData.workspaceId}/settings/integrations`;
@@ -542,7 +396,6 @@ export class GoogleOAuthController {
       'google-meet': 'Google Meet',
       'google-cloud': 'Google Cloud',
       'google-analytics': 'Google Analytics',
-      youtube: 'YouTube',
     };
     return names[service] || service;
   }

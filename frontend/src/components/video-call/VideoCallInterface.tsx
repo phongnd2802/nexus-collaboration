@@ -23,7 +23,6 @@ import {
   Maximize2,
   Minimize2,
   Sparkles,
-  PenTool,
   Settings,
   BarChart3,
   Captions,
@@ -309,21 +308,6 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
     toggleHandRaise()
     toast.success(isHandRaised ? 'Hand lowered' : 'Hand raised')
   }, [isHandRaised, toggleHandRaise])
-
-  // Handle whiteboard - Opens in new tab with session ID
-  const handleOpenWhiteboard = useCallback(() => {
-    const sessionId = Math.random().toString(36).substring(2, 11) + Date.now().toString(36)
-    const whiteboardUrl = `/whiteboard/${sessionId}`
-
-    window.open(whiteboardUrl, '_blank')
-
-    toast.success(
-      'Whiteboard opened!',
-      {
-        description: 'Link shared in chat'
-      }
-    )
-  }, [])
 
   // Handle leaving call with cleanup
   const handleLeaveCall = useCallback(() => {
@@ -886,11 +870,6 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
               <DropdownMenuItem onClick={() => setShowRecordingManager(true)}>
                 <Circle className="mr-2 h-4 w-4" />
                 Recording Manager
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={handleOpenWhiteboard}>
-                <PenTool className="mr-2 h-4 w-4" />
-                Open Whiteboard
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={() => setShowLiveAI(!showLiveAI)}>

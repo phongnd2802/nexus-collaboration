@@ -229,13 +229,8 @@ export interface ChannelMember {
 export interface LinkedContent {
   id: string;
   title: string;
-  type: 'notes' | 'events' | 'files' | 'drive' | 'poll';
+  type: 'notes' | 'events' | 'files' | 'poll';
   subtitle?: string;
-  // Drive-specific fields
-  driveFileUrl?: string;
-  driveThumbnailUrl?: string;
-  driveMimeType?: string;
-  driveFileSize?: number;
   // Poll-specific fields
   poll?: Poll;
 }

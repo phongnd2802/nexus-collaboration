@@ -176,12 +176,6 @@ const PROVIDERS: ProviderConcern[] = [
         envVars: ['RESEND_API_KEY'],
       },
       {
-        value: 'sendgrid',
-        title: 'SendGrid  [planned: #30]',
-        description: 'Enterprise standard, platform-level.',
-        envVars: ['SENDGRID_API_KEY'],
-      },
-      {
         value: 'postmark',
         title: 'Postmark  [planned: #30]',
         description: 'Fast transactional, message streams.',

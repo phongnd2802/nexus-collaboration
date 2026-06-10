@@ -16,7 +16,6 @@ const allLocaleMessages: Record<string, any> = {
 };
 import {
   MessageSquare,
-  Sparkles,
   Calendar,
   FileText,
   Video,
@@ -109,18 +108,6 @@ const getFeatures = (intl: ReturnType<typeof useIntl>) => {
       mediaType: 'video' as const,
       mediaSrc: 'https://cdn-dev.nexusapp.io/projects/4493aede-e31a-4da4-8645-ca3c3a3d99a4/a49766b5-7e80-4541-94b0-e2c1aded22dc-1768815551030-1768815547747-deskive_team_collaboration.mp4',
       link: '/features/teams',
-    },
-    {
-      id: 'tools',
-      icon: Sparkles,
-      title: featData.tools?.title || 'Collaborative Tools',
-      tagline: featData.tools?.tagline || 'Create Together',
-      description: featData.tools?.description || '',
-      features: featData.tools?.features || [],
-      color: 'emerald' as const,
-      mediaType: 'video' as const,
-      mediaSrc: 'https://cdn-dev.nexusapp.io/projects/4493aede-e31a-4da4-8645-ca3c3a3d99a4/8176683b-15f8-431f-a56d-cde57cf9301b-1768813961001-1768813954980-deskive_whiteboard.mp4',
-      link: '/features/tools',
     },
     {
       id: 'automation',

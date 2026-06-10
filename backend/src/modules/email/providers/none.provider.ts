@@ -20,7 +20,7 @@ export class NoneEmailProvider implements EmailProvider {
 
   constructor() {
     this.logger.log(
-      'Email is DISABLED (EMAIL_PROVIDER not set). To enable, set EMAIL_PROVIDER to one of: smtp, resend, sendgrid, postmark, ses, mailgun. See docs/providers/email.md.',
+      'Email is DISABLED (EMAIL_PROVIDER not set). To enable, set EMAIL_PROVIDER to one of: smtp, resend, postmark, ses, mailgun. See docs/providers/email.md.',
     );
   }
 
