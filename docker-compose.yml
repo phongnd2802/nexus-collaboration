@@ -95,6 +95,21 @@ services:
     depends_on:
       - seaweed-filer
 
+  # nexus-mcp:
+  #   build:
+  #     context: ./nexus-mcp
+  #   container_name: nexus-mcp
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${NEXUS_MCP_PORT:-8000}:8000"
+  #   environment:
+  #     MCP_SERVER_NAME: ${MCP_SERVER_NAME:-autopilot_core}
+  #     NEXUS_INTERNAL_API_URL: ${NEXUS_INTERNAL_API_URL:-http://host.docker.internal:3002/api/v1/internal/mcp}
+  #     NEXUS_INTERNAL_API_TOKEN: ${NEXUS_INTERNAL_API_TOKEN:-change-me}
+  #     REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-30}
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+
   # meilisearch:
   #   image: getmeili/meilisearch:latest
   #   container_name: nexus-meilisearch
