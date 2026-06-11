@@ -7,12 +7,10 @@ import {
   ClipboardCheck,
   ChevronRight,
   LayoutTemplate,
-  Bot,
   FileText,
 } from 'lucide-react';
 import { ApprovalsPage } from '../approvals';
 import TemplatesPage from '../templates/TemplatesPage';
-import BotsPage from '../bots/BotsPage';
 import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
 
 // Feature card component for built-in Nexus features
@@ -62,13 +60,6 @@ function MoreGrid() {
       icon: <FileText className="w-6 h-6" />,
       color: '#10b981',
       path: 'documents',
-    },
-    {
-      name: intl.formatMessage({ id: 'tools.bots.name', defaultMessage: 'Bots' }),
-      description: intl.formatMessage({ id: 'tools.bots.description', defaultMessage: 'Create automated bots for your workspace' }),
-      icon: <Bot className="w-6 h-6" />,
-      color: '#8b5cf6',
-      path: 'bots',
     },
     {
       name: intl.formatMessage({ id: 'tools.projectTemplates.name', defaultMessage: 'Project Templates' }),
@@ -132,7 +123,6 @@ export function MorePage() {
       <Route path="/documents/new" element={<NewDocument />} />
       <Route path="/documents/:documentId" element={<DocumentDetail />} />
       <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
-      <Route path="/bots/*" element={<BotsPage />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
       <Route path="/approvals/*" element={<ApprovalsPage />} />
     </Routes>

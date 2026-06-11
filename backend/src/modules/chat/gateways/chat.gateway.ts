@@ -13,8 +13,6 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ChatService } from '../chat.service';
 import { SendMessageDto } from '../dto';
-import { BotExecutionService } from '../../bots/services/bot-execution.service';
-import { BotMessageHandlerService } from '../../bots/services/bot-message-handler.service';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -39,10 +37,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private chatService: ChatService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    @Inject(forwardRef(() => BotExecutionService))
-    private botExecutionService: BotExecutionService,
-    @Inject(forwardRef(() => BotMessageHandlerService))
-    private botMessageHandler: BotMessageHandlerService,
   ) {}
 
   async handleConnection(client: AuthenticatedSocket) {
@@ -249,42 +243,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         user: { id: client.userId }, // In real app, fetch user details
       });
 
-      // Process bot message handler for DMs asynchronously
-      if (client.workspaceId && data.conversationId && this.botMessageHandler) {
-        this.logger.debug(
-          `[ChatGateway] Calling bot message handler for conversation ${data.conversationId}`,
-        );
-        this.botMessageHandler
-          .processMessage(
-            client.workspaceId,
-            data.conversationId,
-            message.id,
-            client.userId,
-            data.content || '',
-          )
-          .catch((err) => this.logger.error('Bot message handler error:', err));
-      } else {
-        this.logger.debug(
-          `[ChatGateway] Bot message handler NOT called - workspaceId: ${client.workspaceId}, conversationId: ${data.conversationId}, handler exists: ${!!this.botMessageHandler}`,
-        );
-      }
-
-      // Evaluate bot triggers asynchronously (don't block message sending)
-      if (client.workspaceId && this.botExecutionService) {
-        this.botExecutionService
-          .evaluateAndExecute({
-            messageId: message.id,
-            messageContent: data.content,
-            messageContentHtml: data.content_html,
-            channelId: data.channelId,
-            conversationId: data.conversationId,
-            workspaceId: client.workspaceId,
-            userId: client.userId,
-            mentions: data.mentions,
-            isThread: !!data.parent_id,
-          })
-          .catch((err) => this.logger.error('Bot execution error:', err));
-      }
     } catch (error) {
       client.emit('error', { message: 'Failed to send message' });
     }

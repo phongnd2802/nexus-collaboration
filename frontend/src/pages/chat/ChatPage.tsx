@@ -65,8 +65,7 @@ import { decryptMessageIfNeeded, retrieveConversationKey, encryptionService } fr
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { storageApi } from '@/lib/api/storage-api';
 import { useCreateVideoCall } from '@/lib/api/video-call-api';
-import { botsApi, useBots } from '@/lib/api/bots-api';
-import { useQuery } from '@tanstack/react-query';
+
 import type {
   Channel,
   Conversation,
@@ -201,7 +200,8 @@ const ChatPage: React.FC = () => {
   const { workspaceId, channelId } = useParams<{ workspaceId: string; channelId?: string }>();
   const { user } = useAuth();
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '');
-  const { data: bots = [] } = useBots(workspaceId || '');
+
+
   const queryClient = useQueryClient();
   const requestedDirectUserId = searchParams.get('userId');
 
@@ -262,37 +262,6 @@ const ChatPage: React.FC = () => {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [selectedChatType, setSelectedChatType] = useState<'channel' | 'conversation' | null>(null);
   const [selectedChatName, setSelectedChatName] = useState<string>('');
-
-  // Fetch bots installed in the current channel/conversation
-  const { data: installedBots = [] } = useQuery({
-    queryKey: ['installed-bots', workspaceId, selectedChatId, selectedChatType],
-    queryFn: async () => {
-      if (!workspaceId || !selectedChatId) return [];
-
-      try {
-        // Fetch all bots in workspace
-        const bots = await botsApi.getBots(workspaceId);
-
-        // Fetch installations for each bot and filter by current channel/conversation
-        const botsWithInstallations = await Promise.all(
-          bots.map(async (bot) => {
-            const installations = await botsApi.getInstallations(workspaceId, bot.id);
-            const isInstalledHere = installations.some(installation =>
-              (selectedChatType === 'channel' && installation.channelId === selectedChatId) ||
-              (selectedChatType === 'conversation' && installation.conversationId === selectedChatId)
-            );
-            return isInstalledHere ? bot : null;
-          })
-        );
-
-        return botsWithInstallations.filter(bot => bot !== null);
-      } catch (error) {
-        console.error('Failed to fetch installed bots:', error);
-        return [];
-      }
-    },
-    enabled: !!workspaceId && !!selectedChatId,
-  });
 
   // Message input
   const [messageInput, setMessageInput] = useState('');
@@ -2042,19 +2011,6 @@ const ChatPage: React.FC = () => {
       const otherParticipantId = conversation.participants.find((id: string) => id !== user?.id);
       let otherUser = workspaceMembers.find(m => m.user_id === otherParticipantId);
 
-      // If not found in workspace members, check if it's a bot
-      if (!otherUser) {
-        const bot = bots.find(b => b.id === otherParticipantId);
-        if (bot) {
-          otherUser = {
-            user: {
-              name: bot.displayName || bot.name,
-              email: `${bot.name}@bot.nexus.ai`
-            }
-          } as any;
-        }
-      }
-
       const displayName = otherUser?.user?.name || otherUser?.name || otherUser?.user?.email || 'Direct Message';
       setSelectedChatName(displayName);
     } else {
@@ -2087,19 +2043,6 @@ const ChatPage: React.FC = () => {
             setSelectedChatType('conversation');
             const otherParticipantId = updatedConversation.participants.find((id: string) => id !== user?.id);
             let otherUser = workspaceMembers.find(m => m.user_id === otherParticipantId);
-
-            // If not found in workspace members, check if it's a bot
-            if (!otherUser) {
-              const bot = bots.find(b => b.id === otherParticipantId);
-              if (bot) {
-                otherUser = {
-                  user: {
-                    name: bot.displayName || bot.name,
-                    email: `${bot.name}@bot.nexus.ai`
-                  }
-                } as any;
-              }
-            }
 
             const displayName = otherUser?.user?.name || otherUser?.name || otherUser?.user?.email || 'Direct Message';
             setSelectedChatName(displayName);
@@ -2142,7 +2085,7 @@ const ChatPage: React.FC = () => {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelId, workspaceId, conversations, channels, workspaceMembers, bots, user, loadingConversations, loadingChannels, navigate]);
+  }, [channelId, workspaceId, conversations, channels, workspaceMembers, user, loadingConversations, loadingChannels, navigate]);
 
   // Save last accessed chat to localStorage when a chat is selected
   useEffect(() => {
@@ -2728,20 +2671,7 @@ const ChatPage: React.FC = () => {
         isSpecialMention: true
       });
 
-      // Add installed bots as mentionable users
-      installedBots.forEach(bot => {
-        users.push({
-          id: bot.id,
-          name: bot.name,
-          email: bot.displayName || bot.description || 'Bot',
-          image: bot.avatarUrl,
-          role: 'member',
-          isOnline: bot.status === 'active',
-          isSpecialMention: false
-        });
-      });
 
-      
 
       if (isPrivateChannel) {
         // For private channels, use explicit channel members
@@ -2773,19 +2703,6 @@ const ChatPage: React.FC = () => {
         });
       }
     } else if (selectedChatType === 'conversation') {
-      // Add installed bots in conversations
-      installedBots.forEach(bot => {
-        users.push({
-          id: bot.id,
-          name: bot.name,
-          email: bot.displayName || bot.description || 'Bot',
-          image: bot.avatarUrl,
-          role: 'member',
-          isOnline: bot.status === 'active',
-          isSpecialMention: false
-        });
-      });
-
       // For conversations, use conversation members
       conversationMembers.forEach(member => {
         // Don't add current user to mention list
@@ -2801,7 +2718,7 @@ const ChatPage: React.FC = () => {
     }
 
     return users;
-  }, [channelMembers, workspaceMembers, conversationMembers, selectedChatType, selectedChatId, isPrivateChannel, user?.id, installedBots]);
+  }, [channelMembers, workspaceMembers, conversationMembers, selectedChatType, selectedChatId, isPrivateChannel, user?.id]);
 
   return (
     <div className="h-full flex bg-background dark:bg-background">

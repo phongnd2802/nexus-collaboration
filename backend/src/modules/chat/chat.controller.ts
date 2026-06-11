@@ -9,8 +9,6 @@ import {
   Put,
   UseGuards,
   Query,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,9 +34,6 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CurrentWorkspace } from '../../common/decorators/current-workspace.decorator';
-import { BotExecutionService } from '../bots/services/bot-execution.service';
-import { BotInstallationsService } from '../bots/services/bot-installations.service';
-import { BotsService } from '../bots/services/bots.service';
 
 @ApiTags('chat')
 @ApiBearerAuth()
@@ -47,12 +42,6 @@ import { BotsService } from '../bots/services/bots.service';
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,
-    @Inject(forwardRef(() => BotExecutionService))
-    private readonly botExecutionService: BotExecutionService,
-    @Inject(forwardRef(() => BotInstallationsService))
-    private readonly botInstallationsService: BotInstallationsService,
-    @Inject(forwardRef(() => BotsService))
-    private readonly botsService: BotsService,
   ) {}
 
   // Channel endpoints
@@ -224,20 +213,6 @@ export class ChatController {
       userId,
     );
 
-    // Trigger bot execution asynchronously (don't block response)
-    this.botExecutionService
-      .evaluateAndExecute({
-        messageId: message.id,
-        messageContent: sendMessageDto.content,
-        messageContentHtml: sendMessageDto.content_html,
-        channelId,
-        workspaceId,
-        userId,
-      })
-      .catch((err) => {
-        console.error('[ChatController] Bot execution error:', err.message);
-      });
-
     return message;
   }
 
@@ -266,43 +241,6 @@ export class ChatController {
   ) {
     const count = await this.chatService.getChannelUnreadCount(channelId, userId);
     return { count };
-  }
-
-  @Get('channels/:channelId/bots')
-  @ApiOperation({ summary: 'Get bots installed in a channel' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'channelId', description: 'Channel ID' })
-  @ApiResponse({ status: 200, description: 'List of bots installed in the channel' })
-  async getChannelBots(
-    @Param('workspaceId') workspaceId: string,
-    @Param('channelId') channelId: string,
-  ) {
-    // Get installations for this channel
-    const installations = await this.botInstallationsService.getInstallationsForChannel(channelId);
-
-    // Get full bot details for each installation
-    const bots = await Promise.all(
-      installations.map(async (installation) => {
-        try {
-          const bot = await this.botsService.findOne(installation.botId, workspaceId);
-          return {
-            ...bot,
-            installation: {
-              id: installation.id,
-              isActive: installation.isActive,
-              settingsOverride: installation.settingsOverride,
-              installedAt: installation.installedAt,
-            },
-          };
-        } catch (error) {
-          // Bot may have been deleted, skip it
-          return null;
-        }
-      }),
-    );
-
-    // Filter out null values (deleted bots)
-    return { data: bots.filter((bot) => bot !== null) };
   }
 
   // Conversation endpoints
@@ -409,20 +347,6 @@ export class ChatController {
       userId,
     );
 
-    // Trigger bot execution asynchronously (don't block response)
-    this.botExecutionService
-      .evaluateAndExecute({
-        messageId: message.id,
-        messageContent: sendMessageDto.content,
-        messageContentHtml: sendMessageDto.content_html,
-        conversationId,
-        workspaceId,
-        userId,
-      })
-      .catch((err) => {
-        console.error('[ChatController] Bot execution error:', err.message);
-      });
-
     return message;
   }
 
@@ -463,44 +387,6 @@ export class ChatController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.chatService.getConversationMembers(conversationId, userId);
-  }
-
-  @Get('conversations/:conversationId/bots')
-  @ApiOperation({ summary: 'Get bots installed in a conversation' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'conversationId', description: 'Conversation ID' })
-  @ApiResponse({ status: 200, description: 'List of bots installed in the conversation' })
-  async getConversationBots(
-    @Param('workspaceId') workspaceId: string,
-    @Param('conversationId') conversationId: string,
-  ) {
-    // Get installations for this conversation
-    const installations =
-      await this.botInstallationsService.getInstallationsForConversation(conversationId);
-
-    // Get full bot details for each installation
-    const bots = await Promise.all(
-      installations.map(async (installation) => {
-        try {
-          const bot = await this.botsService.findOne(installation.botId, workspaceId);
-          return {
-            ...bot,
-            installation: {
-              id: installation.id,
-              isActive: installation.isActive,
-              settingsOverride: installation.settingsOverride,
-              installedAt: installation.installedAt,
-            },
-          };
-        } catch (error) {
-          // Bot may have been deleted, skip it
-          return null;
-        }
-      }),
-    );
-
-    // Filter out null values (deleted bots)
-    return { data: bots.filter((bot) => bot !== null) };
   }
 
   // Message operations
