@@ -9,17 +9,11 @@ import {
   LayoutTemplate,
   Bot,
   FileText,
-  ClipboardList,
 } from 'lucide-react';
 import { ApprovalsPage } from '../approvals';
 import TemplatesPage from '../templates/TemplatesPage';
 import BotsPage from '../bots/BotsPage';
 import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
-import FormsPage from '../forms/FormsPage';
-import FormBuilderPage from '../forms/FormBuilderPage';
-import FormResponsesPage from '../forms/FormResponsesPage';
-import FormSubmitPage from '../forms/FormSubmitPage';
-import FormAnalyticsPage from '../forms/FormAnalyticsPage';
 
 // Feature card component for built-in Nexus features
 interface FeatureCardProps {
@@ -90,13 +84,6 @@ function MoreGrid() {
       color: '#6366f1',
       path: 'approvals',
     },
-    {
-      name: intl.formatMessage({ id: 'tools.forms.name', defaultMessage: 'Forms' }),
-      description: intl.formatMessage({ id: 'tools.forms.description', defaultMessage: 'Create custom forms to collect responses' }),
-      icon: <ClipboardList className="w-6 h-6" />,
-      color: '#ec4899',
-      path: 'forms',
-    },
   ];
 
   return (
@@ -148,12 +135,6 @@ export function MorePage() {
       <Route path="/bots/*" element={<BotsPage />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
       <Route path="/approvals/*" element={<ApprovalsPage />} />
-      <Route path="/forms" element={<FormsPage />} />
-      <Route path="/forms/new" element={<FormBuilderPage />} />
-      <Route path="/forms/:formId/edit" element={<FormBuilderPage />} />
-      <Route path="/forms/:formId/submit" element={<FormSubmitPage />} />
-      <Route path="/forms/:formId/responses" element={<FormResponsesPage />} />
-      <Route path="/forms/:formId/analytics" element={<FormAnalyticsPage />} />
     </Routes>
   );
 }

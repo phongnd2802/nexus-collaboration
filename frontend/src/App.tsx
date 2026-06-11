@@ -61,15 +61,6 @@ const IntegrationsPage = lazy(() => import('./pages/integrations').then(m => ({ 
 const MorePage = lazy(() => import('./pages/more').then(m => ({ default: m.MorePage })));
 const AppsPage = lazy(() => import('./pages/apps').then(m => ({ default: m.AppsPage })));
 
-// Budget Pages
-// Forms Pages
-const FormsPage = lazy(() => import('./pages/forms/FormsPage'));
-const FormBuilderPage = lazy(() => import('./pages/forms/FormBuilderPage'));
-const FormResponsesPage = lazy(() => import('./pages/forms/FormResponsesPage'));
-const FormSubmitPage = lazy(() => import('./pages/forms/FormSubmitPage'));
-const FormAnalyticsPage = lazy(() => import('./pages/forms/FormAnalyticsPage'));
-const PublicFormSubmitPage = lazy(() => import('./pages/forms/PublicFormSubmitPage'));
-
 // Video Call Pages (Heavy - important to lazy load)
 const VideoCallPage = lazy(() => import('./pages/video-call/VideoCallPage').then(m => ({ default: m.VideoCallPage })));
 const PublicMeetingPage = lazy(() => import('./pages/video-call/PublicMeetingPage').then(m => ({ default: m.PublicMeetingPage })));
@@ -207,12 +198,6 @@ function WorkspaceRoutes() {
         <Route path="email" element={<EmailPage />} />
         <Route path="email/:folder" element={<EmailPage />} />
         <Route path="email/message/:messageId" element={<EmailPage />} />
-        <Route path="forms" element={<FormsPage />} />
-        <Route path="forms/new" element={<FormBuilderPage />} />
-        <Route path="forms/:formId/edit" element={<FormBuilderPage />} />
-        <Route path="forms/:formId/submit" element={<FormSubmitPage />} />
-        <Route path="forms/:formId/responses" element={<FormResponsesPage />} />
-        <Route path="forms/:formId/analytics" element={<FormAnalyticsPage />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Routes>
     </Suspense>
@@ -307,10 +292,6 @@ function App() {
 
                             {/* Public Shared File */}
                             <Route path="/shared/:shareToken" element={<SharedFilePage />} />
-
-                            {/* Public Form Routes */}
-                            <Route path="/forms/:slug" element={<PublicFormSubmitPage />} />
-                            <Route path="/forms/s/:shareToken" element={<PublicFormSubmitPage />} />
 
                             {/* Standalone Video Call */}
                             <Route path="/call/:workspaceId/:callId" element={<StandaloneVideoCall />} />
