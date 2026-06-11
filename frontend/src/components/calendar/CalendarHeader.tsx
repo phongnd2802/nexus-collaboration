@@ -282,7 +282,7 @@ export function CalendarHeader({
   }
 
   const generatePrintContent = (events: any[], view: CalendarView, date: Date, categories: any[]) => {
-    const title = formatCalendarViewTitle(view, date)
+    const title = formatCalendarViewTitle(view, date, intl.locale)
     const sortedEvents = [...events].sort((a, b) => 
       new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     )
@@ -371,7 +371,7 @@ export function CalendarHeader({
         {/* <div className="flex items-center gap-2 min-w-0">
           <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <h1 className="text-sm sm:text-lg font-semibold truncate">
-            {showAnalytics ? 'Calendar Analytics' : formatCalendarViewTitle(currentView, currentDate)}
+            {showAnalytics ? 'Calendar Analytics' : formatCalendarViewTitle(currentView, currentDate, intl.locale)}
           </h1>
         </div> */}
       </div>

@@ -45,11 +45,7 @@ export type WebSocketEventType =
   | 'user:joined'
   | 'user:left'
   | 'poll:voted'          // Backend emits this
-  | 'poll:closed'         // Backend emits this
-  | 'approval:status_updated'  // Backend emits when approval request status changes
-  | 'approval:comment_added'   // Backend emits when new comment is added
-  | 'approval:request_deleted' // Backend emits when approval request is deleted
-  | 'approval:request_created'; // Backend emits when new approval request is created
+  | 'poll:closed';        // Backend emits this
 
 export interface WebSocketMessage {
   type: WebSocketEventType;

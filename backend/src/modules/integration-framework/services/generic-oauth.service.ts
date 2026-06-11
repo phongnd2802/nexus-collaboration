@@ -289,7 +289,6 @@ export class GenericOAuthService {
     // Google services use a dedicated redirect URI
     const googleServices = [
       'gmail',
-      'google-calendar',
       'google-chat',
       'google-meet',
       'google-cloud',

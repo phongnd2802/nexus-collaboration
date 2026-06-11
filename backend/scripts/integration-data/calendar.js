@@ -1,6 +1,5 @@
 /**
  * Calendar & Scheduling Integrations
- * Already implemented: google-calendar
  */
 
 const calendarIntegrations = [

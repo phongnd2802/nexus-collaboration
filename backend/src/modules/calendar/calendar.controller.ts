@@ -29,8 +29,6 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
 import { CalendarService } from './calendar.service';
 import { CalendarAgentService } from './calendar-agent.service';
-import { GoogleCalendarOAuthService } from './google-calendar-oauth.service';
-import { GoogleCalendarSyncService } from './google-calendar-sync.service';
 import {
   CreateEventDto,
   UpdateEventDto,
@@ -44,10 +42,6 @@ import {
   CalendarDashboardStatsDto,
   CalendarAgentRequestDto,
   CalendarAgentResponseDto,
-  GoogleCalendarConnectionResponseDto,
-  GoogleCalendarAuthUrlResponseDto,
-  GoogleCalendarSyncResultDto,
-  NativeConnectGoogleCalendarDto,
 } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
@@ -61,8 +55,6 @@ export class CalendarController {
   constructor(
     private readonly calendarService: CalendarService,
     private readonly calendarAgentService: CalendarAgentService,
-    private readonly googleCalendarOAuthService: GoogleCalendarOAuthService,
-    private readonly googleCalendarSyncService: GoogleCalendarSyncService,
   ) {}
 
   // ============================================
@@ -221,31 +213,7 @@ export class CalendarController {
       filters,
     );
 
-    // Fetch Google Calendar events directly from API (if connected)
-    let googleEvents: any[] = [];
-    if (userId && startDate && endDate) {
-      try {
-        googleEvents = await this.googleCalendarSyncService.fetchGoogleEvents(
-          userId,
-          workspaceId,
-          startDate,
-          endDate,
-        );
-      } catch (error: any) {
-        console.error('Failed to fetch Google Calendar events:', error.message);
-        // Continue with local events only
-      }
-    }
-
-    // Merge local and Google events, sort by start time
-    const allEvents = [...localEvents, ...googleEvents];
-    allEvents.sort((a, b) => {
-      const aTime = new Date(a.startTime || a.start_time).getTime();
-      const bTime = new Date(b.startTime || b.start_time).getTime();
-      return aTime - bTime;
-    });
-
-    return allEvents;
+    return localEvents;
   }
 
   @Get('upcoming')
@@ -274,30 +242,7 @@ export class CalendarController {
       userId,
     );
 
-    // Fetch Google Calendar events directly from API (if connected)
-    let googleEvents: any[] = [];
-    if (userId) {
-      try {
-        googleEvents = await this.googleCalendarSyncService.fetchGoogleEvents(
-          userId,
-          workspaceId,
-          startDate,
-          endDate,
-        );
-      } catch (error: any) {
-        console.error('Failed to fetch Google Calendar events:', error.message);
-      }
-    }
-
-    // Merge and sort
-    const allEvents = [...localEvents, ...googleEvents];
-    allEvents.sort((a, b) => {
-      const aTime = new Date(a.startTime || a.start_time).getTime();
-      const bTime = new Date(b.startTime || b.start_time).getTime();
-      return aTime - bTime;
-    });
-
-    return allEvents;
+    return localEvents;
   }
 
   @Get('events/:eventId')
@@ -744,195 +689,6 @@ export class CalendarController {
       endDate,
       period,
     );
-  }
-
-  // ============================================
-  // GOOGLE CALENDAR INTEGRATION
-  // ============================================
-
-  @Get('google/auth-url')
-  @ApiOperation({
-    summary: 'Get Google Calendar OAuth authorization URL',
-    description: 'Returns the URL to redirect the user to for Google Calendar authorization',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiQuery({
-    name: 'returnUrl',
-    required: false,
-    description: 'URL to redirect to after authorization',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Authorization URL generated successfully',
-    type: GoogleCalendarAuthUrlResponseDto,
-  })
-  async getGoogleCalendarAuthUrl(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Query('returnUrl') returnUrl?: string,
-  ): Promise<GoogleCalendarAuthUrlResponseDto> {
-    try {
-      return this.googleCalendarOAuthService.getAuthorizationUrl(userId, workspaceId, returnUrl);
-    } catch (error: any) {
-      console.error('Failed to generate Google Calendar auth URL:', error.message);
-      throw new BadRequestException(error.message || 'Failed to generate authorization URL');
-    }
-  }
-
-  @Post('google/connect-native')
-  @ApiOperation({
-    summary: 'Connect Google Calendar using native mobile sign-in',
-    description: 'Uses server auth code from native Google Sign-In SDK to establish connection',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Google Calendar connected via native sign-in',
-    type: GoogleCalendarConnectionResponseDto,
-  })
-  async connectGoogleCalendarNative(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: NativeConnectGoogleCalendarDto,
-  ): Promise<GoogleCalendarConnectionResponseDto> {
-    const connection = await this.googleCalendarSyncService.handleNativeSignIn(
-      userId,
-      workspaceId,
-      dto.serverAuthCode,
-      {
-        email: dto.email,
-        displayName: dto.displayName,
-        photoUrl: dto.photoUrl,
-      },
-    );
-    return {
-      connected: true,
-      data: connection,
-    };
-  }
-
-  @Get('google/connection')
-  @ApiOperation({
-    summary: 'Get Google Calendar connection status',
-    description: 'Check if the user has connected their Google Calendar',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Connection status retrieved successfully',
-    type: GoogleCalendarConnectionResponseDto,
-  })
-  async getGoogleCalendarConnection(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ): Promise<GoogleCalendarConnectionResponseDto> {
-    try {
-      console.log(
-        `Checking Google Calendar connection for user ${userId} in workspace ${workspaceId}`,
-      );
-      const connection = await this.googleCalendarSyncService.getConnection(userId, workspaceId);
-      return {
-        connected: !!connection,
-        data: connection || undefined,
-      };
-    } catch (error: any) {
-      console.error('Failed to get Google Calendar connection:', error.message);
-      return {
-        connected: false,
-        data: undefined,
-      };
-    }
-  }
-
-  @Post('google/sync')
-  @ApiOperation({
-    summary: 'Refresh Google Calendar events',
-    description:
-      'Events are now fetched directly from Google - this endpoint refreshes the connection status',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Sync status refreshed',
-    type: GoogleCalendarSyncResultDto,
-  })
-  @ApiResponse({ status: 404, description: 'Google Calendar not connected' })
-  async syncGoogleCalendar(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ): Promise<GoogleCalendarSyncResultDto> {
-    // Events are now fetched directly from Google API on-demand
-    // This endpoint just refreshes the connection status
-    const connection = await this.googleCalendarSyncService.getConnection(userId, workspaceId);
-    if (!connection) {
-      throw new NotFoundException('Google Calendar not connected');
-    }
-    // Return success - events will be fetched fresh on next calendar view
-    return { synced: 0, deleted: 0 };
-  }
-
-  @Delete('google/disconnect')
-  @ApiOperation({
-    summary: 'Disconnect Google Calendar',
-    description: 'Disconnect Google Calendar and remove synced events',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Google Calendar disconnected successfully' })
-  @ApiResponse({ status: 404, description: 'Google Calendar not connected' })
-  async disconnectGoogleCalendar(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ): Promise<{ success: boolean; message: string }> {
-    await this.googleCalendarSyncService.disconnect(userId, workspaceId);
-    return { success: true, message: 'Google Calendar disconnected successfully' };
-  }
-
-  @Put('google/calendars')
-  @ApiOperation({
-    summary: 'Update selected Google Calendars',
-    description: 'Choose which Google Calendars to sync (e.g., primary, holidays, work)',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        calendarIds: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of Google Calendar IDs to sync',
-        },
-      },
-      required: ['calendarIds'],
-    },
-  })
-  @ApiResponse({ status: 200, description: 'Selected calendars updated successfully' })
-  @ApiResponse({ status: 404, description: 'Google Calendar not connected' })
-  async updateSelectedCalendars(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() body: { calendarIds: string[] },
-  ): Promise<any> {
-    return this.googleCalendarSyncService.updateSelectedCalendars(
-      userId,
-      workspaceId,
-      body.calendarIds,
-    );
-  }
-
-  @Post('google/calendars/refresh')
-  @ApiOperation({
-    summary: 'Refresh available Google Calendars',
-    description: 'Fetch the latest list of available calendars from Google',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Available calendars refreshed successfully' })
-  @ApiResponse({ status: 404, description: 'Google Calendar not connected' })
-  async refreshAvailableCalendars(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ): Promise<any> {
-    return this.googleCalendarSyncService.refreshAvailableCalendars(userId, workspaceId);
   }
 
 }
