@@ -13,7 +13,7 @@
  *
  * Also handles "OpenAI-compatible" services by honoring OPENAI_BASE_URL,
  * so you can point this at Azure OpenAI (different base URL), LiteLLM,
- * LocalAI, or any other compatible gateway.
+ * LocalAI, OpenRouter, or any other compatible gateway.
  */
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -62,20 +62,25 @@ export class OpenAiProvider implements AiProvider {
   protected readonly defaultModel: string;
   protected readonly defaultVisionModel: string;
   protected readonly defaultEmbeddingModel: string;
+  protected readonly openRouterReferer: string;
+  protected readonly openRouterTitle: string;
 
   constructor(config: ConfigService) {
-    this.apiKey = config.get<string>('OPENAI_API_KEY', '');
+    this.apiKey =
+      config.get<string>('OPENAI_API_KEY', '') || config.get<string>('OPENROUTER_API_KEY', '');
     this.baseUrl = (
       config.get<string>('OPENAI_BASE_URL', DEFAULT_BASE_URL) || DEFAULT_BASE_URL
     ).replace(/\/+$/, '');
     this.defaultModel = config.get<string>('AI_MODEL', 'gpt-4o-mini');
     this.defaultVisionModel = config.get<string>('AI_VISION_MODEL', 'gpt-4o');
     this.defaultEmbeddingModel = config.get<string>('AI_EMBEDDING_MODEL', 'text-embedding-3-small');
+    this.openRouterReferer = config.get<string>('OPENROUTER_HTTP_REFERER', '');
+    this.openRouterTitle = config.get<string>('OPENROUTER_APP_TITLE', 'Nexus');
 
     if (this.isAvailable()) {
       this.logger.log(`OpenAI provider configured (${this.baseUrl}, model=${this.defaultModel})`);
     } else {
-      this.logger.warn('OpenAI provider selected but OPENAI_API_KEY missing');
+      this.logger.warn('OpenAI provider selected but OPENAI_API_KEY / OPENROUTER_API_KEY missing');
     }
   }
 
@@ -85,14 +90,25 @@ export class OpenAiProvider implements AiProvider {
 
   protected async api(path: string, body: any): Promise<any> {
     if (!this.isAvailable()) {
-      throw new AiProviderNotConfiguredError(this.name, ['OPENAI_API_KEY']);
+      throw new AiProviderNotConfiguredError(this.name, ['OPENAI_API_KEY or OPENROUTER_API_KEY']);
     }
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
+    };
+
+    if (this.baseUrl.includes('openrouter.ai')) {
+      if (this.openRouterReferer) {
+        headers['HTTP-Referer'] = this.openRouterReferer;
+      }
+      if (this.openRouterTitle) {
+        headers['X-OpenRouter-Title'] = this.openRouterTitle;
+      }
+    }
+
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
     if (!res.ok) {
@@ -209,6 +225,108 @@ export class OpenAiProvider implements AiProvider {
       model: res.model,
       provider: this.name,
       dimensions: embeddings[0]?.length ?? 0,
+    };
+  }
+
+  async streamText(
+    input: GenerateTextInput,
+    onToken: (token: string) => void,
+  ): Promise<GenerateTextResult> {
+    if (!this.isAvailable()) {
+      throw new AiProviderNotConfiguredError(this.name, ['OPENAI_API_KEY or OPENROUTER_API_KEY']);
+    }
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
+    };
+
+    if (this.baseUrl.includes('openrouter.ai')) {
+      if (this.openRouterReferer) {
+        headers['HTTP-Referer'] = this.openRouterReferer;
+      }
+      if (this.openRouterTitle) {
+        headers['X-OpenRouter-Title'] = this.openRouterTitle;
+      }
+    }
+
+    const payload: any = {
+      model: input.model ?? this.defaultModel,
+      messages: input.messages.map(translateMessageToOpenAi),
+      max_tokens: input.maxTokens ?? 2000,
+      temperature: input.temperature ?? 0.7,
+      stream: true,
+    };
+
+    if (input.jsonMode) {
+      payload.response_format = { type: 'json_object' };
+    }
+    if (input.tools && input.tools.length > 0) {
+      payload.tools = input.tools.map(translateToolToOpenAi);
+      const tc = translateToolChoiceToOpenAi(input.toolChoice);
+      if (tc !== undefined) payload.tool_choice = tc;
+    }
+
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`${this.name} API /chat/completions failed: ${res.status} ${text}`);
+    }
+
+    const reader = res.body?.getReader();
+    if (!reader) {
+      throw new Error('Streaming response body is missing');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let text = '';
+    let model = input.model ?? this.defaultModel;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+
+          const payloadText = line.slice(6).trim();
+          if (!payloadText || payloadText === '[DONE]') continue;
+
+          const chunk = JSON.parse(payloadText) as {
+            model?: string;
+            choices?: Array<{
+              delta?: { content?: string | null };
+            }>;
+          };
+
+          if (chunk.model) model = chunk.model;
+          const token = chunk.choices?.[0]?.delta?.content ?? '';
+          if (!token) continue;
+
+          text += token;
+          onToken(token);
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return {
+      text,
+      model,
+      provider: this.name,
+      stopReason: 'stop',
     };
   }
 }

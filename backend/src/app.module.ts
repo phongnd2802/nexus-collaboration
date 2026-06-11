@@ -46,7 +46,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { BotsModule } from './modules/bots/bots.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
-import { RagModule } from './modules/rag/rag.module';
+import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
 
 @Module({
   imports: [
@@ -98,7 +98,7 @@ import { RagModule } from './modules/rag/rag.module';
     DocumentsModule,
     FormsModule,
     WorkflowsModule,
-    RagModule,
+    McpAgentModule,
   ],
   providers: [
     {
