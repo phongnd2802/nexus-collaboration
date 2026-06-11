@@ -2,7 +2,6 @@ import { Controller, Get, Query, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { EmailService } from '../integration-framework/email/email.service';
-import { GoogleCalendarSyncService } from '../calendar/google-calendar-sync.service';
 import { GenericOAuthService } from '../integration-framework/services/generic-oauth.service';
 import { ConnectionService } from '../integration-framework/services/connection.service';
 import { CatalogService } from '../integration-framework/services/catalog.service';
@@ -18,7 +17,6 @@ import { CatalogService } from '../integration-framework/services/catalog.servic
  *
  * Supported services:
  * - gmail, email: Gmail integration
- * - calendar, google-calendar: Google Calendar
  * - google-chat: Google Chat
  * - google-meet: Google Meet
  * - google-cloud: Google Cloud Platform
@@ -29,7 +27,6 @@ import { CatalogService } from '../integration-framework/services/catalog.servic
 export class GoogleOAuthController {
   constructor(
     private readonly emailService: EmailService,
-    private readonly googleCalendarSyncService: GoogleCalendarSyncService,
     private readonly genericOAuthService: GenericOAuthService,
     private readonly connectionService: ConnectionService,
     private readonly catalogService: CatalogService,
@@ -82,10 +79,6 @@ export class GoogleOAuthController {
         case 'gmail':
         case 'email':
           return await this.handleGmailCallback(code, state, stateData, res, frontendUrl);
-
-        case 'calendar':
-        case 'google-calendar':
-          return await this.handleCalendarCallback(code, stateData, res, frontendUrl);
 
         // New Google services using generic OAuth handler
         case 'google-chat':
@@ -263,54 +256,6 @@ export class GoogleOAuthController {
 
     res.setHeader('Content-Type', 'text/html');
     return res.send(html);
-  }
-
-  /**
-   * Handle Google Calendar OAuth callback
-   */
-  private async handleCalendarCallback(
-    code: string,
-    stateData: any,
-    res: Response,
-    frontendUrl: string,
-  ) {
-    try {
-      const result = await this.googleCalendarSyncService.handleOAuthCallback(
-        code,
-        stateData.userId,
-        stateData.workspaceId,
-      );
-
-      const returnUrl =
-        stateData.returnUrl || `${frontendUrl}/workspaces/${stateData.workspaceId}/calendar`;
-
-      // Build redirect URL with proper query parameter handling
-      const separator = returnUrl.includes('?') ? '&' : '?';
-      const redirectUrl = `${returnUrl}${separator}calendarConnected=true&email=${encodeURIComponent(result.connection.googleEmail || '')}`;
-
-      console.log('Calendar OAuth redirect URL:', redirectUrl);
-
-      // Check if returnUrl is a custom scheme (mobile app deep link)
-      if (this.isCustomScheme(returnUrl)) {
-        return this.sendDeepLinkPage(res, redirectUrl, 'Google Calendar Connected Successfully');
-      }
-
-      return res.redirect(redirectUrl);
-    } catch (err) {
-      console.error('Google Calendar OAuth callback error:', err);
-      const returnUrl =
-        stateData.returnUrl || `${frontendUrl}/workspaces/${stateData.workspaceId}/calendar`;
-
-      const separator = returnUrl.includes('?') ? '&' : '?';
-      const errorUrl = `${returnUrl}${separator}calendarError=${encodeURIComponent(this.getErrorMessage(err))}`;
-
-      // Check if returnUrl is a custom scheme (mobile app deep link)
-      if (this.isCustomScheme(returnUrl)) {
-        return this.sendDeepLinkPage(res, errorUrl, 'Google Calendar Connection Failed');
-      }
-
-      return res.redirect(errorUrl);
-    }
   }
 
   /**

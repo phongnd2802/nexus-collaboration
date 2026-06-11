@@ -39,7 +39,6 @@ import { EmailModule } from './modules/integration-framework/email/email.module'
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { GitHubModule } from './modules/integration-framework/github/github.module';
 import { AutoPilotModule } from './modules/autopilot/autopilot.module';
-import { ApprovalsModule } from './modules/approvals/approvals.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { DocumentsModule } from './modules/documents/documents.module';
@@ -89,7 +88,6 @@ import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
     IntegrationsModule,
     GitHubModule,
     AutoPilotModule,
-    ApprovalsModule,
     IntegrationFrameworkModule,
     TemplatesModule,
     DocumentsModule,

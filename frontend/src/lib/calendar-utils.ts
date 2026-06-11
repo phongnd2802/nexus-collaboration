@@ -1,27 +1,43 @@
 import type { CalendarView, CalendarEvent, EventCategory } from '../types/calendar'
 import { format, differenceInMinutes, differenceInHours } from 'date-fns'
 
-export function formatCalendarViewTitle(view: CalendarView, date: Date): string {
+const formatLocalizedDate = (date: Date, locale: string, options: Intl.DateTimeFormatOptions) => {
+  return new Intl.DateTimeFormat(locale, options).format(date)
+}
+
+export function formatCalendarViewTitle(view: CalendarView, date: Date, locale = 'en'): string {
   switch (view) {
     case 'day':
-      return format(date, 'EEEE, MMMM d, yyyy')
+      return formatLocalizedDate(date, locale, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      })
     case 'week':
       const weekStart = new Date(date)
       weekStart.setDate(date.getDate() - date.getDay())
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekStart.getDate() + 6)
-      
-      if (weekStart.getMonth() === weekEnd.getMonth()) {
-        return `${format(weekStart, 'MMMM d')} - ${format(weekEnd, 'd, yyyy')}`
-      } else if (weekStart.getFullYear() === weekEnd.getFullYear()) {
-        return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`
-      } else {
-        return `${format(weekStart, 'MMM d, yyyy')} - ${format(weekEnd, 'MMM d, yyyy')}`
-      }
+
+      return `${formatLocalizedDate(weekStart, locale, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })} - ${formatLocalizedDate(weekEnd, locale, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })}`
     case 'month':
-      return format(date, 'MMMM yyyy')
+      return formatLocalizedDate(date, locale, {
+        month: 'long',
+        year: 'numeric'
+      })
     case 'year':
-      return format(date, 'yyyy')
+      return formatLocalizedDate(date, locale, {
+        year: 'numeric'
+      })
     case 'agenda':
       return 'Agenda View'
     case 'timeline':

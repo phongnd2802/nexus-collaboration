@@ -795,17 +795,6 @@ export const schema = {
       { name: 'description_file_ids', type: 'jsonb', default: '[]' },
       { name: 'last_modified_by', type: 'string', nullable: true },
       { name: 'collaborative_data', type: 'jsonb', default: '{}' },
-      // Google Calendar sync fields
-      { name: 'google_calendar_event_id', type: 'string', nullable: true }, // Google Calendar event ID for synced events
-      {
-        name: 'google_calendar_connection_id',
-        type: 'uuid',
-        nullable: true,
-        references: { table: 'google_calendar_connections' },
-      },
-      { name: 'synced_from_google', type: 'boolean', default: false }, // True if event was synced from Google
-      { name: 'google_calendar_html_link', type: 'text', nullable: true }, // Direct link to event in Google Calendar
-      { name: 'google_calendar_updated_at', type: 'timestamptz', nullable: true }, // Last update time from Google
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -819,9 +808,6 @@ export const schema = {
       { columns: ['parent_event_id'] },
       { columns: ['room_id'] },
       { columns: ['status'] },
-      { columns: ['google_calendar_event_id'] },
-      { columns: ['google_calendar_connection_id'] },
-      { columns: ['synced_from_google'] },
     ],
   },
 
@@ -1711,40 +1697,6 @@ export const schema = {
     ],
   },
 
-  // ==================== GOOGLE CALENDAR CONNECTIONS ====================
-  // User-specific connection within workspace: Each user connects their own Google Calendar
-  google_calendar_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'access_token', type: 'text', nullable: false },
-      { name: 'refresh_token', type: 'text', nullable: true },
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      { name: 'google_email', type: 'string', nullable: true },
-      { name: 'google_name', type: 'string', nullable: true },
-      { name: 'google_picture', type: 'text', nullable: true },
-      { name: 'calendar_id', type: 'string', default: 'primary' }, // Deprecated: use selected_calendars instead
-      { name: 'selected_calendars', type: 'jsonb', default: '[]' }, // Array of {id, name, color, primary} objects
-      { name: 'available_calendars', type: 'jsonb', default: '[]' }, // All available calendars from Google
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'sync_token', type: 'text', nullable: true }, // Deprecated: sync tokens now per-calendar
-      { name: 'calendar_sync_tokens', type: 'jsonb', default: '{}' }, // Map of calendarId -> syncToken
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true },
-      { columns: ['is_active'] },
-      { columns: ['google_email'] },
-    ],
-  },
-
   // ==================== GITHUB CONNECTIONS ====================
   // User-specific GitHub connection within workspace
   github_connections: {
@@ -1823,115 +1775,6 @@ export const schema = {
       { columns: ['state'] },
       { columns: ['issue_type'] },
     ],
-  },
-
-  // ==================== REQUEST & APPROVAL ====================
-  // Request types define the different kinds of requests (leave, expense, purchase, etc.)
-  request_types: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'name', type: 'string', nullable: false },
-      { name: 'description', type: 'text', nullable: true },
-      { name: 'icon', type: 'string', default: 'file-text' },
-      { name: 'color', type: 'string', default: '#6366f1' },
-      { name: 'fields_config', type: 'jsonb', default: '[]' }, // Custom fields definition
-      { name: 'default_approvers', type: 'jsonb', default: '[]' }, // Default approver user IDs
-      { name: 'require_all_approvers', type: 'boolean', default: false }, // All must approve vs any one
-      { name: 'allow_attachments', type: 'boolean', default: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'created_by', type: 'string', nullable: false },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['is_active'] },
-      { columns: ['created_by'] },
-    ],
-  },
-
-  // Approval requests - the actual submitted requests
-  approval_requests: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      {
-        name: 'request_type_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'request_types' },
-      },
-      { name: 'requester_id', type: 'string', nullable: false },
-      { name: 'title', type: 'string', nullable: false },
-      { name: 'description', type: 'text', nullable: true },
-      { name: 'data', type: 'jsonb', default: '{}' }, // Custom field values
-      { name: 'attachments', type: 'jsonb', default: '[]' }, // File attachments
-      { name: 'status', type: 'string', default: 'pending' }, // pending, approved, rejected, cancelled
-      { name: 'priority', type: 'string', default: 'normal' }, // low, normal, high, urgent
-      { name: 'due_date', type: 'timestamptz', nullable: true },
-      { name: 'approved_by', type: 'string', nullable: true },
-      { name: 'approved_at', type: 'timestamptz', nullable: true },
-      { name: 'rejected_by', type: 'string', nullable: true },
-      { name: 'rejected_at', type: 'timestamptz', nullable: true },
-      { name: 'rejection_reason', type: 'text', nullable: true },
-      { name: 'cancelled_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['request_type_id'] },
-      { columns: ['requester_id'] },
-      { columns: ['status'] },
-      { columns: ['priority'] },
-      { columns: ['created_at'] },
-      { columns: ['workspace_id', 'status'] },
-    ],
-  },
-
-  // Approvers assigned to each request
-  approval_request_approvers: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'request_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'approval_requests' },
-      },
-      { name: 'approver_id', type: 'string', nullable: false },
-      { name: 'status', type: 'string', default: 'pending' }, // pending, approved, rejected
-      { name: 'comments', type: 'text', nullable: true },
-      { name: 'responded_at', type: 'timestamptz', nullable: true },
-      { name: 'sort_order', type: 'integer', default: 0 }, // For sequential approvals
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['request_id'] },
-      { columns: ['approver_id'] },
-      { columns: ['status'] },
-      { columns: ['request_id', 'approver_id'], unique: true },
-    ],
-  },
-
-  // Comments on approval requests
-  approval_request_comments: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'request_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'approval_requests' },
-      },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'content', type: 'text', nullable: false },
-      { name: 'is_internal', type: 'boolean', default: false }, // Internal notes only for approvers
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [{ columns: ['request_id'] }, { columns: ['user_id'] }, { columns: ['created_at'] }],
   },
 
   // ==================== AUTOPILOT SESSIONS ====================

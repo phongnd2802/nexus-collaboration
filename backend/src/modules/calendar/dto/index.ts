@@ -30,12 +30,4 @@ export {
   AIInsightDto,
 } from './calendar-dashboard-stats.dto';
 export { CalendarAgentRequestDto, CalendarAgentResponseDto } from './calendar-agent.dto';
-export {
-  GoogleCalendarConnectionDto,
-  GoogleCalendarAuthUrlResponseDto,
-  GoogleCalendarConnectionResponseDto,
-  GoogleCalendarSyncResultDto,
-  GoogleCalendarCallbackDto,
-  NativeConnectGoogleCalendarDto,
-} from './google-calendar.dto';
 

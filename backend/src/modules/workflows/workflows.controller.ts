@@ -460,7 +460,6 @@ export class AutomationTemplatesController {
       { id: 'project_management', name: 'Project Management', icon: 'folder' },
       { id: 'communication', name: 'Communication', icon: 'chat' },
       { id: 'productivity', name: 'Productivity', icon: 'bolt' },
-      { id: 'approvals', name: 'Approvals', icon: 'check_circle' },
       { id: 'onboarding', name: 'Onboarding', icon: 'person_add' },
       { id: 'notifications', name: 'Notifications', icon: 'notifications' },
       { id: 'scheduling', name: 'Scheduling', icon: 'calendar_today' },

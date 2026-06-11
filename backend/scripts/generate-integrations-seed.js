@@ -5,7 +5,7 @@
  * This script generates the complete integrations.seed.json file with all 170+ integrations.
  * Run: node scripts/generate-integrations-seed.js
  *
- * Already Implemented (17): google-drive, google-calendar, gmail, google-sheets, slack,
+ * Already Implemented (16): google-drive, gmail, google-sheets, slack,
  * github, microsoft-teams, notion, jira, trello, asana, dropbox, zoom, linear, figma, hubspot
  */
 
@@ -34,7 +34,7 @@ const { aiIntegrations } = require('./integration-data/ai');
 
 // Already implemented integrations (skip these)
 const ALREADY_IMPLEMENTED = [
-  'google-drive', 'google-calendar', 'gmail', 'google-sheets',
+  'google-drive', 'gmail', 'google-sheets',
   'slack', 'github', 'microsoft-teams', 'notion', 'jira',
   'trello', 'asana', 'dropbox', 'zoom', 'linear', 'figma',
   'hubspot'

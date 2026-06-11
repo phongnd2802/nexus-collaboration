@@ -3,7 +3,6 @@ import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { emailService, type EmailConnection } from '@/lib/api/email-api';
-import { googleCalendarApi, type GoogleCalendarConnection } from '@/lib/api/calendar-api';
 import { githubApi, type GitHubConnection } from '@/lib/api/github-api';
 import {
   useIntegrationCatalog,
@@ -43,10 +42,6 @@ const CATEGORY_TABS: Array<{ id: string; categories: string[] }> = [
 // App logos
 const GmailLogo = () => (
   <img src="/icons/gmail.png" alt="Gmail" className="w-10 h-10 object-contain" />
-);
-
-const GoogleCalendarLogo = () => (
-  <img src="/icons/calendar.png" alt="Google Calendar" className="w-10 h-10 object-contain" />
 );
 
 const GitHubLogo = () => (
@@ -232,14 +227,11 @@ function AppsGrid() {
 
   // Connection states for hardcoded integrations
   const [gmailConnection, setGmailConnection] = useState<EmailConnection | null>(null);
-  const [calendarConnection, setCalendarConnection] = useState<GoogleCalendarConnection | null>(null);
   const [githubConnection, setGithubConnection] = useState<GitHubConnection | null>(null);
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
   const [isConnectingGmail, setIsConnectingGmail] = useState(false);
   const [isDisconnectingGmail, setIsDisconnectingGmail] = useState(false);
-  const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
-  const [isDisconnectingCalendar, setIsDisconnectingCalendar] = useState(false);
   const [isConnectingGithub, setIsConnectingGithub] = useState(false);
   const [isDisconnectingGithub, setIsDisconnectingGithub] = useState(false);
   // Fetch catalog integrations
@@ -247,7 +239,7 @@ function AppsGrid() {
   const { data: connectionsData } = useUserConnections(workspaceId || '');
 
   // Slugs of integrations that have hardcoded handlers
-  const hardcodedSlugs = ['gmail', 'google-calendar', 'github'];
+  const hardcodedSlugs = ['gmail', 'github'];
 
   // Filter integrations by selected tab and search query
   const filteredIntegrations = useMemo(() => {
@@ -313,13 +305,11 @@ function AppsGrid() {
 
     try {
       setIsLoading(true);
-      const [emailConn, calendarConn, githubConn] = await Promise.all([
+      const [emailConn, githubConn] = await Promise.all([
         emailService.getConnection(workspaceId).catch(() => null),
-        googleCalendarApi.getConnection(workspaceId).catch(() => null),
         githubApi.getConnection(workspaceId).catch(() => null),
       ]);
       setGmailConnection(emailConn?.data || null);
-      setCalendarConnection(calendarConn?.data || null);
       setGithubConnection(githubConn);
     } catch (error) {
       console.error('Failed to load connections:', error);
@@ -356,34 +346,6 @@ function AppsGrid() {
   };
 
   const handleOpenGmail = () => navigate(`/workspaces/${workspaceId}/email`);
-
-  const handleConnectCalendar = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingCalendar(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await googleCalendarApi.getAuthUrl(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get Calendar auth URL:', error);
-      setIsConnectingCalendar(false);
-    }
-  };
-
-  const handleDisconnectCalendar = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingCalendar(true);
-      await googleCalendarApi.disconnect(workspaceId);
-      setCalendarConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect Calendar:', error);
-    } finally {
-      setIsDisconnectingCalendar(false);
-    }
-  };
-
-  const handleOpenCalendar = () => navigate(`/workspaces/${workspaceId}/calendar`);
 
   const handleConnectGithub = async () => {
     if (!workspaceId) return;
@@ -426,7 +388,6 @@ function AppsGrid() {
     // Map hardcoded apps to their categories
     const hardcodedCategories: Record<string, string[]> = {
       gmail: ['EMAIL', 'PRODUCTIVITY'],
-      'google-calendar': ['CALENDAR', 'PRODUCTIVITY'],
       github: ['DEVELOPMENT'],
     };
 
@@ -438,21 +399,19 @@ function AppsGrid() {
 
   // Individual hardcoded app visibility
   const showGmail = selectedTab === 'all' || selectedTab === 'productivity';
-  const showCalendar = selectedTab === 'all' || selectedTab === 'productivity';
   const showGithub = selectedTab === 'all' || selectedTab === 'development';
   // Filter hardcoded apps by search
   const searchFilteredHardcoded = useMemo(() => {
     if (!searchQuery.trim()) {
-      return { gmail: showGmail, calendar: showCalendar, github: showGithub };
+      return { gmail: showGmail, github: showGithub };
     }
     const query = searchQuery.toLowerCase();
     return {
       gmail: showGmail && 'gmail email'.includes(query),
-      calendar: showCalendar && 'google calendar'.includes(query),
       github: showGithub && 'github development code'.includes(query),
 
     };
-  }, [searchQuery, showGmail, showCalendar, showGithub]);
+  }, [searchQuery, showGmail, showGithub]);
 
   const hasHardcodedApps = Object.values(searchFilteredHardcoded).some(Boolean);
 
@@ -541,21 +500,6 @@ function AppsGrid() {
             onConnect={handleConnectGmail}
             onOpen={handleOpenGmail}
             onDisconnect={handleDisconnectGmail}
-          />
-        )}
-
-        {searchFilteredHardcoded.calendar && (
-          <AppCard
-            name="Google Calendar"
-            description={intl.formatMessage({ id: 'apps.descriptions.googleCalendar', defaultMessage: 'Sync and manage your Google Calendar' })}
-            icon={<GoogleCalendarLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.calendar', defaultMessage: 'Calendar' })}
-            isConnected={!!calendarConnection}
-            isLoading={isConnectingCalendar || isDisconnectingCalendar}
-            connectionInfo={calendarConnection?.googleEmail ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} ${calendarConnection.googleEmail}` : undefined}
-            onConnect={handleConnectCalendar}
-            onOpen={handleOpenCalendar}
-            onDisconnect={handleDisconnectCalendar}
           />
         )}
 
