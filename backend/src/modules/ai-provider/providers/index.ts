@@ -25,7 +25,11 @@ export function createAiProvider(config: ConfigService): AiProvider {
   const explicit = (config.get<string>('AI_PROVIDER') || '').toLowerCase().trim();
   // Backcompat shim: if AI_PROVIDER is unset but OPENAI_API_KEY exists
    // (nexus's legacy config), default to openai instead of none.
-  const choice = explicit || (config.get<string>('OPENAI_API_KEY') ? 'openai' : 'none');
+  const choice =
+    explicit ||
+    (config.get<string>('OPENAI_API_KEY') || config.get<string>('OPENROUTER_API_KEY')
+      ? 'openai'
+      : 'none');
 
   switch (choice) {
     case 'openai':
