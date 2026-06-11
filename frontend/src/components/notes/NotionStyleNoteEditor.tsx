@@ -260,6 +260,7 @@ export function NotionStyleNoteEditor({
   const selectedIconRef = useRef<string>(selectedIcon)
   const attachmentsRef = useRef<Array<{ id: string; title: string; type: 'notes' | 'events' | 'files' }>>(attachments)
   const autoSaveRef = useRef<any>(null)
+  const hasUnsavedChangesRef = useRef<boolean>(false)
   
   // Undo/redo state management
   const [history, setHistory] = useState<string[]>([])
@@ -773,6 +774,19 @@ export function NotionStyleNoteEditor({
     }, 500)
   }, [autoSave])
 
+  const flushPendingSave = useCallback(() => {
+    if (!hasUnsavedChangesRef.current || isInitialLoadRef.current) {
+      return
+    }
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = undefined
+    }
+
+    void autoSaveRef.current?.(true)
+  }, [])
+
   // Update refs when state changes
   useEffect(() => {
     titleValueRef.current = title
@@ -781,6 +795,10 @@ export function NotionStyleNoteEditor({
   useEffect(() => {
     contentValueRef.current = content
   }, [content])
+
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges
+  }, [hasUnsavedChanges])
 
   useEffect(() => {
     selectedIconRef.current = selectedIcon
@@ -1689,7 +1707,7 @@ export function NotionStyleNoteEditor({
       return
     }
     
-    let saveTimeout: NodeJS.Timeout
+    let saveTimeout: NodeJS.Timeout | undefined
     let listenerAttached = false
     
     try {
@@ -1740,6 +1758,9 @@ export function NotionStyleNoteEditor({
         setTimeout(() => {
           detectMention(quill)
         }, 50)
+
+        scheduleAutoSave()
+        return
         
         // Set new timeout - only fires after user stops for 2 seconds
         saveTimeout = setTimeout(async () => {
@@ -1787,7 +1808,27 @@ export function NotionStyleNoteEditor({
     } catch (error) {
       console.error('❌ Error setting up content detection:', error)
     }
-  }, [isEditorReady, note.id, detectMention]) // Added detectMention for @ mentions
+  }, [isEditorReady, note.id, detectMention, scheduleAutoSave]) // Added detectMention for @ mentions
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushPendingSave()
+      }
+    }
+
+    const handlePageHide = () => {
+      flushPendingSave()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', handlePageHide)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', handlePageHide)
+    }
+  }, [flushPendingSave])
 
   // Update undo/redo button states
   useEffect(() => {

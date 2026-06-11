@@ -130,10 +130,10 @@ export function DayView({ onEventClick, onTimeSlotClick, onEventDrop }: DayViewP
             </div>
             <div>
               <div className="text-lg font-semibold">
-                {format(currentDate, 'EEEE')}
+                {new Intl.DateTimeFormat(intl.locale, { weekday: 'long' }).format(currentDate)}
               </div>
               <div className="text-sm text-muted-foreground">
-                {format(currentDate, 'MMMM yyyy')}
+                {new Intl.DateTimeFormat(intl.locale, { month: 'long', year: 'numeric' }).format(currentDate)}
               </div>
             </div>
             {isToday(currentDate) && (
