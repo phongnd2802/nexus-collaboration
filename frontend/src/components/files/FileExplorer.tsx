@@ -1019,7 +1019,7 @@ export function FileExplorer({
                   className={`h-8 ${filters.dateModified ? 'border-blue-500 text-blue-600' : ''}`}
                 >
                   <Calendar className="h-3 w-3 mr-2" />
-                  {intl.formatMessage({ id: 'modules.files.filters.dateModifiedButton', defaultMessage: 'Date modified' })}
+                  {intl.formatMessage({ id: 'modules.files.filters.dateModified', defaultMessage: 'Date modified' })}
                   <ChevronDown className="h-3 w-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
@@ -1063,7 +1063,7 @@ export function FileExplorer({
                   className="h-8 text-xs"
                 >
                   <X className="h-3 w-3 mr-1" />
-                  Clear filters
+                  {intl.formatMessage({ id: 'modules.files.filters.clearFilters', defaultMessage: 'Clear filters' })}
                 </Button>
                 <div className="h-6 w-px bg-border" />
               </>
