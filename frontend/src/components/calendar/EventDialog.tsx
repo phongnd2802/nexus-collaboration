@@ -262,6 +262,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       } finally {
         setEventPreviewLoading(false)
       }
+    }
   }
 
   // Reset all states when modal opens/closes
@@ -1929,5 +1930,4 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
 
     </>
   )
-}
 }

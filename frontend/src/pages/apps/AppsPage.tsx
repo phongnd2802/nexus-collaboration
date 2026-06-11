@@ -318,8 +318,8 @@ function AppsGrid() {
         googleCalendarApi.getConnection(workspaceId).catch(() => null),
         githubApi.getConnection(workspaceId).catch(() => null),
       ]);
-      setGmailConnection(emailConn);
-      setCalendarConnection(calendarConn);
+      setGmailConnection(emailConn?.data || null);
+      setCalendarConnection(calendarConn?.data || null);
       setGithubConnection(githubConn);
     } catch (error) {
       console.error('Failed to load connections:', error);
