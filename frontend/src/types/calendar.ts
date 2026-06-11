@@ -70,16 +70,6 @@ export interface CalendarEventAPI {
   createdAt?: string // camelCase for Google events
   updatedAt?: string // camelCase for Google events
   tags?: string[] // For Google events
-  // Google Calendar sync fields (snake_case from local DB)
-  synced_from_google?: boolean
-  google_calendar_event_id?: string
-  google_calendar_html_link?: string
-  // Google Calendar sync fields (camelCase from Google API)
-  syncedFromGoogle?: boolean
-  googleCalendarEventId?: string
-  googleCalendarHtmlLink?: string
-  googleCalendarName?: string
-  googleCalendarColor?: string
 }
 
 export interface EventAttendeeAPI {
@@ -226,12 +216,6 @@ export interface CalendarEvent {
   organizerId?: string // Organizer user ID from backend (organizer_id)
   createdAt: Date | string
   updatedAt: Date | string
-  // Google Calendar sync fields
-  syncedFromGoogle?: boolean
-  googleCalendarEventId?: string
-  googleCalendarHtmlLink?: string
-  googleCalendarName?: string
-  googleCalendarColor?: string
 }
 
 export interface EventTemplate {

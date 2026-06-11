@@ -13,7 +13,6 @@ import {
   type SearchResultItem
 } from '../../services/searchService';
 
-import { calendarApi } from '../../lib/api/calendar-api';
 import { emailService, type EmailListItem } from '../../lib/api/email-api';
 import type {
   SearchQuery,
@@ -21,67 +20,10 @@ import type {
   SearchResults,
   SearchResult,
   SearchResultAuthor,
-  FileSearchResult,
-  FolderSearchResult,
-  CalendarSearchResult,
   EmailSearchResult
 } from '../../types/search';
 
 
-
-/**
- * Google Calendar event type from the calendar API
- */
-interface GoogleCalendarEventFromAPI {
-  id: string;
-  title: string;
-  description?: string;
-  startTime: string;
-  endTime: string;
-  location?: string;
-  attendees?: string[];
-  syncedFromGoogle?: boolean;
-  googleCalendarHtmlLink?: string;
-  googleCalendarName?: string;
-  organizerId?: string;
-  workspaceId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  allDay?: boolean;
-  isRecurring?: boolean;
-  [key: string]: any;
-}
-
-/**
- * Transform Google Calendar event to search result format
- */
-const transformGoogleCalendarEvent = (event: GoogleCalendarEventFromAPI): CalendarSearchResult => {
-  return {
-    id: event.id,
-    type: 'calendar',
-    title: event.title || '(No title)',
-    snippet: event.description || `${event.googleCalendarName || 'Google Calendar'} • ${new Date(event.startTime).toLocaleString()}`,
-    author: {
-      id: event.organizerId || 'google-calendar',
-      name: event.googleCalendarName || 'Google Calendar',
-      email: undefined,
-      imageUrl: undefined,
-    },
-    workspace: event.workspaceId,
-    highlights: [],
-    relevanceScore: undefined,
-    updatedAt: event.updatedAt || event.createdAt || new Date().toISOString(),
-    metadata: event,
-    source: 'google-calendar' as const,
-    externalUrl: event.googleCalendarHtmlLink,
-    eventType: 'meeting',
-    startTime: event.startTime,
-    endTime: event.endTime,
-    location: event.location,
-    attendees: event.attendees || [],
-    isRecurring: event.isRecurring || false,
-  };
-};
 
 /**
  * Check if a string matches a search query (case-insensitive)
@@ -287,14 +229,11 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
         // Convert filters to API params
         const filterParams = convertFiltersToParams(query.filters || {});
 
-        // Determine if we should search Google Calendar (for all or calendar searches)
-        const shouldSearchGoogleCalendar = query.type === 'all' || query.type === 'calendar';
-
         // Determine if we should search emails (for all or emails searches)
         const shouldSearchEmails = query.type === 'all' || query.type === 'emails';
 
         // Run searches in parallel
-        const [backendResponse, calendarEventsResponse, gmailResponse, imapResponse] = await Promise.all([
+        const [backendResponse, gmailResponse, imapResponse] = await Promise.all([
           // Backend search
           universalSearch(workspaceId, {
             query: query.query,
@@ -304,13 +243,6 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
             semantic: query.mode === 'semantic' || query.mode === 'hybrid',
             ...filterParams,
           }),
-          // Google Calendar events (fetch upcoming events which includes Google Calendar)
-          shouldSearchGoogleCalendar
-            ? calendarApi.getUpcomingEvents(workspaceId, 365).catch((err) => {
-                console.warn('[useUniversalSearch] Calendar fetch failed:', err.message);
-                return [] as any[];
-              })
-            : Promise.resolve([] as any[]),
           // Gmail search
           shouldSearchEmails
             ? emailService.getMessages(workspaceId, {
@@ -380,37 +312,6 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
 
         const driveResponse = { files: [] as any[] };
 
-        // Process Google Calendar events - filter by search query and merge into calendar
-        if (calendarEventsResponse && calendarEventsResponse.length > 0) {
-          // Filter events that match the search query and are from Google Calendar
-          const googleCalendarEvents = calendarEventsResponse.filter((event: GoogleCalendarEventFromAPI) => {
-            // Only include events from Google Calendar
-            if (!event.syncedFromGoogle) return false;
-
-            // Check if the event matches the search query
-            const searchQuery = query.query.toLowerCase();
-            return (
-              matchesSearchQuery(event.title, searchQuery) ||
-              matchesSearchQuery(event.description, searchQuery) ||
-              matchesSearchQuery(event.location, searchQuery) ||
-              matchesSearchQuery(event.googleCalendarName, searchQuery)
-            );
-          });
-
-          googleCalendarEvents.forEach((event: GoogleCalendarEventFromAPI) => {
-            const transformed = transformGoogleCalendarEvent(event);
-            allResults.push(transformed);
-
-            // Merge into calendar category
-            if (!transformedResults.calendar) {
-              transformedResults.calendar = [];
-            }
-            transformedResults.calendar.push(transformed);
-          });
-
-          console.log('[useUniversalSearch] Google Calendar events found:', googleCalendarEvents.length);
-        }
-
         // Process Gmail results
         if (gmailResponse && gmailResponse.emails && gmailResponse.emails.length > 0) {
           gmailResponse.emails.forEach((email: EmailListItem) => {
@@ -448,7 +349,7 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
 
         const totalEmails = (gmailResponse?.emails?.length || 0) + (imapResponse?.emails?.length || 0);
         console.log('[useUniversalSearch] Search results:', {
-          total: backendResponse.total + (driveResponse.files?.length || 0) + (calendarEventsResponse?.filter((e: any) => e.syncedFromGoogle)?.length || 0) + totalEmails,
+          total: backendResponse.total + totalEmails,
           grouped: Object.keys(transformedResults).reduce((acc, key) => {
             acc[key] = transformedResults[key]?.length || 0;
             return acc;

@@ -4,12 +4,10 @@ import { useIntl } from 'react-intl';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  ClipboardCheck,
   ChevronRight,
   LayoutTemplate,
   FileText,
 } from 'lucide-react';
-import { ApprovalsPage } from '../approvals';
 import TemplatesPage from '../templates/TemplatesPage';
 import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
 
@@ -68,13 +66,6 @@ function MoreGrid() {
       color: '#3b82f6',
       path: 'templates',
     },
-    {
-      name: intl.formatMessage({ id: 'tools.requestApproval.name', defaultMessage: 'Request & Approval' }),
-      description: intl.formatMessage({ id: 'tools.requestApproval.description', defaultMessage: 'Create and manage approval workflows' }),
-      icon: <ClipboardCheck className="w-6 h-6" />,
-      color: '#6366f1',
-      path: 'approvals',
-    },
   ];
 
   return (
@@ -124,7 +115,6 @@ export function MorePage() {
       <Route path="/documents/:documentId" element={<DocumentDetail />} />
       <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
-      <Route path="/approvals/*" element={<ApprovalsPage />} />
     </Routes>
   );
 }

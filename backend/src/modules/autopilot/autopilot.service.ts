@@ -639,37 +639,6 @@ export class AutoPilotService {
         });
       }
 
-      // 3. Check for pending approvals (where user is an approver)
-      const pendingApprovalsResult = await this.db
-        .table('approval_request_approvers')
-        .select('approval_request_approvers.id', 'approval_requests.title')
-        .leftJoin(
-          'approval_requests',
-          'approval_request_approvers.request_id',
-          '=',
-          'approval_requests.id',
-        )
-        .where('approval_requests.workspace_id', '=', workspaceId)
-        .where('approval_request_approvers.approver_id', '=', userId)
-        .where('approval_request_approvers.status', '=', 'pending')
-        .execute();
-
-      // Ensure we have an array
-      const pendingApprovals: any[] = Array.isArray(pendingApprovalsResult)
-        ? pendingApprovalsResult
-        : [];
-      if (pendingApprovals.length > 0) {
-        suggestions.push({
-          id: 'pending-approvals',
-          text: `${pendingApprovals.length} pending approval${pendingApprovals.length > 1 ? 's' : ''} waiting`,
-          command: 'Show my pending approvals',
-          icon: 'approval',
-          priority: 3,
-          isContextual: true,
-          category: 'approvals',
-        });
-      }
-
       // 4. Check for tasks due today
       const endOfDay = new Date(now);
       endOfDay.setHours(23, 59, 59, 999);

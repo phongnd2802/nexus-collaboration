@@ -479,8 +479,6 @@ function ResultCard({ result, searchQuery, highlightText, workspaceId }: ResultC
   // Get source badge info
   const getSourceBadge = (source: SearchSource) => {
     switch (source) {
-      case 'google-calendar':
-        return { label: 'Google Calendar', icon: Calendar, className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' };
       case 'gmail':
         return { label: 'Gmail', icon: Mail, className: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' };
       case 'smtp-imap':

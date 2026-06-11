@@ -16,7 +16,6 @@ import { VideoCallsService } from '../../video-calls/video-calls.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { AutoPilotCapability } from '../dto/autopilot.dto';
 // New service imports for expanded tools
-import { ApprovalsService } from '../../approvals/approvals.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { TemplatesService } from '../../templates/templates.service';
 import { DocumentsService } from '../../documents/documents.service';
@@ -68,8 +67,6 @@ export class AgentToolsService {
     @Inject(forwardRef(() => ProjectsService))
     private readonly projectsService: ProjectsService,
     // New service injections for expanded tools
-    @Inject(forwardRef(() => ApprovalsService))
-    private readonly approvalsService: ApprovalsService,
     @Inject(forwardRef(() => NotificationsService))
     private readonly notificationsService: NotificationsService,
     @Inject(forwardRef(() => TemplatesService))
@@ -97,6 +94,22 @@ export class AgentToolsService {
   // AIProviderService is wired in.
   private get aiProvider(): any {
     return this.db.getAI();
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    return 'Unknown error';
+  }
+
+  private getErrorStack(error: unknown): string | undefined {
+    return error instanceof Error ? error.stack : undefined;
   }
 
   /**
@@ -127,7 +140,6 @@ export class AgentToolsService {
       ...this.getReferenceTools(),
       ...this.getBatchTools(),
       // New tool categories
-      ...this.getApprovalTools(),
       ...this.getNotificationTools(),
       ...this.getTemplateTools(),
       ...this.getDocumentTools(),
@@ -287,17 +299,6 @@ export class AgentToolsService {
         ],
       },
       {
-        name: 'Approvals',
-        description: 'Create, manage, and respond to approval requests',
-        category: 'approvals',
-        examples: [
-          'Create an approval request for vacation',
-          'Show my pending approvals',
-          'Approve the expense request',
-          'What approval requests need my attention?',
-        ],
-      },
-      {
         name: 'Notifications',
         description: 'Send and manage notifications',
         category: 'notifications',
@@ -416,7 +417,7 @@ export class AgentToolsService {
               message: `Event "${title}" created successfully${noteAttachments?.length ? ` with ${noteAttachments.length} note(s) attached` : ''}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -439,7 +440,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, events });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -459,7 +460,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, event });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -497,7 +498,7 @@ export class AgentToolsService {
               message: `Event time updated to ${startTime} - ${endTime}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -531,7 +532,7 @@ export class AgentToolsService {
               message: `Event location updated to "${location}"`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -566,7 +567,7 @@ export class AgentToolsService {
               message: `Event attendees updated (${attendees.length} attendees)`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -617,7 +618,7 @@ export class AgentToolsService {
               message: `Reminder added: ${reminderMinutes} minutes before event`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -652,7 +653,7 @@ export class AgentToolsService {
               message: `Event cancelled${reason ? `: ${reason}` : ''}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -691,7 +692,7 @@ export class AgentToolsService {
               message: 'Event deleted successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -756,7 +757,7 @@ export class AgentToolsService {
               message: `Responded to event: ${response}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -803,7 +804,7 @@ export class AgentToolsService {
               message: 'Event updated successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -920,7 +921,7 @@ export class AgentToolsService {
               message: `Task "${title}" created successfully${noteAttachments?.length ? ` with ${noteAttachments.length} note(s) attached` : ''}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -967,7 +968,7 @@ export class AgentToolsService {
 
             return JSON.stringify({ success: true, tasks, count: tasks.length });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1001,7 +1002,7 @@ export class AgentToolsService {
               .execute();
             return JSON.stringify({ success: true, message: `Task status updated to ${status}` });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1043,7 +1044,7 @@ export class AgentToolsService {
               updatedFields: Object.keys(updates).filter((k) => k !== 'updated_at'),
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1080,7 +1081,7 @@ export class AgentToolsService {
               message: 'Task deleted successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1116,7 +1117,7 @@ export class AgentToolsService {
               message: `Task assigned to ${assigneeIds.length} user(s)`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1170,7 +1171,7 @@ export class AgentToolsService {
               message: `Task moved to project "${projects[0].name}"`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1206,7 +1207,7 @@ export class AgentToolsService {
               message: 'Comment added successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1247,10 +1248,10 @@ export class AgentToolsService {
             this.logger.log(`[AutoPilot] Channel message sent successfully: ${message.id}`);
             return JSON.stringify({ success: true, message, messageId: message.id });
           } catch (error) {
-            this.logger.error(`[AutoPilot] Channel message error: ${error.message}`, error.stack);
+            this.logger.error(`[AutoPilot] Channel message error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
             return JSON.stringify({
               success: false,
-              error: `Failed to send channel message: ${error.message}`,
+              error: `Failed to send channel message: ${this.getErrorMessage(error)}`,
             });
           }
         },
@@ -1316,7 +1317,7 @@ export class AgentToolsService {
               hint: 'Use the "id" field from these results for edit_message or delete_message operations.',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1343,7 +1344,7 @@ export class AgentToolsService {
             const result = await queryBuilder.limit(50).execute();
             return JSON.stringify({ success: true, results: result.data || [] });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1360,7 +1361,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, channels });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1402,7 +1403,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, message: updatedMessage });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1439,7 +1440,7 @@ export class AgentToolsService {
             await this.chatService.deleteMessage(messageId, this.context.userId);
             return JSON.stringify({ success: true, message: 'Message deleted successfully' });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1473,7 +1474,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, files });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1497,7 +1498,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, files });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1529,7 +1530,7 @@ export class AgentToolsService {
               message: 'File deleted successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1566,7 +1567,7 @@ export class AgentToolsService {
               message: `File moved successfully${targetFolderId ? '' : ' to root folder'}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1607,7 +1608,7 @@ export class AgentToolsService {
               message: `Folder "${name}" created successfully`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1641,7 +1642,7 @@ export class AgentToolsService {
               message: `File renamed to "${newName}"`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1665,7 +1666,7 @@ export class AgentToolsService {
             );
             return JSON.stringify({ success: true, folders, count: folders.length });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1711,7 +1712,7 @@ export class AgentToolsService {
 
             return JSON.stringify({ success: true, members: membersWithDetails });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1739,7 +1740,7 @@ export class AgentToolsService {
             const result = await query.execute();
             return JSON.stringify({ success: true, projects: result.data || [] });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1785,7 +1786,7 @@ IMPORTANT: This returns the user's timezone. When scheduling actions at a specif
               }
             }
           } catch (e) {
-            this.logger.warn(`Could not get user timezone: ${e.message}`);
+            this.logger.warn(`Could not get user timezone: ${this.getErrorMessage(e)}`);
           }
 
           // Get local time in user's timezone
@@ -1866,7 +1867,7 @@ EMAILING A NOTE - Two options:
               message: `Note "${title}" created successfully. Use noteId "${note.id}" to attach this note to events or tasks.`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1894,7 +1895,7 @@ EMAILING A NOTE - Two options:
               count: limitedNotes.length,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1914,7 +1915,7 @@ EMAILING A NOTE - Two options:
             );
             return JSON.stringify({ success: true, notes, count: notes.length });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1954,7 +1955,7 @@ EMAILING A NOTE - Two options:
               message: 'Note updated successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -1986,7 +1987,7 @@ EMAILING A NOTE - Two options:
               message: 'Note deleted successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2079,7 +2080,7 @@ EMAILING A NOTE - Two options:
               message: `Note "${noteTitle || targetNoteId}" archived successfully`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2171,7 +2172,7 @@ EMAILING A NOTE - Two options:
               message: `Note "${noteTitle || targetNoteId}" restored successfully`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2225,7 +2226,7 @@ EMAILING A NOTE - Two options:
               message: `Note duplicated successfully as "${duplicatedNote.title}"`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2321,7 +2322,7 @@ Example: Create a note and email it:
                   this.logger.log(`[AutoPilot] Note "${note.title}" included inline`);
                 }
               } catch (err) {
-                this.logger.warn(`[AutoPilot] Could not fetch note ${noteId}: ${err.message}`);
+                this.logger.warn(`[AutoPilot] Could not fetch note ${noteId}: ${this.getErrorMessage(err)}`);
               }
             }
           }
@@ -2365,7 +2366,7 @@ Example: Create a note and email it:
                 }
               } catch (err) {
                 this.logger.warn(
-                  `[AutoPilot] Could not fetch project ${projectId}: ${err.message}`,
+                  `[AutoPilot] Could not fetch project ${projectId}: ${this.getErrorMessage(err)}`,
                 );
               }
             }
@@ -2407,7 +2408,7 @@ Example: Create a note and email it:
                   this.logger.log(`[AutoPilot] Note "${note.title}" prepared as attachment`);
                 }
               } catch (err) {
-                this.logger.warn(`[AutoPilot] Could not fetch note ${noteId}: ${err.message}`);
+                this.logger.warn(`[AutoPilot] Could not fetch note ${noteId}: ${this.getErrorMessage(err)}`);
               }
             }
           }
@@ -2455,7 +2456,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 }
               } catch (err) {
                 this.logger.warn(
-                  `[AutoPilot] Could not fetch project ${projectId}: ${err.message}`,
+                  `[AutoPilot] Could not fetch project ${projectId}: ${this.getErrorMessage(err)}`,
                 );
               }
             }
@@ -2481,7 +2482,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                   this.logger.log(`[AutoPilot] File "${fileData.fileName}" prepared as attachment`);
                 }
               } catch (err) {
-                this.logger.warn(`[AutoPilot] Could not fetch file ${fileId}: ${err.message}`);
+                this.logger.warn(`[AutoPilot] Could not fetch file ${fileId}: ${this.getErrorMessage(err)}`);
               }
             }
           }
@@ -2531,11 +2532,11 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Email sent to ${to.join(', ')}${inlineMsg}${attachmentMsg}`,
             });
           } catch (error) {
-            this.logger.error(`[AutoPilot] Email send error: ${error.message}`, error.stack);
+            this.logger.error(`[AutoPilot] Email send error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
             if (
-              error.message?.includes('not found') ||
-              error.message?.includes('not connected') ||
-              error.message?.includes('Gmail')
+              this.getErrorMessage(error)?.includes('not found') ||
+              this.getErrorMessage(error)?.includes('not connected') ||
+              this.getErrorMessage(error)?.includes('Gmail')
             ) {
               return JSON.stringify({
                 success: false,
@@ -2545,7 +2546,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             }
             return JSON.stringify({
               success: false,
-              error: `Failed to send email: ${error.message}`,
+              error: `Failed to send email: ${this.getErrorMessage(error)}`,
             });
           }
         },
@@ -2576,11 +2577,11 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               count: result.emails?.length || 0,
             });
           } catch (error) {
-            this.logger.error(`[AutoPilot] List emails error: ${error.message}`, error.stack);
+            this.logger.error(`[AutoPilot] List emails error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
             if (
-              error.message?.includes('not found') ||
-              error.message?.includes('not connected') ||
-              error.message?.includes('Gmail')
+              this.getErrorMessage(error)?.includes('not found') ||
+              this.getErrorMessage(error)?.includes('not connected') ||
+              this.getErrorMessage(error)?.includes('Gmail')
             ) {
               return JSON.stringify({
                 success: false,
@@ -2590,7 +2591,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             }
             return JSON.stringify({
               success: false,
-              error: `Failed to list emails: ${error.message}`,
+              error: `Failed to list emails: ${this.getErrorMessage(error)}`,
             });
           }
         },
@@ -2611,7 +2612,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             );
             return JSON.stringify({ success: true, email });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2647,7 +2648,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: permanent ? 'Email permanently deleted' : 'Email moved to trash',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2677,7 +2678,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             );
             return JSON.stringify({ success: true, message: 'Email archived successfully' });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2710,7 +2711,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: isRead ? 'Email marked as read' : 'Email marked as unread',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2784,7 +2785,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 : `Instant video meeting "${title}" created successfully. Meeting ID: ${call.id}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2811,7 +2812,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             );
             return JSON.stringify({ success: true, meetings: calls, count: calls.length });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2835,7 +2836,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             await this.videoCallsService.endCall(callId, this.context.userId);
             return JSON.stringify({ success: true, message: 'Video meeting ended successfully' });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2868,7 +2869,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Invited ${inviteCount} participant(s) to the meeting`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2914,7 +2915,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Project "${name}" created successfully. Use projectId "${project.id}" when creating tasks for this project.`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2958,7 +2959,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: 'Project updated successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -2986,7 +2987,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: 'Project deleted successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3006,7 +3007,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               project,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3045,7 +3046,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Member added to project with role: ${role}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3079,7 +3080,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: 'Member removed from project',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3122,7 +3123,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               count: membersWithDetails.length,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3204,10 +3205,10 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               conversationId: conversation.id,
             });
           } catch (error) {
-            this.logger.error(`[AutoPilot] Direct message error: ${error.message}`, error.stack);
+            this.logger.error(`[AutoPilot] Direct message error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
             return JSON.stringify({
               success: false,
-              error: `Failed to send direct message: ${error.message}`,
+              error: `Failed to send direct message: ${this.getErrorMessage(error)}`,
             });
           }
         },
@@ -3225,7 +3226,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
             );
             return JSON.stringify({ success: true, conversations });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3295,7 +3296,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 this.context.userId,
               );
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch calendar events: ${e.message}`);
+              this.logger.warn(`[Summary] Failed to fetch calendar events: ${this.getErrorMessage(e)}`);
             }
 
             // Fetch recent notes created today
@@ -3314,7 +3315,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 return createdAt >= startOfDay && createdAt <= endOfDay;
               });
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch notes: ${e.message}`);
+              this.logger.warn(`[Summary] Failed to fetch notes: ${this.getErrorMessage(e)}`);
             }
 
             // Build summary
@@ -3372,7 +3373,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Daily summary for ${targetDate.toDateString()}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3446,7 +3447,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 this.context.userId,
               );
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch calendar events: ${e.message}`);
+              this.logger.warn(`[Summary] Failed to fetch calendar events: ${this.getErrorMessage(e)}`);
             }
 
             // Fetch notes created this week
@@ -3465,7 +3466,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 return createdAt >= startOfWeek && createdAt <= endOfWeek;
               });
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch notes: ${e.message}`);
+              this.logger.warn(`[Summary] Failed to fetch notes: ${this.getErrorMessage(e)}`);
             }
 
             const summary = {
@@ -3508,7 +3509,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Weekly summary: ${startOfWeek.toDateString()} - ${endOfWeek.toDateString()}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3575,7 +3576,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                   : 'Great! No overdue tasks.',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3633,7 +3634,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                   : `No events scheduled in the next ${days} days`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3745,7 +3746,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 });
               });
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch today's meetings: ${e.message}`);
+              this.logger.warn(`[Summary] Failed to fetch today's meetings: ${this.getErrorMessage(e)}`);
             }
 
             // Sort recommendations by priority
@@ -3767,7 +3768,7 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                   : 'No urgent items. Great time to tackle new tasks!',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3829,7 +3830,7 @@ Only output the email content, no explanations.`;
               message: `Email reply drafted with ${tone} tone`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3892,7 +3893,7 @@ Output the meeting notes in markdown format.`;
               message: 'Meeting notes generated successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -3973,7 +3974,7 @@ Include an executive summary if the document is medium or long length.`;
               message: `${documentType.charAt(0).toUpperCase() + documentType.slice(1)} created successfully`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4039,7 +4040,7 @@ Provide the improved version of the text. Only output the improved text, no expl
               message: `Text improved for ${improvementType}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4102,7 +4103,7 @@ Create a clear, accurate summary that captures the main points and essential inf
               message: `Content summarized (${summaryLength} ${format} format)`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4163,7 +4164,7 @@ Format each idea as:
               message: `Generated ${numberOfIdeas} ${ideaType} ideas for "${topic}"`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4244,7 +4245,7 @@ Provide only the translated text, no explanations or notes. Ensure the translati
               message: `Text translated to ${targetLanguage}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4342,8 +4343,8 @@ Provide a clear, helpful response based on the image content.`;
               message: 'Image analyzed successfully',
             });
           } catch (error) {
-            this.logger.error(`[analyze_image] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[analyze_image] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4440,7 +4441,7 @@ Provide a comprehensive summary covering:
               message: `Document ${analysisType.replace('_', ' ')} completed`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4625,8 +4626,8 @@ Provide a comprehensive summary covering:
               error: `${itemType} with ID ${itemId} not found`,
             });
           } catch (error) {
-            this.logger.error(`[get_referenced_item] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[get_referenced_item] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4792,8 +4793,8 @@ Provide a comprehensive summary covering:
               error: `Failed to update ${itemType} with ID ${resolvedId}`,
             });
           } catch (error) {
-            this.logger.error(`[update_referenced_item] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[update_referenced_item] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4864,7 +4865,7 @@ Provide a comprehensive summary covering:
                 });
                 createdTasks.push({ index: i + 1, id: newTask.id, title: task.title });
               } catch (err) {
-                errors.push({ index: i + 1, title: task.title, error: err.message });
+                errors.push({ index: i + 1, title: task.title, error: this.getErrorMessage(err) });
               }
             }
 
@@ -4875,8 +4876,8 @@ Provide a comprehensive summary covering:
               errors: errors.length > 0 ? errors : undefined,
             });
           } catch (error) {
-            this.logger.error(`[batch_create_tasks] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[batch_create_tasks] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -4946,7 +4947,7 @@ Provide a comprehensive summary covering:
                   updatedFields: Object.keys(task.updates),
                 });
               } catch (err) {
-                errors.push({ taskId: task.taskId, error: err.message });
+                errors.push({ taskId: task.taskId, error: this.getErrorMessage(err) });
               }
             }
 
@@ -4957,8 +4958,8 @@ Provide a comprehensive summary covering:
               errors: errors.length > 0 ? errors : undefined,
             });
           } catch (error) {
-            this.logger.error(`[batch_update_tasks] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[batch_update_tasks] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5000,7 +5001,7 @@ Provide a comprehensive summary covering:
 
                 deletedTasks.push(taskId);
               } catch (err) {
-                errors.push({ taskId, error: err.message });
+                errors.push({ taskId, error: this.getErrorMessage(err) });
               }
             }
 
@@ -5011,8 +5012,8 @@ Provide a comprehensive summary covering:
               errors: errors.length > 0 ? errors : undefined,
             });
           } catch (error) {
-            this.logger.error(`[batch_delete_tasks] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[batch_delete_tasks] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5069,7 +5070,7 @@ Provide a comprehensive summary covering:
                 );
                 createdEvents.push({ index: i + 1, id: newEvent.id, title: event.title });
               } catch (err) {
-                errors.push({ index: i + 1, title: event.title, error: err.message });
+                errors.push({ index: i + 1, title: event.title, error: this.getErrorMessage(err) });
               }
             }
 
@@ -5080,8 +5081,8 @@ Provide a comprehensive summary covering:
               errors: errors.length > 0 ? errors : undefined,
             });
           } catch (error) {
-            this.logger.error(`[batch_create_events] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[batch_create_events] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5117,7 +5118,7 @@ Provide a comprehensive summary covering:
                 );
                 deletedNotes.push(noteId);
               } catch (err) {
-                errors.push({ noteId, error: err.message });
+                errors.push({ noteId, error: this.getErrorMessage(err) });
               }
             }
 
@@ -5128,8 +5129,8 @@ Provide a comprehensive summary covering:
               errors: errors.length > 0 ? errors : undefined,
             });
           } catch (error) {
-            this.logger.error(`[batch_delete_notes] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[batch_delete_notes] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5167,7 +5168,7 @@ Provide a comprehensive summary covering:
                 );
                 movedFiles.push(fileId);
               } catch (err) {
-                errors.push({ fileId, error: err.message });
+                errors.push({ fileId, error: this.getErrorMessage(err) });
               }
             }
 
@@ -5178,195 +5179,8 @@ Provide a comprehensive summary covering:
               errors: errors.length > 0 ? errors : undefined,
             });
           } catch (error) {
-            this.logger.error(`[batch_move_files] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-    ];
-  }
-
-  // ============================================
-  // APPROVAL TOOLS
-  // ============================================
-
-  private getApprovalTools(): DynamicStructuredTool[] {
-    return [
-      new DynamicStructuredTool({
-        name: 'create_approval_request',
-        description: 'Create a new approval request.',
-        schema: z.object({
-          requestTypeId: z.string().describe('Type of approval request'),
-          title: z.string().describe('Request title'),
-          description: z.string().optional().describe('Request description'),
-          priority: z
-            .enum(['LOW', 'NORMAL', 'HIGH', 'URGENT'])
-            .optional()
-            .describe('Request priority'),
-          dueDate: z.string().optional().describe('Due date (ISO format)'),
-          approverIds: z.array(z.string()).optional().describe('Specific approvers to assign'),
-        }),
-        func: async ({ requestTypeId, title, description, priority, dueDate, approverIds }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would create approval request',
-              details: { title, requestTypeId, priority },
-            });
-          }
-
-          try {
-            const request = await this.approvalsService.createApprovalRequest(
-              this.context.workspaceId,
-              {
-                requestTypeId,
-                title,
-                description,
-                priority,
-                dueDate,
-                approverIds,
-              } as any,
-              this.context.userId,
-            );
-            return JSON.stringify({
-              success: true,
-              request,
-              message: `Approval request "${title}" created`,
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'list_approval_requests',
-        description: 'List approval requests with optional filters.',
-        schema: z.object({
-          status: z
-            .enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'])
-            .optional()
-            .describe('Filter by status'),
-          pendingMyApproval: z
-            .boolean()
-            .optional()
-            .describe('Show only requests pending my approval'),
-          priority: z
-            .enum(['LOW', 'NORMAL', 'HIGH', 'URGENT'])
-            .optional()
-            .describe('Filter by priority'),
-        }),
-        func: async ({ status, pendingMyApproval, priority }) => {
-          try {
-            const result = await this.approvalsService.getApprovalRequests(
-              this.context.workspaceId,
-              { status, pendingMyApproval, priority } as any,
-              this.context.userId,
-            );
-            return JSON.stringify({
-              success: true,
-              requests: result.requests,
-              total: result.total,
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'approve_request',
-        description: 'Approve an approval request.',
-        schema: z.object({
-          requestId: z.string().describe('Request ID to approve'),
-          comments: z.string().optional().describe('Optional approval comments'),
-        }),
-        func: async ({ requestId, comments }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would approve request',
-              details: { requestId },
-            });
-          }
-
-          try {
-            const request = await this.approvalsService.approveRequest(
-              this.context.workspaceId,
-              requestId,
-              { comments } as any,
-              this.context.userId,
-            );
-            return JSON.stringify({
-              success: true,
-              request,
-              message: 'Request approved successfully',
-            });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'reject_request',
-        description: 'Reject an approval request.',
-        schema: z.object({
-          requestId: z.string().describe('Request ID to reject'),
-          reason: z.string().describe('Reason for rejection'),
-        }),
-        func: async ({ requestId, reason }) => {
-          if (!this.context.executeActions) {
-            return JSON.stringify({
-              preview: true,
-              action: 'Would reject request',
-              details: { requestId, reason },
-            });
-          }
-
-          try {
-            const request = await this.approvalsService.rejectRequest(
-              this.context.workspaceId,
-              requestId,
-              { reason } as any,
-              this.context.userId,
-            );
-            return JSON.stringify({ success: true, request, message: 'Request rejected' });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'get_approval_stats',
-        description: 'Get approval statistics for the workspace.',
-        schema: z.object({}),
-        func: async () => {
-          try {
-            const stats = await this.approvalsService.getStats(
-              this.context.workspaceId,
-              this.context.userId,
-            );
-            return JSON.stringify({ success: true, stats });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
-          }
-        },
-      }),
-
-      new DynamicStructuredTool({
-        name: 'list_request_types',
-        description: 'List available approval request types.',
-        schema: z.object({}),
-        func: async () => {
-          try {
-            const requestTypes = await this.approvalsService.getRequestTypes(
-              this.context.workspaceId,
-            );
-            return JSON.stringify({ success: true, requestTypes });
-          } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[batch_move_files] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5412,7 +5226,7 @@ Provide a comprehensive summary covering:
               message: `Notification sent to ${userIds.length} user(s)`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5431,7 +5245,7 @@ Provide a comprehensive summary covering:
             );
             return JSON.stringify({ success: true, notifications });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5475,7 +5289,7 @@ Provide a comprehensive summary covering:
               error: 'Specify notificationIds or set markAll to true',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5496,7 +5310,7 @@ Provide a comprehensive summary covering:
             await this.notificationsService.deleteAllReadNotifications(this.context.userId);
             return JSON.stringify({ success: true, message: 'All read notifications cleared' });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5524,7 +5338,7 @@ Provide a comprehensive summary covering:
             } as any);
             return JSON.stringify({ success: true, templates });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5543,7 +5357,7 @@ Provide a comprehensive summary covering:
             );
             return JSON.stringify({ success: true, template });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5583,7 +5397,7 @@ Provide a comprehensive summary covering:
               message: `Project "${name}" created from template`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5597,7 +5411,7 @@ Provide a comprehensive summary covering:
             const categories = await this.templatesService.getCategories();
             return JSON.stringify({ success: true, categories });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5639,7 +5453,7 @@ Provide a comprehensive summary covering:
               message: `Document "${title}" created`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5660,7 +5474,7 @@ Provide a comprehensive summary covering:
             );
             return JSON.stringify({ success: true, documents });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5680,7 +5494,7 @@ Provide a comprehensive summary covering:
             );
             return JSON.stringify({ success: true, document });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5710,7 +5524,7 @@ Provide a comprehensive summary covering:
             );
             return JSON.stringify({ success: true, message: 'Document sent for signature' });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5749,7 +5563,7 @@ Provide a comprehensive summary covering:
               message: `Recipient ${email} added`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5777,7 +5591,7 @@ Provide a comprehensive summary covering:
             );
             return JSON.stringify({ success: true, message: 'Document deleted' });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5874,7 +5688,7 @@ Provide a comprehensive summary covering:
               warnings: parseResult.warnings,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5908,7 +5722,7 @@ Provide a comprehensive summary covering:
               message: `Found ${result.total} workflow(s)`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5945,7 +5759,7 @@ Provide a comprehensive summary covering:
               },
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -5984,7 +5798,7 @@ Provide a comprehensive summary covering:
               message: `Workflow "${workflow.name}" ${enable ? 'enabled' : 'disabled'}`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -6020,7 +5834,7 @@ Provide a comprehensive summary covering:
               message: `Workflow "${workflowName}" deleted`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -6057,7 +5871,7 @@ Provide a comprehensive summary covering:
               message: 'Workflow triggered successfully',
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -6192,8 +6006,8 @@ Examples of when to use this:
               message: `Action scheduled for ${timeStr} on ${dateStr}. It will be executed automatically at that time.`,
             });
           } catch (error) {
-            this.logger.error(`[ScheduleAction] Error: ${error.message}`);
-            return JSON.stringify({ success: false, error: error.message });
+            this.logger.error(`[ScheduleAction] Error: ${this.getErrorMessage(error)}`);
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -6232,7 +6046,7 @@ Examples of when to use this:
               message: `Found ${actions.length} pending scheduled action(s)`,
             });
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
@@ -6272,10 +6086,11 @@ Examples of when to use this:
               });
             }
           } catch (error) {
-            return JSON.stringify({ success: false, error: error.message });
+            return JSON.stringify({ success: false, error: this.getErrorMessage(error) });
           }
         },
       }),
     ];
   }
 }
+
