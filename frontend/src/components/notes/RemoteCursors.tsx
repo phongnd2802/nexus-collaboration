@@ -122,7 +122,7 @@ export function RemoteCursors({ cursors, users, editorRef, getQuillInstance, cur
                 style={{
                   backgroundColor: cursor.userColor,
                   height: position.height || 20,
-                  width: cursor.length * 8, // Approximate character width
+                  width: (cursor.length ?? 0) * 8, // Approximate character width
                 }}
               />
             )}

@@ -59,17 +59,27 @@ export interface SessionListItem {
 
 // Stream Event Types
 export interface StreamEvent {
-  type: 'status' | 'action' | 'text' | 'text_delta' | 'complete' | 'error';
+  type: 'status' | 'step' | 'action' | 'text' | 'text_delta' | 'complete' | 'error';
   data: any;
 }
 
 export interface StreamCallbacks {
   onStatus?: (status: string, message: string) => void;
+  onStep?: (step: StreamStep) => void;
   onAction?: (tool: string, success: boolean, message: string) => void;
   onText?: (content: string) => void;
   onTextDelta?: (content: string) => void;
   onComplete?: (result: AutoPilotResponse) => void;
   onError?: (error: string) => void;
+}
+
+export interface StreamStep {
+  id: string;
+  title: string;
+  description?: string;
+  status: 'pending' | 'running' | 'completed' | 'error';
+  tool?: string;
+  input?: Record<string, any>;
 }
 
 // API Service
@@ -140,6 +150,9 @@ export const autopilotApi = {
               switch (event.type) {
                 case 'status':
                   callbacks.onStatus?.(event.data.status, event.data.message);
+                  break;
+                case 'step':
+                  callbacks.onStep?.(event.data);
                   break;
                 case 'action':
                   callbacks.onAction?.(event.data.tool, event.data.success, event.data.message);

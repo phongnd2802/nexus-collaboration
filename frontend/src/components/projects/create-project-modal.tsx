@@ -181,6 +181,8 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         setEventPreviewLoading(false)
       }
 
+    }
+
   }
 
   // Pre-fill project name from Slack
@@ -683,7 +685,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
 
   return (
     <>
-    <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>
@@ -1185,5 +1187,4 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     />
     </>
   )
-}
 }
