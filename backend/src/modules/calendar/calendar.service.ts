@@ -14,7 +14,6 @@ import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto';
 import { NotificationSchedulerService } from '../scheduler/notification-scheduler.service';
-import { EventBotReminderService } from './event-bot-reminder.service';
 import { EntityEventIntegrationService } from '../workflows/entity-event-integration.service';
 import {
   CreateEventDto,
@@ -41,8 +40,6 @@ export class CalendarService {
     private readonly db: DatabaseService,
     private notificationsService: NotificationsService,
     private notificationSchedulerService: NotificationSchedulerService,
-    @Inject(forwardRef(() => EventBotReminderService))
-    private eventBotReminderService: EventBotReminderService,
     @Optional()
     @Inject(forwardRef(() => EntityEventIntegrationService))
     private entityEventIntegration?: EntityEventIntegrationService,
@@ -1065,39 +1062,6 @@ export class CalendarService {
         attendeeEmails: finalAttendees,
         workspaceId: workspaceId,
       });
-    }
-
-    // Send bot notifications for event updates
-    if (changes.length > 0) {
-      try {
-        if (changes.includes('time')) {
-          await this.eventBotReminderService.sendEventUpdateNotification(
-            masterEventId,
-            'time_changed',
-            event.start_time,
-            updateEventDto.start_time || event.start_time,
-          );
-        } else if (changes.includes('location')) {
-          await this.eventBotReminderService.sendEventUpdateNotification(
-            masterEventId,
-            'location_changed',
-            event.location,
-            updateEventDto.location,
-          );
-        } else if (changes.includes('status') && updateEventDto.status === 'cancelled') {
-          await this.eventBotReminderService.sendEventUpdateNotification(
-            masterEventId,
-            'cancelled',
-          );
-        } else if (changes.length > 0) {
-          await this.eventBotReminderService.sendEventUpdateNotification(
-            masterEventId,
-            'details_changed',
-          );
-        }
-      } catch (error) {
-        this.logger.error(`Failed to send bot notification for event update: ${error.message}`);
-      }
     }
 
     // Emit event updated event for workflow automation

@@ -16,12 +16,9 @@ import { api } from '@/lib/fetch'
 import { useQueryClient } from '@tanstack/react-query'
 import { ConfirmationDialog } from '@/components/shared/ConfirmationDialog'
 import { useWorkspaceMembers } from '@/lib/api/workspace-api'
-import { useBots } from '@/lib/api/bots-api'
-import { useAssignBotToEvent } from '@/lib/api/event-bot-assignments-api'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { FilePreviewDialog } from '@/components/files/FileOperationDialogs'
 import { EventPreviewDialog } from './EventPreviewDialog'
-import { EventBotAssignment } from './EventBotAssignment'
 import type { CalendarEventAPI } from '@/types/calendar'
 
 import {
@@ -145,9 +142,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
   const [eventPreviewData, setEventPreviewData] = useState<CalendarEventAPI | null>(null)
   const [eventPreviewLoading, setEventPreviewLoading] = useState(false)
 
-  // Bot assignment state
-  const [selectedBotId, setSelectedBotId] = useState<string>('')
-
   // Helper function to get icon for attachment type
   const getAttachmentIcon = (type: string) => {
     switch (type) {
@@ -188,15 +182,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
 
   // Fetch workspace members for attendees dropdown
   const { data: workspaceMembers = [] } = useWorkspaceMembers(currentWorkspace?.id || '')
-
-  // Fetch bots for bot assignment
-  const { data: bots } = useBots(currentWorkspace?.id || '')
-  const assignBotMutation = useAssignBotToEvent()
-
-  // Filter to only show activated prebuilt bots
-  const availableBots = bots?.filter(
-    (bot) => bot.botType === 'prebuilt' && bot.status === 'active'
-  ) || []
 
   // Mock workspace files - TODO: Replace with real file API
   const workspaceFiles = [
@@ -295,7 +280,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       setShowTitleSuggestions(false)
       setSelectedTitleIndex(-1)
       setShowFileSelector(false)
-      setSelectedBotId('')
       return
     }
 
@@ -468,7 +452,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       setAttachedFiles([])
       setAttachedNotes([])
       setDescriptionAttachments([])
-      setSelectedBotId('')
     }
   }, [open, event, defaultDate, defaultHour, form])
 
@@ -580,24 +563,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
             data: createData
           })
           toast.success(intl.formatMessage({ id: 'modules.calendar.eventDialog.success.created' }))
-
-          // Assign bot if one was selected
-          if (selectedBotId && createdEvent) {
-            try {
-              await assignBotMutation.mutateAsync({
-                workspaceId: currentWorkspace.id,
-                eventId: createdEvent.id,
-                data: {
-                  botId: selectedBotId,
-                  isActive: true,
-                },
-              })
-              toast.success('Bot assigned to event successfully')
-            } catch (botError: any) {
-              console.error('Bot assignment error:', botError)
-              toast.error('Failed to assign bot to event')
-            }
-          }
         } catch (createError: any) {
           console.error('Create event error:', createError)
           const errorMsg = createError?.message || 'Failed to create event'
@@ -1672,44 +1637,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                   )}
                 </div>
 
-                {/* Event Bot Assignment */}
-                <div>
-                  {isEdit && event ? (
-                    // Edit mode - show full EventBotAssignment component
-                    <EventBotAssignment eventId={event.id} />
-                  ) : (
-                    // Create mode - show simple bot selection dropdown
-                    availableBots.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Bell className="h-4 w-4" />
-                          <Label>Event Bot Assistant</Label>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Assign a bot to automatically send reminders and manage this event
-                        </p>
-                        <Select value={selectedBotId || 'none'} onValueChange={(value) => setSelectedBotId(value === 'none' ? '' : value)} disabled={isFormReadOnly}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a bot (optional)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No bot</SelectItem>
-                            {availableBots.map((bot) => (
-                              <SelectItem key={bot.id} value={bot.id}>
-                                {bot.displayName || bot.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {selectedBotId && selectedBotId !== 'none' && (
-                          <div className="text-xs text-muted-foreground">
-                            The bot will be assigned to this event after creation
-                          </div>
-                        )}
-                      </div>
-                    )
-                  )}
-                </div>
                 </fieldset>
               </TabsContent>
 

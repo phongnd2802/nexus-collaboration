@@ -38,6 +38,4 @@ export {
   GoogleCalendarCallbackDto,
   NativeConnectGoogleCalendarDto,
 } from './google-calendar.dto';
-export { AssignBotToEventDto } from './assign-bot-to-event.dto';
-export { UnassignBotFromEventDto } from './unassign-bot-from-event.dto';
-export { UpdateBotAssignmentDto } from './update-bot-assignment.dto';
+
