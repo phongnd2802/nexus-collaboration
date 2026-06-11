@@ -703,11 +703,6 @@ CREATE TABLE IF NOT EXISTS "calendar_events" (
   "description_file_ids" JSONB DEFAULT '[]',
   "last_modified_by" VARCHAR(255),
   "collaborative_data" JSONB DEFAULT '{}',
-  "google_calendar_event_id" VARCHAR(255),
-  "google_calendar_connection_id" UUID,
-  "synced_from_google" BOOLEAN DEFAULT false,
-  "google_calendar_html_link" TEXT,
-  "google_calendar_updated_at" TIMESTAMPTZ,
   "created_at" TIMESTAMPTZ DEFAULT now(),
   "updated_at" TIMESTAMPTZ DEFAULT now()
 );
@@ -721,9 +716,6 @@ CREATE INDEX IF NOT EXISTS "idx_calendar_events_is_recurring" ON "calendar_event
 CREATE INDEX IF NOT EXISTS "idx_calendar_events_parent_event_id" ON "calendar_events" ("parent_event_id");
 CREATE INDEX IF NOT EXISTS "idx_calendar_events_room_id" ON "calendar_events" ("room_id");
 CREATE INDEX IF NOT EXISTS "idx_calendar_events_status" ON "calendar_events" ("status");
-CREATE INDEX IF NOT EXISTS "idx_calendar_events_google_calendar_event_id" ON "calendar_events" ("google_calendar_event_id");
-CREATE INDEX IF NOT EXISTS "idx_calendar_events_google_calendar_connection_id" ON "calendar_events" ("google_calendar_connection_id");
-CREATE INDEX IF NOT EXISTS "idx_calendar_events_synced_from_google" ON "calendar_events" ("synced_from_google");
 
 -- ==================== MEETING_BOOKINGS ====================
 CREATE TABLE IF NOT EXISTS "meeting_bookings" (
@@ -1492,39 +1484,6 @@ CREATE INDEX IF NOT EXISTS "idx_email_priorities_email_id" ON "email_priorities"
 CREATE INDEX IF NOT EXISTS "idx_email_priorities_level" ON "email_priorities" ("level");
 CREATE INDEX IF NOT EXISTS "idx_email_priorities_analyzed_at" ON "email_priorities" ("analyzed_at");
 
--- ==================== GOOGLE_CALENDAR_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "google_calendar_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "access_token" TEXT NOT NULL,
-  "refresh_token" TEXT,
-  "token_type" VARCHAR(255) DEFAULT 'Bearer',
-  "scope" TEXT,
-  "expires_at" TIMESTAMPTZ,
-  "google_email" VARCHAR(255),
-  "google_name" VARCHAR(255),
-  "google_picture" TEXT,
-  "calendar_id" VARCHAR(255) DEFAULT 'primary',
-  "selected_calendars" JSONB DEFAULT '[]',
-  "available_calendars" JSONB DEFAULT '[]',
-  "is_active" BOOLEAN DEFAULT true,
-  "last_synced_at" TIMESTAMPTZ,
-  "sync_token" TEXT,
-  "calendar_sync_tokens" JSONB DEFAULT '{}',
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_google_calendar_connections_workspace_id" ON "google_calendar_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_google_calendar_connections_user_id" ON "google_calendar_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_google_calendar_connections_workspace_id_user_id" ON "google_calendar_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_google_calendar_connections_is_active" ON "google_calendar_connections" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_google_calendar_connections_google_email" ON "google_calendar_connections" ("google_email");
-
--- Add foreign key to calendar_events after google_calendar_connections is created
-ALTER TABLE "calendar_events" ADD CONSTRAINT "fk_calendar_events_google_calendar_connection_id" FOREIGN KEY ("google_calendar_connection_id") REFERENCES "google_calendar_connections"(id) ON DELETE CASCADE;
-
 -- ==================== GITHUB_CONNECTIONS ====================
 CREATE TABLE IF NOT EXISTS "github_connections" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1589,91 +1548,6 @@ CREATE INDEX IF NOT EXISTS "idx_github_issue_links_repo_full_name_issue_number" 
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_github_issue_links_task_id_repo_full_name_issue_number" ON "github_issue_links" ("task_id", "repo_full_name", "issue_number");
 CREATE INDEX IF NOT EXISTS "idx_github_issue_links_state" ON "github_issue_links" ("state");
 CREATE INDEX IF NOT EXISTS "idx_github_issue_links_issue_type" ON "github_issue_links" ("issue_type");
-
--- ==================== REQUEST_TYPES ====================
-CREATE TABLE IF NOT EXISTS "request_types" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "name" VARCHAR(255) NOT NULL,
-  "description" TEXT,
-  "icon" VARCHAR(255) DEFAULT 'file-text',
-  "color" VARCHAR(255) DEFAULT '#6366f1',
-  "fields_config" JSONB DEFAULT '[]',
-  "default_approvers" JSONB DEFAULT '[]',
-  "require_all_approvers" BOOLEAN DEFAULT false,
-  "allow_attachments" BOOLEAN DEFAULT true,
-  "is_active" BOOLEAN DEFAULT true,
-  "created_by" VARCHAR(255) NOT NULL,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_request_types_workspace_id" ON "request_types" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_request_types_is_active" ON "request_types" ("is_active");
-CREATE INDEX IF NOT EXISTS "idx_request_types_created_by" ON "request_types" ("created_by");
-
--- ==================== APPROVAL_REQUESTS ====================
-CREATE TABLE IF NOT EXISTS "approval_requests" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "request_type_id" UUID NOT NULL REFERENCES "request_types"(id) ON DELETE CASCADE,
-  "requester_id" VARCHAR(255) NOT NULL,
-  "title" VARCHAR(255) NOT NULL,
-  "description" TEXT,
-  "data" JSONB DEFAULT '{}',
-  "attachments" JSONB DEFAULT '[]',
-  "status" VARCHAR(255) DEFAULT 'pending',
-  "priority" VARCHAR(255) DEFAULT 'normal',
-  "due_date" TIMESTAMPTZ,
-  "approved_by" VARCHAR(255),
-  "approved_at" TIMESTAMPTZ,
-  "rejected_by" VARCHAR(255),
-  "rejected_at" TIMESTAMPTZ,
-  "rejection_reason" TEXT,
-  "cancelled_at" TIMESTAMPTZ,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_workspace_id" ON "approval_requests" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_request_type_id" ON "approval_requests" ("request_type_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_requester_id" ON "approval_requests" ("requester_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_status" ON "approval_requests" ("status");
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_priority" ON "approval_requests" ("priority");
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_created_at" ON "approval_requests" ("created_at");
-CREATE INDEX IF NOT EXISTS "idx_approval_requests_workspace_id_status" ON "approval_requests" ("workspace_id", "status");
-
--- ==================== APPROVAL_REQUEST_APPROVERS ====================
-CREATE TABLE IF NOT EXISTS "approval_request_approvers" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "request_id" UUID NOT NULL REFERENCES "approval_requests"(id) ON DELETE CASCADE,
-  "approver_id" VARCHAR(255) NOT NULL,
-  "status" VARCHAR(255) DEFAULT 'pending',
-  "comments" TEXT,
-  "responded_at" TIMESTAMPTZ,
-  "sort_order" INTEGER DEFAULT 0,
-  "created_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_approval_request_approvers_request_id" ON "approval_request_approvers" ("request_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_request_approvers_approver_id" ON "approval_request_approvers" ("approver_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_request_approvers_status" ON "approval_request_approvers" ("status");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_approval_request_approvers_request_id_approver_id" ON "approval_request_approvers" ("request_id", "approver_id");
-
--- ==================== APPROVAL_REQUEST_COMMENTS ====================
-CREATE TABLE IF NOT EXISTS "approval_request_comments" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "request_id" UUID NOT NULL REFERENCES "approval_requests"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "content" TEXT NOT NULL,
-  "is_internal" BOOLEAN DEFAULT false,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_approval_request_comments_request_id" ON "approval_request_comments" ("request_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_request_comments_user_id" ON "approval_request_comments" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_approval_request_comments_created_at" ON "approval_request_comments" ("created_at");
 
 -- ==================== AUTOPILOT_SESSIONS ====================
 CREATE TABLE IF NOT EXISTS "autopilot_sessions" (

@@ -607,12 +607,21 @@ export function useNoteCollaboration({
       console.log('[NoteCollaboration] Yjs empty, Quill has content - pre-syncing Quill to Yjs');
 
       try {
-        const quillText = quill.getText();
-        if (quillText.trim().length > 0) {
+        const quillDelta = quill.getContents();
+        if (quillDelta?.ops?.length > 0) {
           ydocRef.current.transact(() => {
-            ytext.insert(0, quillText);
+            const ytextWithDelta = ytext as typeof ytext & {
+              applyDelta?: (delta: unknown) => void;
+            };
+
+            if (typeof ytextWithDelta.applyDelta === 'function') {
+              ytextWithDelta.applyDelta(quillDelta.ops);
+            } else {
+              const quillText = quill.getText();
+              ytext.insert(0, quillText);
+            }
           });
-          console.log('[NoteCollaboration] Pre-synced Quill text to Yjs:', quillText.substring(0, 50));
+          console.log('[NoteCollaboration] Pre-synced Quill delta to Yjs:', quillDelta.ops);
         }
       } catch (e) {
         console.warn('[NoteCollaboration] Failed to pre-sync Quill to Yjs:', e);

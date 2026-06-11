@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '../../lib/utils'
 import { CategoryDialog } from './CategoryDialog'
-// import { GoogleCalendarConnect } from './GoogleCalendarConnect'
 import type { EventCategory } from '../../types/calendar'
 import { Plus, Settings, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
 
@@ -316,9 +315,6 @@ export function CalendarSidebar({ onDateClick, onReturnToCalendar, onSettingsCli
             </div>
           </div>
         </div>
-
-        {/* Google Calendar Integration */}
-        {/* <GoogleCalendarConnect /> */}
       </div>
 
       {/* Category Dialog */}

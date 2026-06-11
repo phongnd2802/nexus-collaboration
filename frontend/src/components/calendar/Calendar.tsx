@@ -122,9 +122,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
   useEffect(() => {
     if (!eventsLoading) {
       const transformedEvents: CalendarEvent[] = (eventsData || []).map(event => {
-        // Check if this is a Google event (camelCase) or local event (snake_case)
-        const isGoogleEvent = event.syncedFromGoogle === true;
-
         // Get start and end times with fallbacks
         const startTimeStr = event.startTime || event.start_time || new Date().toISOString();
         const endTimeStr = event.endTime || event.end_time || new Date().toISOString();
@@ -141,9 +138,7 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
           categoryId: event.categoryId || event.category_id || '',
           priority: (event.priority as any) || 'normal',
           status: event.status,
-          attendees: isGoogleEvent
-            ? (event.attendees as string[] || [])
-            : ((event.attendees as any[])?.filter((a: any) => a && a.email).map((a: any) => a.email) || []),
+          attendees: ((event.attendees as any[])?.filter((a: any) => a && a.email).map((a: any) => a.email) || []),
           reminders: event.reminders?.map((minutes: number, index: number) => ({
             id: `reminder-${index}`,
             type: 'email' as const,
@@ -167,13 +162,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
             ...event.attachments,
             drive_attachment: event.attachments.drive_attachment || []
           } : { file_attachment: [], note_attachment: [], event_attachment: [], drive_attachment: [] },
-          // Google Calendar sync fields - handle both formats
-          syncedFromGoogle: event.syncedFromGoogle || event.synced_from_google || false,
-          googleCalendarEventId: event.googleCalendarEventId || event.google_calendar_event_id,
-          googleCalendarHtmlLink: event.googleCalendarHtmlLink || event.google_calendar_html_link,
-          // Additional Google Calendar fields
-          googleCalendarName: event.googleCalendarName,
-          googleCalendarColor: event.googleCalendarColor,
         };
       })
 

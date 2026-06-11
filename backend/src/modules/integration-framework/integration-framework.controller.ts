@@ -354,7 +354,6 @@ export class IntegrationFrameworkController {
         if (testType === 'oauth') {
           // OAuth connection tests
           const oauthPatternMap: Record<string, string> = {
-            'google-calendar': 'calendar.*oauth',
             gmail: 'integration-framework/email.*oauth',
             github: 'integration-framework/github.*oauth',
           };
@@ -371,7 +370,7 @@ export class IntegrationFrameworkController {
         if (!testPattern) {
           return {
             success: false,
-            error: `No test found for integration: ${slug}. Available: google-calendar, gmail, github`,
+            error: `No test found for integration: ${slug}. Available: gmail, github`,
           };
         }
 

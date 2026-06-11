@@ -4,19 +4,7 @@ import { cn } from '../../lib/utils'
 import type { CalendarEvent } from '../../types/calendar'
 import { getEventColor, formatEventTime, formatEventDuration } from '../../lib/calendar-utils'
 import { useCalendarStore } from '../../stores/calendarStore'
-import { Clock, MapPin, Users, Lock, Repeat, ExternalLink } from 'lucide-react'
-
-// Google Calendar icon as inline SVG component
-const GoogleCalendarIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={className}
-    fill="currentColor"
-  >
-    <path d="M19.5 3h-3V1.5h-1.5V3h-6V1.5H7.5V3h-3C3.675 3 3 3.675 3 4.5v15c0 .825.675 1.5 1.5 1.5h15c.825 0 1.5-.675 1.5-1.5v-15c0-.825-.675-1.5-1.5-1.5zm0 16.5h-15V8.25h15v11.25z"/>
-    <path d="M12 10.5h4.5v1.5H12zm0 3h4.5v1.5H12zm-4.5-3H9v1.5H7.5zm0 3H9v1.5H7.5z" fill="#4285F4"/>
-  </svg>
-)
+import { Clock, MapPin, Users, Lock, Repeat } from 'lucide-react'
 
 interface EventCardProps {
   event: CalendarEvent
@@ -122,13 +110,6 @@ export function EventCard({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-
-    // If event is synced from Google Calendar, open it in Google Calendar instead of edit dialog
-    if (event.syncedFromGoogle && event.googleCalendarHtmlLink) {
-      window.open(event.googleCalendarHtmlLink, '_blank', 'noopener,noreferrer')
-      return
-    }
-
     onClick(event)
   }
 
@@ -160,12 +141,10 @@ export function EventCard({
     const timeText = !event.isAllDay ? format(new Date(event.startTime), 'h:mm') : ''
     
     // Disable dragging for Google Calendar synced events
-    const canDrag = draggable && !event.syncedFromGoogle
+    const canDrag = draggable
 
-    // Build title with Google Calendar hint if applicable
-    const cardTitle = event.syncedFromGoogle && event.googleCalendarHtmlLink
-      ? `${event.title}${timeText ? ` (${timeText})` : ''} - Click to open in Google Calendar`
-      : `${event.title}${timeText ? ` (${timeText})` : ''}${event.location ? ` @ ${typeof event.location === 'string' ? event.location : event.location.name}` : ''}${event.description ? ` - ${event.description}` : ''}`
+    // Build title
+    const cardTitle = `${event.title}${timeText ? ` (${timeText})` : ''}${event.location ? ` @ ${typeof event.location === 'string' ? event.location : event.location.name}` : ''}${event.description ? ` - ${event.description}` : ''}`
 
     return (
       <div
@@ -175,7 +154,6 @@ export function EventCard({
           isSelected && "ring-2 ring-indigo-500 ring-offset-1",
           isDragging && "opacity-50 scale-95 shadow-lg z-50",
           canDrag && "hover:scale-[1.02]",
-          event.syncedFromGoogle && "cursor-pointer",
           priorityStyles[event.priority],
           statusStyles[event.status],
           dateStyle?.className || "border-border/50 bg-card hover:bg-accent/5",
@@ -201,9 +179,6 @@ export function EventCard({
         <div className="pl-2 pr-2 py-1.5">
           <div className="flex flex-col gap-0.5 min-w-0 h-full justify-center">
             <div className="flex items-center gap-1 min-w-0">
-              {event.syncedFromGoogle && (
-                <GoogleCalendarIcon className="h-2.5 w-2.5 text-blue-500 flex-shrink-0" />
-              )}
               {event.isPrivate && <Lock className="h-2 w-2 opacity-60 flex-shrink-0" />}
               {event.recurrence && <Repeat className="h-2 w-2 opacity-60 flex-shrink-0" />}
               <span className="font-medium truncate text-xs leading-tight">{getDisplayTitle()}</span>
@@ -217,18 +192,8 @@ export function EventCard({
           </div>
         </div>
 
-        {/* Google Calendar indicator for compact events */}
-        {event.syncedFromGoogle && (
-          <div className="absolute top-0.5 right-0.5">
-            <div
-              className="w-1.5 h-1.5 bg-blue-500 rounded-full"
-              title={event.googleCalendarHtmlLink ? "Click to open in Google Calendar" : "Synced from Google Calendar"}
-            />
-          </div>
-        )}
-
         {/* Drag handle for compact events */}
-        {draggable && !event.syncedFromGoogle && (
+        {draggable && (
           <div className="absolute top-0 right-0 w-full h-full opacity-0 hover:opacity-100 transition-opacity">
             <div className="absolute top-1 right-1 w-1 h-1 bg-current opacity-40 rounded-full" />
           </div>
@@ -270,9 +235,6 @@ export function EventCard({
         <div className="flex items-start justify-between gap-1 flex-shrink-0">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1 mb-0.5">
-              {event.syncedFromGoogle && (
-                <GoogleCalendarIcon className="h-3 w-3 text-blue-500 flex-shrink-0" />
-              )}
               {event.isPrivate && <Lock className="h-2 w-2 text-muted-foreground/60 flex-shrink-0" />}
               {event.recurrence && <Repeat className="h-2 w-2 text-muted-foreground/60 flex-shrink-0" />}
               <h3 className="font-medium text-xs truncate leading-tight">{event.title}</h3>
@@ -344,21 +306,8 @@ export function EventCard({
         </div>
       )}
 
-      {/* Google Calendar badge */}
-      {event.syncedFromGoogle && (
-        <div className="px-2 pb-1 flex items-center gap-1">
-          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded text-xs text-blue-600 dark:text-blue-400">
-            <GoogleCalendarIcon className="h-2.5 w-2.5" />
-            <span>Google</span>
-            {event.googleCalendarHtmlLink && (
-              <ExternalLink className="h-2.5 w-2.5 opacity-70" />
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Category indicator */}
-      {category && !event.syncedFromGoogle && (
+      {category && (
         <div
           className="absolute bottom-1 right-1 w-3 h-3 rounded-full opacity-60"
           style={{ backgroundColor: category.color }}
