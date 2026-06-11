@@ -1,18 +1,22 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
 import {
   aiChatApi,
+  aiChatKeys,
   useAIChatConversations,
   useAIChatMessages,
+  useAIChatTools,
   useCreateAIChatConversation,
   useDeleteAIChatConversation,
   useRenameAIChatConversation,
 } from '@/lib/api/ai-chat-api'
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
+import type { ThinkingStep } from './AIChatMessage'
 import { AIChatInput } from './AIChatInput'
 import { AIChatEmpty } from './AIChatEmpty'
 
@@ -25,6 +29,7 @@ interface LocalMessage {
 
 const MODELS_KEY = 'nexus_ai_chat_model'
 const SIDEBAR_KEY = 'nexus_ai_chat_sidebar'
+const EXECUTE_ACTIONS_KEY = 'nexus_ai_chat_execute_actions'
 
 export function AIChatPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -35,7 +40,11 @@ export function AIChatPage() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
+  const [streamingSteps, setStreamingSteps] = useState<ThinkingStep[]>([])
   const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
+  const [executeActions, setExecuteActions] = useState(() => {
+    return localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true'
+  })
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_KEY)
     return saved !== null ? saved === 'true' : true
@@ -44,13 +53,19 @@ export function AIChatPage() {
 
   const { data: conversations = [], isLoading: conversationsLoading } = useAIChatConversations(workspaceId || '')
   const { data: serverMessages = [], isLoading: messagesLoading } = useAIChatMessages(conversationId)
+  const { data: mcpTools, isError: mcpToolsError, isLoading: mcpToolsLoading } = useAIChatTools(workspaceId || '')
   const createConversation = useCreateAIChatConversation()
   const deleteConversation = useDeleteAIChatConversation()
   const renameConversation = useRenameAIChatConversation()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     localStorage.setItem(MODELS_KEY, model)
   }, [model])
+
+  useEffect(() => {
+    localStorage.setItem(EXECUTE_ACTIONS_KEY, String(executeActions))
+  }, [executeActions])
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, String(sidebarOpen))
@@ -137,16 +152,23 @@ export function AIChatPage() {
         content: message,
         timestamp: new Date().toISOString(),
       }
-      setLocalMessages(prev => [...prev, userMsg])
+      const messagesForRequest = [...localMessages, userMsg]
+      setLocalMessages(messagesForRequest)
       setIsStreaming(true)
       setIsThinking(true)
       setStreamingContent('')
+      setStreamingSteps([])
 
       const token = localStorage.getItem('auth_token') || ''
       const controller = new AbortController()
       abortRef.current = controller
 
-      const context: Record<string, any> = { model, currentView: 'ai-chat' }
+      const context: Record<string, any> = {
+        model,
+        currentView: 'ai-chat',
+        executeActions,
+        messages: messagesForRequest.map(({ role, content }) => ({ role, content })),
+      }
 
       if (files.length > 0) {
         context.files = await Promise.all(
@@ -168,35 +190,54 @@ export function AIChatPage() {
         )
       }
 
+      let assistantContent = ''
+
       try {
         await aiChatApi.streamChat(
           {
             command: message,
             workspaceId,
             sessionId,
-            executeActions: false,
+            executeActions,
             context,
           },
           {
             onTextDelta: (content: string) => {
               setIsThinking(false)
+              assistantContent += content
               setStreamingContent(prev => prev + content)
+            },
+            onStep: (step: ThinkingStep) => {
+              setStreamingSteps(prev => {
+                const index = prev.findIndex(item => item.id === step.id)
+                if (index === -1) return [...prev, step]
+                const next = [...prev]
+                next[index] = { ...next[index], ...step }
+                return next
+              })
             },
             onText: (content: string) => {
               setIsThinking(false)
+              assistantContent = content
               setStreamingContent(content)
             },
             onComplete: (result: any) => {
+              const finalContent = result?.message || assistantContent
               const aiMsg: LocalMessage = {
                 id: `assistant-${Date.now()}`,
                 role: 'assistant',
-                content: result?.message || streamingContent,
+                content: finalContent,
                 timestamp: new Date().toISOString(),
               }
-              setLocalMessages(prev => [...prev, aiMsg])
+              const nextMessages = [...messagesForRequest, aiMsg]
+              setLocalMessages(nextMessages)
+              aiChatApi.saveMessages(workspaceId, sessionId!, nextMessages, model)
+              queryClient.invalidateQueries({ queryKey: aiChatKeys.conversations(workspaceId) })
+              queryClient.invalidateQueries({ queryKey: aiChatKeys.messages(sessionId) })
               setIsStreaming(false)
               setIsThinking(false)
               setStreamingContent('')
+              setStreamingSteps([])
               abortRef.current = null
             },
             onError: (error: string) => {
@@ -204,6 +245,7 @@ export function AIChatPage() {
               setIsStreaming(false)
               setIsThinking(false)
               setStreamingContent('')
+              setStreamingSteps([])
               abortRef.current = null
             },
           },
@@ -217,10 +259,11 @@ export function AIChatPage() {
         setIsStreaming(false)
         setIsThinking(false)
         setStreamingContent('')
+        setStreamingSteps([])
         abortRef.current = null
       }
     },
-    [workspaceId, conversationId, isStreaming, model, streamingContent, createConversation, intl]
+    [workspaceId, conversationId, isStreaming, model, executeActions, localMessages, createConversation, intl, queryClient]
   )
 
   const handleStop = useCallback(() => {
@@ -240,6 +283,7 @@ export function AIChatPage() {
     setIsStreaming(false)
     setIsThinking(false)
     setStreamingContent('')
+    setStreamingSteps([])
   }, [streamingContent])
 
   const handleRegenerate = useCallback(
@@ -302,6 +346,42 @@ export function AIChatPage() {
               </p>
             </div>
           )}
+          <div
+            className={`ml-auto rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+              mcpToolsError
+                ? 'border-[#E01E5A]/20 bg-[#E01E5A]/5 text-[#B91C1C]'
+                : 'border-[#D97757]/20 bg-[#D97757]/5 text-[#8A4B2F]'
+            }`}
+            title={
+              mcpToolsError
+                ? 'MCP server is not reachable'
+                : mcpToolsLoading
+                  ? 'Checking MCP tools'
+                : `${mcpTools?.count || 0} MCP tools available`
+            }
+          >
+            {mcpToolsError
+              ? 'MCP offline'
+              : mcpToolsLoading
+                ? 'MCP checking'
+                : `MCP ${mcpTools?.count || 0} tools`}
+          </div>
+          <button
+            type="button"
+            onClick={() => setExecuteActions(prev => !prev)}
+            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              executeActions
+                ? 'border-[#E01E5A]/25 bg-[#E01E5A]/10 text-[#B91C1C]'
+                : 'border-[#10B981]/20 bg-[#10B981]/5 text-[#047857]'
+            }`}
+            title={
+              executeActions
+                ? 'Write tools can execute real changes'
+                : 'Write tools return preview only'
+            }
+          >
+            {executeActions ? 'Execute on' : 'Preview'}
+          </button>
         </div>
 
         {!hasConversation ? (
@@ -318,6 +398,7 @@ export function AIChatPage() {
               messages={localMessages}
               isStreaming={isStreaming}
               streamingContent={streamingContent}
+              streamingSteps={streamingSteps}
               isLoading={messagesLoading}
               onRegenerate={handleRegenerate}
             />

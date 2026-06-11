@@ -378,6 +378,8 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
           transformedResults[groupKey]!.push(transformed as any);
         });
 
+        const driveResponse = { files: [] as any[] };
+
         // Process Google Calendar events - filter by search query and merge into calendar
         if (calendarEventsResponse && calendarEventsResponse.length > 0) {
           // Filter events that match the search query and are from Google Calendar

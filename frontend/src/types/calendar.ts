@@ -30,6 +30,7 @@ export interface EventAttachments {
   file_attachment: string[]
   note_attachment: string[]
   event_attachment: string[]
+  drive_attachment?: string[]
 }
 
 // API-specific types (snake_case for backend compatibility)

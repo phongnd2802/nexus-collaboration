@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { AIChatMessage } from './AIChatMessage'
+import type { ThinkingStep } from './AIChatMessage'
 import { Loader2, Sparkles } from 'lucide-react'
 import { useIntl } from 'react-intl'
 
@@ -14,11 +15,12 @@ interface AIChatMessagesProps {
   messages: Message[]
   isStreaming: boolean
   streamingContent: string
+  streamingSteps?: ThinkingStep[]
   isLoading: boolean
   onRegenerate: (messageId: string) => void
 }
 
-export function AIChatMessages({ messages, isStreaming, streamingContent, isLoading, onRegenerate }: AIChatMessagesProps) {
+export function AIChatMessages({ messages, isStreaming, streamingContent, streamingSteps = [], isLoading, onRegenerate }: AIChatMessagesProps) {
   const intl = useIntl()
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -28,7 +30,7 @@ export function AIChatMessages({ messages, isStreaming, streamingContent, isLoad
     if (isAutoScrollRef.current && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages, streamingContent])
+  }, [messages, streamingContent, streamingSteps])
 
   const handleScroll = () => {
     if (!scrollRef.current) return
@@ -74,11 +76,12 @@ export function AIChatMessages({ messages, isStreaming, streamingContent, isLoad
             onRegenerate={msg.role === 'assistant' ? () => onRegenerate(msg.id) : undefined}
           />
         ))}
-        {isStreaming && streamingContent && (
+        {isStreaming && (streamingContent || streamingSteps.length > 0) && (
           <AIChatMessage
             id="streaming"
             role="assistant"
             content={streamingContent}
+            steps={streamingSteps}
             isStreaming
           />
         )}
