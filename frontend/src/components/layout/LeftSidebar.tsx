@@ -78,7 +78,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { filesService, useDashboardStats, useFilesAndFolders } from '@/lib/api/files-api'
 import { useStorageStats } from '../../hooks/files/useStorageStats'
 import { useWorkspaceMembers } from '@/lib/api/workspace-api'
-import { useBots } from '@/lib/api/bots-api'
 import { useSearchHistory } from '../../hooks/search/useSearchHistory'
 import { getSavedSearches, type SavedSearch } from '../../services/searchService'
 import { useProjects, projectService } from '@/lib/api/projects-api'
@@ -111,7 +110,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
   const startCall = useVideoCallStore((state) => state.startCall)
   const { user } = useAuth()
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
-  const { data: bots = [] } = useBots(workspaceId || '')
 
   // Use websocketService directly instead of useWebSocket hook to avoid subscribing to context updates
   const on = React.useCallback((event: any, callback: any) => {
@@ -937,31 +935,11 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
                   return id !== user?.id;
                 });
 
-                // Find the member details from workspace members OR bots
-                let otherUser = workspaceMembers.find(m => m.user_id === otherParticipantId);
-
-                // If not found in workspace members, check if it's a bot
-                if (!otherUser) {
-                  const bot = bots.find(b => b.id === otherParticipantId);
-                  if (bot) {
-                    // Create a user-like object for the bot
-                    otherUser = {
-                      id: bot.id,
-                      user_id: bot.id,
-                      name: bot.displayName || bot.name,
-                      email: `${bot.name}@bot.nexusapp.io`,
-                      avatar_url: bot.avatarUrl,
-                      user: {
-                        name: bot.displayName || bot.name,
-                        email: `${bot.name}@bot.nexusapp.io`,
-                        avatar: bot.avatarUrl
-                      }
-                    } as any;
-                  }
-                }
+                // Find the member details from workspace members
+                const otherUser = workspaceMembers.find(m => m.user_id === otherParticipantId);
 
                 if (!otherUser) {
-                  console.warn('⚠️ Could not find user or bot details for participant:', otherParticipantId);
+                  console.warn('⚠️ Could not find user details for participant:', otherParticipantId);
                   return null;
                 }
 
@@ -1766,18 +1744,7 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
               status: m.status === 'active' ? 'online' as const : 'offline' as const
             }));
 
-            // Add activated bots
-            const activeBots = bots
-              .filter(bot => bot.botType === 'prebuilt' && bot.status === 'active')
-              .map(bot => ({
-                id: bot.id,
-                name: bot.displayName || bot.name,
-                email: `${bot.name}@bot.nexusapp.io`,
-                avatar: bot.avatarUrl,
-                status: 'online' as const
-              }));
-
-            return [...members, ...activeBots];
+            return [...members];
           }
 
           // Get list of user IDs who already have conversations with the current user
@@ -1816,18 +1783,7 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
               status: m.status === 'active' ? 'online' as const : 'offline' as const
             }));
 
-          // Add activated bots (filter out bots with existing conversations)
-          const activeBots = bots
-            .filter(bot => bot.botType === 'prebuilt' && bot.status === 'active' && !existingConversationUserIds.has(bot.id))
-            .map(bot => ({
-              id: bot.id,
-              name: bot.displayName || bot.name,
-              email: `${bot.name}@bot.nexusapp.io`,
-              avatar: bot.avatarUrl,
-              status: 'online' as const
-            }));
-
-          return [...members, ...activeBots];
+          return [...members];
         })()}
       />
 

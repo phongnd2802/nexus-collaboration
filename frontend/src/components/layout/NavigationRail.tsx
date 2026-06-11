@@ -35,7 +35,6 @@ export type ViewType =
   | 'video'
   | 'files'
   | 'ai-chat'
-  | 'bots'
   | 'email'
   | 'search'
   | 'settings'

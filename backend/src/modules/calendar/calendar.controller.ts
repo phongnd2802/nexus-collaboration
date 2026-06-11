@@ -31,7 +31,6 @@ import { CalendarService } from './calendar.service';
 import { CalendarAgentService } from './calendar-agent.service';
 import { GoogleCalendarOAuthService } from './google-calendar-oauth.service';
 import { GoogleCalendarSyncService } from './google-calendar-sync.service';
-import { EventBotAssignmentsService } from './event-bot-assignments.service';
 import {
   CreateEventDto,
   UpdateEventDto,
@@ -49,9 +48,6 @@ import {
   GoogleCalendarAuthUrlResponseDto,
   GoogleCalendarSyncResultDto,
   NativeConnectGoogleCalendarDto,
-  AssignBotToEventDto,
-  UnassignBotFromEventDto,
-  UpdateBotAssignmentDto,
 } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
@@ -67,7 +63,6 @@ export class CalendarController {
     private readonly calendarAgentService: CalendarAgentService,
     private readonly googleCalendarOAuthService: GoogleCalendarOAuthService,
     private readonly googleCalendarSyncService: GoogleCalendarSyncService,
-    private readonly eventBotAssignmentsService: EventBotAssignmentsService,
   ) {}
 
   // ============================================
@@ -236,7 +231,7 @@ export class CalendarController {
           startDate,
           endDate,
         );
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch Google Calendar events:', error.message);
         // Continue with local events only
       }
@@ -289,7 +284,7 @@ export class CalendarController {
           startDate,
           endDate,
         );
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch Google Calendar events:', error.message);
       }
     }
@@ -778,7 +773,7 @@ export class CalendarController {
   ): Promise<GoogleCalendarAuthUrlResponseDto> {
     try {
       return this.googleCalendarOAuthService.getAuthorizationUrl(userId, workspaceId, returnUrl);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to generate Google Calendar auth URL:', error.message);
       throw new BadRequestException(error.message || 'Failed to generate authorization URL');
     }
@@ -840,7 +835,7 @@ export class CalendarController {
         connected: !!connection,
         data: connection || undefined,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get Google Calendar connection:', error.message);
       return {
         connected: false,
@@ -940,112 +935,4 @@ export class CalendarController {
     return this.googleCalendarSyncService.refreshAvailableCalendars(userId, workspaceId);
   }
 
-  // ============================================
-  // EVENT BOT ASSIGNMENTS
-  // ============================================
-
-  @Post('events/:eventId/bots')
-  @ApiOperation({
-    summary: 'Assign a bot to a calendar event',
-    description:
-      'Assigns a bot to send reminders, updates, and respond to mentions about the event',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'eventId', description: 'Event ID' })
-  @ApiResponse({ status: 201, description: 'Bot assigned successfully' })
-  @ApiResponse({ status: 404, description: 'Event or bot not found' })
-  @ApiResponse({ status: 400, description: 'Bot already assigned to this event' })
-  async assignBotToEvent(
-    @Param('workspaceId') workspaceId: string,
-    @Param('eventId') eventId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: AssignBotToEventDto,
-  ) {
-    const assignment = await this.eventBotAssignmentsService.assignBotToEvent(
-      userId,
-      workspaceId,
-      eventId,
-      dto,
-    );
-    return { data: assignment, message: 'Bot assigned to event successfully' };
-  }
-
-  @Delete('events/:eventId/bots/:botId')
-  @ApiOperation({
-    summary: 'Unassign a bot from a calendar event',
-    description: 'Removes bot assignment from the event',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'eventId', description: 'Event ID' })
-  @ApiParam({ name: 'botId', description: 'Bot ID' })
-  @ApiResponse({ status: 200, description: 'Bot unassigned successfully' })
-  @ApiResponse({ status: 404, description: 'Bot assignment not found' })
-  @ApiResponse({ status: 403, description: 'Forbidden - user does not have permission' })
-  async unassignBotFromEvent(
-    @Param('workspaceId') workspaceId: string,
-    @Param('eventId') eventId: string,
-    @Param('botId') botId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    const dto: UnassignBotFromEventDto = { event_id: eventId, bot_id: botId };
-    await this.eventBotAssignmentsService.unassignBotFromEvent(userId, workspaceId, dto);
-    return { message: 'Bot unassigned from event successfully' };
-  }
-
-  @Patch('events/:eventId/bots/:botId')
-  @ApiOperation({
-    summary: 'Update bot assignment settings',
-    description: 'Updates the settings or active status of a bot assignment',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'eventId', description: 'Event ID' })
-  @ApiParam({ name: 'botId', description: 'Bot ID' })
-  @ApiResponse({ status: 200, description: 'Bot assignment updated successfully' })
-  @ApiResponse({ status: 404, description: 'Bot assignment not found' })
-  @ApiResponse({ status: 403, description: 'Forbidden - user does not have permission' })
-  async updateBotAssignment(
-    @Param('workspaceId') workspaceId: string,
-    @Param('eventId') eventId: string,
-    @Param('botId') botId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: UpdateBotAssignmentDto,
-  ) {
-    const assignment = await this.eventBotAssignmentsService.updateBotAssignment(
-      userId,
-      workspaceId,
-      eventId,
-      botId,
-      dto,
-    );
-    return { data: assignment, message: 'Bot assignment updated successfully' };
-  }
-
-  @Get('events/:eventId/bots')
-  @ApiOperation({
-    summary: 'Get all bots assigned to an event',
-    description: 'Returns a list of bots assigned to the specified event',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'eventId', description: 'Event ID' })
-  @ApiResponse({ status: 200, description: 'List of assigned bots' })
-  async getBotsForEvent(
-    @Param('workspaceId') workspaceId: string,
-    @Param('eventId') eventId: string,
-  ) {
-    const bots = await this.eventBotAssignmentsService.getBotsForEvent(workspaceId, eventId);
-    return { data: bots };
-  }
-
-  @Get('bots/:botId/events')
-  @ApiOperation({
-    summary: 'Get all events assigned to a bot',
-    description: 'Returns a list of events that the specified bot is assigned to',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'botId', description: 'Bot ID' })
-  @ApiResponse({ status: 200, description: 'List of events for the bot' })
-  async getEventsForBot(@Param('workspaceId') workspaceId: string, @Param('botId') botId: string) {
-    const events = await this.eventBotAssignmentsService.getEventsForBot(workspaceId, botId);
-    return { data: events };
-  }
 }

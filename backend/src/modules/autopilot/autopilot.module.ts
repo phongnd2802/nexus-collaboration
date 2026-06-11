@@ -5,7 +5,6 @@ import { AutoPilotService } from './autopilot.service';
 import { LangChainAgentService } from './langchain/agent.service';
 import { AgentMemoryService } from './langchain/memory.service';
 import { AgentToolsService } from './langchain/tools.service';
-import { CalendarBotContextService } from './calendar-bot-context.service';
 import { ScheduledActionsService } from './scheduled-actions.service';
 
 // Import existing modules to use their services as tools
@@ -57,9 +56,8 @@ import { ProactiveModule } from './proactive';
     LangChainAgentService,
     AgentMemoryService,
     AgentToolsService,
-    CalendarBotContextService,
     ScheduledActionsService,
   ],
-  exports: [AutoPilotService, AgentMemoryService, CalendarBotContextService, ScheduledActionsService],
+  exports: [AutoPilotService, AgentMemoryService, ScheduledActionsService],
 })
 export class AutoPilotModule {}

@@ -50,7 +50,7 @@ export class SettingsService {
 
       // Return notification settings
       return userSettings.notifications || this.getDefaultNotificationSettings();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to get notification settings: ${error.message}`, error.stack);
 
       // Return default settings on error
@@ -104,7 +104,7 @@ export class SettingsService {
       await this.syncEmailNotificationSetting(userId, updatedSettings);
 
       return updatedSettings;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to update notification settings: ${error.message}`, error.stack);
       throw error;
     }
@@ -140,7 +140,7 @@ export class SettingsService {
         .execute();
 
       this.logger.log(`Email connections updated for user ${userId}`);
-    } catch (error) {
+    } catch (error: any) {
       // Log but don't throw - this is a best-effort sync
       this.logger.warn(`Failed to sync email notification setting: ${error.message}`);
     }
@@ -261,7 +261,7 @@ export class SettingsService {
           this.getDefaultTabArrangement().moreMenuTabIds,
         lastModified: userSettings.tab_arrangement.lastModified || null,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to get tab arrangement: ${error.message}`, error.stack);
       return this.getDefaultTabArrangement();
     }
@@ -340,7 +340,7 @@ export class SettingsService {
       this.logger.log(`Tab arrangement updated successfully for user: ${userId}`);
 
       return tabArrangement;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to update tab arrangement: ${error.message}`, error.stack);
       throw error;
     }
@@ -360,7 +360,6 @@ export class SettingsService {
         'search',
         'connectors',
         'tools',
-        'bots',
         'settings',
       ],
       lastModified: null,

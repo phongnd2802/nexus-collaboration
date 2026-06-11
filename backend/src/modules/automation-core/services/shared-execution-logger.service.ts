@@ -17,7 +17,6 @@ export enum ExecutionStatus {
  * Automation type - identifies source of execution
  */
 export enum AutomationType {
-  BOT = 'bot',
   WORKFLOW = 'workflow',
 }
 
@@ -102,7 +101,7 @@ export class SharedExecutionLoggerService {
       const executionId = result?.id;
       this.logger.log(`[ExecutionLogger] Started ${automationType} execution: ${executionId}`);
       return executionId;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to start execution: ${error.message}`);
       throw error;
     }
@@ -135,7 +134,7 @@ export class SharedExecutionLoggerService {
       this.logger.log(
         `[ExecutionLogger] Completed ${automationType} execution: ${executionId} (${durationMs}ms)`,
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to complete execution: ${error.message}`);
     }
   }
@@ -168,7 +167,7 @@ export class SharedExecutionLoggerService {
       this.logger.error(
         `[ExecutionLogger] Failed ${automationType} execution: ${executionId} - ${error}`,
       );
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`[ExecutionLogger] Failed to log failure: ${err.message}`);
     }
   }
@@ -193,7 +192,7 @@ export class SharedExecutionLoggerService {
       });
 
       return result?.id;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to log step: ${error.message}`);
       return undefined;
     }
@@ -213,7 +212,7 @@ export class SharedExecutionLoggerService {
       if (updates.error) updateData.error_message = updates.error;
 
       await this.db.update('workflow_step_executions', stepExecutionId, updateData);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to update step: ${error.message}`);
     }
   }
@@ -249,7 +248,7 @@ export class SharedExecutionLoggerService {
       const result = await query.execute();
 
       return (result.data || []).map((row: any) => this.mapToExecutionLog(automationType, row));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to get history: ${error.message}`);
       return [];
     }
@@ -293,7 +292,7 @@ export class SharedExecutionLoggerService {
           : 0;
 
       return { total, completed, failed, avgDurationMs };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to get stats: ${error.message}`);
       return { total: 0, completed: 0, failed: 0, avgDurationMs: 0 };
     }
@@ -327,7 +326,7 @@ export class SharedExecutionLoggerService {
       }
 
       return count;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ExecutionLogger] Failed to cleanup: ${error.message}`);
       return 0;
     }
@@ -335,19 +334,19 @@ export class SharedExecutionLoggerService {
 
   // Helper methods
 
-  private getTableName(automationType: AutomationType): string {
-    return automationType === AutomationType.BOT ? 'bot_execution_logs' : 'workflow_executions';
+  private getTableName(_automationType: AutomationType): string {
+    return 'workflow_executions';
   }
 
-  private getAutomationIdColumn(automationType: AutomationType): string {
-    return automationType === AutomationType.BOT ? 'bot_id' : 'workflow_id';
+  private getAutomationIdColumn(_automationType: AutomationType): string {
+    return 'workflow_id';
   }
 
   private mapToExecutionLog(automationType: AutomationType, row: any): ExecutionLogEntry {
     return {
       id: row.id,
       automationType,
-      automationId: automationType === AutomationType.BOT ? row.bot_id : row.workflow_id,
+      automationId: row.workflow_id,
       workspaceId: row.workspace_id,
       triggerId: row.trigger_id,
       triggerType: row.trigger_type,

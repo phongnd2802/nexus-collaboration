@@ -7,7 +7,6 @@ import CronExpressionParser from 'cron-parser';
  * Job type - identifies source
  */
 export enum ScheduledJobType {
-  BOT = 'bot',
   WORKFLOW = 'workflow',
 }
 
@@ -36,7 +35,7 @@ export type JobExecutionCallback = (job: ScheduledJob) => Promise<void>;
 /**
  * Shared Scheduled Job Service
  *
- * Provides unified scheduled job management for both Bots and Workflows.
+ * Provides unified scheduled job management for Workflows.
  * Handles cron parsing, next run calculation, and job execution tracking.
  */
 @Injectable()
@@ -107,7 +106,7 @@ export class SharedScheduledJobService {
 
       this.logger.log(`[ScheduledJob] Created ${jobType} job for ${automationId}`);
       return result?.id;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ScheduledJob] Failed to upsert job: ${error.message}`);
       throw error;
     }
@@ -137,7 +136,7 @@ export class SharedScheduledJobService {
       }
 
       this.logger.log(`[ScheduledJob] Deleted ${jobType} jobs for ${automationId}`);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ScheduledJob] Failed to delete job: ${error.message}`);
     }
   }
@@ -151,7 +150,7 @@ export class SharedScheduledJobService {
     try {
       await this.db.update(tableName, jobId, { is_active: false });
       this.logger.log(`[ScheduledJob] Paused ${jobType} job: ${jobId}`);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ScheduledJob] Failed to pause job: ${error.message}`);
     }
   }
@@ -172,7 +171,7 @@ export class SharedScheduledJobService {
         });
         this.logger.log(`[ScheduledJob] Resumed ${jobType} job: ${jobId}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ScheduledJob] Failed to resume job: ${error.message}`);
     }
   }
@@ -193,7 +192,7 @@ export class SharedScheduledJobService {
         .execute();
 
       return (result.data || []).map((row: any) => this.mapToJob(jobType, row));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ScheduledJob] Failed to get due jobs: ${error.message}`);
       return [];
     }
@@ -215,7 +214,7 @@ export class SharedScheduledJobService {
           next_run_at: nextRunAt.toISOString(),
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`[ScheduledJob] Failed to mark executed: ${error.message}`);
     }
   }
@@ -225,7 +224,7 @@ export class SharedScheduledJobService {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async processDueJobs(): Promise<void> {
-    for (const jobType of [ScheduledJobType.BOT, ScheduledJobType.WORKFLOW]) {
+    for (const jobType of [ScheduledJobType.WORKFLOW]) {
       const callback = this.callbacks.get(jobType);
       if (!callback) continue;
 
@@ -236,7 +235,7 @@ export class SharedScheduledJobService {
           this.logger.log(`[ScheduledJob] Executing ${jobType} job: ${job.id}`);
           await callback(job);
           await this.markExecuted(jobType, job.id);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(`[ScheduledJob] Job ${job.id} failed: ${error.message}`);
           // Still mark as executed to prevent repeated failures
           await this.markExecuted(jobType, job.id);
@@ -255,7 +254,7 @@ export class SharedScheduledJobService {
         tz: timezone || 'UTC',
       });
       return expression.next().toDate();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn(`[ScheduledJob] Invalid cron: ${cronExpression}, defaulting to +1 hour`);
       const fallback = new Date();
       fallback.setHours(fallback.getHours() + 1);
@@ -278,19 +277,19 @@ export class SharedScheduledJobService {
 
   // Helper methods
 
-  private getTableName(jobType: ScheduledJobType): string {
-    return jobType === ScheduledJobType.BOT ? 'bot_scheduled_jobs' : 'workflow_scheduled_jobs';
+  private getTableName(_jobType: ScheduledJobType): string {
+    return 'workflow_scheduled_jobs';
   }
 
-  private getAutomationIdColumn(jobType: ScheduledJobType): string {
-    return jobType === ScheduledJobType.BOT ? 'bot_id' : 'workflow_id';
+  private getAutomationIdColumn(_jobType: ScheduledJobType): string {
+    return 'workflow_id';
   }
 
   private mapToJob(jobType: ScheduledJobType, row: any): ScheduledJob {
     return {
       id: row.id,
       jobType,
-      automationId: jobType === ScheduledJobType.BOT ? row.bot_id : row.workflow_id,
+      automationId: row.workflow_id,
       triggerId: row.trigger_id,
       workspaceId: row.workspace_id,
       cronExpression: row.cron_expression,

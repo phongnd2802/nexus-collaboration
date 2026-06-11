@@ -155,7 +155,6 @@ function DefaultRightSidebar({ currentView }: { currentView: ViewType }) {
       video: { id: 'navigation.videoCall', defaultMessage: 'Video' },
       files: { id: 'navigation.files', defaultMessage: 'Files' },
       email: { id: 'navigation.email', defaultMessage: 'Email' },
-      bots: { id: 'navigation.bots', defaultMessage: 'Bots' },
       search: { id: 'navigation.search', defaultMessage: 'Search' },
       settings: { id: 'navigation.settings', defaultMessage: 'Settings' },
       integrations: { id: 'navigation.integrations', defaultMessage: 'Integrations' },
