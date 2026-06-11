@@ -334,90 +334,6 @@
       "isFeatured": false
     },
     {
-      "slug": "hubspot",
-      "name": "HubSpot",
-      "description": "Connect HubSpot CRM to sync contacts, deals, and marketing activities.",
-      "category": "CRM",
-      "provider": "HubSpot",
-      "logoUrl": "https://www.hubspot.com/hubfs/HubSpot_Logos/HubSpot-Inversed-Favicon.png",
-      "website": "https://hubspot.com",
-      "documentationUrl": "https://developers.hubspot.com/docs/api/overview",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://app.hubspot.com/oauth/authorize",
-        "tokenUrl": "https://api.hubapi.com/oauth/v1/token",
-        "userInfoUrl": "https://api.hubapi.com/oauth/v1/access-tokens",
-        "scopes": [
-          "crm.objects.contacts.read",
-          "crm.objects.contacts.write",
-          "crm.objects.deals.read"
-        ],
-        "clientIdEnvKey": "HUBSPOT_CLIENT_ID",
-        "clientSecretEnvKey": "HUBSPOT_CLIENT_SECRET"
-      },
-      "apiBaseUrl": "https://api.hubapi.com",
-      "capabilities": [
-        "read_contacts",
-        "write_contacts",
-        "read_deals",
-        "read_companies"
-      ],
-      "features": [
-        "Contact sync",
-        "Deal tracking",
-        "Company management",
-        "Activity logging"
-      ],
-      "pricingType": "freemium",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
-      "slug": "discord",
-      "name": "Discord",
-      "description": "Connect Discord to receive notifications and manage server communications.",
-      "category": "COMMUNICATION",
-      "provider": "Discord",
-      "logoUrl": "https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a69f118df70ad7828d4_icon_clyde_blurple_RGB.svg",
-      "website": "https://discord.com",
-      "documentationUrl": "https://discord.com/developers/docs",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://discord.com/oauth2/authorize",
-        "tokenUrl": "https://discord.com/api/oauth2/token",
-        "revokeUrl": "https://discord.com/api/oauth2/token/revoke",
-        "userInfoUrl": "https://discord.com/api/users/@me",
-        "scopes": [
-          "identify",
-          "email",
-          "guilds",
-          "guilds.members.read"
-        ],
-        "clientIdEnvKey": "DISCORD_CLIENT_ID",
-        "clientSecretEnvKey": "DISCORD_CLIENT_SECRET",
-        "userInfoMapping": {
-          "id": "id",
-          "email": "email",
-          "name": "username",
-          "avatar": "avatar"
-        }
-      },
-      "apiBaseUrl": "https://discord.com/api/v10",
-      "capabilities": [
-        "send_messages",
-        "read_channels",
-        "manage_guilds"
-      ],
-      "features": [
-        "Server notifications",
-        "Channel sync",
-        "Member management"
-      ],
-      "pricingType": "free",
-      "isVerified": true,
-      "isFeatured": false
-    },
-    {
       "slug": "whatsapp",
       "name": "WhatsApp Business",
       "description": "Connect WhatsApp Business to send notifications and messages to customers.",
@@ -4642,47 +4558,6 @@
       "pricingType": "paid",
       "isVerified": true,
       "isFeatured": false
-    },
-    {
-      "slug": "shopify",
-      "name": "Shopify",
-      "description": "Connect Shopify for e-commerce management.",
-      "category": "ECOMMERCE",
-      "provider": "Shopify",
-      "logoUrl": "https://cdn.shopify.com/shopifycloud/brochure/assets/brand-assets/favicon-ab7a2f0dc2052453.svg",
-      "website": "https://shopify.com",
-      "documentationUrl": "https://shopify.dev/docs/api",
-      "authType": "oauth2",
-      "authConfig": {
-        "authorizationUrl": "https://{shop}.myshopify.com/admin/oauth/authorize",
-        "tokenUrl": "https://{shop}.myshopify.com/admin/oauth/access_token",
-        "scopes": [
-          "read_products",
-          "write_products",
-          "read_orders",
-          "read_customers"
-        ],
-        "clientIdEnvKey": "SHOPIFY_CLIENT_ID",
-        "clientSecretEnvKey": "SHOPIFY_CLIENT_SECRET",
-        "requiresSubdomain": true,
-        "subdomainField": "shop"
-      },
-      "apiBaseUrl": "https://{shop}.myshopify.com/admin/api/2024-01",
-      "capabilities": [
-        "read_products",
-        "manage_orders",
-        "read_customers",
-        "manage_inventory"
-      ],
-      "features": [
-        "Product management",
-        "Order tracking",
-        "Customer data",
-        "Inventory sync"
-      ],
-      "pricingType": "paid",
-      "isVerified": true,
-      "isFeatured": true
     },
     {
       "slug": "woocommerce",

@@ -18,7 +18,6 @@ import { AppGateway } from '../../common/gateways/app.gateway';
 import { ChatGateway } from './gateways/chat.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto';
-import { BotMessageHandlerService } from '../bots/services/bot-message-handler.service';
 
 @Injectable()
 export class ChatService {
@@ -28,8 +27,6 @@ export class ChatService {
     @Inject(forwardRef(() => ChatGateway))
     private chatGateway: ChatGateway,
     private notificationsService: NotificationsService,
-    @Inject(forwardRef(() => BotMessageHandlerService))
-    private botMessageHandler: BotMessageHandlerService,
   ) {}
 
   /**
@@ -247,7 +244,7 @@ export class ChatService {
           send_push: true,
           send_email: false,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Failed to send channel creation notifications:`, error);
         // Continue even if notifications fail - channel is already created
       }
@@ -646,40 +643,15 @@ export class ChatService {
       sortedMessages.map(async (message) => {
         let user = null;
 
-        // Handle bot messages specially - format is "bot" or "bot:{botId}"
+        // Handle bot messages
         if (message.user_id === 'bot' || message.user_id?.startsWith('bot:')) {
-          // Try to look up bot details if we have a bot ID
-          const botId = message.user_id?.startsWith('bot:') ? message.user_id.split(':')[1] : null;
-
-          if (botId) {
-            try {
-              const botResult = await this.db.findMany('bots', { id: botId });
-              const bots = Array.isArray(botResult.data) ? botResult.data : [];
-              if (bots.length > 0) {
-                const bot = bots[0];
-                user = {
-                  id: message.user_id,
-                  name: bot.display_name || bot.name || 'Bot',
-                  email: '',
-                  avatarUrl: bot.avatar_url || null,
-                  isBot: true,
-                };
-              }
-            } catch (error) {
-              console.warn('[ChatService] Could not fetch bot info:', error.message);
-            }
-          }
-
-          // Fallback if bot lookup failed
-          if (!user) {
-            user = {
-              id: message.user_id,
-              name: 'Bot',
-              email: '',
-              avatarUrl: null,
-              isBot: true,
-            };
-          }
+          user = {
+            id: message.user_id,
+            name: 'Bot',
+            email: '',
+            avatarUrl: null,
+            isBot: true,
+          };
         } else {
           try {
             const userInfo: any = await this.db.getUserById(message.user_id);
@@ -700,7 +672,7 @@ export class ChatService {
                 avatarUrl: metadata.avatarUrl || userInfo.avatar_url || userInfo.avatarUrl || null,
               };
             }
-          } catch (error) {
+          } catch (error: any) {
             console.warn(
               '[ChatService] Could not fetch user info for message:',
               message.id,
@@ -723,7 +695,7 @@ export class ChatService {
           });
           const receipts = Array.isArray(receiptsResult.data) ? receiptsResult.data : [];
           readByCount = receipts.length;
-        } catch (error) {
+        } catch (error: any) {
           console.warn('[ChatService] Could not fetch read receipt count for message:', message.id);
         }
 
@@ -788,25 +760,14 @@ export class ChatService {
       throw new BadRequestException('Cannot create a conversation with yourself');
     }
 
-    // Verify the other participant is either a workspace member OR a bot
+    // Verify the other participant is a workspace member
     const workspaceMember = await this.db.findOne('workspace_members', {
       workspace_id: workspaceId,
       user_id: otherParticipantId,
     });
 
-    // If not a workspace member, check if it's a bot
     if (!workspaceMember) {
-      const bot = await this.db.findOne('bots', {
-        id: otherParticipantId,
-        workspace_id: workspaceId,
-        status: 'active',
-      });
-
-      if (!bot) {
-        throw new NotFoundException(
-          'The specified user is not a member of this workspace and is not an active bot',
-        );
-      }
+      throw new NotFoundException('The specified user is not a member of this workspace');
     }
 
     // Get all participants including the current user (exactly 2 people)
@@ -904,7 +865,7 @@ export class ChatService {
           workspace_id: workspaceId,
         });
         return conversation;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Failed to fetch conversation ${convId}:`, error);
         return null;
       }
@@ -1130,40 +1091,15 @@ export class ChatService {
       sortedMessages.map(async (message) => {
         let user = null;
 
-        // Handle bot messages specially - format is "bot" or "bot:{botId}"
+        // Handle bot messages
         if (message.user_id === 'bot' || message.user_id?.startsWith('bot:')) {
-          // Try to look up bot details if we have a bot ID
-          const botId = message.user_id?.startsWith('bot:') ? message.user_id.split(':')[1] : null;
-
-          if (botId) {
-            try {
-              const botResult = await this.db.findMany('bots', { id: botId });
-              const bots = Array.isArray(botResult.data) ? botResult.data : [];
-              if (bots.length > 0) {
-                const bot = bots[0];
-                user = {
-                  id: message.user_id,
-                  name: bot.display_name || bot.name || 'Bot',
-                  email: '',
-                  avatarUrl: bot.avatar_url || null,
-                  isBot: true,
-                };
-              }
-            } catch (error) {
-              console.warn('[ChatService] Could not fetch bot info:', error.message);
-            }
-          }
-
-          // Fallback if bot lookup failed
-          if (!user) {
-            user = {
-              id: message.user_id,
-              name: 'Bot',
-              email: '',
-              avatarUrl: null,
-              isBot: true,
-            };
-          }
+          user = {
+            id: message.user_id,
+            name: 'Bot',
+            email: '',
+            avatarUrl: null,
+            isBot: true,
+          };
         } else {
           try {
             const userInfo: any = await this.db.getUserById(message.user_id);
@@ -1184,7 +1120,7 @@ export class ChatService {
                 avatarUrl: metadata.avatarUrl || userInfo.avatar_url || userInfo.avatarUrl || null,
               };
             }
-          } catch (error) {
+          } catch (error: any) {
             console.warn(
               '[ChatService] Could not fetch user info for message:',
               message.id,
@@ -1207,7 +1143,7 @@ export class ChatService {
           });
           const receipts = Array.isArray(receiptsResult.data) ? receiptsResult.data : [];
           readByCount = receipts.length;
-        } catch (error) {
+        } catch (error: any) {
           console.warn('[ChatService] Could not fetch read receipt count for message:', message.id);
         }
 
@@ -1282,38 +1218,24 @@ export class ChatService {
       membersData.map(async (member) => {
         let user = null;
         try {
-          // First check if this is a bot
-          const botResult = await this.db.findOne('bots', { id: member.user_id });
-          if (botResult) {
-            // It's a bot
+          // It's a regular user
+          const userInfo: any = await this.db.getUserById(member.user_id);
+          if (userInfo) {
+            const metadata = userInfo.metadata || {};
             user = {
-              id: botResult.id,
-              name: botResult.display_name || botResult.name || 'Bot',
-              email: `${botResult.name}@bot.nexusapp.io`,
-              avatarUrl: botResult.avatar_url || null,
-              status: 'online', // Bots are always "online"
-              isBot: true,
+              id: userInfo.id,
+              name:
+                metadata.name ||
+                (userInfo as any).fullName ||
+                userInfo.name ||
+                userInfo.email?.split('@')[0] ||
+                'User',
+              email: userInfo.email,
+              avatarUrl: metadata.avatarUrl || userInfo.avatar_url || userInfo.avatarUrl || null,
+              status: 'offline', // Default status, can be enhanced with presence service
             };
-          } else {
-            // It's a regular user
-            const userInfo: any = await this.db.getUserById(member.user_id);
-            if (userInfo) {
-              const metadata = userInfo.metadata || {};
-              user = {
-                id: userInfo.id,
-                name:
-                  metadata.name ||
-                  (userInfo as any).fullName ||
-                  userInfo.name ||
-                  userInfo.email?.split('@')[0] ||
-                  'User',
-                email: userInfo.email,
-                avatarUrl: metadata.avatarUrl || userInfo.avatar_url || userInfo.avatarUrl || null,
-                status: 'offline', // Default status, can be enhanced with presence service
-              };
-            }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.warn(
             '[ChatService] Could not fetch user info for conversation member:',
             member.user_id,
@@ -1465,7 +1387,7 @@ export class ChatService {
         };
         console.log('[ChatService] User object created:', user);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn('[ChatService] Could not fetch user info from database:', error.message);
       // Fallback to basic info
       user = {
@@ -1517,7 +1439,7 @@ export class ChatService {
         user ? `User: ${user.name}` : 'No user info',
       );
       console.log('[ChatService] Parsed attachments:', parsedMessage.attachments);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ChatService] ❌ Error parsing message fields:', error);
       // Fallback to original message if parsing fails
       parsedMessage = {
@@ -1610,22 +1532,6 @@ export class ChatService {
               `[ChatService] ✅ Workspace notifications sent to: ${participantIds.join(', ')}`,
             );
 
-            // Process bot message handler for DMs asynchronously
-            if (this.botMessageHandler) {
-              console.log(
-                `[ChatService] 🤖 Calling bot message handler for conversation ${messageData.conversation_id}`,
-              );
-              this.botMessageHandler
-                .processMessage(
-                  workspaceId,
-                  messageData.conversation_id,
-                  message.id,
-                  userId,
-                  messageData.content || '',
-                )
-                .catch((err) => console.error('[ChatService] Bot message handler error:', err));
-            }
-
             // Step 4: Save database notifications for all participants (except sender)
             try {
               console.log(
@@ -1685,14 +1591,14 @@ export class ChatService {
               console.log(
                 `[ChatService] ✅ Database notifications saved for ${participantIds.length - 1} participants`,
               );
-            } catch (notificationError) {
+            } catch (notificationError: any) {
               console.error(
                 '[ChatService] ❌ Error saving database notifications:',
                 notificationError.message,
               );
             }
           }
-        } catch (workspaceError) {
+        } catch (workspaceError: any) {
           console.error(
             '[ChatService] ❌ Error emitting workspace notifications:',
             workspaceError.message,
@@ -1828,7 +1734,7 @@ export class ChatService {
               console.log(
                 `[ChatService] ✅ Database notifications saved for ${memberIds.length - 1} channel members`,
               );
-            } catch (notificationError) {
+            } catch (notificationError: any) {
               console.error(
                 '[ChatService] ❌ Error saving database notifications:',
                 notificationError.message,
@@ -1840,7 +1746,7 @@ export class ChatService {
               memberCount: memberIds.length,
             });
           }
-        } catch (workspaceError) {
+        } catch (workspaceError: any) {
           console.error(
             '[ChatService] ❌ Error emitting workspace notifications:',
             workspaceError.message,
@@ -1848,7 +1754,7 @@ export class ChatService {
           console.error('[ChatService] ❌ Full error:', workspaceError);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ChatService] ❌ Error emitting WebSocket event:', error);
     }
 
@@ -1985,7 +1891,7 @@ export class ChatService {
           }
         }
       }
-    } catch (mentionError) {
+    } catch (mentionError: any) {
       console.error('[ChatService] ❌ Error sending mention notifications:', mentionError.message);
     }
 
@@ -2097,7 +2003,7 @@ export class ChatService {
             );
           }
         }
-      } catch (workspaceError) {
+      } catch (workspaceError: any) {
         console.error(
           '[ChatService] ❌ Error emitting workspace update notification:',
           workspaceError.message,
@@ -2141,7 +2047,7 @@ export class ChatService {
             );
           }
         }
-      } catch (workspaceError) {
+      } catch (workspaceError: any) {
         console.error(
           '[ChatService] ❌ Error emitting workspace update notification:',
           workspaceError.message,
@@ -2215,7 +2121,7 @@ export class ChatService {
             );
           }
         }
-      } catch (workspaceError) {
+      } catch (workspaceError: any) {
         console.error(
           '[ChatService] ❌ Error emitting workspace delete notification:',
           workspaceError.message,
@@ -2259,7 +2165,7 @@ export class ChatService {
             );
           }
         }
-      } catch (workspaceError) {
+      } catch (workspaceError: any) {
         console.error(
           '[ChatService] ❌ Error emitting workspace delete notification:',
           workspaceError.message,
@@ -2441,7 +2347,7 @@ export class ChatService {
       }
 
       return Array.from(reactionMap.values());
-    } catch (error) {
+    } catch (error: any) {
       console.warn(
         '[ChatService] Could not fetch reactions for message:',
         messageId,
@@ -2488,7 +2394,7 @@ export class ChatService {
               userVotedOptionId: userVote?.option_id || null,
             },
           };
-        } catch (error) {
+        } catch (error: any) {
           console.warn(
             '[ChatService] Could not fetch user vote for poll:',
             item.poll.id,
@@ -2641,7 +2547,7 @@ export class ChatService {
             role: member.role || 'member',
             joined_at: member.created_at,
           };
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to fetch user for member:', member.user_id, error);
           return {
             user_id: member.user_id,
@@ -2771,7 +2677,7 @@ export class ChatService {
           send_push: true,
           send_email: false,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to send notification for added member:', error);
       }
     }
@@ -2860,7 +2766,7 @@ export class ChatService {
         send_push: true,
         send_email: false,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send notification for removed member:', error);
     }
 
@@ -3141,7 +3047,7 @@ export class ChatService {
               avatarUrl: userProfile?.metadata?.avatarUrl || userProfile?.avatar_url || null,
             },
           };
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to fetch user for message:', message.id, error);
           return {
             ...message,
@@ -3600,7 +3506,7 @@ export class ChatService {
         // If insert succeeded, this is a newly read message
         newlyReadMessageIds.push(message.id);
         console.log(`✅ Created receipt for message ${message.id}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error creating read receipt:', error);
       }
     }
@@ -3839,7 +3745,7 @@ export class ChatService {
         // If insert succeeded, this is a newly read message
         newlyReadMessageIds.push(message.id);
         console.log(`✅ Created receipt for message ${message.id}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error creating read receipt:', error);
       }
     }
@@ -4026,7 +3932,7 @@ export class ChatService {
         typeof messageResult.linked_content === 'string'
           ? JSON.parse(messageResult.linked_content)
           : messageResult.linked_content || [];
-    } catch (e) {
+    } catch (e: any) {
       linkedContent = [];
     }
 
@@ -4139,7 +4045,7 @@ export class ChatService {
         typeof messageResult.linked_content === 'string'
           ? JSON.parse(messageResult.linked_content)
           : messageResult.linked_content || [];
-    } catch (e) {
+    } catch (e: any) {
       linkedContent = [];
     }
 
@@ -4221,7 +4127,7 @@ export class ChatService {
         typeof messageResult.linked_content === 'string'
           ? JSON.parse(messageResult.linked_content)
           : messageResult.linked_content || [];
-    } catch (e) {
+    } catch (e: any) {
       linkedContent = [];
     }
 
@@ -4280,7 +4186,7 @@ export class ChatService {
     workspaceId: string,
     scheduleDto: import('./dto/scheduled-message.dto').ScheduleMessageDto,
     userId: string,
-  ): Promise<{ data: ReturnType<typeof this.formatScheduledMessage>; message: string }> {
+  ): Promise<{ data: any; message: string }> {
     const { scheduledAt, channelId, conversationId, ...messageData } = scheduleDto;
 
     console.log('📅 [SCHEDULE] ========== SCHEDULING MESSAGE ==========');
@@ -4354,7 +4260,7 @@ export class ChatService {
     workspaceId: string,
     userId: string,
     query: import('./dto/scheduled-message.dto').QueryScheduledMessagesDto,
-  ): Promise<{ data: Array<ReturnType<typeof this.formatScheduledMessage>>; total: number }> {
+  ): Promise<{ data: any[]; total: number }> {
     const { status, channelId, conversationId, limit = 50, offset = 0 } = query;
 
     // Build query
@@ -4427,7 +4333,7 @@ export class ChatService {
   async getScheduledMessage(
     scheduledMessageId: string,
     userId: string,
-  ): Promise<{ data: ReturnType<typeof this.formatScheduledMessage> }> {
+  ): Promise<{ data: any }> {
     const message = await this.db.findOne('scheduled_messages', {
       id: scheduledMessageId,
     });
@@ -4450,7 +4356,7 @@ export class ChatService {
     scheduledMessageId: string,
     updateDto: import('./dto/scheduled-message.dto').UpdateScheduledMessageDto,
     userId: string,
-  ): Promise<{ data: ReturnType<typeof this.formatScheduledMessage>; message: string }> {
+  ): Promise<{ data: any; message: string }> {
     const message = await this.db.findOne('scheduled_messages', {
       id: scheduledMessageId,
     });
@@ -4652,7 +4558,7 @@ export class ChatService {
 
         processed++;
         console.log('✅ Scheduled message sent:', scheduledMsg.id);
-      } catch (error) {
+      } catch (error: any) {
         // Mark as failed
         await this.db
           .table('scheduled_messages')
@@ -4730,217 +4636,4 @@ export class ChatService {
     };
   }
 
-  // ==================== BOT MESSAGE METHODS ====================
-
-  /**
-   * Send a message from a bot to a channel
-   */
-  async sendBotMessage(data: {
-    content: string;
-    contentHtml?: string;
-    userId: string;
-    workspaceId: string;
-    channelId?: string;
-    conversationId?: string;
-    replyToId?: string;
-    metadata?: Record<string, any>;
-  }): Promise<any> {
-    console.log('[ChatService] Bot sending message to channel:', data.channelId);
-
-    // Use bot:{botId} format so we can look up bot details when fetching messages
-    const botUserId = data.metadata?.botId ? `bot:${data.metadata.botId}` : 'bot';
-
-    const messagePayload = {
-      content: data.content,
-      content_html: data.contentHtml || data.content,
-      user_id: botUserId,
-      channel_id: data.channelId || null,
-      conversation_id: data.conversationId || null,
-      parent_id: data.replyToId || null,
-      attachments: JSON.stringify([]),
-      mentions: JSON.stringify([]),
-      linked_content: JSON.stringify([]),
-      reactions: JSON.stringify({}),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const message = await this.db.insert('messages', messagePayload);
-
-    // Create bot user info for the message
-    const botUser = {
-      id: botUserId,
-      name: data.metadata?.botName || data.metadata?.botDisplayName || 'Bot',
-      email: '',
-      avatarUrl: data.metadata?.botAvatarUrl || null,
-      isBot: true,
-    };
-
-    const parsedMessage = {
-      ...message,
-      user: botUser,
-      attachments: [],
-      mentions: [],
-      linked_content: [],
-      reactions: {},
-      metadata: data.metadata || {},
-    };
-
-    // Emit real-time event
-    if (data.channelId) {
-      console.log('[ChatService] 📡 Bot emitting message:new to channel:', data.channelId);
-      console.log('[ChatService] 📡 Bot message payload:', JSON.stringify(parsedMessage, null, 2));
-      this.appGateway.emitToRoom(`channel:${data.channelId}`, 'message:new', {
-        message: parsedMessage,
-        channel_id: data.channelId,
-      });
-    }
-
-    if (data.conversationId) {
-      console.log(
-        '[ChatService] 📡 Bot emitting message:new to conversation:',
-        data.conversationId,
-      );
-      this.appGateway.emitToRoom(`conversation:${data.conversationId}`, 'message:new', {
-        message: parsedMessage,
-        conversation_id: data.conversationId,
-      });
-    }
-
-    return parsedMessage;
-  }
-
-  /**
-   * Send a direct message from a bot
-   */
-  async sendBotDirectMessage(data: {
-    content: string;
-    contentHtml?: string;
-    userId: string;
-    workspaceId: string;
-    conversationId: string;
-    replyToId?: string;
-    metadata?: Record<string, any>;
-  }): Promise<any> {
-    console.log('[ChatService] Bot sending DM to conversation:', data.conversationId);
-
-    // Use bot:{botId} format so we can look up bot details when fetching messages
-    const botUserId = data.metadata?.botId ? `bot:${data.metadata.botId}` : 'bot';
-
-    const messagePayload = {
-      content: data.content,
-      content_html: data.contentHtml || data.content,
-      user_id: botUserId,
-      channel_id: null,
-      conversation_id: data.conversationId,
-      parent_id: data.replyToId || null,
-      attachments: JSON.stringify([]),
-      mentions: JSON.stringify([]),
-      linked_content: JSON.stringify([]),
-      reactions: JSON.stringify({}),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const message = await this.db.insert('messages', messagePayload);
-
-    const botUser = {
-      id: botUserId,
-      name: data.metadata?.botName || data.metadata?.botDisplayName || 'Bot',
-      email: '',
-      avatarUrl: data.metadata?.botAvatarUrl || null,
-      isBot: true,
-    };
-
-    const parsedMessage = {
-      ...message,
-      user: botUser,
-      attachments: [],
-      mentions: [],
-      linked_content: [],
-      reactions: {},
-      metadata: data.metadata || {},
-    };
-
-    // Emit real-time event
-    this.appGateway.emitToRoom(`conversation:${data.conversationId}`, 'message:new', {
-      message: parsedMessage,
-      conversation_id: data.conversationId,
-    });
-
-    return parsedMessage;
-  }
-
-  /**
-   * Get recent messages from a channel (for bot context)
-   */
-  async getRecentMessages(channelId: string, limit: number = 10): Promise<any[]> {
-    const result = await this.db
-      .table('messages')
-      .select('*')
-      .where('channel_id', '=', channelId)
-      .execute();
-
-    const messages = (result.data || [])
-      .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, limit);
-
-    // Fetch user info for each message
-    const enrichedMessages = [];
-    for (const message of messages) {
-      let user = null;
-      const isBot =
-        !message.user_id || message.user_id === 'bot' || message.user_id.startsWith('bot:');
-
-      if (message.user_id && !isBot) {
-        try {
-          const userInfo: any = await this.db.getUserById(message.user_id);
-          if (userInfo) {
-            const metadata = userInfo.metadata || {};
-            user = {
-              id: userInfo.id,
-              name:
-                metadata.name ||
-                userInfo.fullName ||
-                userInfo.name ||
-                userInfo.email?.split('@')[0] ||
-                'User',
-              email: userInfo.email,
-              avatarUrl: userInfo.avatar_url || userInfo.avatarUrl || null,
-            };
-          }
-        } catch (e) {
-          user = { id: message.user_id, name: 'User', email: '', avatarUrl: null };
-        }
-      } else if (isBot) {
-        const metadata =
-          typeof message.metadata === 'string'
-            ? JSON.parse(message.metadata)
-            : message.metadata || {};
-        user = {
-          id: 'bot',
-          name: metadata.botName || 'Bot',
-          email: '',
-          avatarUrl: null,
-          isBot: true,
-        };
-      }
-
-      enrichedMessages.push({
-        ...message,
-        user,
-        content: message.content,
-        attachments:
-          typeof message.attachments === 'string'
-            ? JSON.parse(message.attachments)
-            : message.attachments || [],
-        mentions:
-          typeof message.mentions === 'string'
-            ? JSON.parse(message.mentions)
-            : message.mentions || [],
-      });
-    }
-
-    return enrichedMessages.reverse(); // Return in chronological order
-  }
 }

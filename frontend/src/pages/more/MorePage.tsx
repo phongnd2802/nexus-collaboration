@@ -7,19 +7,11 @@ import {
   ClipboardCheck,
   ChevronRight,
   LayoutTemplate,
-  Bot,
   FileText,
-  ClipboardList,
 } from 'lucide-react';
 import { ApprovalsPage } from '../approvals';
 import TemplatesPage from '../templates/TemplatesPage';
-import BotsPage from '../bots/BotsPage';
 import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
-import FormsPage from '../forms/FormsPage';
-import FormBuilderPage from '../forms/FormBuilderPage';
-import FormResponsesPage from '../forms/FormResponsesPage';
-import FormSubmitPage from '../forms/FormSubmitPage';
-import FormAnalyticsPage from '../forms/FormAnalyticsPage';
 
 // Feature card component for built-in Nexus features
 interface FeatureCardProps {
@@ -70,13 +62,6 @@ function MoreGrid() {
       path: 'documents',
     },
     {
-      name: intl.formatMessage({ id: 'tools.bots.name', defaultMessage: 'Bots' }),
-      description: intl.formatMessage({ id: 'tools.bots.description', defaultMessage: 'Create automated bots for your workspace' }),
-      icon: <Bot className="w-6 h-6" />,
-      color: '#8b5cf6',
-      path: 'bots',
-    },
-    {
       name: intl.formatMessage({ id: 'tools.projectTemplates.name', defaultMessage: 'Project Templates' }),
       description: intl.formatMessage({ id: 'tools.projectTemplates.description', defaultMessage: 'Create projects from predefined templates' }),
       icon: <LayoutTemplate className="w-6 h-6" />,
@@ -89,13 +74,6 @@ function MoreGrid() {
       icon: <ClipboardCheck className="w-6 h-6" />,
       color: '#6366f1',
       path: 'approvals',
-    },
-    {
-      name: intl.formatMessage({ id: 'tools.forms.name', defaultMessage: 'Forms' }),
-      description: intl.formatMessage({ id: 'tools.forms.description', defaultMessage: 'Create custom forms to collect responses' }),
-      icon: <ClipboardList className="w-6 h-6" />,
-      color: '#ec4899',
-      path: 'forms',
     },
   ];
 
@@ -145,15 +123,8 @@ export function MorePage() {
       <Route path="/documents/new" element={<NewDocument />} />
       <Route path="/documents/:documentId" element={<DocumentDetail />} />
       <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
-      <Route path="/bots/*" element={<BotsPage />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
       <Route path="/approvals/*" element={<ApprovalsPage />} />
-      <Route path="/forms" element={<FormsPage />} />
-      <Route path="/forms/new" element={<FormBuilderPage />} />
-      <Route path="/forms/:formId/edit" element={<FormBuilderPage />} />
-      <Route path="/forms/:formId/submit" element={<FormSubmitPage />} />
-      <Route path="/forms/:formId/responses" element={<FormResponsesPage />} />
-      <Route path="/forms/:formId/analytics" element={<FormAnalyticsPage />} />
     </Routes>
   );
 }

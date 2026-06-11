@@ -71,12 +71,6 @@ export const moduleSuggestions: Record<string, CommandSuggestion[]> = {
     { textKey: 'ai.suggestions.templates.suggest', defaultText: 'Suggest templates for my project', icon: '💡', action: 'suggest_templates' },
     { textKey: 'ai.suggestions.templates.duplicate', defaultText: 'Duplicate a template', icon: '📑', action: 'duplicate_template' },
   ],
-  forms: [
-    { textKey: 'ai.suggestions.forms.create', defaultText: 'Create a new form', icon: '📝', action: 'create_form' },
-    { textKey: 'ai.suggestions.forms.analyze', defaultText: 'Analyze form responses', icon: '📊', action: 'analyze_responses' },
-    { textKey: 'ai.suggestions.forms.suggest', defaultText: 'Suggest form questions', icon: '💡', action: 'suggest_questions' },
-    { textKey: 'ai.suggestions.forms.template', defaultText: 'Use a form template', icon: '📋', action: 'use_template' },
-  ],
   members: [
     { textKey: 'ai.suggestions.members.invite', defaultText: 'Invite team members', icon: '👥', action: 'invite_members' },
     { textKey: 'ai.suggestions.members.manage', defaultText: 'Manage member roles', icon: '⚙️', action: 'manage_roles' },
@@ -182,12 +176,6 @@ export const moduleConfig: Record<string, ModuleConfig> = {
     placeholderKey: 'ai.modules.templates.placeholder',
     welcomeDefault: "Hi! I'm Auto Pilot. I can help you create, customize, and manage templates. What do you need?",
   },
-  forms: {
-    titleKey: 'ai.modules.forms.title',
-    descriptionKey: 'ai.modules.forms.description',
-    placeholderKey: 'ai.modules.forms.placeholder',
-    welcomeDefault: "Hi! I'm Auto Pilot. I can help you create forms, analyze responses, and suggest improvements. What would you like to do?",
-  },
   members: {
     titleKey: 'ai.modules.members.title',
     descriptionKey: 'ai.modules.members.description',
@@ -234,7 +222,7 @@ export const defaultConfig: ModuleConfig = moduleConfig.dashboard
  * Views that have full AI assistant support
  * Now supports all views - autopilot is global
  */
-export const supportedViews = ['projects', 'notes', 'calendar', 'files', 'chat', 'dashboard', 'video', 'email', 'settings', 'search', 'analytics', 'integrations', 'more', 'apps', 'templates', 'forms', 'members', 'notifications', 'profile']
+export const supportedViews = ['projects', 'notes', 'calendar', 'files', 'chat', 'dashboard', 'video', 'email', 'settings', 'search', 'analytics', 'integrations', 'more', 'apps', 'templates', 'members', 'notifications', 'profile']
 
 /**
  * Check if a view has AI support
