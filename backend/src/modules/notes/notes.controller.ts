@@ -24,10 +24,8 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { NotesService } from './notes.service';
-import { NotesAgentService } from './notes-agent.service';
 import { PdfProcessingService } from './services/pdf-processing.service';
 import { UrlProcessingService } from './services/url-processing.service';
-import { ConversationMemoryService } from '../conversation-memory/conversation-memory.service';
 import {
   CreateNoteDto,
   UpdateNoteDto,
@@ -36,7 +34,6 @@ import {
   BulkDeleteDto,
   DuplicateNoteDto,
   BulkArchiveDto,
-  NoteAgentRequestDto,
   ImportPdfDto,
   ImportPdfResponseDto,
   ImportUrlDto,
@@ -53,8 +50,6 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class NotesController {
   constructor(
     private readonly notesService: NotesService,
-    private readonly notesAgentService: NotesAgentService,
-    private readonly conversationMemoryService: ConversationMemoryService,
     private readonly pdfProcessingService: PdfProcessingService,
     private readonly urlProcessingService: UrlProcessingService,
   ) {}
@@ -209,107 +204,6 @@ export class NotesController {
       siteName: result.siteName,
       message: `Successfully imported content from ${result.siteName || new URL(importUrlDto.url).hostname}`,
     };
-  }
-
-  // ==================== NOTES AI AGENT ENDPOINT ====================
-
-  @Post('ai')
-  @ApiOperation({
-    summary: 'Notes AI assistant for natural language note management',
-    description:
-      'Process natural language commands to create, update, delete, share, archive, or search notes. ' +
-      'Examples: "Create a note called Meeting Notes", "Share My Ideas with John", "Delete the old drafts"',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The AI agent has processed the command.',
-    schema: {
-      example: {
-        success: true,
-        action: 'create',
-        message: 'Note "Meeting Notes" has been created successfully!',
-        data: {
-          note: {
-            id: 'uuid',
-            title: 'Meeting Notes',
-            content: '<p>Created via AI Assistant</p>',
-            tags: [],
-            icon: '📝',
-            is_public: false,
-            created_at: '2024-01-01T00:00:00.000Z',
-          },
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid request or could not understand the command.',
-  })
-  async processAgentCommand(
-    @Param('workspaceId') workspaceId: string,
-    @Body() agentRequest: NoteAgentRequestDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.notesAgentService.processCommand(
-      {
-        prompt: agentRequest.prompt,
-        workspaceId,
-      },
-      userId,
-    );
-  }
-
-  // ==================== CONVERSATION HISTORY ENDPOINTS ====================
-
-  @Get('ai/history')
-  @ApiOperation({ summary: 'Get conversation history for notes agent' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Number of messages to retrieve (default: 20)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation history retrieved successfully',
-  })
-  async getConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @Query('limit') limit: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    const limitNum = limit ? parseInt(limit, 10) : 20;
-    return this.conversationMemoryService.getRecentHistory(workspaceId, userId, limitNum);
-  }
-
-  @Delete('ai/history')
-  @ApiOperation({ summary: 'Clear conversation history for notes agent' })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation history cleared successfully',
-  })
-  async clearConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    const success = await this.conversationMemoryService.deleteUserHistory(workspaceId, userId);
-    return {
-      success,
-      message: success ? 'Conversation history cleared' : 'Failed to clear history',
-    };
-  }
-
-  @Get('ai/stats')
-  @ApiOperation({ summary: 'Get conversation statistics for notes agent' })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation statistics retrieved successfully',
-  })
-  async getConversationStats(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.conversationMemoryService.getConversationStats(workspaceId, userId);
   }
 
   // ==================== STANDARD NOTES CRUD ENDPOINTS ====================

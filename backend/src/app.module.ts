@@ -26,21 +26,16 @@ import { NotesModule } from './modules/notes/notes.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SearchModule } from './modules/search/search.module';
 import { IntegrationModule } from './modules/integration/integration.module';
-import { AIModule } from './modules/ai/ai.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { EventsModule } from './modules/events/events.module';
 import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
-import { ConversationMemoryModule } from './modules/conversation-memory/conversation-memory.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
-import { OpenAIModule } from './modules/openai/openai.module';
 import { EmailModule } from './modules/integration-framework/email/email.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { GitHubModule } from './modules/integration-framework/github/github.module';
-import { AutoPilotModule } from './modules/autopilot/autopilot.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
-import { TemplatesModule } from './modules/templates/templates.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
@@ -62,8 +57,6 @@ import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
     SearchProviderModule,
     HealthModule,
     AuthModule,
-    // Core AI memory module (global)
-    ConversationMemoryModule,
     // Nexus modules
     WorkspaceModule,
     ChatModule,
@@ -76,20 +69,16 @@ import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
     NotificationsModule,
     SearchModule,
     IntegrationModule,
-    AIModule,
     DashboardModule,
     AnalyticsModule,
     EventsModule,
     SettingsModule,
     SchedulerModule,
-    OpenAIModule,
     EmailModule,
     EmailProviderModule,
     IntegrationsModule,
     GitHubModule,
-    AutoPilotModule,
     IntegrationFrameworkModule,
-    TemplatesModule,
     DocumentsModule,
     WorkflowsModule,
     McpAgentModule,

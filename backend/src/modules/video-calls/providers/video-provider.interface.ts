@@ -1,27 +1,5 @@
 /**
- * Common interface that every video conferencing provider implements.
- *
- * Pick a provider by setting VIDEO_PROVIDER in your .env to one of:
- *
- *   livekit  - LiveKit Cloud (managed) or self-hosted LiveKit Server.
- *              Full features: rooms, tokens, participants, recording (egress).
- *              Sign up at https://livekit.io/cloud and grab API key/secret +
- *              project URL. ~10 minutes to get running.
- *
- *   daily    - Daily.co (managed). Single REST API with an API key.
- *              Full features including cloud recording (paid plan).
- *              Sign up at https://dashboard.daily.co/. ~5 minutes to set up.
- *
- *   jitsi    - Jitsi Meet. Use the FREE PUBLIC instance at meet.jit.si with
- *              ZERO setup, or point at your own self-hosted Jitsi server.
- *              Optionally use Jitsi as a Service (JaaS) for managed hosting
- *              with auth. Recording requires JaaS or self-hosted Jibri.
- *
- *   none     - Video conferencing disabled. Frontend should hide call UI.
- *              The default if VIDEO_PROVIDER is not set.
- *
- * Adding a new provider: implement this interface, register it in
- * providers/index.ts, document the env vars in MIGRATION.md.
+ * Common interface for the LiveKit-backed video conferencing provider.
  */
 
 export interface CreateRoomOptions {
@@ -120,7 +98,7 @@ export interface Recording {
  */
 export interface VideoProvider {
   /** Stable provider name for logging / clients. */
-  readonly name: 'livekit' | 'daily' | 'jitsi' | 'agora' | 'whereby' | 'none';
+  readonly name: 'livekit';
 
   /** True if the provider has the credentials it needs to function. */
   isAvailable(): boolean;

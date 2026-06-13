@@ -1165,28 +1165,6 @@ export const schema = {
     ],
   },
 
-  // ==================== AI SERVICES ====================
-  ai_generations: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'service_type', type: 'string', nullable: false },
-      { name: 'prompt', type: 'text', nullable: false },
-      { name: 'response', type: 'text', nullable: true },
-      { name: 'parameters', type: 'jsonb', default: '{}' },
-      { name: 'usage', type: 'jsonb', default: '{}' },
-      { name: 'status', type: 'string', default: 'completed' },
-      { name: 'error', type: 'text', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'] },
-      { columns: ['service_type'] },
-      { columns: ['status'] },
-      { columns: ['created_at'] },
-    ],
-  },
-
   ai_usage_stats: {
     columns: [
       { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
@@ -1588,31 +1566,6 @@ export const schema = {
       { columns: ['created_at'] },
     ],
   },
-
-
-  // ==================== OPENAI INTEGRATION ====================
-  // User-specific OpenAI connection within workspace (API key based, not OAuth)
-  openai_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who connected this OpenAI
-      { name: 'api_key', type: 'text', nullable: false }, // OpenAI API key (should be encrypted in production)
-      { name: 'organization_id', type: 'string', nullable: true }, // OpenAI organization ID (optional)
-      { name: 'is_validated', type: 'boolean', default: false }, // Whether API key has been validated
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_used_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true }, // One connection per user per workspace
-      { columns: ['is_active'] },
-    ],
-  },
-
   // ==================== EMAIL CONNECTIONS ====================
   // Supports both OAuth (Gmail) and SMTP/IMAP providers
   email_connections: {
@@ -1774,27 +1727,6 @@ export const schema = {
       { columns: ['task_id', 'repo_full_name', 'issue_number'], unique: true }, // Prevent duplicate links
       { columns: ['state'] },
       { columns: ['issue_type'] },
-    ],
-  },
-
-  // ==================== AUTOPILOT SESSIONS ====================
-  // Stores AutoPilot AI assistant conversation sessions for persistence
-  autopilot_sessions: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'session_id', type: 'string', nullable: false }, // Unique session identifier
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'messages', type: 'jsonb', default: '[]' }, // Array of conversation messages
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['session_id'], unique: true },
-      { columns: ['workspace_id', 'user_id'] },
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['updated_at'] },
     ],
   },
 
@@ -2391,26 +2323,6 @@ export const schema = {
       { columns: ['created_at'] },
     ],
   },
-  /**     * Autopilot Suggestions Cache - Pre-generated smart suggestions     * Caches AI-generated suggestions for faster home screen loading     */
-  autopilot_suggestions_cache: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'suggestions', type: 'jsonb', nullable: false }, // Array of suggestion objects
-      { name: 'context_hash', type: 'string', nullable: true }, // Hash for cache invalidation
-      { name: 'generated_at', type: 'timestamptz', default: 'now()' },
-      { name: 'expires_at', type: 'timestamptz', nullable: false },
-      { name: 'hit_count', type: 'integer', default: 0 },
-      { name: 'last_accessed_at', type: 'timestamptz', nullable: true },
-    ],
-    indexes: [
-      { columns: ['user_id', 'workspace_id'], unique: true },
-      { columns: ['expires_at'] },
-      { columns: ['generated_at'] },
-    ],
-  },
-
   // ============================================
   // ADVANCED WORKFLOW AUTOMATION SYSTEM
   // ============================================

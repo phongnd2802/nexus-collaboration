@@ -12,19 +12,12 @@ import {
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
-import { ProjectAgentService } from './project-agent.service';
-import { TaskAgentService, TaskAgentRequest } from './task-agent.service';
-import { UnifiedAgentService } from './unified-agent.service';
-import { ConversationMemoryService } from '../conversation-memory/conversation-memory.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
 import {
   CreateProjectDto,
   UpdateProjectDto,
   CreateTaskDto,
-  ProjectAgentRequestDto,
-  TaskAgentRequestDto,
-  UnifiedAgentRequestDto,
   CreateCustomFieldDto,
   UpdateCustomFieldDto,
   ReorderCustomFieldsDto,
@@ -36,13 +29,7 @@ import {
 @UseGuards(AuthGuard, WorkspaceGuard)
 @ApiBearerAuth()
 export class ProjectsController {
-  constructor(
-    private readonly projectsService: ProjectsService,
-    private readonly projectAgentService: ProjectAgentService,
-    private readonly taskAgentService: TaskAgentService,
-    private readonly unifiedAgentService: UnifiedAgentService,
-    private readonly conversationMemoryService: ConversationMemoryService,
-  ) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new project' })
@@ -56,174 +43,6 @@ export class ProjectsController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.projectsService.create(workspaceId, createProjectDto, userId);
-  }
-
-  // ==================== UNIFIED AI AGENT ENDPOINT (RECOMMENDED) ====================
-
-  @Post('ai')
-  @ApiOperation({
-    summary: 'Unified AI assistant that intelligently routes to project or task operations',
-    description:
-      'This is the recommended endpoint for AI interactions. It automatically determines whether you want to work with projects or tasks based on your natural language input.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The AI agent has processed the command.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid request or could not understand the command.',
-  })
-  async processUnifiedAgentCommand(
-    @Param('workspaceId') workspaceId: string,
-    @Body() agentRequest: UnifiedAgentRequestDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.unifiedAgentService.processCommand(
-      {
-        prompt: agentRequest.prompt,
-        workspaceId,
-        projectId: agentRequest.projectId,
-      },
-      userId,
-    );
-  }
-
-  // ==================== PROJECT AGENT ENDPOINT (LEGACY) ====================
-
-  @Post('agent')
-  @ApiOperation({
-    summary: 'Process natural language command for projects (use /ai endpoint instead)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The AI agent has processed the command.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid request or could not understand the command.',
-  })
-  async processAgentCommand(
-    @Param('workspaceId') workspaceId: string,
-    @Body() agentRequest: ProjectAgentRequestDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.projectAgentService.processCommand(
-      {
-        prompt: agentRequest.prompt,
-        workspaceId,
-      },
-      userId,
-    );
-  }
-
-  // ==================== TASK AGENT ENDPOINT (LEGACY) ====================
-
-  @Post(':projectId/agent')
-  @ApiOperation({ summary: 'Process natural language command for tasks within a project' })
-  @ApiResponse({
-    status: 200,
-    description: 'The AI agent has processed the task command.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid request or could not understand the command.',
-  })
-  async processTaskAgentCommand(
-    @Param('workspaceId') workspaceId: string,
-    @Param('projectId') projectId: string,
-    @Body() agentRequest: TaskAgentRequestDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.taskAgentService.processCommand(
-      {
-        prompt: agentRequest.prompt,
-        workspaceId,
-        projectId,
-      },
-      userId,
-    );
-  }
-
-  // ==================== CONVERSATION MEMORY ENDPOINTS ====================
-
-  @Get('agent/history')
-  @ApiOperation({ summary: 'Get conversation history for project agent' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Number of messages to retrieve (default: 20)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns the conversation history.',
-  })
-  async getConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Query('limit') limit?: string,
-  ) {
-    const messageLimit = limit ? parseInt(limit, 10) : 20;
-    return this.conversationMemoryService.getRecentHistory(workspaceId, userId, messageLimit);
-  }
-
-  @Get('agent/history/search')
-  @ApiOperation({ summary: 'Search conversation history semantically' })
-  @ApiQuery({ name: 'query', required: true, description: 'Search query for semantic matching' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Number of results to return (default: 10)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns semantically matched conversation history.',
-  })
-  async searchConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Query('query') query: string,
-    @Query('limit') limit?: string,
-  ) {
-    const resultLimit = limit ? parseInt(limit, 10) : 10;
-    return this.conversationMemoryService.searchRelevantHistory(
-      query,
-      workspaceId,
-      userId,
-      resultLimit,
-    );
-  }
-
-  @Delete('agent/history')
-  @ApiOperation({ summary: 'Clear conversation history for the user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation history has been cleared.',
-  })
-  async clearConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    const success = await this.conversationMemoryService.deleteUserHistory(workspaceId, userId);
-    return {
-      success,
-      message: success
-        ? 'Conversation history cleared successfully'
-        : 'Failed to clear conversation history',
-    };
-  }
-
-  @Get('agent/stats')
-  @ApiOperation({ summary: 'Get conversation statistics for the user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns conversation statistics.',
-  })
-  async getConversationStats(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.conversationMemoryService.getConversationStats(workspaceId, userId);
   }
 
   @Get()

@@ -32,9 +32,6 @@ import {
   ConnectSmtpImapDto,
   TestSmtpImapConnectionDto,
   EmailProvider,
-  AnalyzeEmailPriorityDto,
-  GetStoredPrioritiesDto,
-  ExtractTravelInfoDto,
   NativeConnectGmailDto,
 } from './dto/email.dto';
 import { SendEmailDto, ReplyEmailDto, CreateDraftDto } from './dto/send-email.dto';
@@ -812,82 +809,5 @@ export class EmailController {
   ) {
     const connections = await this.emailService.getAllConnections(userId, workspaceId);
     return { data: connections };
-  }
-
-  // ==================== AI Email Priority Analysis ====================
-
-  @Post('analyze-priority')
-  @ApiOperation({ summary: 'Analyze email priorities using AI' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Email priorities analyzed' })
-  async analyzeEmailPriority(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: AnalyzeEmailPriorityDto,
-  ) {
-    const result = await this.emailService.analyzeEmailPriority(
-      userId,
-      workspaceId,
-      dto.emails,
-      dto.connectionId,
-    );
-    return { data: result, message: 'Email priorities analyzed successfully' };
-  }
-
-  @Post('priorities/get')
-  @ApiOperation({ summary: 'Get stored priorities for email IDs' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Stored priorities retrieved' })
-  async getStoredPriorities(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: GetStoredPrioritiesDto,
-  ) {
-    const result = await this.emailService.getStoredPriorities(userId, workspaceId, dto.emailIds);
-    return { data: result, message: 'Priorities retrieved successfully' };
-  }
-
-  @Get('priorities/:connectionId')
-  @ApiOperation({ summary: 'Get all stored priorities for a connection' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiParam({ name: 'connectionId', description: 'Email connection ID' })
-  @ApiResponse({ status: 200, description: 'Connection priorities retrieved' })
-  async getPrioritiesForConnection(
-    @Param('workspaceId') workspaceId: string,
-    @Param('connectionId') connectionId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    const result = await this.emailService.getPrioritiesForConnection(
-      userId,
-      workspaceId,
-      connectionId,
-    );
-    return { data: result, message: 'Connection priorities retrieved successfully' };
-  }
-
-  // ==================== Travel Ticket Extraction ====================
-
-  @Post('extract-travel-info')
-  @ApiOperation({
-    summary: 'Extract travel ticket information from email using AI (supports PDF attachments)',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Travel information extracted' })
-  async extractTravelInfo(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: ExtractTravelInfoDto,
-  ) {
-    const result = await this.emailService.extractTravelInfo(
-      userId,
-      workspaceId,
-      dto.subject,
-      dto.body,
-      dto.senderEmail,
-      dto.messageId,
-      dto.attachmentId,
-      dto.connectionId,
-    );
-    return { data: result, message: 'Travel information extracted successfully' };
   }
 }

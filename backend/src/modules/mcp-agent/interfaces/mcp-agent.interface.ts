@@ -2,7 +2,7 @@ import { ToolDefinition } from '../../ai-provider/providers';
 
 export interface McpServerConfig {
   name: string;
-  transport?: 'stdio' | 'http';
+  transport?: 'stdio' | 'http' | 'sse';
   command?: string;
   args?: string[];
   env?: Record<string, string>;

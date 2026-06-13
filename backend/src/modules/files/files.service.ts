@@ -2699,15 +2699,6 @@ export class FilesService {
       return total + (parseInt(file.size) || 0);
     }, 0);
 
-    // Calculate AI generations this month (USER-SPECIFIC)
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-    const aiGenerationsThisMonth = userFiles.filter((f) => {
-      const createdDate = new Date(f.created_at);
-      return f.is_ai_generated === true && createdDate >= startOfMonth;
-    }).length;
-
     // Calculate file type breakdown (USER-SPECIFIC)
     const fileTypeBreakdown = {
       images: 0,
@@ -2765,7 +2756,6 @@ export class FilesService {
       storage_total_bytes: maxStorageBytes,
       storage_total_formatted: this.formatBytes(maxStorageBytes),
       storage_percentage_used: storagePercentageUsed,
-      ai_generations_this_month: aiGenerationsThisMonth,
       unique_file_types: uniqueFileTypes,
       file_type_breakdown: fileTypeBreakdown,
       plan: {

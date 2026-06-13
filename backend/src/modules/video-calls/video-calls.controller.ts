@@ -46,18 +46,15 @@ export class VideoCallsController {
   // ============================================
 
   /**
-   * Tells the frontend which video provider is active and how to bootstrap
-   * the right client SDK. The frontend calls this once before showing call
-   * UI and uses the response to decide whether to load livekit-client,
-   * @daily-co/daily-js, the Jitsi external_api.js script, or to hide all
-   * video UI entirely (when provider === "none").
+   * Tells the frontend that LiveKit is the active video provider and how
+   * to bootstrap the client SDK.
    */
   @Get('video-provider/info')
   @ApiOperation({ summary: 'Get the active video conferencing provider and client SDK info' })
   @ApiResponse({
     status: 200,
     description:
-      'Provider info: { provider: "jitsi"|"livekit"|"daily"|"none", available, serverUrl?, publicConfig? }',
+      'Provider info: { provider: "livekit", available, serverUrl?, publicConfig? }',
   })
   getVideoProviderInfo() {
     return this.videoProvider.getProviderInfo();
@@ -297,101 +294,6 @@ export class VideoCallsController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.videoCallsService.rejectJoinRequest(callId, requestId, userId);
-  }
-
-  // ============================================
-  // AI Features
-  // ============================================
-
-  @Post('video-calls/:callId/recordings/:recordingId/transcribe')
-  @ApiOperation({ summary: 'Generate AI transcription for recording' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiParam({ name: 'recordingId', description: 'Recording ID' })
-  @ApiResponse({ status: 200, description: 'Transcription generated successfully' })
-  async transcribeRecording(
-    @Param('callId') callId: string,
-    @Param('recordingId') recordingId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.videoCallsService.transcribeRecording(callId, recordingId, userId);
-  }
-
-  @Post('video-calls/:callId/recordings/:recordingId/translate')
-  @ApiOperation({ summary: 'Translate recording transcript' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiParam({ name: 'recordingId', description: 'Recording ID' })
-  @ApiResponse({ status: 200, description: 'Translation generated successfully' })
-  async translateRecording(
-    @Param('callId') callId: string,
-    @Param('recordingId') recordingId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto: { target_language: string },
-  ) {
-    return this.videoCallsService.translateRecording(
-      callId,
-      recordingId,
-      userId,
-      dto.target_language,
-    );
-  }
-
-  @Post('video-calls/:callId/recordings/:recordingId/summarize')
-  @ApiOperation({ summary: 'Generate meeting notes/summary' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiParam({ name: 'recordingId', description: 'Recording ID' })
-  @ApiResponse({ status: 200, description: 'Summary generated successfully' })
-  async summarizeRecording(
-    @Param('callId') callId: string,
-    @Param('recordingId') recordingId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.videoCallsService.summarizeRecording(callId, recordingId, userId);
-  }
-
-  // ============================================
-  // Meeting Intelligence
-  // ============================================
-
-  @Get('video-calls/:callId/summary')
-  @ApiOperation({ summary: 'Get AI-generated meeting summary' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiResponse({ status: 200, description: 'Meeting summary retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Video call not found' })
-  async getMeetingSummary(@Param('callId') callId: string, @CurrentUser('sub') userId: string) {
-    return this.videoCallsService.getMeetingSummary(callId, userId);
-  }
-
-  @Get('video-calls/:callId/transcript')
-  @ApiOperation({ summary: 'Get meeting transcript' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiResponse({ status: 200, description: 'Transcript retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Video call not found' })
-  async getCallTranscript(@Param('callId') callId: string, @CurrentUser('sub') userId: string) {
-    return this.videoCallsService.getCallTranscript(callId, userId);
-  }
-
-  @Post('video-calls/:callId/summary/regenerate')
-  @ApiOperation({ summary: 'Regenerate meeting summary from transcript' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiResponse({ status: 200, description: 'Summary regenerated successfully' })
-  @ApiResponse({ status: 400, description: 'No transcript available' })
-  async regenerateMeetingSummary(
-    @Param('callId') callId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.videoCallsService.regenerateMeetingSummary(callId, userId);
-  }
-
-  @Post('video-calls/:callId/create-tasks')
-  @ApiOperation({ summary: 'Create tasks from meeting action items' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiResponse({ status: 200, description: 'Tasks created successfully' })
-  async createTasksFromMeeting(
-    @Param('callId') callId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto?: { projectId?: string },
-  ) {
-    return this.videoCallsService.createTasksFromMeeting(callId, userId, dto?.projectId);
   }
 
   // ============================================

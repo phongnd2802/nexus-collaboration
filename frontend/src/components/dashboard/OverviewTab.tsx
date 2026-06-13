@@ -1,5 +1,4 @@
 import { QuickActionsGrid } from './QuickActionsGrid'
-import { AgenticSuggestions } from './AgenticSuggestions'
 import { MetricsCards } from './MetricsCards'
 import type { DashboardMetrics, ActivityData, IntegrationUsage, QuickAction, TopProject, UpcomingEvent } from './types'
 
@@ -28,9 +27,6 @@ export function OverviewTab({
     <div className="space-y-6">
       {/* Metrics Cards - Stats in one row */}
       <MetricsCards metrics={metrics} />
-
-      {/* Agentic Suggestions - Smart AI-powered suggestions */}
-      <AgenticSuggestions />
 
       {/* Activity Trend Chart - Commented out (requires historical data aggregation) */}
       {/* <ActivityTrendChart data={activityData} /> */}

@@ -1,18 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { buildBrandedEmail } from '../email/branded-email';
-import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class IntegrationService {
   constructor(private readonly db: DatabaseService) {}
-  // Legacy alias for the AI provider - delegates to db.getAI() until a real
-  // AIProviderService is wired in.
-  private get aiProvider(): any {
-    return this.db.getAI();
-  }
-
   // ============================================
   // VIDEO CALLS (Using database LiveKit)
   // ============================================
@@ -123,87 +116,6 @@ export class IntegrationService {
     await Promise.all(updatePromises);
 
     return { success: true, message: 'Video call ended' };
-  }
-
-  // ============================================
-  // AI SERVICES (Using database AI)
-  // ============================================
-
-  async generateText(prompt: string, options?: any) {
-    try {
-      // Use database AI service - abstracts OpenAI/other providers
-      return await this.aiProvider.generateText(prompt, options);
-    } catch (error) {
-      console.error('AI text generation error:', error);
-      throw new Error('AI service temporarily unavailable');
-    }
-  }
-
-  async generateSummary(
-    content: string,
-    type: 'meeting' | 'document' | 'conversation' = 'document',
-  ) {
-    const prompts = {
-      meeting: `Summarize the following meeting content in bullet points, highlighting key decisions, action items, and next steps:\n\n${content}`,
-      document: `Provide a concise summary of the following document:\n\n${content}`,
-      conversation: `Summarize the key points from this conversation:\n\n${content}`,
-    };
-
-    return await this.generateText(prompts[type], {
-      max_tokens: 200,
-      temperature: 0.3,
-    });
-  }
-
-  async generateMeetingNotes(transcript: string) {
-    const prompt = `
-    Create structured meeting notes from this transcript. Format as:
-    
-    ## Meeting Summary
-    [Brief overview]
-    
-    ## Key Points
-    [Bullet points of main topics]
-    
-    ## Action Items
-    [List of action items with responsible parties if mentioned]
-    
-    ## Decisions Made
-    [Key decisions from the meeting]
-    
-    Transcript:
-    ${transcript}
-    `;
-
-    return await this.generateText(prompt, {
-      max_tokens: 500,
-      temperature: 0.3,
-    });
-  }
-
-  // Content analysis temporarily unavailable - not in AI module yet
-  async analyzeContent(
-    content: string,
-    analysisType: 'sentiment' | 'readability' | 'seo' | 'engagement' | 'all' = 'all',
-  ) {
-    // TODO: Implement when AI module supports content analysis
-    return {
-      error: 'Content analysis feature coming soon',
-      analysisType,
-    };
-  }
-
-  async generateTranscription(audioBuffer: Buffer) {
-    try {
-      // Use database AI for speech-to-text
-      return await this.aiProvider.generateAudio(audioBuffer.toString('base64'), {
-        task: 'transcribe',
-        response_format: 'text',
-      });
-    } catch (error) {
-      console.error('Transcription error:', error);
-      throw new Error('Transcription service temporarily unavailable');
-    }
   }
 
   // ============================================

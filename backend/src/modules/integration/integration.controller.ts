@@ -49,46 +49,6 @@ export class IntegrationController {
   }
 
   // ============================================
-  // AI SERVICES
-  // ============================================
-
-  @Post('ai/generate-text')
-  @ApiOperation({ summary: 'Generate text using AI' })
-  @ApiResponse({ status: 200, description: 'Text generated' })
-  async generateText(@Body() body: { prompt: string; options?: any }) {
-    return this.integrationService.generateText(body.prompt, body.options);
-  }
-
-  @Post('ai/summarize')
-  @ApiOperation({ summary: 'Generate content summary' })
-  @ApiResponse({ status: 200, description: 'Summary generated' })
-  async generateSummary(
-    @Body() body: { content: string; type?: 'meeting' | 'document' | 'conversation' },
-  ) {
-    return this.integrationService.generateSummary(body.content, body.type);
-  }
-
-  @Post('ai/meeting-notes')
-  @ApiOperation({ summary: 'Generate meeting notes from transcript' })
-  @ApiResponse({ status: 200, description: 'Meeting notes generated' })
-  async generateMeetingNotes(@Body() body: { transcript: string }) {
-    return this.integrationService.generateMeetingNotes(body.transcript);
-  }
-
-  @Post('ai/analyze-content')
-  @ApiOperation({ summary: 'Analyze content' })
-  @ApiResponse({ status: 200, description: 'Content analyzed' })
-  async analyzeContent(
-    @Body()
-    body: {
-      content: string;
-      analysis_type?: 'sentiment' | 'readability' | 'seo' | 'engagement' | 'all';
-    },
-  ) {
-    return this.integrationService.analyzeContent(body.content, body.analysis_type || 'all');
-  }
-
-  // ============================================
   // EMAIL NOTIFICATIONS
   // ============================================
 

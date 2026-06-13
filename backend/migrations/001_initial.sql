@@ -1032,25 +1032,6 @@ CREATE INDEX IF NOT EXISTS "idx_user_activity_logs_category" ON "user_activity_l
 CREATE INDEX IF NOT EXISTS "idx_user_activity_logs_entity_type_entity_id" ON "user_activity_logs" ("entity_type", "entity_id");
 CREATE INDEX IF NOT EXISTS "idx_user_activity_logs_created_at" ON "user_activity_logs" ("created_at");
 
--- ==================== AI_GENERATIONS ====================
-CREATE TABLE IF NOT EXISTS "ai_generations" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "user_id" VARCHAR(255) NOT NULL,
-  "service_type" VARCHAR(255) NOT NULL,
-  "prompt" TEXT NOT NULL,
-  "response" TEXT,
-  "parameters" JSONB DEFAULT '{}',
-  "usage" JSONB DEFAULT '{}',
-  "status" VARCHAR(255) DEFAULT 'completed',
-  "error" TEXT,
-  "created_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_ai_generations_user_id" ON "ai_generations" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_ai_generations_service_type" ON "ai_generations" ("service_type");
-CREATE INDEX IF NOT EXISTS "idx_ai_generations_status" ON "ai_generations" ("status");
-CREATE INDEX IF NOT EXISTS "idx_ai_generations_created_at" ON "ai_generations" ("created_at");
-
 -- ==================== AI_USAGE_STATS ====================
 CREATE TABLE IF NOT EXISTS "ai_usage_stats" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1399,25 +1380,6 @@ CREATE INDEX IF NOT EXISTS "idx_device_tokens_user_id_is_active" ON "device_toke
 CREATE INDEX IF NOT EXISTS "idx_device_tokens_last_used_at" ON "device_tokens" ("last_used_at");
 CREATE INDEX IF NOT EXISTS "idx_device_tokens_created_at" ON "device_tokens" ("created_at");
 
--- ==================== OPENAI_CONNECTIONS ====================
-CREATE TABLE IF NOT EXISTS "openai_connections" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "api_key" TEXT NOT NULL,
-  "organization_id" VARCHAR(255),
-  "is_validated" BOOLEAN DEFAULT false,
-  "is_active" BOOLEAN DEFAULT true,
-  "last_used_at" TIMESTAMPTZ,
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_openai_connections_workspace_id" ON "openai_connections" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_openai_connections_user_id" ON "openai_connections" ("user_id");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_openai_connections_workspace_id_user_id" ON "openai_connections" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_openai_connections_is_active" ON "openai_connections" ("is_active");
-
 -- ==================== EMAIL_CONNECTIONS ====================
 CREATE TABLE IF NOT EXISTS "email_connections" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1548,23 +1510,6 @@ CREATE INDEX IF NOT EXISTS "idx_github_issue_links_repo_full_name_issue_number" 
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_github_issue_links_task_id_repo_full_name_issue_number" ON "github_issue_links" ("task_id", "repo_full_name", "issue_number");
 CREATE INDEX IF NOT EXISTS "idx_github_issue_links_state" ON "github_issue_links" ("state");
 CREATE INDEX IF NOT EXISTS "idx_github_issue_links_issue_type" ON "github_issue_links" ("issue_type");
-
--- ==================== AUTOPILOT_SESSIONS ====================
-CREATE TABLE IF NOT EXISTS "autopilot_sessions" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "session_id" VARCHAR(255) NOT NULL,
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "messages" JSONB DEFAULT '[]',
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_autopilot_sessions_session_id" ON "autopilot_sessions" ("session_id");
-CREATE INDEX IF NOT EXISTS "idx_autopilot_sessions_workspace_id_user_id" ON "autopilot_sessions" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_autopilot_sessions_workspace_id" ON "autopilot_sessions" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_autopilot_sessions_user_id" ON "autopilot_sessions" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_autopilot_sessions_updated_at" ON "autopilot_sessions" ("updated_at");
 
 -- ==================== INTEGRATION_CATALOG ====================
 CREATE TABLE IF NOT EXISTS "integration_catalog" (
@@ -2020,23 +1965,6 @@ CREATE INDEX IF NOT EXISTS "idx_autopilot_alerts_priority" ON "autopilot_alerts"
 CREATE INDEX IF NOT EXISTS "idx_autopilot_alerts_is_sent" ON "autopilot_alerts" ("is_sent");
 CREATE INDEX IF NOT EXISTS "idx_autopilot_alerts_is_dismissed" ON "autopilot_alerts" ("is_dismissed");
 CREATE INDEX IF NOT EXISTS "idx_autopilot_alerts_created_at" ON "autopilot_alerts" ("created_at");
-
--- ==================== AUTOPILOT_SUGGESTIONS_CACHE ====================
-CREATE TABLE IF NOT EXISTS "autopilot_suggestions_cache" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "user_id" VARCHAR(255) NOT NULL,
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "suggestions" JSONB NOT NULL,
-  "context_hash" VARCHAR(255),
-  "generated_at" TIMESTAMPTZ DEFAULT now(),
-  "expires_at" TIMESTAMPTZ NOT NULL,
-  "hit_count" INTEGER DEFAULT 0,
-  "last_accessed_at" TIMESTAMPTZ
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_autopilot_suggestions_cache_user_id_workspace_id" ON "autopilot_suggestions_cache" ("user_id", "workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_autopilot_suggestions_cache_expires_at" ON "autopilot_suggestions_cache" ("expires_at");
-CREATE INDEX IF NOT EXISTS "idx_autopilot_suggestions_cache_generated_at" ON "autopilot_suggestions_cache" ("generated_at");
 
 -- ==================== WORKFLOWS ====================
 CREATE TABLE IF NOT EXISTS "workflows" (

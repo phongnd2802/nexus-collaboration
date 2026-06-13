@@ -26,7 +26,6 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { FilesService } from './files.service';
-import { FilesAgentService, FileAgentRequest, FileAgentResponse } from './files-agent.service';
 import {
   UploadFileDto,
   AddFileByUrlDto,
@@ -72,101 +71,7 @@ import { MAX_UPLOAD_SIZE } from '@/constants/upload';
 @Controller('workspaces/:workspaceId/files')
 @UseGuards(AuthGuard, WorkspaceGuard)
 export class FilesController {
-  constructor(
-    private readonly filesService: FilesService,
-    private readonly filesAgentService: FilesAgentService,
-  ) {}
-
-  // ============================================
-  // FILES AI AGENT ENDPOINTS
-  // ============================================
-
-  @Post('ai')
-  @ApiOperation({
-    summary: 'Files AI assistant for natural language file management',
-    description:
-      'Process natural language commands to create folders, rename, delete, move, copy, share, or search files. ' +
-      'Examples: "Create a folder called Documents", "Move report.pdf to Archive", "Delete the old backups"',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'AI agent response with action result',
-    schema: {
-      example: {
-        success: true,
-        action: 'create_folder',
-        message: 'Created folder "Documents" in root.',
-        data: { folder: { id: 'uuid', name: 'Documents' } },
-      },
-    },
-  })
-  async processAICommand(
-    @Param('workspaceId') workspaceId: string,
-    @Body() body: { prompt: string },
-    @CurrentUser('sub') userId: string,
-  ): Promise<FileAgentResponse> {
-    const request: FileAgentRequest = {
-      prompt: body.prompt,
-      workspaceId,
-    };
-    return this.filesAgentService.processCommand(request, userId);
-  }
-
-  @Get('ai/history')
-  @ApiOperation({
-    summary: 'Get conversation history for the Files AI agent',
-    description: 'Retrieves the conversation history between the user and the Files AI agent.',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Maximum number of messages to return' })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation history',
-  })
-  async getAIConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @Query('limit') limit: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    const limitNum = limit ? parseInt(limit, 10) : undefined;
-    return this.filesAgentService.getConversationHistory(workspaceId, userId, limitNum);
-  }
-
-  @Delete('ai/history')
-  @ApiOperation({
-    summary: 'Clear conversation history for the Files AI agent',
-    description: 'Deletes all conversation history between the user and the Files AI agent.',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation history cleared',
-  })
-  async clearAIConversationHistory(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.filesAgentService.clearConversationHistory(workspaceId, userId);
-  }
-
-  @Get('ai/stats')
-  @ApiOperation({
-    summary: 'Get conversation statistics for the Files AI agent',
-    description:
-      'Returns statistics about the conversation between the user and the Files AI agent.',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Conversation statistics',
-  })
-  async getAIConversationStats(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.filesAgentService.getConversationStats(workspaceId, userId);
-  }
+  constructor(private readonly filesService: FilesService) {}
 
   // ============================================
   // FOLDER OPERATIONS
