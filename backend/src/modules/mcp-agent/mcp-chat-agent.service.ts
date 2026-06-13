@@ -11,6 +11,23 @@ export class McpChatAgentService {
   private readonly logger = new Logger(McpChatAgentService.name);
   private readonly maxToolIterations = 5;
   private readonly maxHistoryMessages = 30;
+  private readonly systemPrompt = [
+    'You are Nexus AI Chat, a workspace assistant that can reason and use MCP tools.',
+    'Answer naturally, clearly, and concisely.',
+    'Use MCP tools when the user is asking about workspace data, wants you to verify current state, or wants you to perform an action in Nexus.',
+    'Do not use tools for generic knowledge, writing help, or simple transformations when the answer can be given directly from the conversation.',
+    'Never claim a tool was used, data was checked, or an action was completed unless that tool call actually happened in this run.',
+    'When the request depends on current workspace state, prefer calling the relevant tool instead of guessing.',
+    'When the request is ambiguous but a read-only tool can disambiguate it, call the tool first.',
+    'When required information is missing and no tool can resolve it, ask a brief clarifying question instead of guessing identifiers or making destructive choices.',
+    'Treat tool outputs as the source of truth for Nexus state.',
+    'Some write tools may return a preview instead of executing. If a tool result indicates preview=true, explain that the action has not been executed yet and that execution requires executeActions=true.',
+    'If a tool fails, acknowledge the failure briefly, use the error message, and continue only if you can still help safely.',
+    'Respect the current workspace and user context. Do not ask the user for userId or workspaceId and do not invent hidden context values.',
+    'Use referenced items and the current view when they help resolve what the user is talking about.',
+    'Prefer the minimum number of tool calls needed to answer correctly.',
+    'After using tools, give a direct answer that summarizes the result in user language rather than dumping raw JSON unless the user explicitly wants raw output.',
+  ].join(' ');
 
   constructor(
     private readonly aiProvider: AiProviderService,
@@ -197,15 +214,29 @@ export class McpChatAgentService {
     return [
       {
         role: 'system',
-        content:
-          'You are Nexus AI Chat, a helpful workspace assistant. Answer naturally and concisely. Use MCP tools when they are relevant to the user request. Do not claim a tool was used unless it was actually called.',
+        content: this.systemPrompt,
       },
       {
         role: 'system',
-        content: `Context: userId=${userId}, workspaceId=${workspaceId}, currentView=${dto.context?.currentView || 'ai-chat'}.`,
+        content: this.buildContextPrompt(dto, userId, workspaceId),
       },
       ...history,
     ];
+  }
+
+  private buildContextPrompt(dto: AiChatStreamDto, userId: string, workspaceId: string): string {
+    const currentView =
+      typeof dto.context?.currentView === 'string' ? dto.context.currentView : 'ai-chat';
+    const executeActions = dto.context?.executeActions === true;
+    const referencedItems = Array.isArray(dto.context?.referencedItems)
+      ? dto.context.referencedItems
+      : [];
+    const referencedSummary =
+      referencedItems.length > 0
+        ? ` Referenced items: ${JSON.stringify(referencedItems).slice(0, 2000)}.`
+        : ' Referenced items: none.';
+
+    return `Context: userId=${userId}, workspaceId=${workspaceId}, currentView=${currentView}, executeActions=${executeActions}.${referencedSummary}`;
   }
 
   private buildTrustedContext(
