@@ -106,7 +106,6 @@ async function bootstrap() {
     .addTag('calendar', 'Calendar events and scheduling')
     .addTag('notes', 'Note-taking and documentation')
     .addTag('Notifications', 'Notification system')
-    .addTag('AI Services', 'AI-powered features')
     .addTag('analytics', 'Analytics and reporting')
     .addTag('dashboard', 'Dashboard statistics')
     .addTag('events', 'Event streaming and updates')

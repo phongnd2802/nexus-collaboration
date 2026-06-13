@@ -8,7 +8,6 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { LivekitVideoService } from './livekit-video.service';
 import { CalendarService } from '../calendar/calendar.service';
 import { EventPriority, EventStatus } from '../calendar/dto/create-event.dto';
@@ -17,7 +16,6 @@ import { AppGateway } from '../../common/gateways/app.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType, NotificationPriority } from '../notifications/dto';
 import { buildBrandedEmail } from '../email/branded-email';
-import { MeetingIntelligenceService } from './services/meeting-intelligence.service';
 import {
   CreateVideoCallDto,
   JoinVideoCallDto,
@@ -41,14 +39,7 @@ export class VideoCallsService {
     private readonly appGateway: AppGateway,
     @Inject(forwardRef(() => NotificationsService))
     private readonly notificationsService: NotificationsService,
-    private readonly meetingIntelligenceService: MeetingIntelligenceService,
   ) {}
-
-  // Legacy alias for the AI provider - delegates to db.getAI() until a real
-  // AIProviderService is wired in.
-  private get aiProvider(): any {
-    return this.db.getAI();
-  }
 
   // Legacy alias used throughout the file - points at the LiveKit service
   private get dbVideoService(): LivekitVideoService {
@@ -604,13 +595,6 @@ export class VideoCallsService {
       this.logger.warn(`Could not delete LiveKit room: ${this.getErrorMessage(error)}`);
     }
 
-    // Process meeting intelligence (generate summary, extract action items) - run async
-    this.meetingIntelligenceService.processCallEnd(callId, call.workspace_id).catch((err) => {
-      this.logger.error(
-        `Failed to process meeting intelligence for call ${callId}: ${err.message}`,
-      );
-    });
-
     // Get ALL participants (including invited/pending ones who haven't answered yet)
     // This is important to stop ringing on callee's device when caller ends the call
     const allParticipantsResult = await this.db.findMany('video_call_participants', {
@@ -963,13 +947,6 @@ export class VideoCallsService {
       } catch (error) {
         this.logger.warn(`Could not delete LiveKit room: ${this.getErrorMessage(error)}`);
       }
-
-      // Process meeting intelligence (generate summary, extract action items) - run async
-      this.meetingIntelligenceService.processCallEnd(callId, call.workspace_id).catch((err) => {
-        this.logger.error(
-          `Failed to process meeting intelligence for call ${callId}: ${err.message}`,
-        );
-      });
 
       // Get all participants for this call to broadcast to
       const allParticipantsResult = await this.db.findMany('video_call_participants', {
@@ -1643,275 +1620,6 @@ export class VideoCallsService {
   }
 
   // ============================================
-  // AI Features
-  // ============================================
-
-  /**
-   * Transcribe a video call recording using AI
-   */
-  async transcribeRecording(callId: string, recordingId: string, userId: string) {
-    // Verify access to call
-    const call = await this.getCallById(callId, userId);
-
-    // Get recording
-    const recording = await this.db.findOne('video_call_recordings', {
-      id: recordingId,
-      video_call_id: callId,
-    });
-
-    if (!recording) {
-      throw new NotFoundException('Recording not found');
-    }
-
-    if (recording.status === 'recording') {
-      throw new BadRequestException(
-        'Recording is still in progress. Please stop the recording first.',
-      );
-    }
-
-    // Check if transcription already exists
-    if (recording.metadata?.transcription) {
-      return {
-        success: true,
-        message: 'Transcription already exists',
-        data: {
-          text: recording.metadata.transcription,
-          language: recording.metadata.transcription_language,
-        },
-      };
-    }
-
-    this.logger.log(`Starting transcription for recording ${recordingId}`);
-
-    try {
-      // Get LiveKit room ID from metadata or fallback to livekit_room_id
-      const liveKitRoomId = call.metadata?.livekit_room_id || call.livekit_room_id;
-
-      // Get recording data from database
-      const recordingData = await this.dbVideoService.getRecording(liveKitRoomId);
-
-      this.logger.log(`Recording data from database:`, JSON.stringify(recordingData, null, 2));
-
-      if (!recordingData) {
-        throw new BadRequestException('Recording not found');
-      }
-
-      // Get egressId to download the recording
-      const egressId = (recordingData as any)?.egressId;
-      if (!egressId) {
-        throw new BadRequestException('Recording file not available yet. Please try again later.');
-      }
-
-      // Download recording using the SDK (which handles authentication internally)
-      this.logger.log(`Downloading recording via database: ${egressId}`);
-      const audioBuffer = await this.dbVideoService.downloadRecording(egressId);
-
-      // Call database AI transcription service
-      const transcriptionResult = await this.aiProvider.transcribeAudio(audioBuffer, {
-        responseFormat: 'json',
-      });
-
-      this.logger.log(`Transcription result:`, transcriptionResult);
-
-      // If async job, return job ID
-      if (transcriptionResult.jobId) {
-        return {
-          success: true,
-          message: 'Transcription job started',
-          jobId: transcriptionResult.jobId,
-        };
-      }
-
-      // Store transcription in recording metadata
-      await this.db.update(
-        'video_call_recordings',
-        { id: recordingId },
-        {
-          metadata: {
-            ...recording.metadata,
-            transcription: transcriptionResult.data?.text,
-            transcription_language: transcriptionResult.data?.language || 'en',
-            transcribed_at: new Date().toISOString(),
-          },
-        },
-      );
-
-      this.logger.log(`Transcription completed for recording ${recordingId}`);
-
-      return {
-        success: true,
-        message: 'Transcription completed successfully',
-        data: {
-          text: transcriptionResult.data?.text,
-          language: transcriptionResult.data?.language,
-        },
-      };
-    } catch (error) {
-      this.logger.error(`Transcription failed for recording ${recordingId}:`, error);
-      throw new BadRequestException(`Transcription failed: ${this.getErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Translate a recording transcript to another language
-   */
-  async translateRecording(
-    callId: string,
-    recordingId: string,
-    userId: string,
-    targetLanguage: string,
-  ) {
-    // Verify access to call
-    const call = await this.getCallById(callId, userId);
-
-    // Get recording
-    const recording = await this.db.findOne('video_call_recordings', {
-      id: recordingId,
-      video_call_id: callId,
-    });
-
-    if (!recording) {
-      throw new NotFoundException('Recording not found');
-    }
-
-    // Check if transcription exists
-    if (!recording.metadata?.transcription) {
-      throw new BadRequestException(
-        'No transcription available. Please transcribe the recording first.',
-      );
-    }
-
-    // Check if translation already exists for this language
-    const translationKey = `translation_${targetLanguage}`;
-    if (recording.metadata?.[translationKey]) {
-      return {
-        success: true,
-        message: 'Translation already exists',
-        data: {
-          translatedText: recording.metadata[translationKey],
-          targetLanguage,
-          sourceLanguage: recording.metadata.transcription_language,
-        },
-      };
-    }
-
-    this.logger.log(`Starting translation for recording ${recordingId} to ${targetLanguage}`);
-
-    try {
-      // Call database AI translation service
-      const translationResult = await this.aiProvider.translateText(
-        recording.metadata.transcription,
-        targetLanguage,
-        {
-          sourceLanguage: recording.metadata.transcription_language,
-        },
-      );
-
-      // Store translation in recording metadata
-      await this.db.update(
-        'video_call_recordings',
-        { id: recordingId },
-        {
-          metadata: {
-            ...recording.metadata,
-            [translationKey]: translationResult.translatedText,
-            [`${translationKey}_created_at`]: new Date().toISOString(),
-          },
-        },
-      );
-
-      this.logger.log(`Translation completed for recording ${recordingId} to ${targetLanguage}`);
-
-      return {
-        success: true,
-        message: 'Translation completed successfully',
-        data: {
-          translatedText: translationResult.translatedText,
-          targetLanguage,
-          sourceLanguage: translationResult.detectedSourceLanguage,
-        },
-      };
-    } catch (error) {
-      this.logger.error(`Translation failed for recording ${recordingId}:`, error);
-      throw new BadRequestException(`Translation failed: ${this.getErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Generate meeting notes/summary from recording transcript
-   */
-  async summarizeRecording(callId: string, recordingId: string, userId: string) {
-    // Verify access to call
-    const call = await this.getCallById(callId, userId);
-
-    // Get recording
-    const recording = await this.db.findOne('video_call_recordings', {
-      id: recordingId,
-      video_call_id: callId,
-    });
-
-    if (!recording) {
-      throw new NotFoundException('Recording not found');
-    }
-
-    // Check if transcription exists
-    if (!recording.metadata?.transcription) {
-      throw new BadRequestException(
-        'No transcription available. Please transcribe the recording first.',
-      );
-    }
-
-    // Check if summary already exists
-    if (recording.metadata?.summary) {
-      return {
-        success: true,
-        message: 'Summary already exists',
-        data: {
-          summary: recording.metadata.summary,
-          compressionRatio: recording.metadata.summary_compression_ratio,
-        },
-      };
-    }
-
-    this.logger.log(`Starting summarization for recording ${recordingId}`);
-
-    try {
-      // Call database AI summarization service
-      const summaryResult = await this.aiProvider.summarizeText(recording.metadata.transcription, {
-        length: 'medium',
-      });
-
-      // Store summary in recording metadata
-      await this.db.update(
-        'video_call_recordings',
-        { id: recordingId },
-        {
-          metadata: {
-            ...recording.metadata,
-            summary: summaryResult.summary,
-            summary_compression_ratio: summaryResult.compressionRatio,
-            summarized_at: new Date().toISOString(),
-          },
-        },
-      );
-
-      this.logger.log(`Summarization completed for recording ${recordingId}`);
-
-      return {
-        success: true,
-        message: 'Summary generated successfully',
-        data: {
-          summary: summaryResult.summary,
-          compressionRatio: summaryResult.compressionRatio,
-        },
-      };
-    } catch (error) {
-      this.logger.error(`Summarization failed for recording ${recordingId}:`, error);
-      throw new BadRequestException(`Summarization failed: ${this.getErrorMessage(error)}`);
-    }
-  }
-
-  // ============================================
   // Join Request Management
   // ============================================
 
@@ -2092,125 +1800,6 @@ export class VideoCallsService {
     return {
       success: true,
       message: 'Join request accepted',
-    };
-  }
-
-  // ============================================
-  // Meeting Intelligence
-  // ============================================
-
-  /**
-   * Get meeting summary for a call
-   */
-  async getMeetingSummary(callId: string, userId: string) {
-    // Verify user has access to the call
-    await this.getCallById(callId, userId);
-
-    const summary = await this.meetingIntelligenceService.getMeetingSummary(callId);
-
-    if (!summary) {
-      return {
-        success: false,
-        message: 'No summary available for this call yet',
-        data: null,
-      };
-    }
-
-    return {
-      success: true,
-      data: summary,
-    };
-  }
-
-  /**
-   * Get transcript for a call
-   */
-  async getCallTranscript(callId: string, userId: string) {
-    // Verify user has access to the call
-    await this.getCallById(callId, userId);
-
-    const transcript = await this.meetingIntelligenceService.getTranscript(callId);
-
-    if (!transcript) {
-      return {
-        success: false,
-        message: 'No transcript available for this call',
-        data: null,
-      };
-    }
-
-    return {
-      success: true,
-      data: transcript,
-    };
-  }
-
-  /**
-   * Create tasks from meeting action items
-   */
-  async createTasksFromMeeting(callId: string, userId: string, projectId?: string) {
-    // Verify user has access to the call
-    const call = await this.getCallById(callId, userId);
-
-    const tasksCreated = await this.meetingIntelligenceService.createTasksFromActionItems(
-      callId,
-      call.workspace_id,
-      projectId,
-    );
-
-    return {
-      success: true,
-      message: `Created ${tasksCreated} tasks from meeting action items`,
-      tasksCreated,
-    };
-  }
-
-  /**
-   * Manually regenerate meeting summary
-   */
-  async regenerateMeetingSummary(callId: string, userId: string) {
-    // Verify user has access to the call
-    const call = await this.getCallById(callId, userId);
-
-    // Get transcript
-    const transcript = await this.meetingIntelligenceService.getTranscript(callId);
-
-    if (!transcript || !transcript.full_text) {
-      return {
-        success: false,
-        message: 'No transcript available to generate summary',
-        data: null,
-      };
-    }
-
-    // Get participants
-    const participantsResult = await this.db.findMany('video_call_participants', {
-      video_call_id: callId,
-    });
-    const participants = (participantsResult.data || [])
-      .map((p) => p.display_name || 'Unknown')
-      .filter(Boolean);
-
-    // Generate new summary
-    const summary = await this.meetingIntelligenceService.generateMeetingSummary(
-      callId,
-      call.workspace_id,
-      transcript.full_text,
-      participants,
-    );
-
-    if (!summary) {
-      return {
-        success: false,
-        message: 'Failed to generate summary',
-        data: null,
-      };
-    }
-
-    return {
-      success: true,
-      message: 'Meeting summary regenerated successfully',
-      data: summary,
     };
   }
 

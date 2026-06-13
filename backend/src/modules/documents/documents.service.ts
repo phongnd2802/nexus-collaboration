@@ -6,7 +6,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { DocumentTemplatesService } from '../templates/document-templates.service';
 import {
   CreateDocumentDto,
   UpdateDocumentDto,
@@ -95,10 +94,7 @@ export interface DocumentActivityLog {
 export class DocumentsService {
   private readonly logger = new Logger(DocumentsService.name);
 
-  constructor(
-    private readonly db: DatabaseService,
-    private documentTemplatesService: DocumentTemplatesService,
-  ) {}
+  constructor(private readonly db: DatabaseService) {}
 
   /**
    * Ensure the documents and related tables exist
@@ -361,18 +357,7 @@ export class DocumentsService {
    * Create a new document
    */
   async create(workspaceId: string, dto: CreateDocumentDto, userId: string): Promise<Document> {
-    let content = dto.content;
-    let placeholders: any[] = [];
-
-    // If creating from template, get template content
-    if (dto.templateId) {
-      const template = await this.documentTemplatesService.findOne(workspaceId, dto.templateId);
-      content = content || template.content;
-      placeholders = template.placeholders;
-
-      // Increment template usage count
-      await this.documentTemplatesService.incrementUsageCount(dto.templateId);
-    }
+    const content = dto.content;
 
     // Generate unique document number with retry logic
     let documentNumber: string;
@@ -414,7 +399,7 @@ export class DocumentsService {
     const now = new Date().toISOString();
     const data = {
       workspace_id: workspaceId,
-      template_id: dto.templateId || null,
+      template_id: null,
       document_number: documentNumber,
       title: dto.title,
       description: dto.description || null,

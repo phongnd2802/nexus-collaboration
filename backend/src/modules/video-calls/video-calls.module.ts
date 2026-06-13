@@ -5,9 +5,6 @@ import { VideoCallsController } from './video-calls.controller';
 import { VideoCallsService } from './video-calls.service';
 import { LivekitVideoService } from './livekit-video.service';
 import { VideoCallsGateway } from './gateways/video-calls.gateway';
-import { TranscriptionGateway } from './gateways/transcription.gateway';
-import { RealtimeTranscriptionService } from './services/realtime-transcription.service';
-import { MeetingIntelligenceService } from './services/meeting-intelligence.service';
 import { CalendarModule } from '../calendar/calendar.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { WebSocketModule } from '../../common/gateways/websocket.module';
@@ -33,16 +30,11 @@ import { WebSocketModule } from '../../common/gateways/websocket.module';
     VideoCallsService,
     LivekitVideoService,
     VideoCallsGateway,
-    TranscriptionGateway,
-    RealtimeTranscriptionService,
-    MeetingIntelligenceService,
   ],
   exports: [
     VideoCallsService,
     LivekitVideoService,
     VideoCallsGateway,
-    RealtimeTranscriptionService,
-    MeetingIntelligenceService,
   ],
 })
 export class VideoCallsModule {}

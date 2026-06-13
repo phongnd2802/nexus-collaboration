@@ -28,20 +28,13 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
 import { CalendarService } from './calendar.service';
-import { CalendarAgentService } from './calendar-agent.service';
 import {
   CreateEventDto,
   UpdateEventDto,
   CreateMeetingRoomDto,
   CreateEventCategoryDto,
   UpdateEventCategoryDto,
-  AISchedulingRequestDto,
-  AISchedulingResponseDto,
-  SmartAISchedulingRequestDto,
-  SmartAISchedulingResponseDto,
   CalendarDashboardStatsDto,
-  CalendarAgentRequestDto,
-  CalendarAgentResponseDto,
 } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
@@ -52,10 +45,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @Controller('workspaces/:workspaceId/calendar')
 @UseGuards(AuthGuard, WorkspaceGuard)
 export class CalendarController {
-  constructor(
-    private readonly calendarService: CalendarService,
-    private readonly calendarAgentService: CalendarAgentService,
-  ) {}
+  constructor(private readonly calendarService: CalendarService) {}
 
   // ============================================
   // EVENT OPERATIONS
@@ -562,83 +552,6 @@ export class CalendarController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.calendarService.deleteEventCategory(categoryId, workspaceId, userId);
-  }
-
-  // ============================================
-  // AI SCHEDULING ASSISTANT
-  // ============================================
-
-  @Post('ai/schedule-suggestions')
-  @ApiOperation({
-    summary: 'Get AI-powered scheduling suggestions',
-    description:
-      'Analyze calendar and provide intelligent scheduling recommendations based on availability, preferences, and existing events',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'AI scheduling suggestions generated successfully',
-    type: AISchedulingResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid request data' })
-  @ApiResponse({ status: 500, description: 'AI service temporarily unavailable' })
-  async getAISchedulingSuggestions(
-    @Param('workspaceId') workspaceId: string,
-    @Body() requestDto: AISchedulingRequestDto,
-    @CurrentUser('sub') userId: string,
-  ): Promise<AISchedulingResponseDto> {
-    return this.calendarService.getAISchedulingSuggestions(workspaceId, requestDto, userId);
-  }
-
-  @Post('ai/smart-schedule')
-  @ApiOperation({
-    summary: 'Smart AI scheduling with natural language prompts',
-    description:
-      'Process natural language scheduling requests and provide intelligent suggestions. AI infers missing information and provides comprehensive scheduling recommendations.',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Smart AI scheduling suggestions generated successfully',
-    type: SmartAISchedulingResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid request data' })
-  @ApiResponse({ status: 500, description: 'AI service temporarily unavailable' })
-  async getSmartAISchedulingSuggestions(
-    @Param('workspaceId') workspaceId: string,
-    @Body() requestDto: SmartAISchedulingRequestDto,
-    @CurrentUser('sub') userId: string,
-  ): Promise<SmartAISchedulingResponseDto> {
-    return this.calendarService.getSmartAISchedulingSuggestions(workspaceId, requestDto, userId);
-  }
-
-  // ============================================
-  // CALENDAR AI AGENT
-  // ============================================
-
-  @Post('agent')
-  @ApiOperation({
-    summary: 'Process natural language calendar commands',
-    description:
-      'AI agent that processes natural language commands to create, update, delete, or search calendar events. Supports commands like "Schedule a meeting tomorrow at 2pm" or "Cancel the team meeting".',
-  })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Calendar agent command processed successfully',
-    type: CalendarAgentResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid request data' })
-  @ApiResponse({ status: 500, description: 'AI service temporarily unavailable' })
-  async processCalendarAgentCommand(
-    @Param('workspaceId') workspaceId: string,
-    @Body() requestDto: CalendarAgentRequestDto,
-    @CurrentUser('sub') userId: string,
-  ): Promise<CalendarAgentResponseDto> {
-    return this.calendarAgentService.processCommand(
-      { prompt: requestDto.prompt, workspaceId, timezone: requestDto.timezone },
-      userId,
-    );
   }
 
   // ============================================

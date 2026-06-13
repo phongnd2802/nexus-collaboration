@@ -1031,7 +1031,6 @@ export class AuthService {
         'notes',
         'calendar_events',
         'event_reminders',
-        'ai_generations',
         'chat_sessions',
         'activity_logs',
         'user_activity_logs',

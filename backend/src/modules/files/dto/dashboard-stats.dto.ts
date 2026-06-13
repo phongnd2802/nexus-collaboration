@@ -75,12 +75,6 @@ export class DashboardStatsResponseDto {
   storage_percentage_used: number;
 
   @ApiProperty({
-    description: 'Number of AI-generated files this month',
-    example: 0,
-  })
-  ai_generations_this_month: number;
-
-  @ApiProperty({
     description: 'Number of unique file types (categories with files)',
     example: 4,
   })

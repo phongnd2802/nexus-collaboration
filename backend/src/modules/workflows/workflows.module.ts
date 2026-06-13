@@ -9,7 +9,6 @@ import { WorkflowsService } from './services/workflows.service';
 import { WorkflowExecutorService } from './services/workflow-executor.service';
 import { ConditionEvaluatorService } from './services/condition-evaluator.service';
 import { EntityEventService } from './services/entity-event.service';
-import { AIWorkflowGeneratorService } from './services/ai-workflow-generator.service';
 import { EntityEventIntegrationService } from './entity-event-integration.service';
 import { AuthModule } from '../auth/auth.module';
 import { AutomationCoreModule } from '../automation-core';
@@ -30,7 +29,6 @@ import { VideoCallsModule } from '../video-calls/video-calls.module';
     WorkflowExecutorService,
     ConditionEvaluatorService,
     EntityEventService,
-    AIWorkflowGeneratorService,
     EntityEventIntegrationService,
   ],
   exports: [
@@ -38,7 +36,6 @@ import { VideoCallsModule } from '../video-calls/video-calls.module';
     WorkflowExecutorService,
     EntityEventService,
     ConditionEvaluatorService,
-    AIWorkflowGeneratorService,
     EntityEventIntegrationService,
   ],
 })

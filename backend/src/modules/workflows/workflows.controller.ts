@@ -16,7 +16,6 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@ne
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { WorkflowsService } from './services/workflows.service';
 import { WorkflowExecutorService } from './services/workflow-executor.service';
-import { AIWorkflowGeneratorService } from './services/ai-workflow-generator.service';
 import {
   CreateWorkflowDto,
   UpdateWorkflowDto,
@@ -25,7 +24,6 @@ import {
   ManualExecuteWorkflowDto,
   UseTemplateDto,
   CreateTemplateFromWorkflowDto,
-  GenerateWorkflowDto,
   WorkflowTriggerType,
 } from './dto/workflow.dto';
 
@@ -37,7 +35,6 @@ export class WorkflowsController {
   constructor(
     private readonly workflowsService: WorkflowsService,
     private readonly workflowExecutorService: WorkflowExecutorService,
-    private readonly aiWorkflowGeneratorService: AIWorkflowGeneratorService,
   ) {}
 
   // ============================================
@@ -149,103 +146,6 @@ export class WorkflowsController {
     const userId = req.user.sub || req.user.userId;
     const workflow = await this.workflowsService.duplicateWorkflow(workspaceId, workflowId, userId);
     return { data: workflow, message: 'Workflow duplicated successfully' };
-  }
-
-  // ============================================
-  // AI WORKFLOW GENERATION
-  // ============================================
-
-  @Post('generate')
-  @ApiOperation({ summary: 'Generate workflow from natural language description' })
-  @ApiResponse({ status: 201, description: 'Workflow generated successfully' })
-  async generateWorkflow(
-    @Param('workspaceId') workspaceId: string,
-    @Body() dto: GenerateWorkflowDto,
-    @Req() req: any,
-  ) {
-    const userId = req.user.sub || req.user.userId;
-    const result = await this.aiWorkflowGeneratorService.generateFromDescription(
-      dto.prompt,
-      workspaceId,
-      userId,
-    );
-    return {
-      data: result,
-      message: 'Workflow generated successfully',
-    };
-  }
-
-  @Post('generate/suggestions')
-  @ApiOperation({ summary: 'Get suggestions for workflow description' })
-  async getWorkflowSuggestions(@Body() dto: { partialDescription: string }) {
-    const suggestions = this.aiWorkflowGeneratorService.getSuggestions(dto.partialDescription);
-    return { data: suggestions };
-  }
-
-  @Post('generate/create')
-  @ApiOperation({ summary: 'Generate and create workflow in one step' })
-  @ApiResponse({ status: 201, description: 'Workflow created from description' })
-  async generateAndCreateWorkflow(
-    @Param('workspaceId') workspaceId: string,
-    @Body() dto: GenerateWorkflowDto,
-    @Req() req: any,
-  ) {
-    const userId = req.user.sub || req.user.userId;
-
-    // Generate workflow from description
-    const result = await this.aiWorkflowGeneratorService.generateFromDescription(
-      dto.prompt,
-      workspaceId,
-      userId,
-    );
-
-    // Validate the generated workflow
-    const validation = this.aiWorkflowGeneratorService.validateWorkflow(result.workflow);
-    if (!validation.isValid) {
-      return {
-        data: result,
-        message: 'Generated workflow has validation errors',
-        errors: validation.errors,
-        created: false,
-      };
-    }
-
-    // Create the workflow
-    const createDto: CreateWorkflowDto = {
-      name: result.workflow.name,
-      description: result.workflow.description,
-      triggerType: result.workflow.triggerType as any,
-      triggerConfig: result.workflow.triggerConfig,
-      color: result.workflow.color,
-      icon: result.workflow.icon,
-      steps: result.workflow.steps.map((step, index) => ({
-        stepName: step.name,
-        stepOrder: index,
-        stepType: step.stepType as any,
-        stepConfig: {
-          actionType: step.actionType,
-          actionConfig: step.actionConfig,
-          conditions:
-            step.conditions?.map((cond) => ({
-              field: cond.field,
-              operator: cond.operator as any,
-              value: cond.value,
-              logicalOperator: cond.logicalOperator as any,
-            })) || [],
-        },
-      })),
-    };
-
-    const workflow = await this.workflowsService.createWorkflow(workspaceId, userId, createDto);
-
-    return {
-      data: {
-        workflow,
-        generation: result,
-      },
-      message: 'Workflow created successfully from description',
-      created: true,
-    };
   }
 
   // ============================================

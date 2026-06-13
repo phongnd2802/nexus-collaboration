@@ -83,8 +83,7 @@ export class LiveKitProvider implements VideoProvider {
 
   /**
    * Lazy-load livekit-server-sdk only when actually needed. This keeps
-   * the dependency optional - if a self-hoster picks daily/jitsi/none,
-   * they don't need to install livekit-server-sdk at all.
+   * the dependency optional for deployments that disable video entirely.
    */
   private loadSdk() {
     if (this.sdkLoaded) return;

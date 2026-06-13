@@ -55,11 +55,6 @@ export enum SignatureType {
 // ==================== REQUEST DTOs ====================
 
 export class CreateDocumentDto {
-  @ApiProperty({ description: 'Template ID to create from', required: false })
-  @IsOptional()
-  @IsString()
-  templateId?: string;
-
   @ApiProperty({ description: 'Document title' })
   @IsString()
   title: string;

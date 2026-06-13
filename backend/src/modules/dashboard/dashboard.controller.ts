@@ -24,17 +24,4 @@ export class DashboardController {
   ) {
     return this.dashboardService.getDashboardData(workspaceId, userId, query);
   }
-
-  @Get('suggestions')
-  @ApiOperation({ summary: 'Get smart suggestions for the dashboard' })
-  @ApiResponse({ status: 200, description: 'Suggestions retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Workspace not found or access denied' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  async getSuggestions(
-    @Param('workspaceId') workspaceId: string,
-    @CurrentUser('sub') userId: string,
-    @Query('language') language?: string,
-  ) {
-    return this.dashboardService.getSuggestions(workspaceId, userId, language || 'en');
-  }
 }

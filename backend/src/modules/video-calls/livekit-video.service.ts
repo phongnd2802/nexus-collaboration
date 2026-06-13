@@ -1,15 +1,8 @@
 /**
- * Video conferencing service - delegates to a pluggable provider.
+ * Video conferencing service backed by LiveKit.
  *
- * Despite the historical filename `livekit-video.service.ts`, this is
- * actually a multi-provider façade. The active provider is selected by
- * the VIDEO_PROVIDER env var (jitsi / livekit / daily / none) - see
- * src/modules/video-calls/providers/index.ts for the factory and
- * MIGRATION.md for the env vars each provider needs.
- *
- * Existing call sites (VideoCallsService, RecordingProcessorService,
- * etc.) keep using LivekitVideoService unchanged - they don't need to
- * know which provider is active.
+ * The historical filename is retained for compatibility with existing
+ * call sites, but this service now always uses the LiveKit provider.
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -41,12 +34,7 @@ export class LivekitVideoService {
     );
   }
 
-  /**
-   * Returns true if the configured video provider can actually do work.
-   * Always true for `jitsi` (uses public meet.jit.si as fallback) and
-   * for `none` it's false. For `livekit` / `daily` it depends on whether
-   * the API credentials are set.
-   */
+  /** Returns true if the configured LiveKit provider can actually do work. */
   isAvailable(): boolean {
     return this.provider.isAvailable();
   }

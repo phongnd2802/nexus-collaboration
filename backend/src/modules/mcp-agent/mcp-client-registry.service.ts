@@ -1,23 +1,11 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { z } from 'zod';
 import { McpServerConfig, McpTool } from './interfaces/mcp-agent.interface';
-
-interface JsonRpcRequest {
-  jsonrpc: '2.0';
-  id: number;
-  method: string;
-  params?: any;
-}
-
-interface JsonRpcResponse {
-  id?: number;
-  result?: any;
-  error?: { message?: string; code?: number; data?: any };
-  method?: string;
-}
 
 interface McpClient {
   connect(): Promise<void>;
@@ -26,49 +14,60 @@ interface McpClient {
   close(): void;
 }
 
+const McpServerConfigSchema = z
+  .object({
+    name: z.string().min(1),
+    transport: z.enum(['stdio', 'http', 'sse']).default('stdio'),
+    command: z.string().optional(),
+    args: z.array(z.string()).default([]),
+    env: z.record(z.string(), z.string()).optional(),
+    cwd: z.string().optional(),
+    url: z.string().url().optional(),
+    enabled: z.boolean().default(true),
+  })
+  .refine(
+    (cfg) => (cfg.transport === 'stdio' ? !!cfg.command : !!cfg.url),
+    { message: 'stdio configs require "command"; http and sse configs require "url"' },
+  );
+
+const McpServersSchema = z.array(McpServerConfigSchema);
+
 class StdioMcpClient implements McpClient {
   private readonly logger = new Logger(`MCP:${this.config.name}`);
-  private child?: ChildProcessWithoutNullStreams;
-  private nextId = 1;
-  private buffer = Buffer.alloc(0);
-  private pending = new Map<
-    number,
-    { resolve: (value: any) => void; reject: (reason?: any) => void; timeout: NodeJS.Timeout }
-  >();
+  private client?: Client;
+  private transport?: StdioClientTransport;
 
   constructor(private readonly config: McpServerConfig) {}
 
   async connect(): Promise<void> {
-    if (this.child) return;
+    if (this.client) return;
     if (!this.config.command) {
       throw new Error(`MCP stdio server "${this.config.name}" is missing command`);
     }
 
-    this.child = spawn(this.config.command, this.config.args || [], {
+    const transport = new StdioClientTransport({
+      command: this.config.command,
+      args: this.config.args || [],
+      ...(this.config.env ? { env: this.config.env } : {}),
       cwd: this.config.cwd,
-      env: { ...process.env, ...(this.config.env || {}) },
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stderr: 'pipe',
     });
+    const stderr = transport.stderr;
+    if (stderr) {
+      stderr.on('data', (chunk) => {
+        this.logger.debug(String(chunk).trim());
+      });
+    }
 
-    this.child.stdout.on('data', (chunk) => this.handleData(chunk));
-    this.child.stderr.on('data', (chunk) => {
-      this.logger.debug(String(chunk).trim());
-    });
-    this.child.on('exit', (code, signal) => {
-      this.rejectAll(new Error(`MCP server exited (${code ?? signal ?? 'unknown'})`));
-      this.child = undefined;
-    });
-
-    await this.request('initialize', {
-      protocolVersion: '2024-11-05',
-      capabilities: {},
-      clientInfo: { name: 'nexus-backend', version: '1.0.0' },
-    });
-    this.notify('notifications/initialized', {});
+    const client = new Client({ name: 'nexus-backend', version: '1.0.0' });
+    await client.connect(transport);
+    this.transport = transport;
+    this.client = client;
   }
 
   async listTools(): Promise<McpTool[]> {
-    const result = await this.request('tools/list', {});
+    const client = this.getClient();
+    const result = await client.listTools();
     const tools = Array.isArray(result?.tools) ? result.tools : [];
     return tools.map((tool: any) => ({
       serverName: this.config.name,
@@ -79,130 +78,35 @@ class StdioMcpClient implements McpClient {
   }
 
   async callTool(name: string, args: Record<string, unknown>): Promise<any> {
-    return this.request('tools/call', { name, arguments: args || {} });
+    const client = this.getClient();
+    return client.callTool({ name, arguments: args || {} });
   }
 
   close(): void {
-    this.rejectAll(new Error('MCP client closed'));
-    this.child?.kill();
-    this.child = undefined;
+    const client = this.client;
+    this.client = undefined;
+    this.transport = undefined;
+    void client?.close();
   }
 
-  private request(method: string, params?: any): Promise<any> {
-    if (!this.child) {
-      return Promise.reject(new Error(`MCP server "${this.config.name}" is not connected`));
+  private getClient(): Client {
+    if (!this.client) {
+      throw new Error(`MCP server "${this.config.name}" is not connected`);
     }
 
-    const id = this.nextId++;
-    const payload: JsonRpcRequest = { jsonrpc: '2.0', id, method, params };
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.pending.delete(id);
-        reject(new Error(`MCP request timed out: ${method}`));
-      }, 30000);
-
-      this.pending.set(id, { resolve, reject, timeout });
-      this.writeMessage(payload);
-    });
-  }
-
-  private notify(method: string, params?: any): void {
-    if (!this.child) return;
-    this.writeMessage({ jsonrpc: '2.0', method, params });
-  }
-
-  private writeMessage(payload: any): void {
-    const body = Buffer.from(JSON.stringify(payload), 'utf8');
-    const header = Buffer.from(`Content-Length: ${body.length}\r\n\r\n`, 'utf8');
-    this.child!.stdin.write(Buffer.concat([header, body]));
-  }
-
-  private handleData(chunk: Buffer): void {
-    this.buffer = Buffer.concat([this.buffer, chunk]);
-
-    while (true) {
-      const headerEnd = this.buffer.indexOf('\r\n\r\n');
-      if (headerEnd === -1) return;
-
-      const header = this.buffer.subarray(0, headerEnd).toString('utf8');
-      const match = /Content-Length:\s*(\d+)/i.exec(header);
-      if (!match) {
-        this.buffer = this.buffer.subarray(headerEnd + 4);
-        continue;
-      }
-
-      const length = Number(match[1]);
-      const bodyStart = headerEnd + 4;
-      const bodyEnd = bodyStart + length;
-      if (this.buffer.length < bodyEnd) return;
-
-      const body = this.buffer.subarray(bodyStart, bodyEnd).toString('utf8');
-      this.buffer = this.buffer.subarray(bodyEnd);
-      this.handleMessage(body);
-    }
-  }
-
-  private handleMessage(body: string): void {
-    let message: JsonRpcResponse;
-    try {
-      message = JSON.parse(body);
-    } catch (error) {
-      this.logger.warn(`Invalid MCP JSON-RPC message: ${(error as Error).message}`);
-      return;
-    }
-
-    if (typeof message.id !== 'number') return;
-    const pending = this.pending.get(message.id);
-    if (!pending) return;
-
-    clearTimeout(pending.timeout);
-    this.pending.delete(message.id);
-
-    if (message.error) {
-      pending.reject(new Error(message.error.message || `MCP error ${message.error.code}`));
-      return;
-    }
-
-    pending.resolve(message.result);
-  }
-
-  private rejectAll(error: Error): void {
-    for (const pending of this.pending.values()) {
-      clearTimeout(pending.timeout);
-      pending.reject(error);
-    }
-    this.pending.clear();
+    return this.client;
   }
 }
 
 class HttpMcpClient implements McpClient {
   private readonly logger = new Logger(`MCP:${this.config.name}`);
+  private client?: Client;
+  private transport?: StreamableHTTPClientTransport;
 
   constructor(private readonly config: McpServerConfig) {}
 
   async connect(): Promise<void> {
-    await this.withClient(async () => undefined);
-  }
-
-  async listTools(): Promise<McpTool[]> {
-    const result = await this.withClient((client) => client.listTools());
-    const tools = Array.isArray(result?.tools) ? result.tools : [];
-    return tools.map((tool: any) => ({
-      serverName: this.config.name,
-      name: String(tool.name),
-      description: tool.description,
-      inputSchema: tool.inputSchema,
-    }));
-  }
-
-  async callTool(name: string, args: Record<string, unknown>): Promise<any> {
-    return this.withClient((client) => client.callTool({ name, arguments: args || {} }));
-  }
-
-  close(): void {}
-
-  private async withClient<T>(operation: (client: Client) => Promise<T>): Promise<T> {
+    if (this.client) return;
     if (!this.config.url) {
       throw new Error(`MCP HTTP server "${this.config.name}" is missing url`);
     }
@@ -212,13 +116,165 @@ class HttpMcpClient implements McpClient {
 
     try {
       await client.connect(transport);
-      return await operation(client);
+      this.transport = transport;
+      this.client = client;
+    } catch (error) {
+      this.logger.warn(`MCP HTTP request failed: ${(error as Error).message}`);
+      await client.close().catch(() => undefined);
+      throw error;
+    }
+  }
+
+  async listTools(): Promise<McpTool[]> {
+    try {
+      const result = await this.withReconnect(() => this.getClient().listTools());
+      const tools = Array.isArray(result?.tools) ? result.tools : [];
+      return tools.map((tool: any) => ({
+        serverName: this.config.name,
+        name: String(tool.name),
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+      }));
     } catch (error) {
       this.logger.warn(`MCP HTTP request failed: ${(error as Error).message}`);
       throw error;
-    } finally {
-      await client.close().catch(() => undefined);
     }
+  }
+
+  async callTool(name: string, args: Record<string, unknown>): Promise<any> {
+    try {
+      return await this.withReconnect(() =>
+        this.getClient().callTool({ name, arguments: args || {} }),
+      );
+    } catch (error) {
+      this.logger.warn(`MCP HTTP request failed: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  close(): void {
+    const client = this.client;
+    this.client = undefined;
+    this.transport = undefined;
+    void client?.close();
+  }
+
+  private getClient(): Client {
+    if (!this.client) {
+      throw new Error(`MCP server "${this.config.name}" is not connected`);
+    }
+
+    return this.client;
+  }
+
+  private async withReconnect<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!this.isSessionLostError(error)) {
+        throw error;
+      }
+
+      this.logger.warn(`MCP HTTP session lost, reconnecting: ${(error as Error).message}`);
+      this.close();
+      await this.connect();
+      return operation();
+    }
+  }
+
+  private isSessionLostError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    return message.includes('session not found') || message.includes('404');
+  }
+}
+
+class SseMcpClient implements McpClient {
+  private readonly logger = new Logger(`MCP:${this.config.name}`);
+  private client?: Client;
+  private transport?: SSEClientTransport;
+
+  constructor(private readonly config: McpServerConfig) {}
+
+  async connect(): Promise<void> {
+    if (this.client) return;
+    if (!this.config.url) {
+      throw new Error(`MCP SSE server "${this.config.name}" is missing url`);
+    }
+
+    const transport = new SSEClientTransport(new URL(this.config.url));
+    const client = new Client({ name: 'nexus-backend', version: '1.0.0' });
+
+    try {
+      await client.connect(transport);
+      this.transport = transport;
+      this.client = client;
+    } catch (error) {
+      this.logger.warn(`MCP SSE request failed: ${(error as Error).message}`);
+      await client.close().catch(() => undefined);
+      throw error;
+    }
+  }
+
+  async listTools(): Promise<McpTool[]> {
+    try {
+      const result = await this.withReconnect(() => this.getClient().listTools());
+      const tools = Array.isArray(result?.tools) ? result.tools : [];
+      return tools.map((tool: any) => ({
+        serverName: this.config.name,
+        name: String(tool.name),
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+      }));
+    } catch (error) {
+      this.logger.warn(`MCP SSE request failed: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  async callTool(name: string, args: Record<string, unknown>): Promise<any> {
+    try {
+      return await this.withReconnect(() =>
+        this.getClient().callTool({ name, arguments: args || {} }),
+      );
+    } catch (error) {
+      this.logger.warn(`MCP SSE request failed: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
+  close(): void {
+    const client = this.client;
+    this.client = undefined;
+    this.transport = undefined;
+    void client?.close();
+  }
+
+  private getClient(): Client {
+    if (!this.client) {
+      throw new Error(`MCP server "${this.config.name}" is not connected`);
+    }
+
+    return this.client;
+  }
+
+  private async withReconnect<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!this.isSessionLostError(error)) {
+        throw error;
+      }
+
+      this.logger.warn(`MCP SSE session lost, reconnecting: ${(error as Error).message}`);
+      this.close();
+      await this.connect();
+      return operation();
+    }
+  }
+
+  private isSessionLostError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    return message.includes('session not found') || message.includes('404');
   }
 }
 
@@ -288,8 +344,10 @@ export class McpClientRegistryService implements OnModuleInit, OnModuleDestroy {
     const existing = this.clients.get(config.name);
     if (existing) return existing;
 
-    const client =
-      config.transport === 'http' ? new HttpMcpClient(config) : new StdioMcpClient(config);
+    let client: McpClient;
+    if (config.transport === 'http') client = new HttpMcpClient(config);
+    else if (config.transport === 'sse') client = new SseMcpClient(config);
+    else client = new StdioMcpClient(config);
     await client.connect();
     this.clients.set(config.name, client);
     this.logger.log(`Connected MCP server: ${config.name}`);
@@ -302,26 +360,13 @@ export class McpClientRegistryService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) {
-        this.logger.warn('MCP_SERVERS_JSON must be an array');
+      const result = McpServersSchema.safeParse(parsed);
+      if (!result.success) {
+        this.logger.warn(`Invalid MCP_SERVERS_JSON: ${JSON.stringify(result.error.flatten())}`);
         return [];
       }
 
-      return parsed
-        .filter((item) => {
-          const transport = item?.transport === 'http' ? 'http' : 'stdio';
-          return item?.name && (transport === 'http' ? item.url : item.command);
-        })
-        .map((item) => ({
-          name: String(item.name),
-          transport: item.transport === 'http' ? 'http' : 'stdio',
-          command: item.command ? String(item.command) : undefined,
-          args: Array.isArray(item.args) ? item.args.map(String) : [],
-          env: item.env && typeof item.env === 'object' ? item.env : undefined,
-          cwd: item.cwd ? String(item.cwd) : undefined,
-          url: item.url ? String(item.url) : undefined,
-          enabled: item.enabled !== false,
-        }));
+      return result.data;
     } catch (error) {
       this.logger.warn(`Invalid MCP_SERVERS_JSON: ${(error as Error).message}`);
       return [];

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import pLimit = require('p-limit');
 import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { ChatMessage } from '../ai-provider/providers';
 import { OpenAiProvider } from '../ai-provider/providers/openai.provider';
@@ -43,6 +44,8 @@ export class McpChatAgentService {
     if (!this.aiProvider.isAvailable()) {
       throw new Error('AI provider is not configured');
     }
+
+    const toolConcurrencyLimit = pLimit(3);
 
     onStream({ type: 'status', data: { status: 'thinking', message: 'Thinking' } });
     onStream({
@@ -114,84 +117,103 @@ export class McpChatAgentService {
         toolCalls: response.toolCalls,
       });
 
-      for (const toolCall of response.toolCalls) {
-        const tool = this.mcpTools.findTool(toolCall.name, tools);
-        if (!tool) {
-          const content = `Tool not found: ${toolCall.name}`;
-          messages.push({
-            role: 'tool',
-            toolCallId: toolCall.id,
-            name: toolCall.name,
-            content,
-          });
-          actions.push({ tool: toolCall.name, input: toolCall.arguments || {}, success: false, error: content });
-          continue;
-        }
+      const toolResults = await Promise.all(
+        response.toolCalls.map((toolCall) =>
+          toolConcurrencyLimit(async () => {
+            const tool = this.mcpTools.findTool(toolCall.name, tools);
+            if (!tool) {
+              const content = `Tool not found: ${toolCall.name}`;
+              return {
+                message: {
+                  role: 'tool',
+                  toolCallId: toolCall.id,
+                  name: toolCall.name,
+                  content,
+                } as ChatMessage,
+                action: {
+                  tool: toolCall.name,
+                  input: toolCall.arguments || {},
+                  success: false,
+                  error: content,
+                },
+              };
+            }
 
-        try {
-          onStream({
-            type: 'status',
-            data: { status: 'tool', message: `Using ${tool.originalName}` },
-          });
-          onStream({
-            type: 'step',
-            data: {
-              id: toolCall.id,
-              title: `Using ${tool.originalName}`,
-              description: this.describeToolInput(toolCall.arguments || {}),
-              status: 'running',
-              tool: tool.originalName,
-              input: toolCall.arguments || {},
-            },
-          });
-          const input = toolCall.arguments || {};
-          const content = await this.mcpTools.callTool(tool, input, trustedContext);
-          messages.push({
-            role: 'tool',
-            toolCallId: toolCall.id,
-            name: toolCall.name,
-            content,
-          });
-          actions.push({ tool: toolCall.name, input, output: content, success: true });
-          onStream({
-            type: 'step',
-            data: {
-              id: toolCall.id,
-              title: `Used ${tool.originalName}`,
-              description: this.describeToolOutput(content),
-              status: 'completed',
-              tool: tool.originalName,
-              input,
-            },
-          });
-        } catch (error) {
-          const message = (error as Error).message;
-          this.logger.warn(`MCP tool failed: ${toolCall.name}: ${message}`);
-          messages.push({
-            role: 'tool',
-            toolCallId: toolCall.id,
-            name: toolCall.name,
-            content: `Tool execution failed: ${message}`,
-          });
-          actions.push({
-            tool: toolCall.name,
-            input: toolCall.arguments || {},
-            success: false,
-            error: message,
-          });
-          onStream({
-            type: 'step',
-            data: {
-              id: toolCall.id,
-              title: `Failed ${tool.originalName}`,
-              description: message,
-              status: 'error',
-              tool: tool.originalName,
-              input: toolCall.arguments || {},
-            },
-          });
-        }
-      }
+            try {
+              onStream({
+                type: 'status',
+                data: { status: 'tool', message: `Using ${tool.originalName}` },
+              });
+              onStream({
+                type: 'step',
+                data: {
+                  id: toolCall.id,
+                  title: `Using ${tool.originalName}`,
+                  description: this.describeToolInput(toolCall.arguments || {}),
+                  status: 'running',
+                  tool: tool.originalName,
+                  input: toolCall.arguments || {},
+                },
+              });
+              const input = toolCall.arguments || {};
+              const content = await this.mcpTools.callTool(tool, input, trustedContext);
+              onStream({
+                type: 'step',
+                data: {
+                  id: toolCall.id,
+                  title: `Used ${tool.originalName}`,
+                  description: this.describeToolOutput(content),
+                  status: 'completed',
+                  tool: tool.originalName,
+                  input,
+                },
+              });
+              return {
+                message: {
+                  role: 'tool',
+                  toolCallId: toolCall.id,
+                  name: toolCall.name,
+                  content,
+                } as ChatMessage,
+                action: { tool: toolCall.name, input, output: content, success: true },
+              };
+            } catch (error) {
+              const message = (error as Error).message;
+              this.logger.warn(`MCP tool failed: ${toolCall.name}: ${message}`);
+              onStream({
+                type: 'step',
+                data: {
+                  id: toolCall.id,
+                  title: `Failed ${tool.originalName}`,
+                  description: message,
+                  status: 'error',
+                  tool: tool.originalName,
+                  input: toolCall.arguments || {},
+                },
+              });
+              return {
+                message: {
+                  role: 'tool',
+                  toolCallId: toolCall.id,
+                  name: toolCall.name,
+                  content: `Tool execution failed: ${message}`,
+                } as ChatMessage,
+                action: {
+                  tool: toolCall.name,
+                  input: toolCall.arguments || {},
+                  success: false,
+                  error: message,
+                },
+              };
+            }
+          }),
+        ),
+      );
+
+      toolResults.forEach(({ message, action }) => {
+        messages.push(message);
+        actions.push(action);
+      });
     }
 
     finalText =
