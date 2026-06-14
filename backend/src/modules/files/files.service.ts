@@ -104,6 +104,10 @@ export class FilesService {
     return Array.isArray(foldersQuery.data) ? foldersQuery.data : [];
   }
 
+  async getFolder(folderId: string, workspaceId: string, userId: string) {
+    return this.getFolderWithAccess(folderId, workspaceId, userId);
+  }
+
   async deleteFolder(folderId: string, workspaceId: string, userId: string) {
     const folder = await this.getFolderWithAccess(folderId, workspaceId, userId);
 
@@ -680,9 +684,10 @@ export class FilesService {
     // Apply workspace filter
     let files = allFilesData.filter((f) => f.workspace_id === workspaceId);
 
-    // Filter by uploaded_by to only show files uploaded by the user
+    // Filter by uploaded_by to only show files uploaded by the user or shared with the user
     if (userId) {
-      files = files.filter((f) => f.uploaded_by === userId);
+      const sharedFileIds = await this.getSharedFileIds(userId);
+      files = files.filter((f) => f.uploaded_by === userId || sharedFileIds.includes(f.id));
     }
 
     // Apply is_deleted filter
@@ -2285,11 +2290,12 @@ export class FilesService {
     // Using workaround pattern for complex search
     const allFilesResult = await this.db.find('files', {});
     const allFilesData = Array.isArray(allFilesResult.data) ? allFilesResult.data : [];
+    const sharedFileIds = userId ? await this.getSharedFileIds(userId) : [];
     let files = allFilesData.filter(
       (f) =>
         f.workspace_id === workspaceId &&
         !f.is_deleted &&
-        (userId ? f.uploaded_by === userId : true), // Filter by current user if userId provided
+        (userId ? (f.uploaded_by === userId || sharedFileIds.includes(f.id)) : true), // Filter by current user or shared files
     );
 
     // Apply text search
@@ -2340,6 +2346,23 @@ export class FilesService {
   // ============================================
   // HELPER METHODS
   // ============================================
+
+  private async getSharedFileIds(userId: string): Promise<string[]> {
+    try {
+      const sharesResult = await this.db
+        .table('file_shares')
+        .select('file_id')
+        .where('shared_with', '=', userId)
+        .where('is_active', '=', true)
+        .execute();
+      return Array.isArray(sharesResult.data)
+        ? sharesResult.data.map((s) => s.file_id).filter(Boolean)
+        : [];
+    } catch (error) {
+      console.warn('[FilesService] Failed to fetch shared file IDs:', error.message);
+      return [];
+    }
+  }
 
   private async getFileWithAccess(fileId: string, workspaceId: string, userId: string) {
     const fileQuery = await this.db.find('files', {
@@ -2464,12 +2487,13 @@ export class FilesService {
     const allFilesData = Array.isArray(allFilesResult.data) ? allFilesResult.data : [];
 
     // Filter by workspace, uploaded by current user, non-deleted, and must have last_opened_at
+    const sharedFileIds = userId ? await this.getSharedFileIds(userId) : [];
     const recentFiles = allFilesData.filter(
       (f) =>
         f.workspace_id === workspaceId &&
         !f.is_deleted &&
         f.last_opened_at &&
-        (userId ? f.uploaded_by === userId : true), // Filter by current user if userId provided
+        (userId ? (f.uploaded_by === userId || sharedFileIds.includes(f.id)) : true), // Filter by current user or shared files
     );
 
     // Sort by last_opened_at descending (most recent first)
@@ -2527,11 +2551,12 @@ export class FilesService {
     const allFilesData = Array.isArray(allFilesResult.data) ? allFilesResult.data : [];
 
     // Filter by workspace, uploaded by current user, and non-deleted
+    const sharedFileIds = userId ? await this.getSharedFileIds(userId) : [];
     let files = allFilesData.filter(
       (f) =>
         f.workspace_id === workspaceId &&
         !f.is_deleted &&
-        (userId ? f.uploaded_by === userId : true), // Filter by current user if userId provided
+        (userId ? (f.uploaded_by === userId || sharedFileIds.includes(f.id)) : true), // Filter by current user or shared files
     );
 
     // Helper to parse parent_folder_ids (may be string or array)
@@ -2680,8 +2705,11 @@ export class FilesService {
       (f) => f.workspace_id === workspaceId && !f.is_deleted,
     );
 
-    // USER-SPECIFIC: Only current user's files for counts
-    const userFiles = workspaceFiles.filter((f) => (userId ? f.uploaded_by === userId : true));
+    // USER-SPECIFIC: Only current user's files + shared files for counts
+    const sharedFileIds = userId ? await this.getSharedFileIds(userId) : [];
+    const userFiles = workspaceFiles.filter(
+      (f) => (userId ? (f.uploaded_by === userId || sharedFileIds.includes(f.id)) : true),
+    );
 
     // Calculate total files (USER-SPECIFIC)
     const totalFiles = userFiles.length;

@@ -79,7 +79,6 @@ interface TaskDetails {
   assignee_team_member_id?: string;
   reporter_team_member_id?: string;
   due_date?: string; // ISO date string
-  estimated_hours?: number;
   story_points?: number;
   labels?: string[];
   attachments?: {
@@ -531,7 +530,6 @@ You must respond with ONLY a valid JSON object. No markdown, no code blocks, no 
     "priority": "lowest" | "low" | "medium" | "high" | "highest",
     "assigned_to": ["USER_ID_1", "USER_ID_2"],
     "due_date": "YYYY-MM-DD",
-    "estimated_hours": number,
     "story_points": number,
     "labels": ["label1", "label2"]
   }
@@ -864,8 +862,6 @@ IMPORTANT RULES:
       if (details.sprint_id) createDto.sprint_id = details.sprint_id;
       if (details.parent_task_id) createDto.parent_task_id = details.parent_task_id;
       if (details.due_date) createDto.due_date = details.due_date;
-      if (details.estimated_hours !== undefined)
-        createDto.estimated_hours = details.estimated_hours;
       if (details.story_points !== undefined) createDto.story_points = details.story_points;
       if (details.attachments) createDto.attachments = details.attachments;
 
@@ -950,8 +946,6 @@ IMPORTANT RULES:
     if (details?.priority) updateFields.priority = mapToTaskPriority(details.priority);
     if (details?.assigned_to) updateFields.assigned_to = details.assigned_to;
     if (details?.due_date) updateFields.due_date = details.due_date;
-    if (details?.estimated_hours !== undefined)
-      updateFields.estimated_hours = details.estimated_hours;
     if (details?.story_points !== undefined) updateFields.story_points = details.story_points;
     if (details?.labels) updateFields.labels = details.labels;
     if (details?.sprint_id) updateFields.sprint_id = details.sprint_id;
@@ -1210,8 +1204,6 @@ IMPORTANT RULES:
         };
 
         if (item.details.due_date) createDto.due_date = item.details.due_date;
-        if (item.details.estimated_hours !== undefined)
-          createDto.estimated_hours = item.details.estimated_hours;
         if (item.details.story_points !== undefined)
           createDto.story_points = item.details.story_points;
 

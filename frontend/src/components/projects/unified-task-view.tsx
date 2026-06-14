@@ -145,7 +145,6 @@ export function UnifiedTaskView({
       assignee: apiTask.assigned_to ? { id: apiTask.assigned_to, email: apiTask.assigned_to, name: apiTask.assigned_to } : undefined,
       assigneeId: apiTask.assigned_to,
       dueDate: apiTask.due_date || apiTask.dueDate,
-      estimatedHours: apiTask.estimated_hours ? parseFloat(apiTask.estimated_hours) : undefined,
       actualHours: apiTask.actual_hours ? parseFloat(apiTask.actual_hours) : undefined,
       tags: apiTask.labels || [],
       attachments: apiTask.attachments || [],
@@ -1067,15 +1066,6 @@ export function UnifiedTaskView({
                 </div>
               )} */}
 
-              {/* Estimated Hours */}
-              {/* {task.estimatedHours && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>{task.estimatedHours}h</span>
-                </div>
-              )} */}
             </div>
 
           {/* Assignee Avatars */}

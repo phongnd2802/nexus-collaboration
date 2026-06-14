@@ -37,8 +37,6 @@ import {
 import { format, formatDistanceToNow, isAfter, isPast } from 'date-fns'
 import { vi as viLocale } from 'date-fns/locale'
 import type { Task } from '@/lib/api/projects-api'
-import { githubApi, type GitHubIssueLink } from '@/lib/api/github-api'
-import { GitHubLinksDisplay } from '@/components/github/github-links-display'
 import { getAssigneeInitials, getAssigneeName } from '@/utils/task-helpers'
 
 // Per-task custom field structure
@@ -73,30 +71,21 @@ export function TaskDetailModal({
   const params = useParams<{ workspaceId: string }>()
   const workspaceId = propWorkspaceId || params.workspaceId || ''
 
-  const [githubLinks, setGithubLinks] = useState<GitHubIssueLink[]>([])
-  const [isLoadingLinks, setIsLoadingLinks] = useState(false)
+  const formatFileSize = (bytes: number): string => {
+    if (!bytes || bytes < 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
 
-  // Load GitHub links when task changes
-  useEffect(() => {
-    if (open && task && workspaceId) {
-      loadGithubLinks()
-    } else {
-      setGithubLinks([])
+  const getFileUrl = (file: any) => {
+    if (!file || !file.url) return '';
+    if (typeof file.url === 'object' && file.url !== null && 'publicUrl' in file.url) {
+      return (file.url as any).publicUrl;
     }
-  }, [open, task?.id, workspaceId])
-
-  const loadGithubLinks = async () => {
-    if (!task || !workspaceId) return
-    try {
-      setIsLoadingLinks(true)
-      const links = await githubApi.getTaskLinks(workspaceId, task.id)
-      setGithubLinks(links)
-    } catch (error) {
-      console.error('Failed to load GitHub links:', error)
-    } finally {
-      setIsLoadingLinks(false)
-    }
-  }
+    return file.url as string;
+  };
 
   if (!task) return null
 
@@ -395,16 +384,7 @@ export function TaskDetailModal({
                 )}
               </div>
 
-              {/* Estimated Hours */}
-              {task.estimatedHours && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {intl.formatMessage({ id: 'tasks.estimatedTime', defaultMessage: 'Thời gian ước tính' })}
-                  </h3>
-                  <span className="text-sm">{task.estimatedHours} {intl.formatMessage({ id: 'tasks.hours', defaultMessage: 'giờ' })}</span>
-                </div>
-              )}
+
 
               {/* Created */}
               <div className="space-y-2">
@@ -441,17 +421,56 @@ export function TaskDetailModal({
               </>
             )}
 
-            {/* GitHub Links */}
+            {/* Attached Files */}
             {workspaceId && (
               <>
                 <Separator />
-                <GitHubLinksDisplay
-                  workspaceId={workspaceId}
-                  taskId={task.id}
-                  links={githubLinks}
-                  onLinksChange={setGithubLinks}
-                  showAddButton={true}
-                />
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    {intl.formatMessage({ id: 'tasks.attachments', defaultMessage: 'Tệp đính kèm' })}
+                  </h3>
+                  {task.attachments &&
+                  (task.attachments as any).file_attachment &&
+                  (task.attachments as any).file_attachment.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(task.attachments as any).file_attachment.map((file: any) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <FileText className="w-8 h-8 text-primary/80 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate pr-2" title={file.name}>
+                                {file.name}
+                              </p>
+                              {file.size && (
+                                <p className="text-xs text-muted-foreground">
+                                  {formatFileSize(file.size)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {getFileUrl(file) && (
+                              <a
+                                href={getFileUrl(file)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 px-3"
+                              >
+                                Tải xuống
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Không có tệp đính kèm nào.</p>
+                  )}
+                </div>
               </>
             )}
 

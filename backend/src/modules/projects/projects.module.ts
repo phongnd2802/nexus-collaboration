@@ -9,6 +9,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { ConversationMemoryModule } from '../conversation-memory/conversation-memory.module';
 import { WorkflowsModule } from '../workflows/workflows.module';
 import { EmailProviderModule } from '../email/email.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EmailProviderModule } from '../email/email.module';
     ConversationMemoryModule,
     forwardRef(() => WorkflowsModule),
     EmailProviderModule,
+    forwardRef(() => FilesModule),
   ],
   controllers: [ProjectsController],
   providers: [ProjectsService, ProjectAgentService, TaskAgentService, UnifiedAgentService],

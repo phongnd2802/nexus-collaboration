@@ -4567,7 +4567,6 @@ Provide a comprehensive summary covering:
                       assignedTo: item.assigned_to,
                       labels: item.labels,
                       storyPoints: item.story_points,
-                      estimatedHours: item.estimated_hours,
                       createdAt: item.created_at,
                       updatedAt: item.updated_at,
                     },
@@ -4746,8 +4745,6 @@ Provide a comprehensive summary covering:
                     taskUpdates.task_type = value;
                   } else if (key === 'storyPoints') {
                     taskUpdates.story_points = value;
-                  } else if (key === 'estimatedHours') {
-                    taskUpdates.estimated_hours = value;
                   } else if (key === 'parentTaskId') {
                     taskUpdates.parent_task_id = value;
                   } else if (key === 'sprintId') {

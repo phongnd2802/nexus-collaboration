@@ -72,7 +72,6 @@ export interface Task {
   assigneeId?: string; // User ID string
   dueDate?: string;
   startDate?: string;
-  estimatedHours?: number;
   actualHours?: number;
   tags: string[];
   attachments?: TaskAttachment[];
@@ -142,7 +141,6 @@ export interface CreateTaskRequest {
   assignee_team_member_id?: string;        // Optional - Team member UUID
   reporter_team_member_id?: string;        // Optional - Reporter team member UUID
   due_date?: string;                       // Optional - ISO date string
-  estimated_hours?: number;                // Optional - Estimated hours to complete
   story_points?: number;                   // Optional - Story points (for agile)
   labels?: string[];                       // Optional - Array of tag strings
   attachments?: {
