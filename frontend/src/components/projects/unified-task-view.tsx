@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { useIntl } from 'react-intl'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -99,6 +100,14 @@ export function UnifiedTaskView({
   const { user } = useAuth()
   const { members } = useWorkspace()
   const intl = useIntl()
+  const memberByUserId = useMemo(() => {
+    const map = new Map<string, any>()
+    for (const member of members || []) {
+      if (member?.user_id) map.set(member.user_id, member)
+      if (member?.id) map.set(member.id, member)
+    }
+    return map
+  }, [members])
 
   // Delete task mutation
   const deleteTaskMutation = useDeleteTask()
@@ -806,6 +815,38 @@ export function UnifiedTaskView({
     const hasComments = task.comments && task.comments.length > 0
     const hasDueDate = !!task.dueDate
     const hasParent = !!(task as any).parentTaskId
+    const firstAssignee = Array.isArray((task as any).assignees) ? (task as any).assignees.find((assignee: any) => Boolean(assignee)) : null
+    const firstAssigneeId =
+      typeof firstAssignee === 'string'
+        ? firstAssignee
+        : firstAssignee?.id
+    const assigneeId =
+      task.assigneeId ||
+      (typeof task.assignee === 'object' ? task.assignee?.id : undefined) ||
+      firstAssigneeId
+    const workspaceMember = assigneeId ? memberByUserId.get(assigneeId) : undefined
+    const assigneeName =
+      workspaceMember?.user?.name ||
+      workspaceMember?.name ||
+      workspaceMember?.email ||
+      (typeof firstAssignee === 'object' ? firstAssignee?.name || firstAssignee?.email : undefined) ||
+      (typeof task.assignee === 'object' ? task.assignee?.name || task.assignee?.email : undefined) ||
+      (typeof firstAssignee === 'string' ? firstAssignee : undefined) ||
+      intl.formatMessage({ id: 'tasks.unassigned' })
+    const assigneeAvatar =
+      workspaceMember?.user?.avatar ||
+      workspaceMember?.avatar_url ||
+      (typeof firstAssignee === 'object' ? firstAssignee?.avatar_url || firstAssignee?.avatarUrl || firstAssignee?.avatar : undefined) ||
+      (typeof task.assignee === 'object' ? task.assignee?.avatarUrl || task.assignee?.avatar : undefined)
+
+    const getInitials = (name: string) => {
+      const safeName = String(name || '?').trim()
+      const parts = safeName.split(' ').filter(Boolean)
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+      }
+      return safeName.slice(0, 2).toUpperCase()
+    }
 
     // Format due date
     const formatDueDate = (dateString: string) => {
@@ -821,6 +862,12 @@ export function UnifiedTaskView({
     }
 
     const dueDateInfo = hasDueDate ? formatDueDate(task.dueDate!) : null
+    const dueDateLabel = hasDueDate
+      ? new Date(task.dueDate!).toLocaleDateString(intl.locale === 'vi' ? 'vi-VN' : 'en-US', {
+          day: 'numeric',
+          month: 'short',
+        })
+      : null
 
     return (
       <div
@@ -858,6 +905,28 @@ export function UnifiedTaskView({
             <h4 className="font-semibold text-foreground text-sm line-clamp-2 group-hover:text-primary transition-colors">
               {task.title}
             </h4>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+              <div className="flex min-w-0 items-center gap-2">
+                <Avatar className="h-5 w-5 border border-border/60">
+                  <AvatarImage src={assigneeAvatar} alt={assigneeName} />
+                  <AvatarFallback className="text-[10px] font-semibold">
+                    {getInitials(assigneeName)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate font-medium text-foreground/80 max-w-[140px]">
+                  {assigneeName}
+                </span>
+              </div>
+
+              {dueDateLabel && (
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  <span>
+                    {intl.formatMessage({ id: 'tasks.table.dueDate' })}: {dueDateLabel}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

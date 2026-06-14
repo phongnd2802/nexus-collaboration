@@ -199,7 +199,7 @@ export class ProjectsService {
           },
         });
 
-        console.log(`[ProjectsService] ✅ Notification sent successfully:`, notificationResult);
+        console.log(`[ProjectsService] âœ… Notification sent successfully:`, notificationResult);
       }
 
       console.log('[ProjectsService] ====== CHECKING DEFAULT ASSIGNEES ======');
@@ -213,13 +213,13 @@ export class ProjectsService {
       if (typeof collaborativeData === 'string') {
         try {
           collaborativeData = JSON.parse(collaborativeData);
-          console.log('[ProjectsService] ✓ Parsed collaborative_data:', collaborativeData);
+          console.log('[ProjectsService] âœ“ Parsed collaborative_data:', collaborativeData);
         } catch (e) {
-          console.error('[ProjectsService] ✗ Failed to parse collaborative_data:', e);
+          console.error('[ProjectsService] âœ— Failed to parse collaborative_data:', e);
           collaborativeData = {};
         }
       } else {
-        console.log('[ProjectsService] ✓ collaborativeData is already an object');
+        console.log('[ProjectsService] âœ“ collaborativeData is already an object');
       }
 
       // Support both 'default_assignees' (Flutter) and 'default_assignee_ids' (Web)
@@ -855,6 +855,7 @@ export class ProjectsService {
               ? 'high'
               : 'normal') as any,
             send_push: true, // Enable FCM push notification for mobile users
+            send_email: true,
             data: {
               category: 'tasks',
               entity_type: 'task',
@@ -880,7 +881,7 @@ export class ProjectsService {
   }
 
   async getTasks(projectId: string, userId: string, sprintId?: string, status?: string) {
-    await this.getProjectWithAccess(projectId, userId);
+    const project = await this.getProjectWithAccess(projectId, userId);
 
     const allTasksResult = await this.db.table('tasks').select('*').execute();
     const allTasksData = Array.isArray(allTasksResult.data) ? allTasksResult.data : [];
@@ -983,11 +984,17 @@ export class ProjectsService {
           assigneesWithDetails = assigneesWithDetails.filter((a) => a !== null);
         }
 
+        const parsedAttachments =
+          typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments;
+        const enrichedAttachments = await this.enrichAttachments(
+          parsedAttachments,
+          project.workspace_id,
+        );
+
         return {
           ...task,
           labels: typeof task.labels === 'string' ? JSON.parse(task.labels) : task.labels,
-          attachments:
-            typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments,
+          attachments: enrichedAttachments,
           collaborative_data:
             typeof task.collaborative_data === 'string'
               ? JSON.parse(task.collaborative_data)
@@ -1083,7 +1090,7 @@ export class ProjectsService {
     }
 
     const task = taskData[0];
-    await this.getProjectWithAccess(task.project_id, userId);
+    const project = await this.getProjectWithAccess(task.project_id, userId);
 
     // Get updated_by user details if available
     let updatedByUser = null;
@@ -1137,11 +1144,13 @@ export class ProjectsService {
 
     const parsedAssignedTo =
       typeof task.assigned_to === 'string' ? JSON.parse(task.assigned_to) : task.assigned_to;
+    const parsedAttachments =
+      typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments;
+    const enrichedAttachments = await this.enrichAttachments(parsedAttachments, project.workspace_id);
     return {
       ...task,
       labels: typeof task.labels === 'string' ? JSON.parse(task.labels) : task.labels,
-      attachments:
-        typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments,
+      attachments: enrichedAttachments,
       collaborative_data:
         typeof task.collaborative_data === 'string'
           ? JSON.parse(task.collaborative_data)
@@ -1272,6 +1281,7 @@ export class ProjectsService {
               action_url: `/workspaces/${project.workspace_id}/projects/${task.project_id}`,
               priority: 'high' as any,
               send_push: true, // Enable FCM push notification for mobile users
+              send_email: true,
               data: {
                 category: 'tasks',
                 entity_type: 'task',
@@ -1899,19 +1909,19 @@ export class ProjectsService {
             enriched.note_attachment.push({
               id: noteData.id,
               title: noteData.title || 'Untitled Note',
-              icon: noteData.icon || '📝',
+              icon: noteData.icon || 'ðŸ“',
               updated_at: noteData.updated_at,
             });
           } else {
             console.warn(`[ProjectsService] Note attachment not found: ${linkedNoteId}`);
-            enriched.note_attachment.push({ id: linkedNoteId, title: 'Unknown note', icon: '📝' });
+            enriched.note_attachment.push({ id: linkedNoteId, title: 'Unknown note', icon: 'ðŸ“' });
           }
         } catch (error) {
           console.warn(
             `[ProjectsService] Could not fetch note attachment ${linkedNoteId}:`,
             error.message,
           );
-          enriched.note_attachment.push({ id: linkedNoteId, title: 'Unknown note', icon: '📝' });
+          enriched.note_attachment.push({ id: linkedNoteId, title: 'Unknown note', icon: 'ðŸ“' });
         }
       }
     }

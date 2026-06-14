@@ -335,7 +335,7 @@
       "icon": {
         "upload": "Upload Icon",
         "change": "Change Icon",
-        "hint": "Optional • PNG, JPG up to 5MB",
+        "hint": "Optional â€¢ PNG, JPG up to 5MB",
         "previewAlt": "Workspace icon preview",
         "errors": {
           "invalidType": "Please select an image file",
@@ -526,11 +526,11 @@
           "AI-powered responses"
         ],
         "botCapabilities": [
-          "🤖 Auto-respond to messages",
-          "💬 Keyword-triggered actions",
-          "🧠 AI-powered chat assistance",
-          "📢 Broadcast announcements",
-          "🔔 @mention notifications"
+          "ðŸ¤– Auto-respond to messages",
+          "ðŸ’¬ Keyword-triggered actions",
+          "ðŸ§  AI-powered chat assistance",
+          "ðŸ“¢ Broadcast announcements",
+          "ðŸ”” @mention notifications"
         ]
       },
       "videoCalls": {
@@ -544,11 +544,11 @@
           "AI meeting notes"
         ],
         "botCapabilities": [
-          "📅 Auto-schedule meetings",
-          "📝 AI meeting notes & summaries",
-          "🎥 Auto-start recordings",
-          "⏰ Meeting reminders",
-          "👥 Auto-invite participants"
+          "ðŸ“… Auto-schedule meetings",
+          "ðŸ“ AI meeting notes & summaries",
+          "ðŸŽ¥ Auto-start recordings",
+          "â° Meeting reminders",
+          "ðŸ‘¥ Auto-invite participants"
         ]
       },
       "projects": {
@@ -562,11 +562,11 @@
           "AI task suggestions"
         ],
         "botCapabilities": [
-          "✅ Auto-create tasks from chat",
-          "🎯 Smart task assignment",
-          "⏰ Deadline reminders",
-          "📊 Progress tracking alerts",
-          "🔄 Workflow automation"
+          "âœ… Auto-create tasks from chat",
+          "ðŸŽ¯ Smart task assignment",
+          "â° Deadline reminders",
+          "ðŸ“Š Progress tracking alerts",
+          "ðŸ”„ Workflow automation"
         ]
       },
       "files": {
@@ -580,11 +580,11 @@
           "AI file organization"
         ],
         "botCapabilities": [
-          "📁 Auto-organize & tag files",
-          "🔍 Smart search indexing",
-          "🔄 Version control automation",
-          "📤 Auto-share notifications",
-          "🗂️ Backup & sync alerts"
+          "ðŸ“ Auto-organize & tag files",
+          "ðŸ” Smart search indexing",
+          "ðŸ”„ Version control automation",
+          "ðŸ“¤ Auto-share notifications",
+          "ðŸ—‚ï¸ Backup & sync alerts"
         ]
       },
       "calendar": {
@@ -598,11 +598,11 @@
           "AI scheduling assistant"
         ],
         "botCapabilities": [
-          "📆 Auto-schedule events",
-          "⏰ Smart reminders",
-          "🔄 Recurring event automation",
-          "🕐 Time blocking suggestions",
-          "📧 Event invite automation"
+          "ðŸ“† Auto-schedule events",
+          "â° Smart reminders",
+          "ðŸ”„ Recurring event automation",
+          "ðŸ• Time blocking suggestions",
+          "ðŸ“§ Event invite automation"
         ]
       },
       "notes": {
@@ -616,11 +616,11 @@
           "AI content generation"
         ],
         "botCapabilities": [
-          "📝 Auto-generate documentation",
-          "✨ Content suggestions",
-          "📋 Template automation",
-          "🔗 Smart linking",
-          "📊 Meeting notes capture"
+          "ðŸ“ Auto-generate documentation",
+          "âœ¨ Content suggestions",
+          "ðŸ“‹ Template automation",
+          "ðŸ”— Smart linking",
+          "ðŸ“Š Meeting notes capture"
         ]
       },
       "email": {
@@ -634,11 +634,11 @@
           "AI email drafting"
         ],
         "botCapabilities": [
-          "📧 Auto-draft responses",
-          "📮 Smart email routing",
-          "🔖 Auto-categorization",
-          "⏰ Scheduled sending",
-          "🤖 AI email assistant"
+          "ðŸ“§ Auto-draft responses",
+          "ðŸ“® Smart email routing",
+          "ðŸ”– Auto-categorization",
+          "â° Scheduled sending",
+          "ðŸ¤– AI email assistant"
         ]
       },
       "tools": {
@@ -652,11 +652,11 @@
           "Custom Bots"
         ],
         "botCapabilities": [
-          "🔗 Webhook integrations",
-          "⚙️ Custom workflow automation",
-          "🔄 API connections",
-          "📊 Analytics automation",
-          "🎯 Task orchestration"
+          "ðŸ”— Webhook integrations",
+          "âš™ï¸ Custom workflow automation",
+          "ðŸ”„ API connections",
+          "ðŸ“Š Analytics automation",
+          "ðŸŽ¯ Task orchestration"
         ]
       }
     }
@@ -1315,6 +1315,12 @@
         "generating": "Generating...",
         "aiSuggestions": "AI Suggestions (click to select):",
         "linkedItems": "Linked Items ({count})",
+        "taskDocuments": "Task Documents",
+        "taskDocumentsDescription": "Optional. Uploaded files will be stored in File Management under this project and task.",
+        "taskDocumentsHint": "Choose one or more files from your device.",
+        "taskDocumentsChooseFiles": "Choose files",
+        "taskDocumentsAddMore": "Add more",
+        "selectedTaskDocuments": "Selected files ({count})",
         "removeLink": "Remove link",
         "status": {
           "title": "Configure Status Columns",
@@ -1691,11 +1697,11 @@
         "creating": "Creating {type}",
         "complete": "Complete!",
         "tips": {
-          "title": "💡 AI Creation Tips",
-          "specific": "• Be specific in your prompts for better results",
-          "templates": "• Use templates as starting points for consistency",
-          "autoSaved": "• Generated content is automatically saved to your files",
-          "quality": "• Higher quality settings use more credits but produce better results"
+          "title": "ðŸ’¡ AI Creation Tips",
+          "specific": "â€¢ Be specific in your prompts for better results",
+          "templates": "â€¢ Use templates as starting points for consistency",
+          "autoSaved": "â€¢ Generated content is automatically saved to your files",
+          "quality": "â€¢ Higher quality settings use more credits but produce better results"
         },
         "imagePreview": {
           "title": "AI Generated Images",
@@ -1821,7 +1827,7 @@
           "status": "Status",
           "folder": "Folder",
           "file": "File",
-          "starred": "⭐ Starred",
+          "starred": "â­ Starred",
           "unknown": "Unknown"
         }
       },
@@ -2762,10 +2768,10 @@
         },
         "voiceTips": {
           "title": "Voice Input Tips:",
-          "tip1": "• Say \"Set a meeting today at 6pm\"",
-          "tip2": "• Include time: \"Schedule lunch tomorrow at 1pm\"",
-          "tip3": "• Add duration: \"30 minute standup today\"",
-          "tip4": "• Specify location: \"Team meeting in conference room\""
+          "tip1": "â€¢ Say \"Set a meeting today at 6pm\"",
+          "tip2": "â€¢ Include time: \"Schedule lunch tomorrow at 1pm\"",
+          "tip3": "â€¢ Add duration: \"30 minute standup today\"",
+          "tip4": "â€¢ Specify location: \"Team meeting in conference room\""
         },
         "suggestions": {
           "title": "AI Suggestions",
@@ -3130,7 +3136,7 @@
         "importFile": "Import File",
         "importURL": "Import URL",
         "googleDrive": "Google Drive",
-        "back": "← Back",
+        "back": "â† Back",
         "noteTitle": "Note Title",
         "noteTitlePlaceholder": "Enter note title...",
         "selectFile": "Select File",
@@ -3779,7 +3785,7 @@
     },
     "cta": {
       "primary": "Get Started Free",
-      "trustLine": "No credit card required • Free forever plan • Upgrade anytime"
+      "trustLine": "No credit card required â€¢ Free forever plan â€¢ Upgrade anytime"
     }
   },
   "featuresGrid": {
@@ -3817,7 +3823,7 @@
     "badge": "Replace 10+ SaaS tools with one platform",
     "title": "Everything your team needs,",
     "titleHighlight": "beautifully integrated",
-    "subtitle": "Chat, video calls, documents, project boards, file storage, and AI assistant — all in one seamless workspace. Stop switching between dozens of apps and start working smarter.",
+    "subtitle": "Chat, video calls, documents, project boards, file storage, and AI assistant â€” all in one seamless workspace. Stop switching between dozens of apps and start working smarter.",
     "cta": "Start for free",
     "features": {
       "unifiedDashboard": "Unified Dashboard Overview",
@@ -3873,8 +3879,8 @@
       "placeholder": "Enter your email",
       "button": "Subscribe"
     },
-    "copyright": "© {year} Nexus. All rights reserved.",
-    "madeWith": "Made with ❤️ for teams everywhere"
+    "copyright": "Â© {year} Nexus. All rights reserved.",
+    "madeWith": "Made with â¤ï¸ for teams everywhere"
   },
   "downloads": {
     "badge": "Available Now",
@@ -3981,7 +3987,7 @@
       "badge": "Nexus Chat",
       "title": "Chat Powered by AI.",
       "titleHighlight": "Work in Perfect Sync.",
-      "subtitle": "The world's most intelligent team chat. Convert conversations to tasks, summarize with AI, merge threads, and work seamlessly—all in one place.",
+      "subtitle": "The world's most intelligent team chat. Convert conversations to tasks, summarize with AI, merge threads, and work seamlesslyâ€”all in one place.",
       "cta": "Try Nexus Chat Free",
       "sections": {
         "aiSuperpowers": "AI Superpowers",
@@ -3990,7 +3996,7 @@
         "advancedTitle": "Power User Tools",
         "advancedSubtitle": "Everything you need to manage conversations at scale with advanced organization and automation",
         "collaborationTitle": "Work Together, Better",
-        "collaborationSubtitle": "Rich media, code sharing, voice messages, and more—built for modern teams",
+        "collaborationSubtitle": "Rich media, code sharing, voice messages, and moreâ€”built for modern teams",
         "essentialsSubtitle": "Everything you need for productive team communication",
         "mobileTitle": "Chat on the Go",
         "mobileSubtitle": "Native iOS and Android apps with full feature parity. Stay connected anywhere, anytime."
@@ -4126,7 +4132,7 @@
       "badge": "Project Management",
       "title": "Plan, Track, Deliver.",
       "titleHighlight": "All in One Place.",
-      "subtitle": "The most powerful project management platform. Kanban, Gantt, Agile sprints, AI planning, resource management, and real-time analytics — everything your team needs to succeed.",
+      "subtitle": "The most powerful project management platform. Kanban, Gantt, Agile sprints, AI planning, resource management, and real-time analytics â€” everything your team needs to succeed.",
       "cta": "Start Managing Projects Free",
       "sections": {
         "flexibleViews": "Flexible Views",
@@ -4308,7 +4314,7 @@
       "badge": "File Management",
       "title": "Store, Organize, Collaborate.",
       "titleHighlight": "All Your Files in One Place.",
-      "subtitle": "Secure cloud storage with AI-powered organization, version control, rich previews, and real-time collaboration — everything your team needs for seamless file management.",
+      "subtitle": "Secure cloud storage with AI-powered organization, version control, rich previews, and real-time collaboration â€” everything your team needs for seamless file management.",
       "cta": "Start Storing Files Free",
       "sections": {
         "viewsTitle": "View Files Your Way",
@@ -4460,7 +4466,7 @@
       "badge": "Calendar & Scheduling",
       "title": "Schedule Smarter, Meet Better.",
       "titleHighlight": "Never Miss a Beat.",
-      "subtitle": "Intelligent calendar with AI-powered scheduling, team availability, recurring events, timezone support, and seamless integration — everything your team needs to stay organized.",
+      "subtitle": "Intelligent calendar with AI-powered scheduling, team availability, recurring events, timezone support, and seamless integration â€” everything your team needs to stay organized.",
       "cta": "Start Scheduling Free",
       "sections": {
         "viewsTitle": "See Your Schedule Your Way",
@@ -4613,9 +4619,9 @@
         "badge": "Notes & Documentation",
         "title": "Write, Organize, Collaborate.",
         "titleHighlight": "Your Team's Knowledge Hub.",
-        "description": "Powerful note-taking with a Notion-style block editor, AI writing assistance, real-time collaboration, and unlimited organization — everything your team needs to document and share knowledge.",
+        "description": "Powerful note-taking with a Notion-style block editor, AI writing assistance, real-time collaboration, and unlimited organization â€” everything your team needs to document and share knowledge.",
         "button": "Start Writing Free",
-        "trustLine": "Free forever • No credit card required"
+        "trustLine": "Free forever â€¢ No credit card required"
       },
       "blocks": {
         "badge": "Block Types",
@@ -4783,7 +4789,7 @@
       "badge": "Video Conferencing",
       "title": "Meet Face-to-Face, Anywhere.",
       "titleHighlight": "Crystal Clear. Every Time.",
-      "subtitle": "Professional video conferencing with HD quality, AI transcription, screen sharing, recording, and seamless integration — everything your team needs for productive remote meetings.",
+      "subtitle": "Professional video conferencing with HD quality, AI transcription, screen sharing, recording, and seamless integration â€” everything your team needs for productive remote meetings.",
       "cta": "Start Your First Meeting",
       "meetingTypes": {
         "teamMeetings": {
@@ -5211,7 +5217,7 @@
       "badge": "Powerful Integrations",
       "title": "Connect Everything You Use",
       "titleHighlight": "Unify Your Entire Stack.",
-      "subtitle": "Seamlessly integrate with 180+ apps in the built-in catalog — Slack, Google Workspace, GitHub, Jira, Notion, Asana, Linear, HubSpot, and more — plus a pluggable OAuth framework, REST API, and webhooks for the rest of your stack.",
+      "subtitle": "Seamlessly integrate with 180+ apps in the built-in catalog â€” Slack, Google Workspace, GitHub, Jira, Notion, Asana, Linear, HubSpot, and more â€” plus a pluggable OAuth framework, REST API, and webhooks for the rest of your stack.",
       "cta": "Explore Integrations",
       "sections": {
         "connectTitle": "Integration Made Simple",
@@ -5245,7 +5251,7 @@
     "chat": {
       "name": "Chat",
       "tagline": "Real-time team messaging.",
-      "description": "Organized conversations with channels, threads, direct messages, mentions, and file sharing — built for teams that move fast.",
+      "description": "Organized conversations with channels, threads, direct messages, mentions, and file sharing â€” built for teams that move fast.",
       "features": {
         "0": "Channels and threaded conversations",
         "1": "Direct messages and group chats",
@@ -5271,7 +5277,7 @@
     "files": {
       "name": "Files",
       "tagline": "Cloud storage with version control.",
-      "description": "A shared workspace drive for every project — upload, preview, organize, and collaborate on any file type.",
+      "description": "A shared workspace drive for every project â€” upload, preview, organize, and collaborate on any file type.",
       "features": {
         "0": "Folder hierarchies and tagging",
         "1": "File previews for docs, images, and video",
@@ -5351,7 +5357,7 @@
     "promo": {
       "limitedTime": "Limited Time Offer",
       "twoMonthsFree": "Get 2 Months Free with Annual Plans",
-      "bestValue": "🎉 Best Value",
+      "bestValue": "ðŸŽ‰ Best Value",
       "joinThousands": "Join thousands of teams already using Nexus. Start free, upgrade anytime."
     },
     "billing": {
@@ -5535,7 +5541,7 @@
     "general": {
       "what": {
         "question": "What is Nexus and how does it work?",
-        "answer": "Nexus is an all-in-one workspace platform that combines six essential team tools: Chat, Video Calls, Projects, Files, Calendar, and Notes. It works by providing a unified platform where teams can collaborate in real-time, manage projects with Kanban boards, share files securely, schedule meetings, and create documentation—all enhanced by AI-powered features."
+        "answer": "Nexus is an all-in-one workspace platform that combines six essential team tools: Chat, Video Calls, Projects, Files, Calendar, and Notes. It works by providing a unified platform where teams can collaborate in real-time, manage projects with Kanban boards, share files securely, schedule meetings, and create documentationâ€”all enhanced by AI-powered features."
       },
       "beginners": {
         "question": "Is Nexus suitable for beginners?",
@@ -6125,9 +6131,9 @@
         "badge": "Collaborative Notes",
         "title": "Write, Organize, Collaborate.",
         "titleHighlight": "All in One Note.",
-        "description": "The most powerful note-taking platform. Block-based editor, AI writing assistant, real-time collaboration, templates, and unlimited organization — everything your team needs to capture knowledge.",
+        "description": "The most powerful note-taking platform. Block-based editor, AI writing assistant, real-time collaboration, templates, and unlimited organization â€” everything your team needs to capture knowledge.",
         "button": "Start Taking Notes Free",
-        "trustLine": "Free forever • No credit card required"
+        "trustLine": "Free forever â€¢ No credit card required"
       },
       "blocks": {
         "badge": "Block Types",
@@ -6355,7 +6361,7 @@
       "title": "Account & Data Deletion",
       "description": "Learn how to permanently delete your Nexus account and all associated data. We respect your right to be forgotten.",
       "warning": {
-        "title": "⚠️ Important Warning",
+        "title": "âš ï¸ Important Warning",
         "description": "Account deletion is permanent and cannot be undone. Before proceeding, please review what will be deleted:",
         "item1": "All personal data will be permanently deleted",
         "item2": "All workspaces you own will be deleted",
@@ -6554,17 +6560,17 @@
       "glance": {
         "title": "Privacy at a Glance",
         "secure": {
-          "icon": "🔒",
+          "icon": "ðŸ”’",
           "title": "Enterprise Security",
           "description": "Bank-level encryption and SOC 2 compliance"
         },
         "noSale": {
-          "icon": "🚫",
+          "icon": "ðŸš«",
           "title": "We Never Sell Data",
           "description": "Your data is yours. We never sell to third parties."
         },
         "control": {
-          "icon": "⚙️",
+          "icon": "âš™ï¸",
           "title": "You're in Control",
           "description": "Access, export, or delete your data anytime"
         }
@@ -6574,37 +6580,37 @@
           "title": "1. Information We Collect",
           "content": {
             "0": "We collect information you provide directly to us when you create an account, use our services, or communicate with us. This includes:",
-            "1": "• Account Information: Name, email address, password, and profile information",
-            "2": "• Workspace Data: Files, documents, messages, comments, and other content you create or upload",
-            "3": "• Usage Information: How you interact with our Service, features you use, and actions you take",
-            "4": "• Device Information: Device type, operating system, browser type, IP address, and unique device identifiers",
-            "5": "• Payment Information: Billing address and payment method details (processed securely by our payment providers)",
-            "6": "• Slack Integration Data: When you connect Nexus to Slack, we collect Slack user IDs, workspace IDs, channel IDs, email addresses, profile information (name, avatar), and OAuth tokens to enable seamless integration and notifications"
+            "1": "â€¢ Account Information: Name, email address, password, and profile information",
+            "2": "â€¢ Workspace Data: Files, documents, messages, comments, and other content you create or upload",
+            "3": "â€¢ Usage Information: How you interact with our Service, features you use, and actions you take",
+            "4": "â€¢ Device Information: Device type, operating system, browser type, IP address, and unique device identifiers",
+            "5": "â€¢ Payment Information: Billing address and payment method details (processed securely by our payment providers)",
+            "6": "â€¢ Slack Integration Data: When you connect Nexus to Slack, we collect Slack user IDs, workspace IDs, channel IDs, email addresses, profile information (name, avatar), and OAuth tokens to enable seamless integration and notifications"
           }
         },
         "section2": {
           "title": "2. How We Use Your Information",
           "content": {
             "0": "We use the information we collect to:",
-            "1": "• Provide, maintain, and improve our Service",
-            "2": "• Process transactions and send related information",
-            "3": "• Send technical notices, updates, security alerts, and support messages",
-            "4": "• Respond to your comments, questions, and customer service requests",
-            "5": "• Communicate with you about products, services, offers, and events",
-            "6": "• Monitor and analyze trends, usage, and activities in connection with our Service",
-            "7": "• Detect, investigate, and prevent fraudulent transactions and other illegal activities",
-            "8": "• Personalize and improve your experience"
+            "1": "â€¢ Provide, maintain, and improve our Service",
+            "2": "â€¢ Process transactions and send related information",
+            "3": "â€¢ Send technical notices, updates, security alerts, and support messages",
+            "4": "â€¢ Respond to your comments, questions, and customer service requests",
+            "5": "â€¢ Communicate with you about products, services, offers, and events",
+            "6": "â€¢ Monitor and analyze trends, usage, and activities in connection with our Service",
+            "7": "â€¢ Detect, investigate, and prevent fraudulent transactions and other illegal activities",
+            "8": "â€¢ Personalize and improve your experience"
           }
         },
         "section3": {
           "title": "3. Information Sharing and Disclosure",
           "content": {
             "0": "We may share information about you as follows:",
-            "1": "• With other users when you collaborate in shared workspaces",
-            "2": "• With vendors, consultants, and service providers who need access to perform services for us",
-            "3": "• In response to legal requests or to comply with applicable laws",
-            "4": "• To protect the rights, property, and safety of Nexus, our users, or others",
-            "5": "• With your consent or at your direction",
+            "1": "â€¢ With other users when you collaborate in shared workspaces",
+            "2": "â€¢ With vendors, consultants, and service providers who need access to perform services for us",
+            "3": "â€¢ In response to legal requests or to comply with applicable laws",
+            "4": "â€¢ To protect the rights, property, and safety of Nexus, our users, or others",
+            "5": "â€¢ With your consent or at your direction",
             "6": "We do not sell your personal information to third parties. Your data is yours, and we are committed to protecting it."
           }
         },
@@ -6641,12 +6647,12 @@
           "title": "7. Your Rights and Choices",
           "content": {
             "0": "You have the following rights regarding your personal information:",
-            "1": "• Access: Request access to your personal information",
-            "2": "• Correction: Request correction of inaccurate or incomplete information",
-            "3": "• Deletion: Request deletion of your personal information",
-            "4": "• Portability: Request a copy of your information in a portable format",
-            "5": "• Opt-out: Opt-out of marketing communications",
-            "6": "• Restriction: Request restriction of processing of your information",
+            "1": "â€¢ Access: Request access to your personal information",
+            "2": "â€¢ Correction: Request correction of inaccurate or incomplete information",
+            "3": "â€¢ Deletion: Request deletion of your personal information",
+            "4": "â€¢ Portability: Request a copy of your information in a portable format",
+            "5": "â€¢ Opt-out: Opt-out of marketing communications",
+            "6": "â€¢ Restriction: Request restriction of processing of your information",
             "7": "To exercise these rights, please contact us at support@nexusapp.io. We will respond to your request within 30 days."
           }
         },
@@ -6656,10 +6662,10 @@
             "0": "We use cookies and similar tracking technologies to collect and track information about your use of our Service.",
             "1": "Cookies are small data files stored on your device. We use both session cookies (expire when you close your browser) and persistent cookies (remain on your device for a set period).",
             "2": "We use cookies for:",
-            "3": "• Authentication and security",
-            "4": "• Preferences and settings",
-            "5": "• Analytics and performance monitoring",
-            "6": "• Advertising and marketing",
+            "3": "â€¢ Authentication and security",
+            "4": "â€¢ Preferences and settings",
+            "5": "â€¢ Analytics and performance monitoring",
+            "6": "â€¢ Advertising and marketing",
             "7": "You can control cookies through your browser settings. However, disabling cookies may limit your ability to use certain features of our Service."
           }
         },
@@ -6675,9 +6681,9 @@
           "title": "10. Changes to This Privacy Policy",
           "content": {
             "0": "We may update this Privacy Policy from time to time. We will notify you of any material changes by:",
-            "1": "• Posting the new Privacy Policy on this page",
-            "2": "• Updating the \"Last Updated\" date",
-            "3": "• Sending you an email notification (if you have provided your email address)",
+            "1": "â€¢ Posting the new Privacy Policy on this page",
+            "2": "â€¢ Updating the \"Last Updated\" date",
+            "3": "â€¢ Sending you an email notification (if you have provided your email address)",
             "4": "We encourage you to review this Privacy Policy periodically for any changes. Your continued use of the Service after any modifications indicates your acceptance of the updated Privacy Policy."
           }
         },
@@ -6685,11 +6691,11 @@
           "title": "11. Sub-Processors and Third-Party Services",
           "content": {
             "0": "We use the following third-party service providers (sub-processors) to help us deliver our Service:",
-            "1": "• nexus (Database & Backend Infrastructure) - Provides secure data storage and API services. Location: United States. Purpose: Store and process workspace data, user accounts, and application state.",
-            "2": "• Hetzner (Cloud Hosting) - Provides infrastructure and server hosting. Location: Germany/Europe. Purpose: Host application servers, databases, and file storage with GDPR-compliant data centers.",
-            "3": "• Cloudflare (DNS & Security) - Provides DNS management, CDN, and DDoS protection. Location: Global network. Purpose: Improve performance, security, and reliability of our Service.",
-            "4": "• Stripe (Payment Processing) - Processes subscription payments and billing. Location: United States. Purpose: Securely handle payment transactions. Note: Stripe is PCI-DSS compliant and we do not store credit card details on our servers.",
-            "5": "• Google Analytics (Analytics) - Provides usage analytics and insights. Location: United States. Purpose: Understand user behavior to improve Service quality and user experience.",
+            "1": "â€¢ nexus (Database & Backend Infrastructure) - Provides secure data storage and API services. Location: United States. Purpose: Store and process workspace data, user accounts, and application state.",
+            "2": "â€¢ Hetzner (Cloud Hosting) - Provides infrastructure and server hosting. Location: Germany/Europe. Purpose: Host application servers, databases, and file storage with GDPR-compliant data centers.",
+            "3": "â€¢ Cloudflare (DNS & Security) - Provides DNS management, CDN, and DDoS protection. Location: Global network. Purpose: Improve performance, security, and reliability of our Service.",
+            "4": "â€¢ Stripe (Payment Processing) - Processes subscription payments and billing. Location: United States. Purpose: Securely handle payment transactions. Note: Stripe is PCI-DSS compliant and we do not store credit card details on our servers.",
+            "5": "â€¢ Google Analytics (Analytics) - Provides usage analytics and insights. Location: United States. Purpose: Understand user behavior to improve Service quality and user experience.",
             "6": "All sub-processors are required to maintain security standards consistent with our privacy policy and are bound by data protection agreements. We regularly review and audit our sub-processors. For questions about our sub-processors, contact support@nexusapp.io."
           }
         },
@@ -6732,12 +6738,12 @@
           "content": {
             "0": "Cookies are small text files that are stored on your device (computer, tablet, or mobile) when you visit a website. They are widely used to make websites work more efficiently and to provide a better, more personalized user experience.",
             "1": "Nexus uses cookies and similar technologies (such as web beacons, pixels, and local storage) to:",
-            "2": "• Keep you signed in to your account",
-            "3": "• Remember your preferences and settings",
-            "4": "• Provide security and prevent fraud",
-            "5": "• Analyze how our service is used to improve functionality",
-            "6": "• Deliver relevant content and advertisements",
-            "7": "• Measure the effectiveness of our marketing campaigns"
+            "2": "â€¢ Keep you signed in to your account",
+            "3": "â€¢ Remember your preferences and settings",
+            "4": "â€¢ Provide security and prevent fraud",
+            "5": "â€¢ Analyze how our service is used to improve functionality",
+            "6": "â€¢ Deliver relevant content and advertisements",
+            "7": "â€¢ Measure the effectiveness of our marketing campaigns"
           }
         },
         "section2": {
@@ -6745,10 +6751,10 @@
           "content": {
             "0": "These cookies are strictly necessary for our service to function properly. They enable core functionality such as security, network management, and accessibility. Without these cookies, services you have asked for cannot be provided.",
             "1": "Essential cookies we use include:",
-            "2": "• nexus_session - Maintains your login session (Duration: Session)",
-            "3": "• csrf_token - Prevents cross-site request forgery (Duration: Session)",
-            "4": "• nexus_auth - Stores authentication information (Duration: 30 days)",
-            "5": "• load_balancer - Routes requests to appropriate servers (Duration: Session)",
+            "2": "â€¢ nexus_session - Maintains your login session (Duration: Session)",
+            "3": "â€¢ csrf_token - Prevents cross-site request forgery (Duration: Session)",
+            "4": "â€¢ nexus_auth - Stores authentication information (Duration: 30 days)",
+            "5": "â€¢ load_balancer - Routes requests to appropriate servers (Duration: Session)",
             "6": "These cookies cannot be disabled as they are necessary for the service to function. Blocking these cookies may prevent you from using Nexus properly."
           }
         },
@@ -6757,12 +6763,12 @@
           "content": {
             "0": "These cookies allow our service to provide enhanced functionality and personalization. They may be set by us or by third-party providers whose services we use on our pages.",
             "1": "Functional cookies help us remember:",
-            "2": "• Language and localization preferences",
-            "3": "• Theme settings (light/dark mode)",
-            "4": "• Workspace layout and sidebar preferences",
-            "5": "• Notification settings",
-            "6": "• Accessibility features (font size, contrast)",
-            "7": "• Dashboard layout customization",
+            "2": "â€¢ Language and localization preferences",
+            "3": "â€¢ Theme settings (light/dark mode)",
+            "4": "â€¢ Workspace layout and sidebar preferences",
+            "5": "â€¢ Notification settings",
+            "6": "â€¢ Accessibility features (font size, contrast)",
+            "7": "â€¢ Dashboard layout customization",
             "8": "If you disable functional cookies, some features may not work as expected, but the core functionality of Nexus will remain available."
           }
         },
@@ -6771,15 +6777,15 @@
           "content": {
             "0": "We use analytics cookies to understand how users interact with our service. This information helps us improve our platform and user experience.",
             "1": "Information we collect includes:",
-            "2": "• Pages visited and features used",
-            "3": "• Time spent on different sections",
-            "4": "• User flow patterns and navigation paths",
-            "5": "• Error rates and performance metrics",
-            "6": "• Device and browser information",
-            "7": "• Geographic location (country/region level)",
+            "2": "â€¢ Pages visited and features used",
+            "3": "â€¢ Time spent on different sections",
+            "4": "â€¢ User flow patterns and navigation paths",
+            "5": "â€¢ Error rates and performance metrics",
+            "6": "â€¢ Device and browser information",
+            "7": "â€¢ Geographic location (country/region level)",
             "8": "Analytics partners we work with:",
-            "9": "• Google Analytics - Web traffic analysis and user behavior insights",
-            "10": "• Mixpanel - Product usage analytics and feature adoption tracking",
+            "9": "â€¢ Google Analytics - Web traffic analysis and user behavior insights",
+            "10": "â€¢ Mixpanel - Product usage analytics and feature adoption tracking",
             "11": "All analytics data is aggregated and anonymized. We do not share personally identifiable information with analytics providers."
           }
         },
@@ -6788,15 +6794,15 @@
           "content": {
             "0": "Marketing cookies help us deliver relevant advertisements and measure the effectiveness of our marketing campaigns. These cookies may track you across different websites.",
             "1": "How we use marketing cookies:",
-            "2": "• Show you relevant ads on other websites",
-            "3": "• Prevent you from seeing the same ad repeatedly",
-            "4": "• Measure ad campaign performance",
-            "5": "• Track conversions and attribution",
-            "6": "• Create lookalike audiences for advertising",
+            "2": "â€¢ Show you relevant ads on other websites",
+            "3": "â€¢ Prevent you from seeing the same ad repeatedly",
+            "4": "â€¢ Measure ad campaign performance",
+            "5": "â€¢ Track conversions and attribution",
+            "6": "â€¢ Create lookalike audiences for advertising",
             "7": "Advertising partners we work with:",
-            "8": "• Google Ads - Search and display advertising",
-            "9": "• Facebook Pixel - Social media advertising and retargeting",
-            "10": "• LinkedIn Insight Tag - Professional network advertising",
+            "8": "â€¢ Google Ads - Search and display advertising",
+            "9": "â€¢ Facebook Pixel - Social media advertising and retargeting",
+            "10": "â€¢ LinkedIn Insight Tag - Professional network advertising",
             "11": "You can opt out of marketing cookies without affecting your ability to use Nexus. However, you may see less relevant advertising on other websites."
           }
         },
@@ -6805,10 +6811,10 @@
           "content": {
             "0": "Some cookies are set by third-party services that appear on our pages. We don't control these cookies, and they are subject to the privacy policies of their respective providers.",
             "1": "Third-party services we use:",
-            "2": "• Customer Support - Intercom, Zendesk for chat support and help documentation",
-            "3": "• Payment Processing - Stripe, PayPal for secure payment processing",
-            "4": "• Content Delivery - Cloudflare, AWS CloudFront for fast content delivery",
-            "5": "• Social Media - Social media widgets and sharing buttons",
+            "2": "â€¢ Customer Support - Intercom, Zendesk for chat support and help documentation",
+            "3": "â€¢ Payment Processing - Stripe, PayPal for secure payment processing",
+            "4": "â€¢ Content Delivery - Cloudflare, AWS CloudFront for fast content delivery",
+            "5": "â€¢ Social Media - Social media widgets and sharing buttons",
             "6": "Please refer to these third parties' privacy policies for more information about how they use cookies."
           }
         },
@@ -6819,10 +6825,10 @@
             "1": "Cookie Consent Manager: When you first visit Nexus, you'll see a cookie consent banner allowing you to choose which types of cookies to accept. You can change your preferences at any time by clicking the \"Cookie Settings\" link in our footer.",
             "2": "Account Settings: Logged-in users can manage certain cookie preferences through their account settings, including analytics and marketing cookies.",
             "3": "Browser Settings: You can control cookies through your browser settings:",
-            "4": "• Google Chrome: Settings → Privacy and security → Cookies and other site data",
-            "5": "• Mozilla Firefox: Settings → Privacy & Security → Cookies and Site Data",
-            "6": "• Safari: Preferences → Privacy → Manage Website Data",
-            "7": "• Microsoft Edge: Settings → Cookies and site permissions → Cookies and site data"
+            "4": "â€¢ Google Chrome: Settings â†’ Privacy and security â†’ Cookies and other site data",
+            "5": "â€¢ Mozilla Firefox: Settings â†’ Privacy & Security â†’ Cookies and Site Data",
+            "6": "â€¢ Safari: Preferences â†’ Privacy â†’ Manage Website Data",
+            "7": "â€¢ Microsoft Edge: Settings â†’ Cookies and site permissions â†’ Cookies and site data"
           }
         },
         "section8": {
@@ -6830,11 +6836,11 @@
           "content": {
             "0": "On mobile devices, you can control tracking through device settings:",
             "1": "iOS Devices:",
-            "2": "• Settings → Privacy & Security → Tracking → Ask Apps Not to Track",
-            "3": "• Settings → Safari → Prevent Cross-Site Tracking",
+            "2": "â€¢ Settings â†’ Privacy & Security â†’ Tracking â†’ Ask Apps Not to Track",
+            "3": "â€¢ Settings â†’ Safari â†’ Prevent Cross-Site Tracking",
             "4": "Android Devices:",
-            "5": "• Settings → Privacy → Ads → Opt out of Ads Personalization",
-            "6": "• Chrome → Settings → Site settings → Cookies",
+            "5": "â€¢ Settings â†’ Privacy â†’ Ads â†’ Opt out of Ads Personalization",
+            "6": "â€¢ Chrome â†’ Settings â†’ Site settings â†’ Cookies",
             "7": "Note: Disabling all cookies may affect your ability to use Nexus and other websites properly."
           }
         },
@@ -6843,9 +6849,9 @@
           "content": {
             "0": "We may update this Cookie Policy from time to time to reflect changes in our practices, technology, legal requirements, or other factors.",
             "1": "When we make changes, we will:",
-            "2": "• Update the \"Last updated\" date at the top of this policy",
-            "3": "• Notify you through our service or by email for significant changes",
-            "4": "• Request renewed consent where required by law",
+            "2": "â€¢ Update the \"Last updated\" date at the top of this policy",
+            "3": "â€¢ Notify you through our service or by email for significant changes",
+            "4": "â€¢ Request renewed consent where required by law",
             "5": "We encourage you to review this Cookie Policy periodically to stay informed about how we use cookies."
           }
         },
@@ -7133,10 +7139,12 @@
       }
     },
     "userProfile": {
+      "memberProfile": "Member Profile",
       "loading": "Loading profile...",
       "missingParams": "Missing workspace or user ID",
       "loadFailed": "Failed to load user profile",
       "unknownUser": "Unknown User",
+      "notAvailable": "Not available",
       "errorTitle": "Profile Not Found",
       "errorMessage": "Unable to load user profile",
       "goBack": "Go Back",
@@ -7548,6 +7556,9 @@
         "edit": "Edit",
         "delete": "Delete"
       }
+    },
+    "table":{
+      "dueDate": "Due Date"
     }
   },
   "settings": {
@@ -8169,11 +8180,11 @@
       "projectNotFound": "Project Not Found",
       "projectNotFoundDesc": "Could not find project \"{name}\". Please check the name and try again.",
       "deleteConfirmation": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
-      "meetingScheduled": "📅 Meeting Scheduled",
+      "meetingScheduled": "ðŸ“… Meeting Scheduled",
       "meetingScheduledDesc": "\"{title}\" has been added to your calendar.",
-      "noteCreated": "📝 Note Created",
+      "noteCreated": "ðŸ“ Note Created",
       "noteCreatedDesc": "\"{title}\" is ready for editing.",
-      "messageSent": "💬 Message Sent",
+      "messageSent": "ðŸ’¬ Message Sent",
       "messageSentDesc": "Your message has been posted to the channel.",
       "noChannelFound": "No Channel Found",
       "noChannelFoundDesc": "Please create a channel first.",

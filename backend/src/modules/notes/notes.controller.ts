@@ -342,8 +342,9 @@ export class NotesController {
     @Param('workspaceId') workspaceId: string,
     @Param('noteId') noteId: string,
     @CurrentUser('sub') userId: string,
+    @Query('include_deleted') includeDeleted?: string,
   ) {
-    return this.notesService.getNote(noteId, workspaceId, userId);
+    return this.notesService.getNote(noteId, workspaceId, userId, includeDeleted === 'true');
   }
 
   @Patch(':noteId')

@@ -99,6 +99,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
   const isEditMode = !!project
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [draggableRowId, setDraggableRowId] = useState<string | null>(null)
+  const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false)
 
   // State for attachment preview dialogs
   const [filePreviewOpen, setFilePreviewOpen] = useState(false)
@@ -188,10 +189,13 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
   // Pre-fill project name from Slack
   useEffect(() => {
     if (open && initialName && !project) {
+      const generatedKey = generateProjectKey(initialName)
       setFormData(prev => ({
         ...prev,
         name: initialName,
+        key: generatedKey,
       }))
+      setIsKeyManuallyEdited(false)
     }
   }, [open, initialName, project])
 
@@ -320,6 +324,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       }
       console.log('📝 Setting form data:', newFormData)
       setFormData(newFormData)
+      setIsKeyManuallyEdited(Boolean(project.key))
     }
 
     if (project && open) {
@@ -457,19 +462,39 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     }
   })
 
-  const generateProjectKey = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase())
-      .join('')
-      .slice(0, 5)
+  const normalizeProjectKey = (value: string) => {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[đĐ]/g, 'd')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 50)
   }
 
+  const generateProjectKey = (name: string) => normalizeProjectKey(name)
+
   const handleNameChange = (name: string) => {
+    const generatedKey = generateProjectKey(name)
     setFormData(prev => ({
       ...prev,
       name,
-      key: prev.key || generateProjectKey(name)
+      key: isKeyManuallyEdited ? prev.key : generatedKey
+    }))
+  }
+
+  const handleKeyChange = (value: string) => {
+    const normalizedKey = normalizeProjectKey(value)
+    const generatedKey = generateProjectKey(formData.name)
+
+    setIsKeyManuallyEdited(normalizedKey !== '' && normalizedKey !== generatedKey)
+    setFormData(prev => ({
+      ...prev,
+      key: normalizedKey
     }))
   }
 
@@ -659,6 +684,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     setStep(1)
     setAiDescriptionLoading(false)
     setAttachments([])
+    setIsKeyManuallyEdited(false)
     setFormData({
       name: '',
       description: '',
@@ -748,9 +774,8 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
                     <Input
                       id="key"
                       value={formData.key}
-                      onChange={(e) => setFormData(prev => ({ ...prev, key: e.target.value.toUpperCase() }))}
-                      placeholder="PROJECT"
-                      maxLength={10}
+                      onChange={(e) => handleKeyChange(e.target.value)}
+                      maxLength={50}
                     />
                     <p className="text-xs text-muted-foreground">
                       {intl.formatMessage(

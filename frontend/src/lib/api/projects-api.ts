@@ -100,7 +100,7 @@ export interface Subtask {
 }
 
 export interface CreateProjectRequest {
-  name: string;                    // ✅ Required - Project name
+  name: string;                    // âœ… Required - Project name
   description?: string;            // Optional - Project description
   type?: 'kanban' | 'scrum' | 'waterfall' | 'bug_tracking' | 'feature' | 'research';  // Optional - Default: 'kanban'
   status?: 'active' | 'on_hold' | 'completed' | 'archived';  // Optional - Default: 'active'
@@ -131,7 +131,7 @@ export interface CreateProjectRequest {
 }
 
 export interface CreateTaskRequest {
-  title: string;                           // ✅ Required - Task title
+  title: string;                           // âœ… Required - Task title
   description?: string;                    // Optional - Task description
   task_type?: 'task' | 'story' | 'bug' | 'epic' | 'subtask';  // Optional - Default: 'task'
   status?: 'todo' | 'in_progress' | 'review' | 'testing' | 'done';  // Optional - Default: 'todo'
@@ -145,6 +145,11 @@ export interface CreateTaskRequest {
   estimated_hours?: number;                // Optional - Estimated hours to complete
   story_points?: number;                   // Optional - Story points (for agile)
   labels?: string[];                       // Optional - Array of tag strings
+  attachments?: {
+    note_attachment?: string[];
+    file_attachment?: string[];
+    event_attachment?: string[];
+  };
   custom_fields?: Record<string, any>;     // Optional - Custom field values (fieldId: value)
 }
 
@@ -488,7 +493,7 @@ export const useProjects = (workspaceId: string, filters?: {
 
   // Sync to Zustand whenever data changes (including after refetch/invalidate)
   React.useEffect(() => {
-    console.log('🔄 [useProjects] useEffect triggered:', {
+    console.log('ðŸ”„ [useProjects] useEffect triggered:', {
       hasData: !!query.data,
       isSuccess: query.isSuccess,
       dataType: Array.isArray(query.data) ? 'array' : typeof query.data,
@@ -528,10 +533,10 @@ export const useCreateProject = () => {
     mutationFn: ({ workspaceId, data }: { workspaceId: string; data: CreateProjectRequest }) =>
       projectApi.createProject(workspaceId, data),
     onSuccess: (newProject, { workspaceId }) => {
-      console.log('✅ [useCreateProject] Adding project to store:', newProject);
+      console.log('âœ… [useCreateProject] Adding project to store:', newProject);
       // Immediately update Zustand store for instant UI update
       addProject(newProject);
-      console.log('✅ [useCreateProject] Invalidating queries for workspace:', workspaceId);
+      console.log('âœ… [useCreateProject] Invalidating queries for workspace:', workspaceId);
       // Invalidate queries to refetch from server
       queryClient.invalidateQueries({ queryKey: projectKeys.list(workspaceId) });
     },
@@ -653,7 +658,7 @@ export const useMoveTask = () => {
       position?: number;
     }) => projectApi.moveTask(taskId, newStatus, position),
     onMutate: async ({ taskId, newStatus }) => {
-      console.log('🎯 Optimistic update starting for task:', taskId, 'new status:', newStatus);
+      console.log('ðŸŽ¯ Optimistic update starting for task:', taskId, 'new status:', newStatus);
 
       // Find the task's projectId by searching all task caches
       let projectId: string | null = null;
@@ -668,11 +673,11 @@ export const useMoveTask = () => {
       });
 
       if (!projectId) {
-        console.warn('⚠️ Could not find projectId for task:', taskId);
+        console.warn('âš ï¸ Could not find projectId for task:', taskId);
         return { previousMainTasks: undefined, previousSidebarTasks: undefined, projectId: '' };
       }
 
-      console.log('📋 Found projectId:', projectId);
+      console.log('ðŸ“‹ Found projectId:', projectId);
 
       // Immediately update Zustand store for instant UI update
       moveTaskInStore(projectId, taskId, newStatus);
@@ -691,7 +696,7 @@ export const useMoveTask = () => {
           task.id === taskId ? { ...task, status: newStatus as any } : task
         );
         queryClient.setQueryData(projectKeys.tasks(projectId), updatedMainTasks);
-        console.log('✅ Updated main tasks cache');
+        console.log('âœ… Updated main tasks cache');
       }
 
       // Optimistically update sidebar tasks
@@ -700,13 +705,13 @@ export const useMoveTask = () => {
           task.id === taskId ? { ...task, status: newStatus as any } : task
         );
         queryClient.setQueryData(['project-tasks', projectId], updatedSidebarTasks);
-        console.log('✅ Updated sidebar tasks cache');
+        console.log('âœ… Updated sidebar tasks cache');
       }
 
       return { previousMainTasks, previousSidebarTasks, projectId };
     },
     onError: (err, variables, context) => {
-      console.error('❌ Error moving task, rolling back:', err);
+      console.error('âŒ Error moving task, rolling back:', err);
       // Rollback on error
       if (context?.projectId) {
         if (context.previousMainTasks) {
@@ -718,7 +723,7 @@ export const useMoveTask = () => {
       }
     },
     onSuccess: async (updatedTask) => {
-      console.log('✅ Task moved successfully, syncing with server');
+      console.log('âœ… Task moved successfully, syncing with server');
       // Refetch to ensure data is in sync with server
       await queryClient.refetchQueries({ queryKey: projectKeys.tasks(updatedTask.projectId) });
       await queryClient.refetchQueries({ queryKey: ['project-tasks', updatedTask.projectId] });

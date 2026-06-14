@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Cloud, Info, Eye, Activity, MessageSquare } from 'lucide-react';
+import { Info, Eye, Activity, MessageSquare } from 'lucide-react';
 import { useIntl } from 'react-intl';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
 import { FileInfoContent } from './FileInfoContent';
@@ -65,70 +65,56 @@ export const FilesRightSidebar: React.FC<FilesRightSidebarProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab Navigation - Fixed at top */}
-      <div className="flex-shrink-0 border-b border-border p-4">
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={() => setContent('storage')}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
-              content === 'storage'
-                ? 'gradient-primary-active'
-                : 'text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            <Cloud className="h-3 w-3" />
-            <span>{intl.formatMessage({ id: 'modules.files.sidebar.storage', defaultMessage: 'Storage' })}</span>
-          </button>
-          {selectedFile && (
-            <>
-              <button
-                onClick={() => setContent('info')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
-                  content === 'info'
-                    ? 'gradient-primary-active'
-                    : 'text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <Info className="h-3 w-3" />
-                <span>{intl.formatMessage({ id: 'modules.files.sidebar.info', defaultMessage: 'Info' })}</span>
-              </button>
-              <button
-                onClick={() => setContent('preview')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
-                  content === 'preview'
-                    ? 'gradient-primary-active'
-                    : 'text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <Eye className="h-3 w-3" />
-                <span>{intl.formatMessage({ id: 'modules.files.sidebar.preview', defaultMessage: 'Preview' })}</span>
-              </button>
-              <button
-                onClick={() => setContent('activity')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
-                  content === 'activity'
-                    ? 'gradient-primary-active'
-                    : 'text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <Activity className="h-3 w-3" />
-                <span>{intl.formatMessage({ id: 'modules.files.sidebar.activity', defaultMessage: 'Activity' })}</span>
-              </button>
-              <button
-                onClick={() => setContent('comments')}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
-                  content === 'comments'
-                    ? 'gradient-primary-active'
-                    : 'text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <MessageSquare className="h-3 w-3" />
-                <span>{intl.formatMessage({ id: 'modules.files.sidebar.comments', defaultMessage: 'Comments' })}</span>
-              </button>
-            </>
-          )}
+      {selectedFile && (
+        <div className="flex-shrink-0 border-b border-border p-4">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setContent('info')}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                content === 'info'
+                  ? 'gradient-primary-active'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Info className="h-3 w-3" />
+              <span>{intl.formatMessage({ id: 'modules.files.sidebar.info', defaultMessage: 'Info' })}</span>
+            </button>
+            <button
+              onClick={() => setContent('preview')}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                content === 'preview'
+                  ? 'gradient-primary-active'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Eye className="h-3 w-3" />
+              <span>{intl.formatMessage({ id: 'modules.files.sidebar.preview', defaultMessage: 'Preview' })}</span>
+            </button>
+            <button
+              onClick={() => setContent('activity')}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                content === 'activity'
+                  ? 'gradient-primary-active'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <Activity className="h-3 w-3" />
+              <span>{intl.formatMessage({ id: 'modules.files.sidebar.activity', defaultMessage: 'Activity' })}</span>
+            </button>
+            <button
+              onClick={() => setContent('comments')}
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                content === 'comments'
+                  ? 'gradient-primary-active'
+                  : 'text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              <MessageSquare className="h-3 w-3" />
+              <span>{intl.formatMessage({ id: 'modules.files.sidebar.comments', defaultMessage: 'Comments' })}</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content - Scrollable area */}
       <div className="flex-1 overflow-y-auto p-5">

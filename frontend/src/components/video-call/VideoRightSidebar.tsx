@@ -43,6 +43,7 @@ import type { CallEndedData, IncomingCallData, CallDeclinedData } from '@/lib/so
 
 export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
   const intl = useIntl()
+  const isVietnamese = intl.locale.toLowerCase().startsWith('vi')
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const navigate = useNavigate()
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
@@ -268,11 +269,63 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
-    if (days > 0) return `${days}d ago`
-    if (hours > 0) return `${hours}h ago`
-    if (minutes > 0) return `${minutes}m ago`
-    if (seconds > 0) return `${seconds}s ago`
-    return 'Just now'
+    if (days > 0) {
+      return isVietnamese ? `${days} ngày trước` : `${days}d ago`
+    }
+    if (hours > 0) {
+      return isVietnamese ? `${hours} giờ trước` : `${hours}h ago`
+    }
+    if (minutes > 0) {
+      return isVietnamese ? `${minutes} phút trước` : `${minutes}m ago`
+    }
+    if (seconds > 0) {
+      return isVietnamese ? `${seconds} giây trước` : `${seconds}s ago`
+    }
+    return isVietnamese ? 'Vừa xong' : 'Just now'
+  }, [isVietnamese])
+
+  const getMeetingDisplayTitle = useCallback((title: string) => {
+    if (title === 'Video Call') {
+      return intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.left.quickActions.videoCall', defaultMessage: 'Video Call' })
+    }
+
+    if (title === 'Audio Call') {
+      return intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.left.quickActions.audioCall', defaultMessage: 'Audio Call' })
+    }
+
+    return title
+  }, [intl])
+
+  const getMeetingStatusLabel = useCallback((status: string) => {
+    switch (status) {
+      case 'ended':
+      case 'completed':
+        return intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.recentMeetings.status.completed', defaultMessage: 'Completed' })
+      case 'active':
+        return intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.recentMeetings.status.active', defaultMessage: 'Active' })
+      case 'scheduled':
+        return intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.recentMeetings.status.scheduled', defaultMessage: 'Scheduled' })
+      case 'cancelled':
+        return intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.recentMeetings.status.cancelled', defaultMessage: 'Cancelled' })
+      default:
+        return status
+    }
+  }, [intl])
+
+  const getMeetingStatusClassName = useCallback((status: string) => {
+    switch (status) {
+      case 'ended':
+      case 'completed':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+      case 'active':
+        return 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800'
+      case 'scheduled':
+        return 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800'
+      case 'cancelled':
+        return 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-700'
+      default:
+        return 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-700'
+    }
   }, [])
 
   return (
@@ -352,7 +405,7 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <Card key={meeting.id} className="bg-muted/50 border-border hover:bg-muted/70 transition-colors">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium truncate">{meeting.title}</span>
+                    <span className="text-sm font-medium truncate">{getMeetingDisplayTitle(meeting.title)}</span>
                     <span className="text-xs text-muted-foreground">
                       {formatTimeAgo(meeting.timestamp)}
                     </span>
@@ -363,38 +416,24 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                       {formatDuration(meeting.duration)}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {meeting.participants.length} participants
+                      {intl.formatMessage(
+                        { id: 'modules.videoCallsApp.sidebar.right.recentMeetings.participants', defaultMessage: '{count} participants' },
+                        { count: meeting.participants.length }
+                      )}
                     </Badge>
                   </div>
                   
                   <div className="flex items-center justify-between text-xs">
-                    <Badge
-                      variant={
-                        meeting.status === 'ended' ? 'default' :
-                        meeting.status === 'active' ? 'destructive' :
-                        meeting.status === 'scheduled' ? 'secondary' :
-                        'outline'
-                      }
-                      className={
-                        meeting.status === 'ended' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
-                        meeting.status === 'active' ? 'bg-red-500/20 text-red-300 border-red-500/30' :
-                        meeting.status === 'scheduled' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
-                        'bg-gray-500/20 text-gray-300 border-gray-500/30'
-                      }
-                    >
-                      {meeting.status === 'ended' ? 'Completed' :
-                       meeting.status === 'active' ? 'Active' :
-                       meeting.status === 'scheduled' ? 'Scheduled' :
-                       meeting.status === 'cancelled' ? 'Cancelled' :
-                       meeting.status}
+                    <Badge variant="outline" className={getMeetingStatusClassName(meeting.status)}>
+                      {getMeetingStatusLabel(meeting.status)}
                     </Badge>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-green-500 hover:text-green-600"
+                      className="h-6 px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-950/40"
                       onClick={() => setSelectedMeeting(meeting)}
                     >
-                      View Details
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.recentMeetings.viewDetails', defaultMessage: 'View Details' })}
                     </Button>
                   </div>
                 </CardContent>
@@ -425,22 +464,28 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                   
                   <div className="flex items-center gap-2 mb-2">
                     <Badge variant="outline" className="text-xs">
-                      {summary.keyPoints.length} key points
+                      {intl.formatMessage(
+                        { id: 'modules.videoCallsApp.sidebar.right.summaries.keyPoints', defaultMessage: '{count} key points' },
+                        { count: summary.keyPoints.length }
+                      )}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {summary.participants.length} participants
+                      {intl.formatMessage(
+                        { id: 'modules.videoCallsApp.sidebar.right.recentMeetings.participants', defaultMessage: '{count} participants' },
+                        { count: summary.participants.length }
+                      )}
                     </Badge>
                   </div>
                   
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatDuration(summary.duration)} meeting</span>
+                    <span>{formatDuration(summary.duration)}</span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="h-6 px-2 text-yellow-500 hover:text-yellow-600"
                       onClick={() => setSelectedSummary(summary)}
                     >
-                      View Full
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summaries.viewFull', defaultMessage: 'View Full' })}
                     </Button>
                   </div>
                 </CardContent>
@@ -464,7 +509,10 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium truncate">{note.title}</span>
                       <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
-                        {Math.round(note.confidence * 100)}% AI
+                        {intl.formatMessage(
+                          { id: 'modules.videoCallsApp.sidebar.right.notes.aiAccuracy', defaultMessage: '{percent}% AI' },
+                          { percent: Math.round(note.confidence * 100) }
+                        )}
                       </Badge>
                     </div>
                     <span className="text-xs text-muted-foreground">
@@ -475,14 +523,19 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                   <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{note.content}</p>
                   
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatDuration(note.duration)} • {note.participants.length} participants</span>
+                    <span>
+                      {formatDuration(note.duration)} • {intl.formatMessage(
+                        { id: 'modules.videoCallsApp.sidebar.right.recentMeetings.participants', defaultMessage: '{count} participants' },
+                        { count: note.participants.length }
+                      )}
+                    </span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="h-6 px-2 text-blue-500 hover:text-blue-600"
                       onClick={() => setSelectedNote(note)}
                     >
-                      View Note
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.notes.viewNote', defaultMessage: 'View Note' })}
                     </Button>
                   </div>
                 </CardContent>
@@ -494,13 +547,13 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
         </div>
       </div>
 
-      {/* Meeting Details Dialog */}
+      {/* Meeting details dialog */}
       <Dialog open={selectedMeeting !== null} onOpenChange={() => setSelectedMeeting(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Video className="h-5 w-5 text-green-500" />
-              Meeting Details
+              {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.meetingDetails', defaultMessage: 'Meeting Details' })}
             </DialogTitle>
           </DialogHeader>
           {selectedMeeting && (
@@ -509,25 +562,33 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                 <h3 className="text-lg font-semibold mb-2">{selectedMeeting.title}</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Duration:</span>
+                    <span className="text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.duration', defaultMessage: 'Duration:' })}
+                    </span>
                     <div className="font-medium">{formatDuration(selectedMeeting.duration)}</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Date:</span>
+                    <span className="text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.date', defaultMessage: 'Date:' })}
+                    </span>
                     <div className="font-medium">
                       {new Date(selectedMeeting.timestamp).toLocaleDateString()}
                     </div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Time:</span>
+                    <span className="text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.time', defaultMessage: 'Time:' })}
+                    </span>
                     <div className="font-medium">
                       {new Date(selectedMeeting.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Status:</span>
+                    <span className="text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.status', defaultMessage: 'Status:' })}
+                    </span>
                     <Badge variant="outline" className="ml-2">
-                      {selectedMeeting.status}
+                      {getMeetingStatusLabel(selectedMeeting.status)}
                     </Badge>
                   </div>
                 </div>
@@ -538,7 +599,10 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <div>
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Participants ({selectedMeeting.participants.length})
+                  {intl.formatMessage(
+                    { id: 'modules.videoCallsApp.sidebar.right.details.participants', defaultMessage: 'Participants ({count})' },
+                    { count: selectedMeeting.participants.length }
+                  )}
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   {selectedMeeting.participants.map((participant: any, index: number) => {
@@ -587,17 +651,17 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                     window.open(callUrl, `video-call-${selectedMeeting.id}`, windowFeatures)
                   }}>
                     <LogIn className="h-4 w-4 mr-2" />
-                    Join Meeting
+                    {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.joinMeeting', defaultMessage: 'Join Meeting' })}
                   </Button>
                 )}
 
                 {/* Show Download Recording only for ended meetings with recordings */}
                 {selectedMeeting.status === 'ended' && selectedMeeting.hasNotes && (
                   <Button variant="outline" onClick={() => {
-                    toast.success('Meeting recording downloaded')
+                    toast.success(intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.recordingDownloaded', defaultMessage: 'Meeting recording downloaded' }))
                   }}>
                     <Download className="h-4 w-4 mr-2" />
-                    Download Recording
+                    {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.downloadRecording', defaultMessage: 'Download Recording' })}
                   </Button>
                 )}
 
@@ -605,12 +669,12 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                   const participantNames = selectedMeeting.participants.map(p =>
                     typeof p === 'string' ? p : p.name
                   ).join(', ')
-                  const details = `Meeting: ${selectedMeeting.title}\nDate: ${new Date(selectedMeeting.timestamp).toLocaleString()}\nDuration: ${formatDuration(selectedMeeting.duration)}\nParticipants: ${participantNames}`
+                  const details = `${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.meetingDetails', defaultMessage: 'Meeting Details' })}: ${selectedMeeting.title}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.date', defaultMessage: 'Date:' })} ${new Date(selectedMeeting.timestamp).toLocaleString()}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.duration', defaultMessage: 'Duration:' })} ${formatDuration(selectedMeeting.duration)}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.participants', defaultMessage: 'Participants ({count})' }, { count: selectedMeeting.participants.length })}: ${participantNames}`
                   navigator.clipboard.writeText(details)
-                  toast.success('Meeting details copied to clipboard')
+                  toast.success(intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.detailsCopied', defaultMessage: 'Meeting details copied to clipboard' }))
                 }}>
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy Details
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.copyDetails', defaultMessage: 'Copy Details' })}
                 </Button>
               </div>
             </div>
@@ -624,7 +688,7 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-yellow-500" />
-              Meeting Summary
+              {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.meetingSummary', defaultMessage: 'Meeting Summary' })}
             </DialogTitle>
           </DialogHeader>
           {selectedSummary && (
@@ -642,7 +706,10 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    {selectedSummary.participants.length} participants
+                    {intl.formatMessage(
+                      { id: 'modules.videoCallsApp.sidebar.right.recentMeetings.participants', defaultMessage: '{count} participants' },
+                      { count: selectedSummary.participants.length }
+                    )}
                   </div>
                 </div>
               </div>
@@ -650,7 +717,9 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <Separator />
               
               <div>
-                <h4 className="font-semibold mb-3">Meeting Summary</h4>
+                <h4 className="font-semibold mb-3">
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.summary', defaultMessage: 'Summary:' })}
+                </h4>
                 <div className="bg-muted/50 rounded-lg p-4">
                   <p className="text-sm leading-relaxed">{selectedSummary.summary}</p>
                 </div>
@@ -659,7 +728,9 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <Separator />
               
               <div>
-                <h4 className="font-semibold mb-3">Key Points</h4>
+                <h4 className="font-semibold mb-3">
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.keyPoints', defaultMessage: 'Key Points' })}
+                </h4>
                 <div className="space-y-2">
                   {selectedSummary.keyPoints.map((point: string, index: number) => (
                     <div key={index} className="flex items-start gap-2">
@@ -674,18 +745,18 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => {
-                  toast.success('Summary downloaded as PDF')
+                  toast.success(intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.pdfDownloaded', defaultMessage: 'Summary downloaded as PDF' }))
                 }}>
                   <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.downloadPdf', defaultMessage: 'Download PDF' })}
                 </Button>
                 <Button onClick={() => {
-                  const summaryText = `Meeting: ${selectedSummary.title}\nDate: ${new Date(selectedSummary.timestamp).toLocaleDateString()}\nDuration: ${formatDuration(selectedSummary.duration)}\n\nSummary:\n${selectedSummary.summary}\n\nKey Points:\n${selectedSummary.keyPoints.map((point: string, i: number) => `${i + 1}. ${point}`).join('\n')}\n\nParticipants: ${selectedSummary.participants.join(', ')}`
+                  const summaryText = `${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.meetingSummary', defaultMessage: 'Meeting Summary' })}: ${selectedSummary.title}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.date', defaultMessage: 'Date:' })} ${new Date(selectedSummary.timestamp).toLocaleDateString()}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.duration', defaultMessage: 'Duration:' })} ${formatDuration(selectedSummary.duration)}\n\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.summary', defaultMessage: 'Summary:' })}\n${selectedSummary.summary}\n\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.keyPoints', defaultMessage: 'Key Points' })}\n${selectedSummary.keyPoints.map((point: string, i: number) => `${i + 1}. ${point}`).join('\n')}\n\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.participants', defaultMessage: 'Participants ({count})' }, { count: selectedSummary.participants.length })}: ${selectedSummary.participants.join(', ')}`
                   navigator.clipboard.writeText(summaryText)
-                  toast.success('Summary copied to clipboard')
+                  toast.success(intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.summaryCopied', defaultMessage: 'Summary copied to clipboard' }))
                 }}>
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy Summary
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.summary.copySummary', defaultMessage: 'Copy Summary' })}
                 </Button>
               </div>
             </div>
@@ -699,7 +770,7 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
-              Meeting Note
+              {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.meetingNote', defaultMessage: 'Meeting Note' })}
             </DialogTitle>
           </DialogHeader>
           {selectedNote && (
@@ -708,7 +779,10 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-semibold">{selectedNote.title}</h3>
                   <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
-                    {Math.round(selectedNote.confidence * 100)}% AI Accuracy
+                    {intl.formatMessage(
+                      { id: 'modules.videoCallsApp.sidebar.right.note.aiAccuracy', defaultMessage: '{percent}% AI Accuracy' },
+                      { percent: Math.round(selectedNote.confidence * 100) }
+                    )}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -722,7 +796,10 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    {selectedNote.participants.length} participants
+                    {intl.formatMessage(
+                      { id: 'modules.videoCallsApp.sidebar.right.recentMeetings.participants', defaultMessage: '{count} participants' },
+                      { count: selectedNote.participants.length }
+                    )}
                   </div>
                 </div>
               </div>
@@ -732,7 +809,7 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <div>
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Brain className="h-4 w-4 text-blue-500" />
-                  AI-Generated Content
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.aiGenerated', defaultMessage: 'AI-Generated Content' })}
                 </h4>
                 <div className="bg-muted/50 rounded-lg p-4">
                   <div className="prose prose-sm max-w-none">
@@ -744,19 +821,28 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <Separator />
               
               <div>
-                <h4 className="font-semibold mb-3">Meeting Context</h4>
+                <h4 className="font-semibold mb-3">
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.context', defaultMessage: 'Meeting Context' })}
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-sm text-muted-foreground">AI Confidence Score</span>
+                    <span className="text-sm text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.confidence', defaultMessage: 'AI Confidence Score' })}
+                    </span>
                     <div className="mt-1">
                       <Progress value={selectedNote.confidence * 100} className="h-2" />
                       <span className="text-xs text-muted-foreground mt-1 block">
-                        {Math.round(selectedNote.confidence * 100)}% accuracy
+                        {intl.formatMessage(
+                          { id: 'modules.videoCallsApp.sidebar.right.note.accuracy', defaultMessage: '{percent}% accuracy' },
+                          { percent: Math.round(selectedNote.confidence * 100) }
+                        )}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <span className="text-sm text-muted-foreground">Generated</span>
+                    <span className="text-sm text-muted-foreground">
+                      {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.generated', defaultMessage: 'Generated' })}
+                    </span>
                     <div className="text-sm font-medium mt-1">
                       {formatTimeAgo(selectedNote.timestamp)}
                     </div>
@@ -767,25 +853,30 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
               <div className="flex justify-between">
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => {
-                    toast.success(`Note "${selectedNote.title}" saved to Notes app`)
+                    toast.success(
+                      intl.formatMessage(
+                        { id: 'modules.videoCallsApp.sidebar.right.note.noteSaved', defaultMessage: 'Note "{title}" saved to Notes app' },
+                        { title: selectedNote.title }
+                      )
+                    )
                   }}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save to Notes
+                  <Save className="h-4 w-4 mr-2" />
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.saveToNotes', defaultMessage: 'Save to Notes' })}
                   </Button>
                   <Button variant="outline" onClick={() => {
-                    toast.success('Note exported as document')
+                    toast.success(intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.noteExported', defaultMessage: 'Note exported as document' }))
                   }}>
                     <Download className="h-4 w-4 mr-2" />
-                    Export
+                    {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.export', defaultMessage: 'Export' })}
                   </Button>
                 </div>
                 <Button onClick={() => {
-                  const noteText = `Meeting Note: ${selectedNote.title}\nDate: ${new Date(selectedNote.timestamp).toLocaleDateString()}\nDuration: ${formatDuration(selectedNote.duration)}\nAI Confidence: ${Math.round(selectedNote.confidence * 100)}%\n\nContent:\n${selectedNote.content}\n\nParticipants: ${selectedNote.participants.join(', ')}`
+                  const noteText = `${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.meetingNote', defaultMessage: 'Meeting Note' })}: ${selectedNote.title}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.date', defaultMessage: 'Date:' })} ${new Date(selectedNote.timestamp).toLocaleDateString()}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.duration', defaultMessage: 'Duration:' })} ${formatDuration(selectedNote.duration)}\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.confidence', defaultMessage: 'AI Confidence Score' })}: ${Math.round(selectedNote.confidence * 100)}%\n\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.aiGenerated', defaultMessage: 'AI-Generated Content' })}:\n${selectedNote.content}\n\n${intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.details.participants', defaultMessage: 'Participants ({count})' }, { count: selectedNote.participants.length })}: ${selectedNote.participants.join(', ')}`
                   navigator.clipboard.writeText(noteText)
-                  toast.success('Note copied to clipboard')
+                  toast.success(intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.noteCopied', defaultMessage: 'Note copied to clipboard' }))
                 }}>
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy Note
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.sidebar.right.note.copyNote', defaultMessage: 'Copy Note' })}
                 </Button>
               </div>
             </div>
@@ -795,3 +886,4 @@ export const VideoRightSidebar: React.FC<VideoRightSidebarProps> = () => {
     </>
   )
 }
+
