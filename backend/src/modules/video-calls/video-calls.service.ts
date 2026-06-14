@@ -475,7 +475,9 @@ export class VideoCallsService {
             participants: participantsWithUserInfo,
           };
         } catch (error) {
-          this.logger.warn(`Could not fetch participants for call ${call.id}: ${this.getErrorMessage(error)}`);
+          this.logger.warn(
+            `Could not fetch participants for call ${call.id}: ${this.getErrorMessage(error)}`,
+          );
           return {
             ...call,
             participants: [],

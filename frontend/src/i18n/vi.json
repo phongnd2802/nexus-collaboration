@@ -7969,7 +7969,15 @@
       "workspaceInvitationMessage": "Bạn có một lời mời tham gia workspace mới đang chờ trên Nexus.",
       "newMessageInChannel": "Tin nhắn mới trong #{channelName}",
       "taskUnassigned": "Bỏ giao nhiệm vụ",
-      "taskUnassignedMessage": "Nhiệm vụ \"{taskTitle}\" đã được bỏ giao khỏi bạn"
+      "taskUnassignedMessage": "Nhiệm vụ \"{taskTitle}\" đã được bỏ giao khỏi bạn",
+      "newTaskAssigned": "Đã giao nhiệm vụ mới",
+      "newTaskAssignedMessage": "Bạn đã được giao nhiệm vụ \"{taskTitle}\"",
+      "addedToChannel": "Đã thêm vào kênh #{channelName}",
+      "addedToPrivateChannel": "Đã thêm vào kênh riêng tư #{channelName}",
+      "addedToChannelMessage": "Bạn đã được thêm vào kênh #{channelName}",
+      "addedToPrivateChannelMessage": "Bạn đã được thêm vào kênh riêng tư #{channelName}",
+      "newChannelCreated": "Kênh mới được tạo: #{channelName}",
+      "newChannelCreatedMessage": "Một kênh công khai mới #{channelName} đã được tạo trong workspace"
     },
     "tabs": {
       "all": "Tất cả",

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from '../../database/database.service';
@@ -42,9 +37,7 @@ export class OAuthService {
   // ────────────────────────────────────
 
   getAuthorizationUrl(provider: 'google' | 'github', frontendUrl: string): string {
-    const state = Buffer.from(
-      JSON.stringify({ provider, frontendUrl }),
-    ).toString('base64url');
+    const state = Buffer.from(JSON.stringify({ provider, frontendUrl })).toString('base64url');
 
     const prefix = frontendUrl.replace(/\/$/, '');
 
@@ -92,9 +85,7 @@ export class OAuthService {
     stateParam: string,
   ): Promise<OAuthCallbackResult> {
     const userInfo =
-      provider === 'google'
-        ? await this.fetchGoogleUser(code)
-        : await this.fetchGithubUser(code);
+      provider === 'google' ? await this.fetchGoogleUser(code) : await this.fetchGithubUser(code);
 
     const result = await this.findOrCreateUser(provider, userInfo);
 
@@ -146,10 +137,7 @@ export class OAuthService {
 
     const refreshToken = await this.issueRefreshToken(user.id);
 
-    await this.db.query(
-      `UPDATE "users" SET "last_login_at" = now() WHERE "id" = $1`,
-      [user.id],
-    );
+    await this.db.query(`UPDATE "users" SET "last_login_at" = now() WHERE "id" = $1`, [user.id]);
 
     return {
       token: fullToken,
@@ -294,7 +282,10 @@ export class OAuthService {
   private async findOrCreateUser(
     provider: string,
     info: OAuthUserInfo,
-  ): Promise<{ user: { id: string; email: string; name: string | null; avatarUrl: string | null }; isNew: boolean }> {
+  ): Promise<{
+    user: { id: string; email: string; name: string | null; avatarUrl: string | null };
+    isNew: boolean;
+  }> {
     const normalizedEmail = info.email.toLowerCase().trim();
 
     // 1. Try by OAuth provider + ID
@@ -376,18 +367,12 @@ export class OAuthService {
     };
   }
 
-  private async syncUserProfile(
-    dbUser: any,
-    info: OAuthUserInfo,
-  ): Promise<void> {
+  private async syncUserProfile(dbUser: any, info: OAuthUserInfo): Promise<void> {
     const updates: string[] = [];
     const values: any[] = [];
 
     if (info.name && info.name !== dbUser.name) {
-      updates.push(
-        `"name" = $${values.length + 1}`,
-        `"full_name" = $${values.length + 1}`,
-      );
+      updates.push(`"name" = $${values.length + 1}`, `"full_name" = $${values.length + 1}`);
       values.push(info.name);
     }
     if (info.avatarUrl && info.avatarUrl !== dbUser.avatar_url) {
@@ -412,10 +397,7 @@ export class OAuthService {
   // ────────────────────────────────────
 
   private async issueRefreshToken(userId: string): Promise<string> {
-    const days = parseInt(
-      this.config.get('REFRESH_TOKEN_EXPIRES_DAYS', '30'),
-      10,
-    );
+    const days = parseInt(this.config.get('REFRESH_TOKEN_EXPIRES_DAYS', '30'), 10);
     const raw = crypto.randomBytes(48).toString('hex');
     const hash = crypto.createHash('sha256').update(raw).digest('hex');
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);

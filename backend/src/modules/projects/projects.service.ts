@@ -11,6 +11,9 @@ import { DatabaseService } from '../database/database.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto';
 import { EntityEventIntegrationService } from '../workflows/entity-event-integration.service';
+import { EmailProviderService } from '../email/email.service';
+import { buildBrandedEmail } from '../email/branded-email';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -27,10 +30,11 @@ export class ProjectsService {
   constructor(
     private readonly db: DatabaseService,
     private notificationsService: NotificationsService,
+    private readonly emailProvider: EmailProviderService,
     @Optional()
     @Inject(forwardRef(() => EntityEventIntegrationService))
     private entityEventIntegration?: EntityEventIntegrationService,
-  ) { }
+  ) {}
 
   // Project operations
   async create(workspaceId: string, createProjectDto: CreateProjectDto, userId: string) {
@@ -60,21 +64,21 @@ export class ProjectsService {
       kanban_stages: createProjectDto.kanban_stages
         ? JSON.stringify(createProjectDto.kanban_stages)
         : JSON.stringify([
-          { id: 'todo', name: 'To Do', order: 1, color: '#3B82F6' },
-          { id: 'in_progress', name: 'In Progress', order: 2, color: '#F59E0B' },
-          { id: 'done', name: 'Done', order: 3, color: '#10B981' },
-        ]),
+            { id: 'todo', name: 'To Do', order: 1, color: '#3B82F6' },
+            { id: 'in_progress', name: 'In Progress', order: 2, color: '#F59E0B' },
+            { id: 'done', name: 'Done', order: 3, color: '#10B981' },
+          ]),
       attachments: createProjectDto.attachments
         ? JSON.stringify({
-          note_attachment: createProjectDto.attachments.note_attachment || [],
-          file_attachment: createProjectDto.attachments.file_attachment || [],
-          event_attachment: createProjectDto.attachments.event_attachment || [],
-        })
+            note_attachment: createProjectDto.attachments.note_attachment || [],
+            file_attachment: createProjectDto.attachments.file_attachment || [],
+            event_attachment: createProjectDto.attachments.event_attachment || [],
+          })
         : JSON.stringify({
-          note_attachment: [],
-          file_attachment: [],
-          event_attachment: [],
-        }),
+            note_attachment: [],
+            file_attachment: [],
+            event_attachment: [],
+          }),
       collaborative_data: createProjectDto.collaborative_data
         ? JSON.stringify(createProjectDto.collaborative_data)
         : JSON.stringify({}),
@@ -497,7 +501,8 @@ export class ProjectsService {
         console.log(`[ProjectsService] Project lead changed from ${oldLeadId} to ${newLeadId}`);
 
         // Sync new lead in project_members
-        const existingLeadResult = await this.db.table('project_members')
+        const existingLeadResult = await this.db
+          .table('project_members')
           .select('*')
           .where('project_id', '=', id)
           .where('user_id', '=', newLeadId)
@@ -518,7 +523,8 @@ export class ProjectsService {
 
         // Handle old lead
         if (oldLeadId && oldLeadId !== project.owner_id) {
-          const oldLeadResult = await this.db.table('project_members')
+          const oldLeadResult = await this.db
+            .table('project_members')
             .select('*')
             .where('project_id', '=', id)
             .where('user_id', '=', oldLeadId)
@@ -534,8 +540,6 @@ export class ProjectsService {
         }
 
         if (newLeadId !== userId) {
-
-
           await this.notificationsService.sendNotification({
             user_id: newLeadId,
             type: NotificationType.TASKS,
@@ -587,18 +591,24 @@ export class ProjectsService {
         }
 
         // Check for new assignees added to collaborative_data
-        if (updateProjectDto.collaborative_data?.default_assignees || updateProjectDto.collaborative_data?.default_assignee_ids) {
+        if (
+          updateProjectDto.collaborative_data?.default_assignees ||
+          updateProjectDto.collaborative_data?.default_assignee_ids
+        ) {
           const addedAssignees = newAssignees.filter((id) => !oldAssignees.includes(id));
           const removedAssignees = oldAssignees.filter((id) => !newAssignees.includes(id));
 
           // Sync project_members table
           for (const assigneeId of addedAssignees) {
-            const existingMemberResult = await this.db.table('project_members')
+            const existingMemberResult = await this.db
+              .table('project_members')
               .select('*')
               .where('project_id', '=', id)
               .where('user_id', '=', assigneeId)
               .execute();
-            const existingMembers = Array.isArray(existingMemberResult.data) ? existingMemberResult.data : [];
+            const existingMembers = Array.isArray(existingMemberResult.data)
+              ? existingMemberResult.data
+              : [];
             if (existingMembers.length === 0) {
               await this.db.insert('project_members', {
                 project_id: id,
@@ -613,7 +623,8 @@ export class ProjectsService {
 
           for (const assigneeId of removedAssignees) {
             if (assigneeId !== project.owner_id && assigneeId !== newLeadId) {
-              const memberResult = await this.db.table('project_members')
+              const memberResult = await this.db
+                .table('project_members')
                 .select('*')
                 .where('project_id', '=', id)
                 .where('user_id', '=', assigneeId)
@@ -812,15 +823,15 @@ export class ProjectsService {
       labels: JSON.stringify(createTaskDto.labels || []),
       attachments: createTaskDto.attachments
         ? JSON.stringify({
-          note_attachment: createTaskDto.attachments.note_attachment || [],
-          file_attachment: createTaskDto.attachments.file_attachment || [],
-          event_attachment: createTaskDto.attachments.event_attachment || [],
-        })
+            note_attachment: createTaskDto.attachments.note_attachment || [],
+            file_attachment: createTaskDto.attachments.file_attachment || [],
+            event_attachment: createTaskDto.attachments.event_attachment || [],
+          })
         : JSON.stringify({
-          note_attachment: [],
-          file_attachment: [],
-          event_attachment: [],
-        }),
+            note_attachment: [],
+            file_attachment: [],
+            event_attachment: [],
+          }),
       // Per-task custom fields (array of { id, name, fieldType, value, options? })
       custom_fields: JSON.stringify(createTaskDto.custom_fields || []),
       collaborative_data: JSON.stringify({}),
@@ -854,8 +865,8 @@ export class ProjectsService {
             priority: (task.priority === 'high' || task.priority === 'urgent'
               ? 'high'
               : 'normal') as any,
-            send_push: true, // Enable FCM push notification for mobile users
-            send_email: true,
+            send_push: true,
+            send_email: false,
             data: {
               category: 'tasks',
               entity_type: 'task',
@@ -872,7 +883,73 @@ export class ProjectsService {
           });
         } catch (error) {
           console.error('Failed to send task assignment notification:', error);
-          // Don't fail task creation if notification fails
+        }
+      }
+    }
+
+    // Send branded email to assignees (background via queue)
+    for (const assigneeId of assignees) {
+      if (assigneeId !== userId) {
+        try {
+          const assignee = await this.db.findOne('users', { id: assigneeId });
+          if (assignee?.email) {
+            const dueLabel = task.due_date
+              ? new Date(task.due_date).toLocaleDateString('vi-VN')
+              : 'Không có';
+            const { html, text } = buildBrandedEmail({
+              eyebrow: 'Nexus Tasks',
+              title: 'Bạn được giao nhiệm vụ mới',
+              greeting: `Xin chào ${assignee.name || assignee.username || ''}`,
+              intro: `Bạn vừa được giao nhiệm vụ trong dự án "${project.name}".`,
+              details: [
+                { label: 'Nhiệm vụ', value: task.title },
+                { label: 'Dự án', value: project.name },
+                { label: 'Hạn chót', value: dueLabel },
+                { label: 'Mức ưu tiên', value: task.priority || 'medium' },
+              ],
+              action: {
+                label: 'Xem nhiệm vụ',
+                url: `/workspaces/${project.workspace_id}/projects/${projectId}?task=${task.id}`,
+              },
+              actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này trong trình duyệt.`,
+            });
+
+            await this.emailProvider.send({
+              to: assignee.email,
+              subject: `[Nexus] Bạn được giao nhiệm vụ: ${task.title}`,
+              html,
+              text,
+              tags: { type: 'task-assignment' },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to send task assignment email:', error);
+        }
+      }
+    }
+
+    // Auto-share attached files with assignees
+    const fileIds = createTaskDto.attachments?.file_attachment || [];
+    if (fileIds.length > 0 && assignees.length > 0) {
+      for (const fileId of fileIds) {
+        for (const assigneeId of assignees) {
+          if (assigneeId !== userId) {
+            try {
+              await this.db.insert('file_shares', {
+                id: uuidv4(),
+                file_id: fileId,
+                shared_by: userId,
+                shared_with: assigneeId,
+                share_token: uuidv4(),
+                permissions: JSON.stringify({ read: true, download: true }),
+                is_active: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              });
+            } catch (error) {
+              console.error(`Failed to share file ${fileId} with user ${assigneeId}:`, error);
+            }
+          }
         }
       }
     }
@@ -1146,7 +1223,10 @@ export class ProjectsService {
       typeof task.assigned_to === 'string' ? JSON.parse(task.assigned_to) : task.assigned_to;
     const parsedAttachments =
       typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments;
-    const enrichedAttachments = await this.enrichAttachments(parsedAttachments, project.workspace_id);
+    const enrichedAttachments = await this.enrichAttachments(
+      parsedAttachments,
+      project.workspace_id,
+    );
     return {
       ...task,
       labels: typeof task.labels === 'string' ? JSON.parse(task.labels) : task.labels,
@@ -1181,9 +1261,9 @@ export class ProjectsService {
     const lastStage =
       kanbanStages && kanbanStages.length > 0
         ? kanbanStages.reduce(
-          (max: any, stage: any) => (stage.order > max.order ? stage : max),
-          kanbanStages[0],
-        )
+            (max: any, stage: any) => (stage.order > max.order ? stage : max),
+            kanbanStages[0],
+          )
         : null;
     const completedStageId = lastStage?.id || 'done'; // fallback to 'done' if no stages defined
 
@@ -1741,7 +1821,13 @@ export class ProjectsService {
     // not yet persisted to project_members table (stale data case).
     const collaborativeData =
       typeof project.collaborative_data === 'string'
-        ? (() => { try { return JSON.parse(project.collaborative_data); } catch { return {}; } })()
+        ? (() => {
+            try {
+              return JSON.parse(project.collaborative_data);
+            } catch {
+              return {};
+            }
+          })()
         : project.collaborative_data || {};
 
     const expectedUserIds = new Set<string>();
@@ -1757,9 +1843,11 @@ export class ProjectsService {
       if (!existingUserIds.has(uid)) {
         console.log(`[ProjectsService] Backfilling missing project member: ${uid}`);
         const role =
-          uid === project.owner_id ? 'admin'
-          : uid === collaborativeData.project_lead ? 'lead'
-          : 'member';
+          uid === project.owner_id
+            ? 'admin'
+            : uid === collaborativeData.project_lead
+              ? 'lead'
+              : 'member';
         try {
           const newMember = await this.db.insert('project_members', {
             project_id: projectId,

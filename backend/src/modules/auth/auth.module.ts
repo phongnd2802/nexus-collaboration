@@ -13,26 +13,22 @@ import {
 } from './sso/magic-link.service';
 import { OAuthController } from './oauth/oauth.controller';
 import { OAuthService } from './oauth/oauth.service';
-import { getEmailConfig, sendEmailFn } from '../database/email-helpers';
+import { EmailProviderService } from '../email/email.service';
 import { EmailProviderModule } from '../email/email.module';
 
 /**
- * Default magic-link email sender — delegates to the existing
- * nodemailer-based sendEmailFn helper. Tests can override the
+ * Default magic-link email sender — delegates to EmailProviderService
+ * (which sends via BullMQ background queue). Tests can override the
  * MAGIC_LINK_EMAIL_SENDER provider with a mock.
  */
 const magicLinkEmailSenderProvider = {
   provide: MAGIC_LINK_EMAIL_SENDER,
-  useFactory: (config: ConfigService): MagicLinkEmailSender => ({
+  useFactory: (emailProvider: EmailProviderService): MagicLinkEmailSender => ({
     async sendEmail(to, subject, html, text) {
-      const cfg = getEmailConfig((k, d) => config.get(k, d));
-      const result = await sendEmailFn(cfg, to, subject, html, text);
-      if (!result.success) {
-        throw new Error(result.error || 'unknown SMTP failure');
-      }
+      await emailProvider.send({ to, subject, html, text, tags: { type: 'magic-link' } });
     },
   }),
-  inject: [ConfigService],
+  inject: [EmailProviderService],
 };
 
 @Module({

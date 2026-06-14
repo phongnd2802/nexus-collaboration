@@ -116,7 +116,15 @@ export class CryptoService {
     try {
       const keys = await this.db
         .table('user_keys')
-        .select('user_id', 'public_key', 'device_id', 'device_name', 'is_active', 'last_used_at', 'created_at')
+        .select(
+          'user_id',
+          'public_key',
+          'device_id',
+          'device_name',
+          'is_active',
+          'last_used_at',
+          'created_at',
+        )
         .whereIn('user_id', dto.userIds)
         .where('is_active', '=', true)
         .execute();

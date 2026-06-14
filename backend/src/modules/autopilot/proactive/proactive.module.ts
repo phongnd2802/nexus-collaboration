@@ -8,10 +8,7 @@ import { NotificationsModule } from '../../notifications/notifications.module';
 import { WebSocketModule } from '../../../common/gateways/websocket.module';
 
 @Module({
-  imports: [
-    forwardRef(() => NotificationsModule),
-    forwardRef(() => WebSocketModule),
-  ],
+  imports: [forwardRef(() => NotificationsModule), forwardRef(() => WebSocketModule)],
   providers: [DailyBriefingService, DeadlineAlertService, SuggestionsCacheService],
   exports: [DailyBriefingService, DeadlineAlertService, SuggestionsCacheService],
 })

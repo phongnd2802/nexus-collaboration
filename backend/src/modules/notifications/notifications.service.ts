@@ -25,6 +25,7 @@ import {
   FcmTokenResponseDto,
 } from './dto';
 import { buildBrandedEmail } from '../email/branded-email';
+import { EmailProviderService } from '../email/email.service';
 
 export interface NotificationPreferences {
   user_id: string;
@@ -77,6 +78,7 @@ export class NotificationsService {
     @Inject(forwardRef(() => NotificationsGateway))
     private readonly notificationsGateway: NotificationsGateway,
     private readonly firebaseService: FirebaseService,
+    private readonly emailProvider: EmailProviderService,
   ) {}
 
   // =============================================
@@ -873,12 +875,13 @@ export class NotificationsService {
 
       const emailContent = this.buildEmailContent(notificationData, config);
 
-      await /* TODO: use EmailService */ this.db.sendEmail(
-        user.email,
-        notificationData.title,
-        emailContent.html,
-        emailContent.text,
-      );
+      await this.emailProvider.send({
+        to: user.email,
+        subject: notificationData.title,
+        html: emailContent.html,
+        text: emailContent.text,
+        tags: { type: 'notification' },
+      });
 
       this.logger.log(`Email notification sent to user ${userId}`);
     } catch (error) {

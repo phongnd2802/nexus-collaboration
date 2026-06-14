@@ -182,5 +182,4 @@ export class AuthController {
     const email = req.user.email;
     return await this.authService.deleteAccount(userId, email, dto.password);
   }
-
 }

@@ -1589,7 +1589,6 @@ export const schema = {
     ],
   },
 
-
   // ==================== OPENAI INTEGRATION ====================
   // User-specific OpenAI connection within workspace (API key based, not OAuth)
   openai_connections: {
@@ -2683,7 +2682,6 @@ export const schema = {
       { columns: ['status', 'scheduled_at'] }, // For finding pending actions to execute
     ],
   },
-
 
   // ==================== END-TO-END ENCRYPTION (E2EE) ====================
 

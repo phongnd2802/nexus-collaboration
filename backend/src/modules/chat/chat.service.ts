@@ -74,7 +74,9 @@ export class ChatService {
       is_archived: false,
     });
 
-    const publicChannels = Array.isArray(publicChannelsResult.data) ? publicChannelsResult.data : [];
+    const publicChannels = Array.isArray(publicChannelsResult.data)
+      ? publicChannelsResult.data
+      : [];
     if (publicChannels.length === 0) {
       return;
     }
@@ -1306,8 +1308,12 @@ export class ChatService {
           .where('channel_id', '=', messageData.channel_id)
           .where('is_active', '=', true)
           .execute();
-        const membersData = Array.isArray(membersResult) ? membersResult : membersResult?.data || [];
-        participantIds = membersData.map((m: any) => m.user_id).filter((id: string) => id !== userId);
+        const membersData = Array.isArray(membersResult)
+          ? membersResult
+          : membersResult?.data || [];
+        participantIds = membersData
+          .map((m: any) => m.user_id)
+          .filter((id: string) => id !== userId);
       } else if (messageData.conversation_id) {
         const membersResult = await this.db
           .table('conversation_members')
@@ -1315,8 +1321,12 @@ export class ChatService {
           .where('conversation_id', '=', messageData.conversation_id)
           .where('is_active', '=', true)
           .execute();
-        const membersData = Array.isArray(membersResult) ? membersResult : membersResult?.data || [];
-        participantIds = membersData.map((m: any) => m.user_id).filter((id: string) => id !== userId);
+        const membersData = Array.isArray(membersResult)
+          ? membersResult
+          : membersResult?.data || [];
+        participantIds = membersData
+          .map((m: any) => m.user_id)
+          .filter((id: string) => id !== userId);
       }
 
       if (participantIds.length > 0) {
@@ -4331,10 +4341,7 @@ export class ChatService {
   /**
    * Get a scheduled message by ID
    */
-  async getScheduledMessage(
-    scheduledMessageId: string,
-    userId: string,
-  ): Promise<{ data: any }> {
+  async getScheduledMessage(scheduledMessageId: string, userId: string): Promise<{ data: any }> {
     const message = await this.db.findOne('scheduled_messages', {
       id: scheduledMessageId,
     });
@@ -4636,5 +4643,4 @@ export class ChatService {
       updatedAt: message.updated_at,
     };
   }
-
 }

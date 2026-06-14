@@ -5,9 +5,10 @@ import { NotificationsGateway } from './notifications.gateway';
 import { FirebaseService } from './firebase.service';
 import { WebSocketModule } from '../../common/gateways/websocket.module';
 import { AuthModule } from '../auth/auth.module';
+import { EmailProviderModule } from '../email/email.module';
 
 @Module({
-  imports: [forwardRef(() => WebSocketModule), AuthModule],
+  imports: [forwardRef(() => WebSocketModule), AuthModule, EmailProviderModule],
   controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsGateway, FirebaseService],
   exports: [NotificationsService, NotificationsGateway],

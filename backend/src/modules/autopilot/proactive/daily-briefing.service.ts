@@ -236,12 +236,12 @@ export class DailyBriefingService {
         .filter((t: any) => this.isTaskOpen(t.status))
         .filter((t: any) => this.isUserInTask(t, userId))
         .map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        dueDate: t.due_date,
-        priority: t.priority,
-        status: t.status,
-      }));
+          id: t.id,
+          title: t.title,
+          dueDate: t.due_date,
+          priority: t.priority,
+          status: t.status,
+        }));
     } catch (error) {
       this.logger.warn(`[DailyBriefing] Error fetching today's tasks: ${error.message}`);
       return [];
@@ -315,11 +315,11 @@ export class DailyBriefingService {
         .filter((t: any) => this.isTaskOpen(t.status))
         .filter((t: any) => this.isUserInTask(t, userId))
         .map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        dueDate: t.due_date,
-        priority: t.priority,
-      }));
+          id: t.id,
+          title: t.title,
+          dueDate: t.due_date,
+          priority: t.priority,
+        }));
     } catch (error) {
       this.logger.warn(`[DailyBriefing] Error fetching upcoming tasks: ${error.message}`);
       return [];

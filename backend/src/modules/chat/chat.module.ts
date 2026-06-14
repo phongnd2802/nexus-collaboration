@@ -7,11 +7,7 @@ import { WebSocketModule } from '../../common/gateways/websocket.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [
-    AuthModule,
-    NotificationsModule,
-    forwardRef(() => WebSocketModule),
-  ],
+  imports: [AuthModule, NotificationsModule, forwardRef(() => WebSocketModule)],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway],
   exports: [ChatService, ChatGateway],

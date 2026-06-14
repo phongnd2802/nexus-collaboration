@@ -113,14 +113,14 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
       ? `
         <div style="margin:28px 0 0;padding:24px;background:${BRAND_COLORS.surface};border:1px solid ${BRAND_COLORS.border};border-left:4px solid ${accentColor};border-radius:12px;box-shadow:rgba(0,0,0,0.04) 0px 4px 20px 0px;">
           ${options.details
-        .map(
-          (detail, index) => `
+            .map(
+              (detail, index) => `
                 <div style="${index > 0 ? 'margin-top:16px;padding-top:16px;border-top:1px solid rgba(31,30,29,0.08);' : ''}">
                   <div style="margin:0 0 6px;color:${BRAND_COLORS.textMuted};font:430 14px/19.6px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${escapeHtml(detail.label)}</div>
                   <div style="color:${BRAND_COLORS.textStrong};font:400 16px/24px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${renderMultilineText(detail.value)}</div>
                 </div>`,
-        )
-        .join('')}
+            )
+            .join('')}
         </div>`
       : '';
 
@@ -128,10 +128,11 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
     options.callout && toneStyles
       ? `
         <div style="margin:24px 0 0;padding:20px;background:${toneStyles.background};border:1px solid ${toneStyles.border};border-radius:12px;">
-          ${options.callout.title
-        ? `<div style="margin:0 0 8px;color:${toneStyles.title};font:430 14px/19.6px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${escapeHtml(options.callout.title)}</div>`
-        : ''
-      }
+          ${
+            options.callout.title
+              ? `<div style="margin:0 0 8px;color:${toneStyles.title};font:430 14px/19.6px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${escapeHtml(options.callout.title)}</div>`
+              : ''
+          }
           <div style="color:${BRAND_COLORS.text};font:400 15px/22.5px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${renderMultilineText(options.callout.body)}</div>
         </div>`
       : '';
@@ -148,7 +149,8 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
     : '';
 
   const footerText =
-    options.footer || 'Email này được gửi từ Nexus. Nếu bạn không mong đợi email này, bạn có thể bỏ qua.';
+    options.footer ||
+    'Email này được gửi từ Nexus. Nếu bạn không mong đợi email này, bạn có thể bỏ qua.';
 
   const html = `<!doctype html>
 <html>
@@ -185,7 +187,9 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
     options.intro,
     ...(options.paragraphs || []),
     ...(options.details || []).map((detail) => `${detail.label}: ${detail.value}`),
-    options.callout ? `${options.callout.title ? options.callout.title + ': ' : ''}${options.callout.body}` : '',
+    options.callout
+      ? `${options.callout.title ? options.callout.title + ': ' : ''}${options.callout.body}`
+      : '',
     options.action ? `${options.action.label}: ${options.action.url}` : '',
     options.actionHint,
     footerText,

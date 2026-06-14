@@ -77,8 +77,38 @@ const getLocalizedNotificationTitle = (notification: Notification, intl: ReturnT
     );
   }
 
+  // Handle Channel Add/Create notifications
+  if (notification.type === 'channel_member_added' || notification.type === 'CHANNEL_MEMBER_ADDED' || notification.title.startsWith('Added to ')) {
+    if (notification.data?.channel_name) {
+      if (notification.data.is_private || notification.title.includes('private channel')) {
+        return intl.formatMessage(
+          { id: 'notifications.items.addedToPrivateChannel', defaultMessage: 'Added to private channel #{channelName}' },
+          { channelName: notification.data.channel_name }
+        );
+      } else {
+        return intl.formatMessage(
+          { id: 'notifications.items.addedToChannel', defaultMessage: 'Added to channel #{channelName}' },
+          { channelName: notification.data.channel_name }
+        );
+      }
+    }
+  }
+
+  if (notification.type === 'channel_created' || notification.type === 'CHANNEL_CREATED' || notification.title.startsWith('New channel created: #')) {
+    if (notification.data?.channel_name) {
+      return intl.formatMessage(
+        { id: 'notifications.items.newChannelCreated', defaultMessage: 'New channel created: #{channelName}' },
+        { channelName: notification.data.channel_name }
+      );
+    }
+  }
+
   if (notification.title === 'Task Unassigned') {
     return intl.formatMessage({ id: 'notifications.items.taskUnassigned' });
+  }
+
+  if (notification.title === 'New Task Assigned') {
+    return intl.formatMessage({ id: 'notifications.items.newTaskAssigned', defaultMessage: 'New Task Assigned' });
   }
 
   return notification.title;
@@ -107,6 +137,42 @@ const getLocalizedNotificationMessage = (
       { id: 'notifications.items.taskUnassignedMessage' },
       { taskTitle: notification.data.task_title }
     );
+  }
+
+  if (
+    notification.data?.task_title &&
+    (notification.message.includes('You\'ve been assigned to task') || notification.title === 'New Task Assigned')
+  ) {
+    return intl.formatMessage(
+      { id: 'notifications.items.newTaskAssignedMessage', defaultMessage: 'You\'ve been assigned to task "{taskTitle}"' },
+      { taskTitle: notification.data.task_title }
+    );
+  }
+
+  // Handle Channel Add/Create notifications
+  if (notification.type === 'channel_member_added' || notification.type === 'CHANNEL_MEMBER_ADDED' || notification.message.startsWith('You have been added to ')) {
+    if (notification.data?.channel_name) {
+      if (notification.data.is_private || notification.message.includes('private channel')) {
+        return intl.formatMessage(
+          { id: 'notifications.items.addedToPrivateChannelMessage', defaultMessage: 'You have been added to the private channel #{channelName}' },
+          { channelName: notification.data.channel_name }
+        );
+      } else {
+        return intl.formatMessage(
+          { id: 'notifications.items.addedToChannelMessage', defaultMessage: 'You have been added to the channel #{channelName}' },
+          { channelName: notification.data.channel_name }
+        );
+      }
+    }
+  }
+
+  if (notification.type === 'channel_created' || notification.type === 'CHANNEL_CREATED' || notification.message.startsWith('A new public channel #')) {
+    if (notification.data?.channel_name) {
+      return intl.formatMessage(
+        { id: 'notifications.items.newChannelCreatedMessage', defaultMessage: 'A new public channel #{channelName} has been created in the workspace' },
+        { channelName: notification.data.channel_name }
+      );
+    }
   }
 
   return stripHtml(notification.message);

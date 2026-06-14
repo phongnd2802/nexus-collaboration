@@ -257,7 +257,11 @@ export class McpClientRegistryService implements OnModuleInit, OnModuleDestroy {
     return results.flatMap((result) => (result.status === 'fulfilled' ? result.value : []));
   }
 
-  async callTool(serverName: string, toolName: string, args: Record<string, unknown>): Promise<any> {
+  async callTool(
+    serverName: string,
+    toolName: string,
+    args: Record<string, unknown>,
+  ): Promise<any> {
     const client = await this.getClient(serverName);
     if (!client) {
       throw new Error(`MCP server not connected: ${serverName}`);

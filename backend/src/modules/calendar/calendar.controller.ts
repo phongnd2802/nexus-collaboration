@@ -690,5 +690,4 @@ export class CalendarController {
       period,
     );
   }
-
 }

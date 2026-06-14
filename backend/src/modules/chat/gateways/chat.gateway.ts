@@ -242,7 +242,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         ...message,
         user: { id: client.userId }, // In real app, fetch user details
       });
-
     } catch (error) {
       client.emit('error', { message: 'Failed to send message' });
     }

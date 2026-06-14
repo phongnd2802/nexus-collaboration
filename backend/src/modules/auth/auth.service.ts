@@ -558,10 +558,13 @@ export class AuthService {
             .where('user_id', '=', resolvedUserId)
             .execute();
         } else {
-          await this.db.table('user_settings').insert({
-            user_id: resolvedUserId,
-            ...settingsUpdateData,
-          }).execute();
+          await this.db
+            .table('user_settings')
+            .insert({
+              user_id: resolvedUserId,
+              ...settingsUpdateData,
+            })
+            .execute();
         }
       }
 
@@ -668,10 +671,12 @@ export class AuthService {
         const { html, text } = buildBrandedEmail({
           eyebrow: 'Nexus Account',
           title: 'Đặt lại mật khẩu',
-          intro: 'Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Nexus. Nhấn nút bên dưới để tiếp tục.',
+          intro:
+            'Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Nexus. Nhấn nút bên dưới để tiếp tục.',
           action: { label: 'Đặt lại mật khẩu', url: resetLink },
           actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${resetLink}`,
-          footer: 'Nếu bạn không yêu cầu email này, bạn có thể bỏ qua một cách an toàn. Liên kết có hiệu lực trong 1 giờ.',
+          footer:
+            'Nếu bạn không yêu cầu email này, bạn có thể bỏ qua một cách an toàn. Liên kết có hiệu lực trong 1 giờ.',
         });
 
         if (this.emailProvider.isAvailable()) {
@@ -808,7 +813,8 @@ export class AuthService {
     const { html, text } = buildBrandedEmail({
       eyebrow: 'Nexus Account',
       title: 'Xác thực email',
-      intro: 'Cảm ơn bạn đã đăng ký Nexus. Hãy xác thực địa chỉ email để hoàn tất quá trình tạo tài khoản.',
+      intro:
+        'Cảm ơn bạn đã đăng ký Nexus. Hãy xác thực địa chỉ email để hoàn tất quá trình tạo tài khoản.',
       action: {
         label: 'Xác thực email',
         url: verificationLink,

@@ -18,7 +18,11 @@ interface ReminderCopy {
 }
 
 const REMINDER_WINDOWS: ReminderWindow[] = [
-  { minMsExclusive: 1 * 24 * 60 * 60 * 1000, maxMsInclusive: 3 * 24 * 60 * 60 * 1000, label: '3 ngày' },
+  {
+    minMsExclusive: 1 * 24 * 60 * 60 * 1000,
+    maxMsInclusive: 3 * 24 * 60 * 60 * 1000,
+    label: '3 ngày',
+  },
   { minMsExclusive: 12 * 60 * 60 * 1000, maxMsInclusive: 1 * 24 * 60 * 60 * 1000, label: '1 ngày' },
   { minMsExclusive: 3 * 60 * 60 * 1000, maxMsInclusive: 12 * 60 * 60 * 1000, label: '12 giờ' },
   { minMsExclusive: 1 * 60 * 60 * 1000, maxMsInclusive: 3 * 60 * 60 * 1000, label: '3 giờ' },
@@ -79,9 +83,7 @@ export class TaskReminderService implements OnModuleInit {
 
   private async processReminderBuckets(now: Date): Promise<void> {
     const tasks = await this.findUpcomingTasks(now);
-    this.logger.log(
-      `[TaskReminder] Found ${tasks.length} upcoming task(s) matching query`,
-    );
+    this.logger.log(`[TaskReminder] Found ${tasks.length} upcoming task(s) matching query`);
 
     if (tasks.length === 0) {
       await this.logUnmatchedTasks(now);
@@ -160,11 +162,12 @@ export class TaskReminderService implements OnModuleInit {
   private async processTaskReminder(task: any, window: ReminderWindow): Promise<void> {
     let assignees: string[] = [];
     try {
-      assignees = typeof task.assigned_to === 'string'
-        ? JSON.parse(task.assigned_to)
-        : Array.isArray(task.assigned_to)
-          ? task.assigned_to
-          : [];
+      assignees =
+        typeof task.assigned_to === 'string'
+          ? JSON.parse(task.assigned_to)
+          : Array.isArray(task.assigned_to)
+            ? task.assigned_to
+            : [];
     } catch {
       assignees = [];
     }
@@ -365,11 +368,10 @@ export class TaskReminderService implements OnModuleInit {
         return { email: false, in_app: false };
       }
 
-      const categories = Array.isArray(notifSettings?.categories)
-        ? notifSettings.categories
-        : [];
+      const categories = Array.isArray(notifSettings?.categories) ? notifSettings.categories : [];
       const reminderCategory = categories.find(
-        (category: any) => category?.id === 'reminder' || category?.id === NotificationType.REMINDER,
+        (category: any) =>
+          category?.id === 'reminder' || category?.id === NotificationType.REMINDER,
       );
 
       if (reminderCategory?.settings) {
@@ -499,10 +501,7 @@ export class TaskReminderService implements OnModuleInit {
         },
       });
     } catch (error: any) {
-      this.logger.error(
-        `[TaskReminder] In-app notification error: ${error.message}`,
-        error.stack,
-      );
+      this.logger.error(`[TaskReminder] In-app notification error: ${error.message}`, error.stack);
     }
   }
 
@@ -540,4 +539,3 @@ export class TaskReminderService implements OnModuleInit {
     };
   }
 }
-

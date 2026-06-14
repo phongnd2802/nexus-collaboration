@@ -1248,7 +1248,10 @@ export class AgentToolsService {
             this.logger.log(`[AutoPilot] Channel message sent successfully: ${message.id}`);
             return JSON.stringify({ success: true, message, messageId: message.id });
           } catch (error) {
-            this.logger.error(`[AutoPilot] Channel message error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
+            this.logger.error(
+              `[AutoPilot] Channel message error: ${this.getErrorMessage(error)}`,
+              this.getErrorStack(error),
+            );
             return JSON.stringify({
               success: false,
               error: `Failed to send channel message: ${this.getErrorMessage(error)}`,
@@ -2322,7 +2325,9 @@ Example: Create a note and email it:
                   this.logger.log(`[AutoPilot] Note "${note.title}" included inline`);
                 }
               } catch (err) {
-                this.logger.warn(`[AutoPilot] Could not fetch note ${noteId}: ${this.getErrorMessage(err)}`);
+                this.logger.warn(
+                  `[AutoPilot] Could not fetch note ${noteId}: ${this.getErrorMessage(err)}`,
+                );
               }
             }
           }
@@ -2408,7 +2413,9 @@ Example: Create a note and email it:
                   this.logger.log(`[AutoPilot] Note "${note.title}" prepared as attachment`);
                 }
               } catch (err) {
-                this.logger.warn(`[AutoPilot] Could not fetch note ${noteId}: ${this.getErrorMessage(err)}`);
+                this.logger.warn(
+                  `[AutoPilot] Could not fetch note ${noteId}: ${this.getErrorMessage(err)}`,
+                );
               }
             }
           }
@@ -2482,7 +2489,9 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                   this.logger.log(`[AutoPilot] File "${fileData.fileName}" prepared as attachment`);
                 }
               } catch (err) {
-                this.logger.warn(`[AutoPilot] Could not fetch file ${fileId}: ${this.getErrorMessage(err)}`);
+                this.logger.warn(
+                  `[AutoPilot] Could not fetch file ${fileId}: ${this.getErrorMessage(err)}`,
+                );
               }
             }
           }
@@ -2532,7 +2541,10 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               message: `Email sent to ${to.join(', ')}${inlineMsg}${attachmentMsg}`,
             });
           } catch (error) {
-            this.logger.error(`[AutoPilot] Email send error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
+            this.logger.error(
+              `[AutoPilot] Email send error: ${this.getErrorMessage(error)}`,
+              this.getErrorStack(error),
+            );
             if (
               this.getErrorMessage(error)?.includes('not found') ||
               this.getErrorMessage(error)?.includes('not connected') ||
@@ -2577,7 +2589,10 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               count: result.emails?.length || 0,
             });
           } catch (error) {
-            this.logger.error(`[AutoPilot] List emails error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
+            this.logger.error(
+              `[AutoPilot] List emails error: ${this.getErrorMessage(error)}`,
+              this.getErrorStack(error),
+            );
             if (
               this.getErrorMessage(error)?.includes('not found') ||
               this.getErrorMessage(error)?.includes('not connected') ||
@@ -3205,7 +3220,10 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
               conversationId: conversation.id,
             });
           } catch (error) {
-            this.logger.error(`[AutoPilot] Direct message error: ${this.getErrorMessage(error)}`, this.getErrorStack(error));
+            this.logger.error(
+              `[AutoPilot] Direct message error: ${this.getErrorMessage(error)}`,
+              this.getErrorStack(error),
+            );
             return JSON.stringify({
               success: false,
               error: `Failed to send direct message: ${this.getErrorMessage(error)}`,
@@ -3296,7 +3314,9 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 this.context.userId,
               );
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch calendar events: ${this.getErrorMessage(e)}`);
+              this.logger.warn(
+                `[Summary] Failed to fetch calendar events: ${this.getErrorMessage(e)}`,
+              );
             }
 
             // Fetch recent notes created today
@@ -3447,7 +3467,9 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 this.context.userId,
               );
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch calendar events: ${this.getErrorMessage(e)}`);
+              this.logger.warn(
+                `[Summary] Failed to fetch calendar events: ${this.getErrorMessage(e)}`,
+              );
             }
 
             // Fetch notes created this week
@@ -3746,7 +3768,9 @@ ${tasks.map((t: any) => `- [${t.status || 'pending'}] ${t.title}${t.due_date ? `
                 });
               });
             } catch (e) {
-              this.logger.warn(`[Summary] Failed to fetch today's meetings: ${this.getErrorMessage(e)}`);
+              this.logger.warn(
+                `[Summary] Failed to fetch today's meetings: ${this.getErrorMessage(e)}`,
+              );
             }
 
             // Sort recommendations by priority
@@ -4177,9 +4201,7 @@ Format each idea as:
           text: z.string().describe('The text to translate'),
           targetLanguage: z
             .string()
-            .describe(
-              'The language to translate to (English or Vietnamese)',
-            ),
+            .describe('The language to translate to (English or Vietnamese)'),
           sourceLanguage: z
             .string()
             .optional()
@@ -6093,4 +6115,3 @@ Examples of when to use this:
     ];
   }
 }
-

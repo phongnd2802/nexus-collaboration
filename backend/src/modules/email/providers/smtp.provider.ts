@@ -59,7 +59,10 @@ export class SmtpProvider implements EmailProvider {
     this.from = config.get<string>('EMAIL_FROM', 'noreply@example.com');
     this.replyTo = config.get<string>('EMAIL_REPLY_TO');
     this.tlsServername = config.get<string>('SMTP_TLS_SERVERNAME', this.host || undefined);
-    this.connectionTimeout = parseInt(config.get<string>('SMTP_CONNECTION_TIMEOUT_MS', '20000'), 10);
+    this.connectionTimeout = parseInt(
+      config.get<string>('SMTP_CONNECTION_TIMEOUT_MS', '20000'),
+      10,
+    );
     this.greetingTimeout = parseInt(config.get<string>('SMTP_GREETING_TIMEOUT_MS', '15000'), 10);
     this.socketTimeout = parseInt(config.get<string>('SMTP_SOCKET_TIMEOUT_MS', '30000'), 10);
     this.dnsTimeout = parseInt(config.get<string>('SMTP_DNS_TIMEOUT_MS', '8000'), 10);

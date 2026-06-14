@@ -54,17 +54,10 @@ export class EmailTemplatesService {
     };
 
     if (this.emailProvider.isAvailable()) {
-      const result = await this.emailProvider.send(input);
-
-      if (!result.accepted) {
-        this.logger.warn(
-          `[EmailTemplates] Email not accepted by provider for ${opts.to} (${opts.remindBeforeLabel})`,
-        );
-        return false;
-      }
+      await this.emailProvider.send(input);
 
       this.logger.log(
-        `[EmailTemplates] Sent task reminder to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,
+        `[EmailTemplates] Queued task reminder to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,
       );
       return true;
     }
@@ -87,5 +80,3 @@ export class EmailTemplatesService {
     return true;
   }
 }
-
-

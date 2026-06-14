@@ -125,13 +125,15 @@ export class AutoPilotService {
       },
       vi: {
         subtitle: 'Tr\u1ee3 l\u00fd AI Workspace c\u1ee7a b\u1ea1n',
-        intro: '\u0110\u00e2y l\u00e0 nh\u1eefng vi\u1ec7c t\u00f4i c\u00f3 th\u1ec3 h\u1ed7 tr\u1ee3:',
+        intro:
+          '\u0110\u00e2y l\u00e0 nh\u1eefng vi\u1ec7c t\u00f4i c\u00f3 th\u1ec3 h\u1ed7 tr\u1ee3:',
         tipsTitle: 'M\u1eb9o:',
         tip1: 'H\u00e3y m\u00f4 t\u1ea3 y\u00eau c\u1ea7u c\u1ee5 th\u1ec3 \u0111\u1ec3 c\u00f3 k\u1ebft qu\u1ea3 t\u1ed1t nh\u1ea5t',
         tip2: '\u0110\u00ednh k\u00e8m t\u1ec7p (PDF, h\u00ecnh \u1ea3nh, v\u0103n b\u1ea3n) \u0111\u1ec3 ph\u00e2n t\u00edch',
         tip3: 'D\u00f9ng n\u00fat li\u00ean k\u1ebft \u0111\u1ec3 tham chi\u1ebfu t\u00e1c v\u1ee5, ghi ch\u00fa ho\u1eb7c s\u1ef1 ki\u1ec7n',
         tip4: 'T\u00f4i ghi nh\u1edb cu\u1ed9c tr\u00f2 chuy\u1ec7n \u0111\u1ec3 h\u1ed7 tr\u1ee3 c\u00e1c b\u01b0\u1edbc ti\u1ebfp theo',
-        getStarted: 'Nh\u1eadp b\u1ea5t c\u1ee9 \u0111i\u1ec1u g\u00ec \u0111\u1ec3 b\u1eaft \u0111\u1ea7u!',
+        getStarted:
+          'Nh\u1eadp b\u1ea5t c\u1ee9 \u0111i\u1ec1u g\u00ec \u0111\u1ec3 b\u1eaft \u0111\u1ea7u!',
       },
     };
 

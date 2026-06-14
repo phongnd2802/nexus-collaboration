@@ -1074,10 +1074,7 @@ export class NotesService {
       const allNotes = await this.db.table('notes').select('*').execute();
       const allNotesData = Array.isArray(allNotes.data) ? allNotes.data : [];
       return allNotesData.filter(
-        (n) =>
-          n.workspace_id === workspaceId &&
-          !n.deleted_at &&
-          this.canAccessNote(n, userId),
+        (n) => n.workspace_id === workspaceId && !n.deleted_at && this.canAccessNote(n, userId),
       );
     }
 
@@ -1128,10 +1125,7 @@ export class NotesService {
       const allNotes = await this.db.table('notes').select('*').execute();
       const allNotesData = Array.isArray(allNotes.data) ? allNotes.data : [];
       const notes = allNotesData.filter(
-        (n) =>
-          n.workspace_id === workspaceId &&
-          !n.deleted_at &&
-          this.canAccessNote(n, userId),
+        (n) => n.workspace_id === workspaceId && !n.deleted_at && this.canAccessNote(n, userId),
       );
 
       const searchTerm = query.toLowerCase();

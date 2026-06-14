@@ -7893,7 +7893,15 @@
     "items": {
       "newMessageInChannel": "New message in #{channelName}",
       "taskUnassigned": "Task Unassigned",
-      "taskUnassignedMessage": "Task \"{taskTitle}\" has been unassigned from you"
+      "taskUnassignedMessage": "Task \"{taskTitle}\" has been unassigned from you",
+      "newTaskAssigned": "New Task Assigned",
+      "newTaskAssignedMessage": "You've been assigned to task \"{taskTitle}\"",
+      "addedToChannel": "Added to channel #{channelName}",
+      "addedToPrivateChannel": "Added to private channel #{channelName}",
+      "addedToChannelMessage": "You have been added to the channel #{channelName}",
+      "addedToPrivateChannelMessage": "You have been added to the private channel #{channelName}",
+      "newChannelCreated": "New channel created: #{channelName}",
+      "newChannelCreatedMessage": "A new public channel #{channelName} has been created in the workspace"
     },
     "tabs": {
       "all": "All",

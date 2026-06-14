@@ -7,9 +7,15 @@ import { WorkspaceInvitationService } from './workspace-invitation.service';
 import { AuthModule } from '../auth/auth.module';
 import { WebSocketModule } from '../../common/gateways/websocket.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EmailProviderModule } from '../email/email.module';
 
 @Module({
-  imports: [AuthModule, WebSocketModule, forwardRef(() => NotificationsModule)],
+  imports: [
+    AuthModule,
+    WebSocketModule,
+    forwardRef(() => NotificationsModule),
+    EmailProviderModule,
+  ],
   controllers: [WorkspaceController, WorkspaceInvitationController, InvitationPublicController],
   providers: [WorkspaceService, WorkspaceInvitationService],
   exports: [WorkspaceService, WorkspaceInvitationService],

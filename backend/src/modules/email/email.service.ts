@@ -21,8 +21,10 @@
  * Call sites should migrate to EmailProviderService. Old paths can be
  * deleted in follow-ups once every caller is moved.
  */
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Queue } from 'bullmq';
 import { createEmailProvider, EmailProvider, SendEmailInput, SendEmailResult } from './providers';
 
 @Injectable()
@@ -30,7 +32,10 @@ export class EmailProviderService implements OnModuleInit {
   private readonly logger = new Logger(EmailProviderService.name);
   private provider!: EmailProvider;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    @InjectQueue('email') private readonly emailQueue: Queue,
+  ) {}
 
   onModuleInit() {
     this.provider = createEmailProvider(this.config);
@@ -47,22 +52,46 @@ export class EmailProviderService implements OnModuleInit {
     return !!this.provider && this.provider.isAvailable();
   }
 
-  /** Send a single transactional email. */
+  /** Send a single transactional email via background queue. */
   async send(input: SendEmailInput): Promise<SendEmailResult> {
     this.logger.log(
       `send subject="${input.subject}" to=${Array.isArray(input.to) ? input.to.join(',') : input.to} via=${this.provider.name}`,
     );
-    const result = await this.provider.send(input);
-    this.logger.log(
-      `send success provider=${result.provider} accepted=${result.accepted} messageId=${result.messageId}`,
-    );
-    return result;
+    const job = await this.emailQueue.add('send', input, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 2000 },
+    });
+    this.logger.log(`send queued as job ${job.id}`);
+    return {
+      messageId: `queued-${job.id}`,
+      provider: this.provider.name,
+      accepted: true,
+    };
   }
 
-  /** Send many emails. Providers with a native batch API override this. */
+  /** Send many emails via background queue. */
   async sendBulk(inputs: SendEmailInput[]): Promise<SendEmailResult[]> {
     this.logger.log(`sendBulk count=${inputs.length} via=${this.provider.name}`);
-    return this.provider.sendBulk(inputs);
+    const jobs = await this.emailQueue.addBulk(
+      inputs.map((data) => ({
+        name: 'send',
+        data,
+        opts: {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+        },
+      })),
+    );
+    return jobs.map((job) => ({
+      messageId: `queued-${job.id}`,
+      provider: this.provider.name,
+      accepted: true,
+    }));
+  }
+
+  /** Direct send, bypassing the queue. Used by the queue processor. */
+  async sendDirect(input: SendEmailInput): Promise<SendEmailResult> {
+    return this.provider.send(input);
   }
 
   /**

@@ -852,7 +852,8 @@ Please provide a friendly, concise summary of what was done for the user.`;
         list_projects: '\u0110ang l\u1ea5y d\u1ef1 \u00e1n',
         create_project: '\u0110ang t\u1ea1o d\u1ef1 \u00e1n',
         get_daily_summary: '\u0110ang t\u1ea1o t\u00f3m t\u1eaft h\u00f4m nay',
-        get_focus_recommendations: '\u0110ang ph\u00e2n t\u00edch vi\u1ec7c c\u1ea7n t\u1eadp trung',
+        get_focus_recommendations:
+          '\u0110ang ph\u00e2n t\u00edch vi\u1ec7c c\u1ea7n t\u1eadp trung',
         get_overdue_tasks: '\u0110ang l\u1ea5y t\u00e1c v\u1ee5 qu\u00e1 h\u1ea1n',
         get_upcoming_events: '\u0110ang l\u1ea5y s\u1ef1 ki\u1ec7n s\u1eafp t\u1edbi',
       },

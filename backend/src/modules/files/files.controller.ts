@@ -479,7 +479,7 @@ export class FilesController {
       limits: {
         fileSize: MAX_UPLOAD_SIZE,
       },
-    })
+    }),
   )
   async uploadFile(
     @Param('workspaceId') workspaceId: string,

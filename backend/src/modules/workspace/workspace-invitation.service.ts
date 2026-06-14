@@ -11,6 +11,7 @@ import { DatabaseService } from '../database/database.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { buildBrandedEmail } from '../email/branded-email';
+import { EmailProviderService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationPriority, NotificationType } from '../notifications/dto';
 
@@ -32,6 +33,7 @@ export class WorkspaceInvitationService {
     private readonly db: DatabaseService,
     @Inject(forwardRef(() => NotificationsService))
     private readonly notificationsService: NotificationsService,
+    private readonly emailProvider: EmailProviderService,
   ) {}
 
   /**
@@ -584,12 +586,13 @@ export class WorkspaceInvitationService {
         footer: 'Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua email.',
       });
 
-      await /* TODO: use EmailService */ this.db.sendEmail(
-        email,
-        `Lời mời tham gia ${workspaceName} trên Nexus`,
-        emailContent.html,
-        emailContent.text,
-      );
+      await this.emailProvider.send({
+        to: email,
+        subject: `Lời mời tham gia ${workspaceName} trên Nexus`,
+        html: emailContent.html,
+        text: emailContent.text,
+        tags: { type: 'workspace-invitation' },
+      });
     } catch (error) {
       this.logger.error('Failed to send invitation email', error);
       // Don't throw - we still want to create the invitation even if email fails
@@ -623,8 +626,7 @@ export class WorkspaceInvitationService {
         user_id: invitee.id,
         type: NotificationType.WORKSPACE,
         title: `${inviterName} invited you to ${workspaceName}`,
-        message:
-          message?.trim() || 'You have a new workspace invitation waiting for you on Nexus.',
+        message: message?.trim() || 'You have a new workspace invitation waiting for you on Nexus.',
         action_url: `/invite/${token}`,
         priority: NotificationPriority.NORMAL,
         send_push: true,

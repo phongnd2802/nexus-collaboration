@@ -47,7 +47,10 @@ function highlightReminderDuration(headline: string, urgencyColor: string): stri
   );
 }
 
-export function buildTaskReminderEmail(data: TaskReminderEmailData): { html: string; text: string } {
+export function buildTaskReminderEmail(data: TaskReminderEmailData): {
+  html: string;
+  text: string;
+} {
   const urgencyColor = urgencyColors[data.remindBeforeLabel] || '#D29922';
   const urgencyLabel = urgencyLabels[data.remindBeforeLabel] || 'Cần chú ý';
   const priorityLabel = priorityLabels[data.priority] || 'Trung bình';

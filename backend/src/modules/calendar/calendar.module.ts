@@ -19,13 +19,7 @@ import { WorkflowsModule } from '../workflows/workflows.module';
     forwardRef(() => WorkflowsModule),
   ],
   controllers: [CalendarController],
-  providers: [
-    CalendarService,
-    CalendarAgentService,
-  ],
-  exports: [
-    CalendarService,
-    CalendarAgentService,
-  ],
+  providers: [CalendarService, CalendarAgentService],
+  exports: [CalendarService, CalendarAgentService],
 })
 export class CalendarModule {}

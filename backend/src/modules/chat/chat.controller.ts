@@ -40,9 +40,7 @@ import { CurrentWorkspace } from '../../common/decorators/current-workspace.deco
 @Controller('workspaces/:workspaceId')
 @UseGuards(AuthGuard, WorkspaceGuard)
 export class ChatController {
-  constructor(
-    private readonly chatService: ChatService,
-  ) {}
+  constructor(private readonly chatService: ChatService) {}
 
   // Channel endpoints
   @Post('channels')

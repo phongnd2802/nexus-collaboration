@@ -107,7 +107,12 @@ export class McpChatAgentService {
             name: toolCall.name,
             content,
           });
-          actions.push({ tool: toolCall.name, input: toolCall.arguments || {}, success: false, error: content });
+          actions.push({
+            tool: toolCall.name,
+            input: toolCall.arguments || {},
+            success: false,
+            error: content,
+          });
           continue;
         }
 

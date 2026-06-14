@@ -15,11 +15,7 @@ import { IntegrationFrameworkModule } from '../integration-framework/integration
  * - Google Chat, Google Meet, Google Cloud, Google Analytics, YouTube (generic handlers)
  */
 @Module({
-  imports: [
-    EmailModule,
-    CalendarModule,
-    IntegrationFrameworkModule,
-  ],
+  imports: [EmailModule, CalendarModule, IntegrationFrameworkModule],
   controllers: [GoogleOAuthController],
 })
 export class IntegrationsModule {}

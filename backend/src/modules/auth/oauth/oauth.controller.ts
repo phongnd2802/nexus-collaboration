@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Query,
-  Body,
-  Res,
-  BadRequestException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { OAuthService } from './oauth.service';
@@ -22,10 +14,7 @@ export class OAuthController {
 
   @Get('google')
   @ApiOperation({ summary: 'Initiate Google OAuth login' })
-  async googleAuth(
-    @Query('frontendUrl') frontendUrl: string,
-    @Res() res: Response,
-  ) {
+  async googleAuth(@Query('frontendUrl') frontendUrl: string, @Res() res: Response) {
     if (!frontendUrl) {
       throw new BadRequestException('frontendUrl query parameter is required');
     }
@@ -63,9 +52,7 @@ export class OAuthController {
       });
       return res.redirect(`${frontendUrl}/auth/callback?${params.toString()}`);
     } catch (err) {
-      return res.redirect(
-        `${frontendUrl}/auth/login?error=${encodeURIComponent(err.message)}`,
-      );
+      return res.redirect(`${frontendUrl}/auth/login?error=${encodeURIComponent(err.message)}`);
     }
   }
 
@@ -75,10 +62,7 @@ export class OAuthController {
 
   @Get('github')
   @ApiOperation({ summary: 'Initiate GitHub OAuth login' })
-  async githubAuth(
-    @Query('frontendUrl') frontendUrl: string,
-    @Res() res: Response,
-  ) {
+  async githubAuth(@Query('frontendUrl') frontendUrl: string, @Res() res: Response) {
     if (!frontendUrl) {
       throw new BadRequestException('frontendUrl query parameter is required');
     }
@@ -116,9 +100,7 @@ export class OAuthController {
       });
       return res.redirect(`${frontendUrl}/auth/callback?${params.toString()}`);
     } catch (err) {
-      return res.redirect(
-        `${frontendUrl}/auth/login?error=${encodeURIComponent(err.message)}`,
-      );
+      return res.redirect(`${frontendUrl}/auth/login?error=${encodeURIComponent(err.message)}`);
     }
   }
 
@@ -128,9 +110,7 @@ export class OAuthController {
 
   @Post('exchange')
   @ApiOperation({ summary: 'Exchange OAuth exchange token for a full JWT' })
-  async exchangeToken(
-    @Body() body: { nexusToken?: string; token?: string },
-  ) {
+  async exchangeToken(@Body() body: { nexusToken?: string; token?: string }) {
     const token = body.nexusToken || body.token;
     if (!token) {
       throw new BadRequestException('token is required');
@@ -144,9 +124,7 @@ export class OAuthController {
 
   private parseFrontendUrl(state: string): string {
     try {
-      const data = JSON.parse(
-        Buffer.from(state, 'base64url').toString('utf-8'),
-      );
+      const data = JSON.parse(Buffer.from(state, 'base64url').toString('utf-8'));
       return data.frontendUrl?.replace(/\/$/, '') || 'http://localhost:5175';
     } catch {
       return 'http://localhost:5175';

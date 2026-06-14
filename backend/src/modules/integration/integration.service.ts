@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { buildBrandedEmail } from '../email/branded-email';
+import { EmailProviderService } from '../email/email.service';
 import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class IntegrationService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly emailProvider: EmailProviderService,
+  ) {}
   // Legacy alias for the AI provider - delegates to db.getAI() until a real
   // AIProviderService is wired in.
   private get aiProvider(): any {
@@ -225,12 +229,14 @@ export class IntegrationService {
         text: content,
       };
 
-      return await /* TODO: use EmailService */ this.db.sendEmail(
-        emailData.to,
-        emailData.subject,
-        emailData.html,
-        emailData.text,
-      );
+      const result = await this.emailProvider.send({
+        to: emailData.to,
+        subject: emailData.subject,
+        html: emailData.html,
+        text: emailData.text,
+        tags: { type: 'integration' },
+      });
+      return { success: result.accepted, messageId: result.messageId };
     } catch (error) {
       console.error('Email sending error:', error);
       throw new Error('Email service temporarily unavailable');
