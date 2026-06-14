@@ -292,7 +292,6 @@ const ChatPage: React.FC = () => {
   // Thread state
   const [threadOpen, setThreadOpen] = useState(false);
   const [threadParentMessage, setThreadParentMessage] = useState<MessageItemMessage | null>(null);
-  const [threadMessages, setThreadMessages] = useState<MessageItemMessage[]>([]);
 
   // Pinned messages
   const [pinnedMessages, setPinnedMessages] = useState<Set<string>>(new Set());
@@ -1231,18 +1230,12 @@ const ChatPage: React.FC = () => {
 
   const handleOpenThread = (message: MessageItemMessage) => {
     setThreadParentMessage(message);
-
-    // Filter thread messages
-    const threadReplies = messages.filter(m => m.parentMessageId === message.id);
-    setThreadMessages(threadReplies);
-
     setThreadOpen(true);
   };
 
   const handleCloseThread = useCallback(() => {
     setThreadOpen(false);
     setThreadParentMessage(null);
-    setThreadMessages([]);
   }, []);
 
   // Handle clicking on linked content (notes, events, files)
@@ -1623,7 +1616,6 @@ const ChatPage: React.FC = () => {
     setError(null);
     setThreadOpen(false);
     setThreadParentMessage(null);
-    setThreadMessages([]);
     setSelectionMode(false);
     setSelectedMessageIds(new Set());
 
@@ -2720,6 +2712,15 @@ const ChatPage: React.FC = () => {
     return users;
   }, [channelMembers, workspaceMembers, conversationMembers, selectedChatType, selectedChatId, isPrivateChannel, user?.id]);
 
+  const mainMessages = useMemo(() => {
+    return messages.filter((m) => !m.parentMessageId);
+  }, [messages]);
+
+  const threadMessages = useMemo(() => {
+    if (!threadParentMessage) return [];
+    return messages.filter((m) => m.parentMessageId === threadParentMessage.id);
+  }, [messages, threadParentMessage]);
+
   return (
     <div className="h-full flex bg-background dark:bg-background">
       {/* Main Chat Area */}
@@ -2974,19 +2975,19 @@ const ChatPage: React.FC = () => {
                       </div>
                     )}
 
-                    {!hasMoreMessages && messages.length > 0 && (
+                    {!hasMoreMessages && mainMessages.length > 0 && (
                       <div className="text-center py-2 text-xs text-muted-foreground">
                         {intl.formatMessage({ id: 'modules.chat.page.noMoreMessages', defaultMessage: 'No more messages' })}
                       </div>
                     )}
 
-                    {messages.length === 0 ? (
+                    {mainMessages.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
                         <p>{intl.formatMessage({ id: 'modules.chat.page.emptyState', defaultMessage: 'No messages yet. Start the conversation!' })}</p>
                       </div>
                     ) : (
-                      messages.map((message) => (
+                      mainMessages.map((message) => (
                       <div
                         key={message.id}
                         data-message-id={message.id}
