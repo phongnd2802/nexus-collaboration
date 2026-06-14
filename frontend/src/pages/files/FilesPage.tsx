@@ -262,17 +262,13 @@ const FilesPage: React.FC = () => {
       return;
     }
 
-    // For now, let's use a simpler approach that doesn't require new API endpoints
-    // When navigating via URL, we'll fetch the parent folder to get the folder name
+    // Fetch the folder details directly to get the folder name
     try {
       console.log('🔍 Fetching folder info for breadcrumb:', folderId);
-      // Try to get all folders in workspace to find the target folder name
-      const foldersResponse = await fileApi.getFoldersOnly(workspaceId);
-      console.log('📁 Folders response:', foldersResponse);
-      const targetFolder = foldersResponse.find(folder => folder.id === folderId);
+      const targetFolder = await fileApi.getFolder(workspaceId, folderId);
       console.log('🎯 Target folder found:', targetFolder);
       
-      if (targetFolder) {
+      if (targetFolder && targetFolder.name) {
         setBreadcrumbTrail([
           { id: null, name: rootName },
           { id: folderId, name: targetFolder.name }

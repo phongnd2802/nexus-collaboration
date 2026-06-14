@@ -110,7 +110,6 @@ export function CreateTaskModal({
     reporterId: '1',
     parentTaskId: parentTaskId || '',
     dueDate: null as Date | null,
-    estimatedHours: '',
     tags: [] as string[],
     links: [] as string[],
     severity: '',
@@ -250,7 +249,6 @@ export function CreateTaskModal({
         reporterId: '1',
         parentTaskId: (task as any).parentTaskId || '',
         dueDate: task.dueDate ? new Date(task.dueDate) : null,
-        estimatedHours: task.estimatedHours ? String(task.estimatedHours) : '',
         tags: task.tags || [],
         links: [],
         severity: '',
@@ -528,7 +526,6 @@ export function CreateTaskModal({
         parent_task_id: data.parentTaskId || undefined,
         assigned_to: data.assigneeIds.length > 0 ? data.assigneeIds : undefined,
         due_date: data.dueDate?.toISOString() || undefined,
-        estimated_hours: data.estimatedHours ? parseFloat(data.estimatedHours) : undefined,
         labels: data.tags.length > 0 ? data.tags : undefined,
         attachments: buildTaskAttachmentsPayload(attachments),
         custom_fields:
@@ -594,7 +591,6 @@ export function CreateTaskModal({
       reporterId: '1',
       parentTaskId: parentTaskId || '',
       dueDate: null,
-      estimatedHours: '',
       tags: [],
       links: [],
       severity: '',
@@ -1555,18 +1551,6 @@ export function CreateTaskModal({
                     className="w-full dark:[color-scheme:dark]"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="estimatedHours">{intl.formatMessage({ id: 'modules.projects.createTask.estimatedHours' })}</Label>
-                <Input
-                  id="estimatedHours"
-                  type="number"
-                  value={formData.estimatedHours}
-                  onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: e.target.value }))}
-                  placeholder={intl.formatMessage({ id: 'modules.projects.createTask.placeholders.zero' })}
-                  min="0"
-                />
               </div>
 
               {projectType === 'scrum' && (
