@@ -11,6 +11,10 @@ import { DatabaseService } from '../database/database.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto';
 import { EntityEventIntegrationService } from '../workflows/entity-event-integration.service';
+import { EmailProviderService } from '../email/email.service';
+import { buildBrandedEmail } from '../email/branded-email';
+import { FilesService } from '../files/files.service';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -27,6 +31,9 @@ export class ProjectsService {
   constructor(
     private readonly db: DatabaseService,
     private notificationsService: NotificationsService,
+    private readonly emailProvider: EmailProviderService,
+    @Inject(forwardRef(() => FilesService))
+    private readonly filesService: FilesService,
     @Optional()
     @Inject(forwardRef(() => EntityEventIntegrationService))
     private entityEventIntegration?: EntityEventIntegrationService,
@@ -872,9 +879,65 @@ export class ProjectsService {
           });
         } catch (error) {
           console.error('Failed to send task assignment notification:', error);
-          // Don't fail task creation if notification fails
         }
       }
+    }
+
+    // Send branded email to assignees (background via queue)
+    for (const assigneeId of assignees) {
+      if (assigneeId !== userId) {
+        try {
+          const assignee = await this.db.findOne('users', { id: assigneeId });
+          if (assignee?.email) {
+            const dueLabel = task.due_date
+              ? new Date(task.due_date).toLocaleDateString('vi-VN')
+              : 'Không có';
+            const { html, text } = buildBrandedEmail({
+              eyebrow: 'Nexus Tasks',
+              title: 'Bạn được giao nhiệm vụ mới',
+              greeting: `Xin chào ${assignee.name || assignee.username || ''}`,
+              intro: `Bạn vừa được giao nhiệm vụ trong dự án "${project.name}".`,
+              details: [
+                { label: 'Nhiệm vụ', value: task.title },
+                { label: 'Dự án', value: project.name },
+                { label: 'Hạn chót', value: dueLabel },
+                { label: 'Mức ưu tiên', value: task.priority || 'medium' },
+              ],
+              action: {
+                label: 'Xem nhiệm vụ',
+                url: `/workspaces/${project.workspace_id}/projects/${projectId}?task=${task.id}`,
+              },
+              actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này trong trình duyệt.`,
+            });
+
+            await this.emailProvider.send({
+              to: assignee.email,
+              subject: `[Nexus] Bạn được giao nhiệm vụ: ${task.title}`,
+              html,
+              text,
+              tags: { type: 'task-assignment' },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to send task assignment email:', error);
+        }
+      }
+    }
+
+    // Auto-share attached files with assignees
+    const fileIds = createTaskDto.attachments?.file_attachment || [];
+    console.log('[ProjectsService] createTask auto-share:', {
+      fileIds,
+      assignees,
+      workspaceId: project.workspace_id,
+    });
+    if (fileIds.length > 0 && assignees.length > 0) {
+      await this.ensureTaskFilesSharedWithAssignees(
+        fileIds,
+        assignees,
+        project.workspace_id,
+        userId,
+      );
     }
 
     return task;
@@ -1294,6 +1357,43 @@ export class ProjectsService {
                 project_name: project.name,
               },
             });
+
+            // Send branded email to newly added assignees (background via queue)
+            try {
+              const assignee = await this.db.findOne('users', { id: assigneeId });
+              if (assignee?.email) {
+                const dueLabel = updatedTask.due_date
+                  ? new Date(updatedTask.due_date).toLocaleDateString('vi-VN')
+                  : 'Không có';
+                const { html, text } = buildBrandedEmail({
+                  eyebrow: 'Nexus Tasks',
+                  title: 'Bạn được giao nhiệm vụ mới',
+                  greeting: `Xin chào ${assignee.name || assignee.username || ''}`,
+                  intro: `Bạn vừa được giao nhiệm vụ trong dự án "${project.name}".`,
+                  details: [
+                    { label: 'Nhiệm vụ', value: updatedTask.title },
+                    { label: 'Dự án', value: project.name },
+                    { label: 'Hạn chót', value: dueLabel },
+                    { label: 'Mức ưu tiên', value: updatedTask.priority || 'medium' },
+                  ],
+                  action: {
+                    label: 'Xem nhiệm vụ',
+                    url: `/workspaces/${project.workspace_id}/projects/${task.project_id}?task=${updatedTask.id}`,
+                  },
+                  actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này trong trình duyệt.`,
+                });
+
+                await this.emailProvider.send({
+                  to: assignee.email,
+                  subject: `[Nexus] Bạn được giao nhiệm vụ: ${updatedTask.title}`,
+                  html,
+                  text,
+                  tags: { type: 'task-assignment' },
+                });
+              }
+            } catch (emailError) {
+              console.error('Failed to send task assignment email in updateTask:', emailError);
+            }
           }
         }
 
@@ -1379,6 +1479,71 @@ export class ProjectsService {
     } catch (error) {
       console.error('Failed to send task update notification:', error);
       // Don't fail task update if notification fails
+    }
+
+    // Auto-share and revoke file attachments for assignee changes
+    try {
+      const currentFileIds: string[] =
+        (task.attachments?.file_attachment || []).map((f: any) => f.id).filter(Boolean) || [];
+      const newFileIds: string[] = updateTaskDto.attachments
+        ? (updateTaskDto.attachments.file_attachment || [])
+        : currentFileIds;
+
+      const currentAssignees: string[] = task.assigned_to || [];
+      const newAssignees: string[] = 'assigned_to' in updateTaskDto
+        ? (updateTaskDto.assigned_to || [])
+        : currentAssignees;
+
+      const addedAssignees = newAssignees.filter((id) => !currentAssignees.includes(id));
+      const removedAssignees = currentAssignees.filter((id) => !newAssignees.includes(id));
+      const addedFileIds = newFileIds.filter((id) => !currentFileIds.includes(id));
+      const removedFileIds = currentFileIds.filter((id) => !newFileIds.includes(id));
+      const allFileIds = [...new Set([...currentFileIds, ...newFileIds])];
+
+      console.log('[ProjectsService] updateTask auto-share debug:', {
+        taskId,
+        currentFileIds,
+        newFileIds,
+        currentAssignees,
+        newAssignees,
+        addedAssignees,
+        removedAssignees,
+        addedFileIds,
+        removedFileIds,
+        allFileIds,
+      });
+
+      // Revoke shares for removed assignees (all files)
+      if (removedAssignees.length > 0 && allFileIds.length > 0) {
+        await this.revokeTaskFileShares(allFileIds, removedAssignees);
+      }
+
+      // Revoke shares for removed files (for all new/remaining assignees)
+      if (removedFileIds.length > 0 && newAssignees.length > 0) {
+        await this.revokeTaskFileShares(removedFileIds, newAssignees);
+      }
+
+      // Share all files with newly added assignees
+      if (addedAssignees.length > 0 && allFileIds.length > 0) {
+        await this.ensureTaskFilesSharedWithAssignees(
+          allFileIds,
+          addedAssignees,
+          project.workspace_id,
+          userId,
+        );
+      }
+
+      // Share new files with all new/remaining assignees
+      if (addedFileIds.length > 0 && newAssignees.length > 0) {
+        await this.ensureTaskFilesSharedWithAssignees(
+          addedFileIds,
+          newAssignees,
+          project.workspace_id,
+          userId,
+        );
+      }
+    } catch (error) {
+      console.error('[ProjectsService] Failed to auto-share task files:', error);
     }
 
     return updatedTask;
@@ -2268,5 +2433,100 @@ export class ProjectsService {
       '#84CC16', // lime
     ];
     return colors[index % colors.length];
+  }
+
+  // ============================================
+  // TASK FILE SHARING HELPERS
+  // ============================================
+
+  private async ensureTaskFilesSharedWithAssignees(
+    fileIds: string[],
+    assigneeIds: string[],
+    workspaceId: string,
+    userId: string,
+  ) {
+    console.log('[ProjectsService] ensureTaskFilesSharedWithAssignees called:', {
+      fileIds,
+      assigneeIds,
+      workspaceId,
+      userId,
+    });
+
+    if (!fileIds?.length || !assigneeIds?.length) return;
+
+    const targetUserIds = assigneeIds.filter((id) => id !== userId);
+    if (!targetUserIds.length) return;
+
+    // Check for existing active shares to avoid duplicates
+    const existingSharesResult = await this.db
+      .table('file_shares')
+      .select('*')
+      .whereIn('file_id', fileIds)
+      .whereIn('shared_with', targetUserIds)
+      .where('is_active', '=', true)
+      .execute();
+
+    const existingShares = Array.isArray(existingSharesResult.data)
+      ? existingSharesResult.data
+      : [];
+    const existingSet = new Set(
+      existingShares.map((s) => `${s.file_id}:${s.shared_with}`),
+    );
+
+    console.log('[ProjectsService] Existing shares found:', existingShares.length);
+
+    // Only share pairs that don't already exist
+    for (const fileId of fileIds) {
+      const usersToShare = targetUserIds.filter(
+        (uid) => !existingSet.has(`${fileId}:${uid}`),
+      );
+      console.log('[ProjectsService] usersToShare for file', fileId, ':', usersToShare);
+      if (usersToShare.length > 0) {
+        try {
+          await this.filesService.shareFile(
+            fileId,
+            workspaceId,
+            {
+              user_ids: usersToShare,
+              permissions: { read: true, download: true },
+            },
+            userId,
+          );
+        } catch (error) {
+          console.error(`[ProjectsService] Failed to share file ${fileId}:`, error);
+        }
+      }
+    }
+  }
+
+  private async revokeTaskFileShares(
+    fileIds: string[],
+    removedAssigneeIds: string[],
+  ) {
+    if (!fileIds?.length || !removedAssigneeIds?.length) return;
+
+    const sharesResult = await this.db
+      .table('file_shares')
+      .select('*')
+      .whereIn('file_id', fileIds)
+      .whereIn('shared_with', removedAssigneeIds)
+      .where('is_active', '=', true)
+      .execute();
+
+    const shares = Array.isArray(sharesResult.data) ? sharesResult.data : [];
+    if (shares.length === 0) return;
+
+    await Promise.all(
+      shares.map((share) =>
+        this.db.update('file_shares', share.id, {
+          is_active: false,
+          updated_at: new Date().toISOString(),
+        }),
+      ),
+    );
+
+    console.log(
+      `[ProjectsService] Revoked ${shares.length} file shares for removed assignees`,
+    );
   }
 }

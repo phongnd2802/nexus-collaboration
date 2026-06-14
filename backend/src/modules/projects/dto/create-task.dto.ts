@@ -199,11 +199,6 @@ export class CreateTaskDto {
   @IsString()
   due_date?: string;
 
-  @ApiProperty({ description: 'Estimated hours', required: false })
-  @IsOptional()
-  @IsNumber()
-  estimated_hours?: number;
-
   @ApiProperty({ description: 'Story points', required: false })
   @IsOptional()
   @IsNumber()

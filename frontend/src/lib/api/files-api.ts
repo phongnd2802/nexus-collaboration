@@ -401,6 +401,11 @@ export const fileApi = {
     return api.get<FolderApiResponse[]>(url);
   },
 
+  // New: Fetch folder details by ID
+  async getFolder(workspaceId: string, folderId: string): Promise<FolderApiResponse> {
+    return api.get<FolderApiResponse>(`/workspaces/${workspaceId}/files/folders/${folderId}`);
+  },
+
   // New: Fetch both files and folders and merge them
   async getFilesAndFolders(workspaceId: string, folderId?: string | null, isDeleted?: boolean): Promise<FileItem[]> {
     try {
@@ -816,7 +821,53 @@ export const fileApi = {
   },
 
   async getSharedWithMe(workspaceId: string): Promise<FileItem[]> {
-    return api.get<FileItem[]>(`/workspaces/${workspaceId}/files/shared-with-me`);
+    const response = await api.get<any[]>(`/workspaces/${workspaceId}/files/shared-with-me`);
+    return response.map(file => ({
+      id: file.id,
+      workspaceId: file.workspace_id,
+      workspace_id: file.workspace_id,
+      name: file.name,
+      type: 'file' as const,
+      mimeType: file.mime_type,
+      mime_type: file.mime_type,
+      size: parseInt(file.size, 10),
+      folderId: file.folder_id || undefined,
+      folder_id: file.folder_id,
+      url: file.url,
+      storage_path: file.storage_path,
+      starred: file.starred,
+      isStarred: file.starred,
+      createdBy: file.uploaded_by,
+      uploaded_by: file.uploaded_by,
+      createdAt: file.created_at,
+      created_at: file.created_at,
+      updatedAt: file.updated_at,
+      updated_at: file.updated_at,
+      version: file.version,
+      previous_version_id: file.previous_version_id,
+      file_hash: file.file_hash,
+      virus_scan_status: file.virus_scan_status,
+      virus_scan_at: file.virus_scan_at,
+      extracted_text: file.extracted_text,
+      ocr_status: file.ocr_status,
+      metadata: file.metadata,
+      collaborative_data: file.collaborative_data,
+      is_deleted: file.is_deleted,
+      deleted_at: file.deleted_at,
+      starred_at: file.starred_at,
+      starred_by: file.starred_by,
+      last_opened_at: file.last_opened_at,
+      last_opened_by: file.last_opened_by,
+      open_count: file.open_count,
+      parent_folder_ids: file.parent_folder_ids,
+      shareSettings: {
+        isPublic: file.metadata?.is_public || false
+      },
+      shared_by: file.shared_by,
+      shared_by_user: file.shared_by_user,
+      shared_at: file.shared_at,
+      share_permissions: file.share_permissions
+    }));
   },
 
   async removeShare(fileId: string, userId?: string): Promise<void> {

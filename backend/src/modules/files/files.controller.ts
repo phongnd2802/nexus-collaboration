@@ -111,6 +111,20 @@ export class FilesController {
     return this.filesService.getFolders(workspaceId, parentId, isDeletedBool, userId);
   }
 
+  @Get('folders/:folderId')
+  @ApiOperation({ summary: 'Get folder details' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  @ApiParam({ name: 'folderId', description: 'Folder ID' })
+  @ApiResponse({ status: 200, description: 'Folder details' })
+  @ApiResponse({ status: 404, description: 'Folder not found' })
+  async getFolder(
+    @Param('workspaceId') workspaceId: string,
+    @Param('folderId') folderId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.filesService.getFolder(folderId, workspaceId, userId);
+  }
+
   @Get('trash')
   @ApiOperation({
     summary: 'Get deleted items tree structure',
