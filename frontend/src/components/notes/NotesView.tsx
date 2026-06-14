@@ -899,7 +899,9 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
         try {
           console.log('Fetching note from API:', noteId, 'workspace:', currentWorkspace.id)
           // Fetch from workspace-scoped endpoint
-          const fetchedNote = await notesApi.getNoteByWorkspace(currentWorkspace.id, noteId)
+          const fetchedNote = await notesApi.getNoteByWorkspace(currentWorkspace.id, noteId, {
+            includeDeleted: true,
+          })
 
           console.log('API response received:', fetchedNote)
           console.log('🔍 Backend fields from API:', {
@@ -1142,7 +1144,11 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
             if (!currentWorkspace?.id || !selectedNote?.id) return
             try {
               console.log('[NotesView] Refreshing note content from API...')
-              const refreshedNote = await notesApi.getNoteByWorkspace(currentWorkspace.id, selectedNote.id)
+              const refreshedNote = await notesApi.getNoteByWorkspace(
+                currentWorkspace.id,
+                selectedNote.id,
+                { includeDeleted: true },
+              )
               if (refreshedNote) {
                 // Update the note in the store
                 updateNote(selectedNote.id, {

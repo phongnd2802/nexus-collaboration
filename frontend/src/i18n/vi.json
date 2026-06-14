@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
@@ -1518,6 +1518,12 @@
         "aiSuggestions": "Đề xuất AI (nhấp để chọn):",
         "linkedItems": "Mục liên kết ({count})",
         "removeLink": "Xóa liên kết",
+        "taskDocuments": "Tài liệu đính kèm",
+        "taskDocumentsDescription": "Tùy chọn. Tệp tải lên sẽ được lưu trong File Management theo project và task này.",
+        "taskDocumentsHint": "Chọn một hoặc nhiều tệp từ thiết bị của bạn.",
+        "taskDocumentsChooseFiles": "Chọn tệp",
+        "taskDocumentsAddMore": "Thêm tệp",
+        "selectedTaskDocuments": "Tệp đã chọn ({count})",
         "assignees": "Người được giao",
         "assigneesPlaceholder": "Chọn người được giao",
         "selected": "Đã chọn {count}",
@@ -1585,7 +1591,9 @@
           "error": "Lỗi",
           "failedToLoadFile": "Không thể tải tệp",
           "failedToLoadEvent": "Không thể tải sự kiện",
-          "driveUrlNotAvailable": "URL tệp Drive không khả dụng"
+          "driveUrlNotAvailable": "URL tệp Drive không khả dụng",
+          "attachmentsPartialSuccess": "Đã lưu task nhưng một số tệp chưa tải lên được",
+          "attachmentsPartialSuccessDescription": "Cần tải lại các tệp sau: {files}"
         },
         "placeholders": {
           "enterField": "Nhập {name}",
@@ -3497,7 +3505,70 @@
         "cancel": "Hủy"
       },
       "sidebar": {
-        "recentContacts": "THÀNH VIÊN KHÔNG GIAN LÀM VIỆC"
+        "recentContacts": "THÀNH VIÊN KHÔNG GIAN LÀM VIỆC",
+        "left": {
+          "quickActions": {
+            "audioCall": "Cuộc gọi âm thanh",
+            "videoCall": "Cuộc gọi video"
+          }
+        },
+        "right": {
+          "recentMeetings": {
+            "viewDetails": "Xem chi tiết",
+            "participants": "{count} người tham gia",
+            "status": {
+              "completed": "Đã hoàn thành",
+              "active": "Đang diễn ra",
+              "scheduled": "Đã lên lịch",
+              "cancelled": "Đã hủy"
+            }
+          },
+          "summaries": {
+            "keyPoints": "{count} ý chính",
+            "viewFull": "Xem đầy đủ"
+          },
+          "notes": {
+            "aiAccuracy": "{percent}% AI",
+            "viewNote": "Xem ghi chú"
+          },
+          "details": {
+            "meetingDetails": "Chi tiết cuộc họp",
+            "duration": "Thời lượng:",
+            "date": "Ngày:",
+            "time": "Giờ:",
+            "status": "Trạng thái:",
+            "participants": "Người tham gia ({count})",
+            "joinMeeting": "Tham gia cuộc họp",
+            "downloadRecording": "Tải bản ghi",
+            "copyDetails": "Sao chép chi tiết",
+            "detailsCopied": "Đã sao chép chi tiết cuộc họp vào bảng tạm"
+          },
+          "summary": {
+            "meetingSummary": "Tóm tắt cuộc họp",
+            "summary": "Tóm tắt:",
+            "keyPoints": "Ý chính",
+            "downloadPdf": "Tải PDF",
+            "copySummary": "Sao chép tóm tắt",
+            "summaryCopied": "Đã sao chép tóm tắt vào bảng tạm",
+            "pdfDownloaded": "Đã tải tóm tắt dưới dạng PDF"
+          },
+          "note": {
+            "meetingNote": "Ghi chú cuộc họp",
+            "aiAccuracy": "{percent}% độ chính xác AI",
+            "aiGenerated": "Nội dung do AI tạo",
+            "context": "Ngữ cảnh cuộc họp",
+            "confidence": "Điểm tin cậy của AI",
+            "accuracy": "{percent}% chính xác",
+            "generated": "Đã tạo",
+            "saveToNotes": "Lưu vào Notes",
+            "export": "Xuất",
+            "copyNote": "Sao chép ghi chú",
+            "noteSaved": "Đã lưu ghi chú \"{title}\" vào ứng dụng Notes",
+            "noteExported": "Đã xuất ghi chú thành tài liệu",
+            "noteCopied": "Đã sao chép ghi chú vào bảng tạm",
+            "recordingDownloaded": "Đã tải bản ghi cuộc họp"
+          }
+        }
       },
       "analytics": {
         "title": "Phân tích của bạn",
@@ -3529,7 +3600,7 @@
           "30min": "30 phút",
           "45min": "45 phút",
           "1hour": "1 giờ",
-          "1.5hours ": "1.5 giờ",
+          "1.5hours": "1.5 giờ",
           "2hours": "2 giờ",
           "3hours": "3 giờ",
           "custom": "Tùy chỉnh"
@@ -3706,7 +3777,7 @@
     "title": "Nexus so sánh",
     "titleHighlight": "Với đối thủ cạnh tranh",
     "subtitle": "Nền tảng duy nhất có chat, video, dự án, tệp và ghi chú - tất cả tích hợp đầy đủ",
-    "Nexus": "Nexus",
+    "nexus": "Nexus",
     "nexusTagline": "Tất cả trong một",
     "competitors": "Nền tảng khác",
     "featureColumn": "Tính năng",
@@ -3768,7 +3839,7 @@
       }
     },
     "pricingNotes": {
-      "Nexus": "Bao gồm tất cả tính năng",
+      "nexus": "Bao gồm tất cả tính năng",
       "slack": "Chỉ chat & video cơ bản",
       "notion": "Chỉ tài liệu & wiki",
       "monday": "Chỉ dự án & bảng",
@@ -4998,6 +5069,9 @@
         "recentCalls": "{count} cuộc gọi gần đây",
         "noHistory": "Không có lịch sử cuộc gọi",
         "noHistoryDesc": "Các cuộc gọi đã hoàn tất sẽ xuất hiện tại đây.",
+        "defaultVideoCallTitle": "Cuộc gọi video",
+        "defaultAudioCallTitle": "Cuộc gọi âm thanh",
+        "meetingSummaryTitle": "Tóm tắt cuộc họp",
         "callAgain": "Gọi lại",
         "schedule": "Lên lịch",
         "recorded": "Đã ghi âm",
@@ -5201,6 +5275,8 @@
       },
       "formatTime": {
         "justNow": "Vừa xong",
+        "secondsAgo": "{seconds} giây trước",
+        "minutesAgo": "{minutes} phút trước",
         "hoursAgo": "{hours} giờ trước",
         "daysAgo": "{days} ngày trước",
         "duration": "{hours}giờ {minutes}phút",
@@ -7133,10 +7209,12 @@
       }
     },
     "userProfile": {
+      "memberProfile": "Hồ sơ thành viên",
       "loading": "Đang tải hồ sơ...",
       "missingParams": "Thiếu workspace hoặc user ID",
       "loadFailed": "Không thể tải hồ sơ người dùng",
       "unknownUser": "Người dùng không xác định",
+      "notAvailable": "Không có dữ liệu",
       "errorTitle": "Không tìm thấy Hồ sơ",
       "errorMessage": "Không thể tải hồ sơ người dùng",
       "goBack": "Quay lại",
@@ -7257,6 +7335,10 @@
       "taskBalance": {
         "title": "Mất cân bằng nhiệm vụ trong {projectName}",
         "description": "{overloadedName} có {overloadedCount} nhiệm vụ trong khi {underloadedName} có {underloadedCount}. Mức lý tưởng là khoảng {idealCount} nhiệm vụ mỗi thành viên."
+      },
+      "projectAtRisk": {
+        "title": "Dự án \"{projectName}\" đang gặp rủi ro",
+        "description": "{overdueTasks} trên {totalTasks} nhiệm vụ đã quá hạn ({overduePercentage}%)"
       },
       "overdueTask": {
         "title": "Quá hạn: {taskTitle}",
@@ -7548,6 +7630,9 @@
         "edit": "Chỉnh sửa",
         "delete": "Xóa"
       }
+    },
+    "table":{
+      "dueDate": "Hạn chót"
     }
   },
   "settings": {
@@ -7880,6 +7965,8 @@
     "markAllRead": "Đánh dấu tất cả là đã đọc",
     "clearRead": "Xóa đã đọc",
     "items": {
+      "workspaceInvitationTitle": "{inviterName} đã mời bạn vào {workspaceName}",
+      "workspaceInvitationMessage": "Bạn có một lời mời tham gia workspace mới đang chờ trên Nexus.",
       "newMessageInChannel": "Tin nhắn mới trong #{channelName}",
       "taskUnassigned": "Bỏ giao nhiệm vụ",
       "taskUnassignedMessage": "Nhiệm vụ \"{taskTitle}\" đã được bỏ giao khỏi bạn"

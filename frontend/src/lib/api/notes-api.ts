@@ -137,8 +137,18 @@ export const notesApi = {
     return api.get<Note>(`/notes/${noteId}`);
   },
 
-  async getNoteByWorkspace(workspaceId: string, noteId: string): Promise<Note> {
-    return api.get<Note>(`/workspaces/${workspaceId}/notes/${noteId}`);
+  async getNoteByWorkspace(
+    workspaceId: string,
+    noteId: string,
+    options?: { includeDeleted?: boolean },
+  ): Promise<Note> {
+    const params = new URLSearchParams();
+    if (options?.includeDeleted) {
+      params.append('include_deleted', 'true');
+    }
+
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return api.get<Note>(`/workspaces/${workspaceId}/notes/${noteId}${queryString}`);
   },
 
   async createNote(workspaceId: string, data: CreateNoteRequest): Promise<Note> {

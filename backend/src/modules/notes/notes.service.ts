@@ -304,7 +304,7 @@ export class NotesService {
     );
   }
 
-  async getNote(noteId: string, workspaceId: string, userId: string) {
+  async getNote(noteId: string, workspaceId: string, userId: string, includeDeleted = false) {
     const noteQuery = await this.db
       .table('notes')
       .select('*')
@@ -314,7 +314,11 @@ export class NotesService {
       .execute();
 
     const noteData = Array.isArray(noteQuery.data) ? noteQuery.data : [];
-    if (noteData.length === 0 || noteData[0]?.deleted_at) {
+    if (noteData.length === 0) {
+      throw new NotFoundException('Note not found');
+    }
+
+    if (noteData[0]?.deleted_at && !includeDeleted) {
       throw new NotFoundException('Note not found');
     }
 

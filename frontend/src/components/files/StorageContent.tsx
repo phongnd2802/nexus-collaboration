@@ -145,10 +145,6 @@ export const StorageContent: React.FC<StorageContentProps> = ({
     audio: dashboardStats?.file_type_breakdown?.audio || 0
   }
 
-  const usedStorage = dashboardStats?.storage_used_bytes || 0
-  const maxStorage = dashboardStats?.storage_total_bytes || (1 * 1024 * 1024 * 1024) // 1GB default (Free plan)
-  const usagePercentage = dashboardStats?.storage_percentage_used || 0
-
   return (
     <div className="space-y-6">
       {/* Storage Info */}
@@ -156,7 +152,6 @@ export const StorageContent: React.FC<StorageContentProps> = ({
         <div className="space-y-4">
           {isLoadingStats ? (
             <div className="space-y-4">
-              <Skeleton className="h-20 w-full rounded-lg" />
               <div className="grid grid-cols-2 gap-3">
                 <Skeleton className="h-16 rounded-lg" />
                 <Skeleton className="h-16 rounded-lg" />
@@ -166,21 +161,6 @@ export const StorageContent: React.FC<StorageContentProps> = ({
             </div>
           ) : (
             <>
-              <div className="bg-muted/50 rounded-lg p-4 w-full max-w-md">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">{intl.formatMessage({ id: 'modules.files.storage.usedStorage', defaultMessage: 'Used Storage' })}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatFileSize(usedStorage)}
-                  </span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2 mb-3">
-                  <div
-                    className="gradient-primary h-2 rounded-full transition-all"
-                    style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-muted/50 rounded-lg p-3 text-center">
                   <div className="text-lg font-bold text-blue-600">

@@ -61,7 +61,8 @@ import {
   Users,
   List,
   Trash2,
-  Settings2
+  Settings2,
+  Upload
 } from 'lucide-react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { projectService, projectKeys, type CustomFieldType } from '@/lib/api/projects-api'
@@ -135,6 +136,8 @@ export function CreateTaskModal({
 
   // Attachment states
   const [attachments, setAttachments] = useState<RichTextAttachment[]>([])
+  const [uploadedTaskFiles, setUploadedTaskFiles] = useState<File[]>([])
+  const taskDocumentsInputRef = React.useRef<HTMLInputElement | null>(null)
   const [filePreviewOpen, setFilePreviewOpen] = useState(false)
   const [filePreviewData, setFilePreviewData] = useState<any>(null)
   const [filePreviewLoading, setFilePreviewLoading] = useState(false)
@@ -242,7 +245,7 @@ export function CreateTaskModal({
         type: task.task_type || TaskType.TASK,
         status: task.status || '',
         priority: task.priority || 'medium',
-        projectId: task.projectId || projectId || '',
+        projectId: task.projectId || task.project_id || projectId || '',
         assigneeIds: assigneeIds,
         reporterId: '1',
         parentTaskId: (task as any).parentTaskId || '',
@@ -282,6 +285,73 @@ export function CreateTaskModal({
         sourceLinks: readField('system_source_links'),
         evidenceLevel: readField('system_evidence_level'),
       }))
+
+      const normalizeAttachmentIds = (items: Array<string | { id?: string }> | undefined) =>
+        Array.isArray(items)
+          ? items
+              .map((item) => {
+                if (typeof item === 'string') return item
+                if (item && typeof item === 'object' && item.id) return item.id
+                return null
+              })
+              .filter((item): item is string => Boolean(item))
+          : []
+
+      const taskAttachments =
+        task.attachments && typeof task.attachments === 'object'
+          ? task.attachments
+          : { note_attachment: [], file_attachment: [], event_attachment: [] }
+
+      const nextAttachments: RichTextAttachment[] = [
+        ...normalizeAttachmentIds(taskAttachments.note_attachment).map((id) => {
+          const note = Array.isArray(taskAttachments.note_attachment)
+            ? taskAttachments.note_attachment.find((item: any) =>
+                typeof item === 'string' ? item === id : item?.id === id
+              )
+            : null
+
+          return {
+            id,
+            title: typeof note === 'object' && note?.title ? note.title : id,
+            type: 'notes' as const,
+          }
+        }),
+        ...normalizeAttachmentIds(taskAttachments.file_attachment).map((id) => {
+          const file = Array.isArray(taskAttachments.file_attachment)
+            ? taskAttachments.file_attachment.find((item: any) =>
+                typeof item === 'string' ? item === id : item?.id === id
+              )
+            : null
+
+          return {
+            id,
+            title:
+              typeof file === 'object' && (file?.name || file?.title)
+                ? file.name || file.title
+                : id,
+            type: 'files' as const,
+          }
+        }),
+        ...normalizeAttachmentIds(taskAttachments.event_attachment).map((id) => {
+          const event = Array.isArray(taskAttachments.event_attachment)
+            ? taskAttachments.event_attachment.find((item: any) =>
+                typeof item === 'string' ? item === id : item?.id === id
+              )
+            : null
+
+          return {
+            id,
+            title: typeof event === 'object' && event?.title ? event.title : id,
+            type: 'events' as const,
+          }
+        }),
+      ]
+
+      setAttachments(nextAttachments)
+      setUploadedTaskFiles([])
+    } else if (open && !task) {
+      setAttachments([])
+      setUploadedTaskFiles([])
     }
   }, [task, open, projectId, projectMembers])
 
@@ -304,6 +374,136 @@ export function CreateTaskModal({
     pushIfValue('system_source_links', 'Source Links', data.sourceLinks)
     pushIfValue('system_evidence_level', 'Evidence Level', data.evidenceLevel)
     return fields
+  }
+
+  const buildTaskAttachmentsPayload = (items: RichTextAttachment[]) => ({
+    note_attachment: items
+      .filter((attachment) => attachment.type === 'notes')
+      .map((attachment) => attachment.id),
+    file_attachment: items
+      .filter((attachment) => attachment.type === 'files')
+      .map((attachment) => attachment.id),
+    event_attachment: items
+      .filter((attachment) => attachment.type === 'events')
+      .map((attachment) => attachment.id),
+  })
+
+  const sanitizeFolderName = (value: string) =>
+    value
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, ' ')
+      .slice(0, 120) || 'untitled'
+
+  const ensureFolder = async (folderName: string, parentId?: string | null) => {
+    const existingFolders = await fileApi.getFoldersOnly(workspaceId, parentId ?? null)
+    const normalizedFolderName = folderName.trim().toLowerCase()
+    const existingFolder = existingFolders.find(
+      (folder) => folder.name.trim().toLowerCase() === normalizedFolderName
+    )
+
+    if (existingFolder) {
+      return existingFolder
+    }
+
+    return fileApi.createFolder(workspaceId, {
+      name: folderName,
+      parent_id: parentId ?? undefined,
+    })
+  }
+
+  const uploadTaskFilesToFileManagement = async (
+    savedTask: any,
+    taskName: string,
+    currentAttachments: RichTextAttachment[]
+  ) => {
+    const baseAttachments = buildTaskAttachmentsPayload(currentAttachments)
+
+    if (uploadedTaskFiles.length === 0) {
+      return { task: savedTask, uploadSummary: null }
+    }
+
+    const projectFolderName = sanitizeFolderName(
+      projectData?.name || savedTask.project_name || task?.project_name || 'project'
+    )
+    const taskFolderName = sanitizeFolderName(savedTask.title || taskName)
+    const projectFolder = await ensureFolder(projectFolderName, null)
+    const taskFolder = await ensureFolder(taskFolderName, projectFolder.id)
+
+    const uploadedFileIds: string[] = []
+    const failedFiles: string[] = []
+
+    for (const file of uploadedTaskFiles) {
+      try {
+        const uploadedFile = await fileApi.uploadFile(workspaceId, {
+          file,
+          workspace_id: workspaceId,
+          parent_folder_id: taskFolder.id,
+        })
+        uploadedFileIds.push(uploadedFile.id)
+      } catch (error) {
+        console.error('Failed to upload task attachment:', file.name, error)
+        failedFiles.push(file.name)
+      }
+    }
+
+    if (uploadedFileIds.length === 0) {
+      return {
+        task: savedTask,
+        uploadSummary: {
+          uploadedCount: 0,
+          failedFiles,
+        },
+      }
+    }
+
+    const updatedTask = await projectService.updateTask(workspaceId, savedTask.id, {
+      attachments: {
+        note_attachment: baseAttachments.note_attachment,
+        event_attachment: baseAttachments.event_attachment,
+        file_attachment: Array.from(
+          new Set([...baseAttachments.file_attachment, ...uploadedFileIds])
+        ),
+      },
+    })
+
+    return {
+      task: updatedTask,
+      uploadSummary: {
+        uploadedCount: uploadedFileIds.length,
+        failedFiles,
+      },
+    }
+  }
+
+  const addSelectedTaskFiles = (selectedFiles: File[]) => {
+    if (selectedFiles.length === 0) return
+
+    setUploadedTaskFiles((prev) => {
+      const existingKeys = new Set(
+        prev.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
+      )
+      const nextFiles = selectedFiles.filter(
+        (file) => !existingKeys.has(`${file.name}-${file.size}-${file.lastModified}`)
+      )
+      return [...prev, ...nextFiles]
+    })
+  }
+
+  const removeSelectedTaskFile = (targetFile: File) => {
+    setUploadedTaskFiles((prev) =>
+      prev.filter(
+        (file) =>
+          `${file.name}-${file.size}-${file.lastModified}` !==
+          `${targetFile.name}-${targetFile.size}-${targetFile.lastModified}`
+      )
+    )
+  }
+
+  const formatFileSize = (size: number) => {
+    if (size < 1024) return `${size} B`
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`
   }
 
   const saveTaskMutation = useMutation({
@@ -330,31 +530,43 @@ export function CreateTaskModal({
         due_date: data.dueDate?.toISOString() || undefined,
         estimated_hours: data.estimatedHours ? parseFloat(data.estimatedHours) : undefined,
         labels: data.tags.length > 0 ? data.tags : undefined,
+        attachments: buildTaskAttachmentsPayload(attachments),
         custom_fields:
           [...taskCustomFields, ...buildTypeSpecificCustomFields(data)].length > 0
             ? [...taskCustomFields, ...buildTypeSpecificCustomFields(data)]
             : undefined,
       }
 
-      if (isEditMode && task) {
-        // Update existing task - calls PATCH /api/v1/workspaces/{workspaceId}/projects/tasks/{taskId}
-        return projectService.updateTask(workspaceId, task.id, taskData)
-      } else {
-        // Create new task
-        return projectService.createTask(workspaceId, targetProjectId, taskData)
-      }
+      const savedTask = isEditMode && task
+        ? await projectService.updateTask(workspaceId, task.id, taskData)
+        : await projectService.createTask(workspaceId, targetProjectId, taskData)
+
+      return uploadTaskFilesToFileManagement(savedTask, data.name, attachments)
     },
-    onSuccess: (_, data) => {
-      // Use the projectId from formData which is set correctly for both create and edit
-      const targetProjectId = data.projectId || projectId
+    onSuccess: (result, data) => {
+      const savedTask = result.task
+      const targetProjectId = savedTask.project_id || savedTask.projectId || data.projectId || projectId
       if (targetProjectId) {
         queryClient.invalidateQueries({ queryKey: projectKeys.tasks(targetProjectId) })
         queryClient.invalidateQueries({ queryKey: projectKeys.analytics(targetProjectId) })
       }
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ['task', savedTask.id] })
+      queryClient.invalidateQueries({ queryKey: ['files'] })
       onTaskCreated?.()
       onOpenChange(false)
       resetForm()
+
+      if (result.uploadSummary?.failedFiles.length) {
+        toast({
+          title: intl.formatMessage({ id: 'modules.projects.createTask.toast.attachmentsPartialSuccess' }),
+          description: intl.formatMessage(
+            { id: 'modules.projects.createTask.toast.attachmentsPartialSuccessDescription' },
+            { files: result.uploadSummary.failedFiles.join(', ') }
+          ),
+          variant: 'destructive',
+        })
+      }
     },
     onError: (error: any) => {
       console.error('Error creating task:', error)
@@ -398,6 +610,8 @@ export function CreateTaskModal({
       evidenceLevel: '',
     })
     setTaskCustomFields([])
+    setAttachments([])
+    setUploadedTaskFiles([])
     setActiveTab('basic')
     setAiDescriptionLoading(false)
   }
@@ -600,7 +814,6 @@ export function CreateTaskModal({
                       onClick={() => handleUpdateFieldValue(id, selectedValues.filter((v: string) => v !== optId))}
                       className="ml-1 hover:text-red-500"
                     >
-                      ×
                     </button>
                   </Badge>
                 ) : null
@@ -1093,6 +1306,103 @@ export function CreateTaskModal({
                     </div>
                   </div>
                 )}
+
+                <div className="mt-4 rounded-2xl border border-dashed border-border/80 bg-gradient-to-br from-muted/40 via-background to-muted/20 p-4">
+                  <input
+                    ref={taskDocumentsInputRef}
+                    id="taskDocuments"
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(event) => {
+                      addSelectedTaskFiles(Array.from(event.target.files || []))
+                      event.target.value = ''
+                    }}
+                  />
+
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="taskDocuments" className="text-base font-semibold">
+                        {intl.formatMessage({ id: 'modules.projects.createTask.taskDocuments' })}
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        {intl.formatMessage({ id: 'modules.projects.createTask.taskDocumentsDescription' })}
+                      </p>
+                    </div>
+                    {uploadedTaskFiles.length > 0 && (
+                      <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs">
+                        {intl.formatMessage(
+                          { id: 'modules.projects.createTask.selectedTaskDocuments' },
+                          { count: uploadedTaskFiles.length }
+                        )}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => taskDocumentsInputRef.current?.click()}
+                    className={cn(
+                      'mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-border/70 bg-background/90 px-4 py-4 text-left transition-colors',
+                      'hover:border-primary/40 hover:bg-muted/40'
+                    )}
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Upload className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-foreground">
+                          {uploadedTaskFiles.length > 0
+                            ? intl.formatMessage({ id: 'modules.projects.createTask.taskDocumentsAddMore' })
+                            : intl.formatMessage({ id: 'modules.projects.createTask.taskDocumentsChooseFiles' })}
+                        </div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {uploadedTaskFiles.length > 0
+                            ? uploadedTaskFiles.map((file) => file.name).join(', ')
+                            : intl.formatMessage({ id: 'modules.projects.createTask.taskDocumentsHint' })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="shrink-0 rounded-lg border border-border bg-muted px-3 py-2 text-xs font-medium">
+                      {uploadedTaskFiles.length > 0
+                        ? intl.formatMessage({ id: 'modules.projects.createTask.taskDocumentsAddMore' })
+                        : intl.formatMessage({ id: 'modules.projects.createTask.taskDocumentsChooseFiles' })}
+                    </span>
+                  </button>
+
+                  {uploadedTaskFiles.length > 0 && (
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {uploadedTaskFiles.map((file) => (
+                        <div
+                          key={`${file.name}-${file.size}-${file.lastModified}`}
+                          className="group flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/80 px-3 py-3"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                              <HardDrive className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium">{file.name}</p>
+                              <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 rounded-full text-muted-foreground hover:text-destructive"
+                            onClick={() => removeSelectedTaskFile(file)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </TabsContent>
@@ -1110,7 +1420,7 @@ export function CreateTaskModal({
                             <div className="flex -space-x-2">
                               {(() => {
                                 // Debug: Log what we're working with
-                                console.log('🔍 Assignee Display Debug:');
+                                console.log('ðŸ” Assignee Display Debug:');
                                 console.log('  formData.assigneeIds:', formData.assigneeIds);
                                 console.log('  availableAssignees:', availableAssignees.map(m => ({
                                   id: m.id,
@@ -1462,7 +1772,7 @@ export function CreateTaskModal({
                           onClick={() => handleRemoveTag(tag)}
                           className="ml-2 hover:text-red-500"
                         >
-                          ×
+                          Ã—
                         </button>
                       </Badge>
                     ))}
@@ -1663,7 +1973,7 @@ export function CreateTaskModal({
                                 onClick={() => setNewFieldOptions(newFieldOptions.filter((_, i) => i !== idx))}
                                 className="ml-1 hover:text-red-500"
                               >
-                                ×
+                                Ã—
                               </button>
                             </Badge>
                           ))}

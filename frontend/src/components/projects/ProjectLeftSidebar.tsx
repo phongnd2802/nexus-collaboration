@@ -21,6 +21,7 @@ import {
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useProjects, projectService, projectKeys } from '@/lib/api/projects-api';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface ProjectLeftSidebarProps {
@@ -39,6 +40,7 @@ export function ProjectLeftSidebar({
   onProjectSelect
 }: ProjectLeftSidebarProps) {
   const intl = useIntl();
+  const { user } = useAuth();
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
@@ -67,11 +69,28 @@ export function ProjectLeftSidebar({
 
   // Get all tasks for "My Tasks" section
   const allTasks = useMemo(() => {
+    if (!user?.id) {
+      return [];
+    }
+
     return taskQueries
       .filter(query => query.data)
-      .flatMap(query => query.data || [])
+      .flatMap(query => (query.data || []).filter((task: any) => {
+        const assignedTo = Array.isArray(task.assigned_to) ? task.assigned_to : [];
+        const assigneeIds = Array.isArray(task.assignees)
+          ? task.assignees
+              .map((assignee: any) =>
+                typeof assignee === 'string'
+                  ? assignee
+                  : assignee?.id || assignee?.user_id || assignee?.user?.id
+              )
+              .filter(Boolean)
+          : [];
+
+        return assignedTo.includes(user.id) || assigneeIds.includes(user.id);
+      }))
       .slice(0, 10); // Limit to 10 tasks
-  }, [taskQueries]);
+  }, [taskQueries, user?.id]);
 
   // Mutation for updating task status
   const updateTaskMutation = useMutation({

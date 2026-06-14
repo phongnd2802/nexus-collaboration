@@ -28,7 +28,45 @@ interface NotificationItemProps {
   onClick: () => void;
 }
 
+const getWorkspaceInvitationContext = (notification: Notification) => {
+  const isWorkspaceInvitation =
+    notification.data?.entity_type === 'workspace_invitation' ||
+    notification.data?.notification_type === 'workspace_invitation';
+
+  if (!isWorkspaceInvitation) {
+    return null;
+  }
+
+  const inviterName =
+    notification.data?.inviter_name ||
+    notification.title.match(/^(.*) invited you to /)?.[1] ||
+    '';
+  const workspaceName =
+    notification.data?.workspace_name ||
+    notification.title.match(/ invited you to (.*)$/)?.[1] ||
+    '';
+
+  return {
+    inviterName,
+    workspaceName,
+  };
+};
+
 const getLocalizedNotificationTitle = (notification: Notification, intl: ReturnType<typeof useIntl>) => {
+  const workspaceInvitation = getWorkspaceInvitationContext(notification);
+  if (workspaceInvitation) {
+    return intl.formatMessage(
+      {
+        id: 'notifications.items.workspaceInvitationTitle',
+        defaultMessage: '{inviterName} invited you to {workspaceName}',
+      },
+      {
+        inviterName: workspaceInvitation.inviterName,
+        workspaceName: workspaceInvitation.workspaceName,
+      }
+    );
+  }
+
   if (
     notification.data?.channel_name &&
     notification.title.startsWith('New message in #')
@@ -52,6 +90,13 @@ const getLocalizedNotificationMessage = (
 ) => {
   if (!notification.message) {
     return '';
+  }
+
+  if (getWorkspaceInvitationContext(notification)) {
+    return intl.formatMessage({
+      id: 'notifications.items.workspaceInvitationMessage',
+      defaultMessage: 'You have a new workspace invitation waiting for you on Nexus.',
+    });
   }
 
   if (
@@ -166,3 +211,4 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
     </div>
   );
 }
+

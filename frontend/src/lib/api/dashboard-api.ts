@@ -95,6 +95,7 @@ export type SuggestionType =
   | 'note_update'
   | 'overdue_task'
   | 'upcoming_deadline'
+  | 'project_at_risk'
   | 'weekly_report_ready'
   | 'missed_event';
 

@@ -900,7 +900,12 @@ export function FileExplorer({
       {selectedFileIds.length > 0 && (
         <div className="border-b bg-muted/50 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">{selectedFileIds.length} selected</span>
+            <span className="text-sm font-medium">
+              {intl.formatMessage(
+                { id: 'modules.files.selection.selected', defaultMessage: '{count} selected' },
+                { count: selectedFileIds.length }
+              )}
+            </span>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -909,7 +914,7 @@ export function FileExplorer({
                 className="h-8 gap-2"
               >
                 <Copy className="h-4 w-4" />
-                Copy
+                {intl.formatMessage({ id: 'modules.files.buttons.copy', defaultMessage: 'Copy' })}
               </Button>
               <Button
                 variant="outline"
@@ -918,7 +923,7 @@ export function FileExplorer({
                 className="h-8 gap-2"
               >
                 <Move className="h-4 w-4" />
-                Move
+                {intl.formatMessage({ id: 'modules.files.buttons.move', defaultMessage: 'Move' })}
               </Button>
               <Button
                 variant="outline"
@@ -927,7 +932,7 @@ export function FileExplorer({
                 className="h-8 gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
               >
                 <Trash2 className="h-4 w-4" />
-                Delete
+                {intl.formatMessage({ id: 'modules.files.buttons.delete', defaultMessage: 'Delete' })}
               </Button>
             </div>
           </div>
@@ -938,7 +943,7 @@ export function FileExplorer({
             className="h-8"
           >
             <X className="h-4 w-4 mr-1" />
-            Clear
+            {intl.formatMessage({ id: 'modules.files.buttons.clear', defaultMessage: 'Clear' })}
           </Button>
         </div>
       )}
