@@ -26,6 +26,7 @@ import { ContentMentionMenu } from '../ui/content-mention-menu'
 const ReactQuill = lazy(() => import('react-quill-new'))
 // Import Quill styles
 import 'react-quill-new/dist/quill.snow.css'
+import { marked } from 'marked'
 
 // Extend window type for undo/redo buttons
 declare global {
@@ -1614,17 +1615,84 @@ export function NotionStyleNoteEditor({
 
   // Quill modules configuration
   const quillModules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image'],
-      ['blockquote', 'code-block'],
-      ['clean']
-    ],
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'align': [] }],
+        [{ 'color': [] }, { 'background': [] }],
+        ['link', 'image'],
+        ['blockquote', 'code-block'],
+        ['clean']
+      ],
+      handlers: {
+        clean: function(this: any) {
+          const quill = this.quill
+          if (!quill) return
+
+          const range = quill.getSelection()
+          
+          const formatMarkdownText = async (textToFormat: string, startIndex: number, length: number) => {
+            const lines = textToFormat.split('\n')
+            const hasHeaders = lines.some(line => /^#{1,6}\s+.+/.test(line.trim()))
+            const hasListItems = lines.some(line => /^[-*+]\s+.+/.test(line.trim()))
+            const hasOrderedListItems = lines.some(line => /^\d+\.\s+.+/.test(line.trim()))
+            const hasBlockQuotes = lines.some(line => /^>\s+.+/.test(line.trim()))
+            const hasCodeBlocks = textToFormat.includes('```')
+            const hasLinks = /\[.+?\]\(.+?\)/.test(textToFormat)
+            const hasBold = /(\*\*|__).+?\1/.test(textToFormat)
+            const hasInlineCode = /`.+?`/.test(textToFormat)
+            const hasHr = lines.some(line => /^([-*_])\1{2,}$/.test(line.trim()))
+
+            const isMarkdown =
+              hasHeaders ||
+              hasListItems ||
+              hasOrderedListItems ||
+              hasBlockQuotes ||
+              hasCodeBlocks ||
+              hasLinks ||
+              hasBold ||
+              hasInlineCode ||
+              hasHr
+
+            if (isMarkdown) {
+              try {
+                const parsed = marked.parse(textToFormat)
+                const parsedHtml = typeof parsed === 'string' ? parsed : await parsed
+                
+                quill.deleteText(startIndex, length, 'user')
+                quill.clipboard.dangerouslyPasteHTML(startIndex, parsedHtml, 'user')
+                scheduleAutoSave()
+                return true
+              } catch (err) {
+                console.error('Failed to parse markdown in clean handler:', err)
+              }
+            }
+            return false
+          }
+
+          if (range && range.length > 0) {
+            const text = quill.getText(range.index, range.length)
+            formatMarkdownText(text, range.index, range.length).then((formatted) => {
+              if (!formatted) {
+                quill.removeFormat(range.index, range.length, 'user')
+              }
+            })
+          } else {
+            const text = quill.getText()
+            formatMarkdownText(text, 0, quill.getLength()).then((formatted) => {
+              if (!formatted && range) {
+                quill.removeFormat(range.index, range.length, 'user')
+              } else if (!formatted) {
+                quill.removeFormat(0, quill.getLength(), 'user')
+              }
+            })
+          }
+        }
+      }
+    },
     keyboard: {
       bindings: {
         undo: {
@@ -1649,7 +1717,7 @@ export function NotionStyleNoteEditor({
         }
       }
     }
-  }), [undo, redo])
+  }), [undo, redo, scheduleAutoSave])
 
   // Editor ready handler
   const handleEditorReady = useCallback(() => {
@@ -1703,6 +1771,70 @@ export function NotionStyleNoteEditor({
       console.error('Error setting up selection handler:', error)
     }
   }, [isEditorReady, detectMention, note.id])
+
+  // Handle markdown paste and format
+  useEffect(() => {
+    if (!isEditorReady || !quillRef.current) return
+
+    try {
+      const quill = quillRef.current.getEditor()
+      if (!quill) return
+
+      const handlePaste = async (e: ClipboardEvent) => {
+        const text = e.clipboardData?.getData('text/plain')
+
+        if (text) {
+          const lines = text.split('\n')
+          
+          const hasHeaders = lines.some(line => /^#{1,6}\s+.+/.test(line.trim()))
+          const hasListItems = lines.some(line => /^[-*+]\s+.+/.test(line.trim()))
+          const hasOrderedListItems = lines.some(line => /^\d+\.\s+.+/.test(line.trim()))
+          const hasBlockQuotes = lines.some(line => /^>\s+.+/.test(line.trim()))
+          const hasCodeBlocks = text.includes('```')
+          const hasLinks = /\[.+?\]\(.+?\)/.test(text)
+          const hasBold = /(\*\*|__).+?\1/.test(text)
+          const hasInlineCode = /`.+?`/.test(text)
+          const hasHr = lines.some(line => /^([-*_])\1{2,}$/.test(line.trim()))
+
+          const isMarkdown =
+            hasHeaders ||
+            hasListItems ||
+            hasOrderedListItems ||
+            hasBlockQuotes ||
+            hasCodeBlocks ||
+            hasLinks ||
+            hasBold ||
+            hasInlineCode ||
+            hasHr
+
+          if (isMarkdown) {
+            e.preventDefault()
+            try {
+              const parsed = marked.parse(text)
+              const parsedHtml = typeof parsed === 'string' ? parsed : await parsed
+              
+              const selection = quill.getSelection()
+              const index = selection ? selection.index : quill.getLength()
+              
+              quill.clipboard.dangerouslyPasteHTML(index, parsedHtml, 'user')
+              scheduleAutoSave()
+            } catch (err) {
+              console.error('Failed to parse and paste markdown:', err)
+            }
+          }
+        }
+      }
+
+      const rootEl = quill.root
+      rootEl.addEventListener('paste', handlePaste)
+
+      return () => {
+        rootEl.removeEventListener('paste', handlePaste)
+      }
+    } catch (error) {
+      console.error('Error setting up paste handler:', error)
+    }
+  }, [isEditorReady, scheduleAutoSave])
 
   // Single, reliable content change detection with proper debouncing
   useEffect(() => {
