@@ -41,6 +41,7 @@ export function ProjectsRightSidebar({ projects, allTasks, workspaceId, selected
   const intl = useIntl()
   const navigate = useNavigate()
   const { openMemberProfile } = useMemberProfile()
+  const dueDateFormat = intl.locale === 'en-US' ? 'MM/dd' : 'dd/MM'
 
   // ALWAYS use Zustand store as single source of truth
   const displayProjects = useProjectsStore((state) => state.projects) || [];
@@ -307,7 +308,7 @@ export function ProjectsRightSidebar({ projects, allTasks, workspaceId, selected
                 ? intl.formatMessage({ id: 'projects.deadlines.overdue' })
                 : isDueToday
                 ? intl.formatMessage({ id: 'projects.deadlines.dueToday' })
-                : `${intl.formatMessage({ id: 'projects.deadlines.due' })} ${format(dueDate, 'MMM dd')}`
+                : `${intl.formatMessage({ id: 'projects.deadlines.due' })} ${format(dueDate, dueDateFormat)}`
 
               const taskProjectId = task.project_id || task.projectId
               const project = displayProjects.find(p => p.id === taskProjectId)

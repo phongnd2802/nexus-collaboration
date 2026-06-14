@@ -45,6 +45,10 @@ export function AgenticSuggestions() {
       return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewProject', defaultMessage: 'View Project' })
     }
 
+    if (suggestion.type === 'project_at_risk') {
+      return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewProject', defaultMessage: 'View Project' })
+    }
+
     if (suggestion.type === 'meeting') {
       return intl.formatMessage({ id: 'dashboard.suggestions.actions.joinMeeting', defaultMessage: 'Join Meeting' })
     }
@@ -67,6 +71,9 @@ export function AgenticSuggestions() {
     if (suggestion.actionLabel) {
       const normalized = suggestion.actionLabel.trim().toLowerCase()
       if (normalized === 'view project') {
+        return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewProject', defaultMessage: 'View Project' })
+      }
+      if (normalized === 'review project') {
         return intl.formatMessage({ id: 'dashboard.suggestions.actions.viewProject', defaultMessage: 'View Project' })
       }
       if (normalized === 'view report') {
@@ -101,6 +108,17 @@ export function AgenticSuggestions() {
       return intl.formatMessage(
         { id: 'dashboard.suggestions.taskBalance.title', defaultMessage: 'Task Imbalance in {projectName}' },
         { projectName: suggestion.metadata?.projectName || intl.formatMessage({ id: 'projects.viewProject', defaultMessage: 'Project' }) }
+      )
+    }
+
+    if (
+      suggestion.type === 'project_at_risk' &&
+      suggestion.metadata?.project?.projectName &&
+      (!suggestion.title || suggestion.title.startsWith('Project "'))
+    ) {
+      return intl.formatMessage(
+        { id: 'dashboard.suggestions.projectAtRisk.title', defaultMessage: 'Project "{projectName}" at Risk' },
+        { projectName: suggestion.metadata.project.projectName }
       )
     }
 
@@ -160,6 +178,26 @@ export function AgenticSuggestions() {
           underloadedCount,
           idealCount
         }
+      )
+    }
+
+    if (
+      suggestion.type === 'project_at_risk' &&
+      suggestion.metadata?.project &&
+      suggestion.metadata.project.overdueTasks !== undefined &&
+      suggestion.metadata.project.totalTasks !== undefined &&
+      (!suggestion.description || suggestion.description.includes('tasks are overdue'))
+    ) {
+      const overdueTasks = Number(suggestion.metadata.project.overdueTasks || 0)
+      const totalTasks = Number(suggestion.metadata.project.totalTasks || 0)
+      const overduePercentage = totalTasks > 0 ? Math.round((overdueTasks / totalTasks) * 100) : 0
+
+      return intl.formatMessage(
+        {
+          id: 'dashboard.suggestions.projectAtRisk.description',
+          defaultMessage: '{overdueTasks} of {totalTasks} tasks are overdue ({overduePercentage}%)'
+        },
+        { overdueTasks, totalTasks, overduePercentage }
       )
     }
 
@@ -238,6 +276,8 @@ export function AgenticSuggestions() {
         return <FileText className="h-5 w-5" />
       case 'overdue_task':
         return <AlertTriangle className="h-5 w-5" />
+      case 'project_at_risk':
+        return <Bell className="h-5 w-5" />
       case 'upcoming_deadline':
         return <Clock className="h-5 w-5" />
       default:
@@ -260,6 +300,8 @@ export function AgenticSuggestions() {
       case 'note_update':
         return 'bg-green-500/10 text-green-600 border-green-200 dark:border-green-800'
       case 'overdue_task':
+        return 'bg-red-500/10 text-red-600 border-red-200 dark:border-red-800'
+      case 'project_at_risk':
         return 'bg-red-500/10 text-red-600 border-red-200 dark:border-red-800'
       default:
         return 'bg-gray-500/10 text-gray-600 border-gray-200 dark:border-gray-800'

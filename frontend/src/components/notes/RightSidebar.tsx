@@ -58,7 +58,9 @@ export function NotesRightSidebar() {
         setEnrichedNote(null) // Clear previous note data immediately
 
         try {
-          const note = await notesApi.getNoteByWorkspace(workspaceId, ui.selectedNoteId)
+          const note = await notesApi.getNoteByWorkspace(workspaceId, ui.selectedNoteId, {
+            includeDeleted: true,
+          })
           console.log('🎯 [RightSidebar] Fetched note from API:', note)
           setEnrichedNote(note)
         } catch (error) {

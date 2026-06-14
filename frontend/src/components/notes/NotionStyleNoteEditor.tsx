@@ -3,7 +3,7 @@ import type { Note, RichText } from '../../types/notes'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { Loader2, Sparkles, Smile, Undo, Redo, Copy, MoreHorizontal, Trash2, Archive, Share2, X, FileText, Calendar, FolderOpen, Users, Upload } from 'lucide-react'
+import { Loader2, Sparkles, Smile, Undo, Undo2, Redo, Copy, MoreHorizontal, Trash2, Archive, Share2, X, FileText, Calendar, FolderOpen, Users, Upload } from 'lucide-react'
 import { useToast } from '../ui/use-toast'
 import { cn } from '../../lib/utils'
 import { AIToolsMenu } from './AIToolsMenu'
@@ -68,10 +68,16 @@ export function NotionStyleNoteEditor({
   const { toast } = useToast()
   const { user } = useAuth()
   const intl = useIntl()
+  const isReadOnlyDeletedNote = note.isDeleted
 
   // Editor container ref for RemoteCursors
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const toolbarStickyRef = useRef<HTMLDivElement>(null)
+  const clearStickyToolbar = useCallback(() => {
+    toolbarStickyRef.current?.replaceChildren()
+    window._undoBtn = undefined
+    window._redoBtn = undefined
+  }, [])
 
   // Check if note is shared (has collaborators or shared with others)
   const isNoteShared = useMemo(() => {
@@ -159,7 +165,9 @@ export function NotionStyleNoteEditor({
       try {
         if (note.workspaceId) {
           const { notesApi } = await import('../../lib/api/notes-api')
-          const refreshedNote = await notesApi.getNoteByWorkspace(note.workspaceId, note.id)
+          const refreshedNote = await notesApi.getNoteByWorkspace(note.workspaceId, note.id, {
+            includeDeleted: true,
+          })
           if (refreshedNote?.content) {
             contentValueRef.current = refreshedNote.content
           }
@@ -294,8 +302,9 @@ export function NotionStyleNoteEditor({
 
     return () => {
       window.clearTimeout(timer)
+      clearStickyToolbar()
     }
-  }, [isEditorReady, editorKey, note.id])
+  }, [clearStickyToolbar, isEditorReady, editorKey, note.id])
 
   // Memoized values for optimization
   const canUndo = useMemo(() => historyIndex > 0, [historyIndex])
@@ -471,6 +480,7 @@ export function NotionStyleNoteEditor({
     if (isNewNote) {
       // Full reset for a different note
       console.log('[Editor] Switching to new note:', note.id, 'from:', currentNoteIdRef.current)
+      clearStickyToolbar()
 
       // CRITICAL: Disconnect collaboration FIRST before any state changes
       // This ensures the old Yjs document is destroyed and doesn't bleed into the new note
@@ -627,7 +637,7 @@ export function NotionStyleNoteEditor({
         setHasUnsavedChanges(false)
       }
     }
-  }, [note.id, note.title, note.icon, note.content, note.updatedAt, extractHtmlFromBlocks, addToHistory, isNoteShared, isCollaborationConnected, disconnectCollaboration, unbindQuillFromYjs])
+  }, [note.id, note.title, note.icon, note.content, note.updatedAt, extractHtmlFromBlocks, addToHistory, isNoteShared, isCollaborationConnected, clearStickyToolbar, disconnectCollaboration, unbindQuillFromYjs])
 
   // Auto-save functionality
   const autoSave = useCallback(async (forceSave = false) => {
@@ -1973,6 +1983,7 @@ export function NotionStyleNoteEditor({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      clearStickyToolbar()
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
@@ -1980,7 +1991,7 @@ export function NotionStyleNoteEditor({
       unbindQuillFromYjs()
       disconnectCollaboration()
     }
-  }, [disconnectCollaboration, unbindQuillFromYjs])
+  }, [clearStickyToolbar, disconnectCollaboration, unbindQuillFromYjs])
 
   // Simple emoji picker component
   const SimpleEmojiPicker = () => {
@@ -2014,6 +2025,7 @@ export function NotionStyleNoteEditor({
                 <Button
                   variant="ghost"
                   className="w-12 h-12 p-0 hover:bg-muted/50 rounded-md"
+                  disabled={isReadOnlyDeletedNote}
                 >
                   <span className="text-2xl">{selectedIcon}</span>
                 </Button>
@@ -2030,6 +2042,7 @@ export function NotionStyleNoteEditor({
                 value={title}
                 onChange={handleTitleChange}
                 onKeyDown={handleTitleKeyDown}
+                readOnly={isReadOnlyDeletedNote}
                 placeholder="Untitled"
                 className="text-4xl font-bold border-none shadow-none px-0 py-2 h-auto bg-transparent focus-visible:ring-0 placeholder:text-muted-foreground/50"
                 style={{ fontSize: '2.25rem', lineHeight: '2.5rem' }}
@@ -2081,6 +2094,8 @@ export function NotionStyleNoteEditor({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  {!note.isDeleted && (
+                    <>
                   <DropdownMenuItem 
                     onClick={(e) => {
                       e.preventDefault()
@@ -2124,8 +2139,11 @@ export function NotionStyleNoteEditor({
                       {intl.formatMessage({ id: 'modules.notes.leftSidebar.delete' })}
                     </DropdownMenuItem>
                   )}
+                    </>
+                  )}
                   {onRestore && note.isDeleted && (
                     <DropdownMenuItem onClick={onRestore}>
+                      <Undo2 className="h-4 w-4 mr-2" />
                       {intl.formatMessage({ id: 'modules.notes.sidebar.restore' })}
                     </DropdownMenuItem>
                   )}
@@ -2149,6 +2167,8 @@ export function NotionStyleNoteEditor({
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="max-w-4xl mx-auto relative">
           <div className="sticky top-0 z-[5] bg-background">
+            {!isReadOnlyDeletedNote && (
+              <>
             {/* Simple AI Toolbar */}
             <div className="border-b px-8">
               <div className="flex items-center justify-between py-3">
@@ -2192,6 +2212,8 @@ export function NotionStyleNoteEditor({
               ref={toolbarStickyRef}
               className="note-editor-toolbar-sticky bg-background px-8"
             />
+              </>
+            )}
           </div>
 
           {/* Editor Section */}
@@ -2273,10 +2295,11 @@ export function NotionStyleNoteEditor({
                   theme="snow"
                   defaultValue={content}
                   onChange={handleContentChange}
-                  placeholder="Start writing..."
+                  readOnly={isReadOnlyDeletedNote}
+                  placeholder={isReadOnlyDeletedNote ? '' : 'Start writing...'}
                   modules={quillModules}
                   formats={quillFormats}
-                  className="notion-editor"
+                  className={cn('notion-editor', isReadOnlyDeletedNote && 'trash-note-readonly')}
                 />
               </div>
             </Suspense>

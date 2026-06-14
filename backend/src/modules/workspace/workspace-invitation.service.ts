@@ -11,6 +11,8 @@ import { DatabaseService } from '../database/database.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import { buildBrandedEmail } from '../email/branded-email';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPriority, NotificationType } from '../notifications/dto';
 
 export interface InviteWorkspaceMemberDto {
   email: string;
@@ -26,7 +28,11 @@ export interface AcceptInvitationDto {
 export class WorkspaceInvitationService {
   private readonly logger = new Logger(WorkspaceInvitationService.name);
 
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    @Inject(forwardRef(() => NotificationsService))
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   /**
    * Send workspace invitation using database
@@ -94,6 +100,14 @@ export class WorkspaceInvitationService {
 
       // Send invitation email
       await this.sendInvitationEmail(inviteDto.email, token, workspace.name, inviteDto.message);
+      await this.sendInvitationNotification(
+        inviteDto.email,
+        token,
+        workspace,
+        inviteDto.message,
+        invitedBy,
+        invitation.id,
+      );
 
       this.logger.log(`Invitation sent to ${inviteDto.email} for workspace ${workspaceId}`);
 
@@ -451,6 +465,15 @@ export class WorkspaceInvitationService {
         'Đây là lời mời tham gia lại workspace của chúng tôi trên Nexus.',
       );
 
+      await this.sendInvitationNotification(
+        invitation.email,
+        newToken,
+        workspace,
+        'Đây là lời mời tham gia lại workspace của chúng tôi trên Nexus.',
+        userId,
+        invitation.id,
+      );
+
       this.logger.log(`Resent invitation to ${invitation.email} for workspace ${workspaceId}`);
 
       return {
@@ -570,6 +593,57 @@ export class WorkspaceInvitationService {
     } catch (error) {
       this.logger.error('Failed to send invitation email', error);
       // Don't throw - we still want to create the invitation even if email fails
+    }
+  }
+
+  private async sendInvitationNotification(
+    email: string,
+    token: string,
+    workspace: any,
+    message: string | undefined,
+    invitedBy: string,
+    invitationId: string,
+  ) {
+    try {
+      const inviteeResult = await this.db.raw(
+        'SELECT id, email, name FROM "users" WHERE LOWER(email) = LOWER($1) LIMIT 1',
+        [email],
+      );
+      const invitee = inviteeResult.rows?.[0];
+
+      if (!invitee?.id) {
+        return;
+      }
+
+      const inviter = await this.db.getUserById(invitedBy);
+      const inviterName = inviter?.metadata?.name || inviter?.name || inviter?.email || 'Someone';
+      const workspaceName = workspace?.name || 'a workspace';
+
+      await this.notificationsService.sendNotification({
+        user_id: invitee.id,
+        type: NotificationType.WORKSPACE,
+        title: `${inviterName} invited you to ${workspaceName}`,
+        message:
+          message?.trim() || 'You have a new workspace invitation waiting for you on Nexus.',
+        action_url: `/invite/${token}`,
+        priority: NotificationPriority.NORMAL,
+        send_push: true,
+        send_email: false,
+        data: {
+          category: 'workspace',
+          entity_type: 'workspace_invitation',
+          entity_id: invitationId,
+          workspace_id: workspace?.id,
+          workspace_name: workspace?.name,
+          inviter_name: inviterName,
+          invitation_token: token,
+          invited_by: invitedBy,
+        },
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to create in-app workspace invitation notification for ${email}: ${error.message}`,
+      );
     }
   }
 

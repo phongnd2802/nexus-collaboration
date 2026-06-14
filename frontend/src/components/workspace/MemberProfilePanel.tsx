@@ -5,12 +5,14 @@
  */
 
 import { useEffect } from 'react';
+import { useIntl } from 'react-intl';
 import { X, Mail, Phone, Calendar, MapPin, Briefcase, Award, Clock, MessageSquare, Video } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatDistanceToNow } from 'date-fns';
+import { enUS, vi as viLocale } from 'date-fns/locale';
 import type { WorkspaceMember } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +33,8 @@ export function MemberProfilePanel({
   onStartCall,
   className,
 }: MemberProfilePanelProps) {
+  const intl = useIntl();
+
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -45,9 +49,16 @@ export function MemberProfilePanel({
 
   if (!member) return null;
 
+  const dateLocale = intl.locale === 'vi' ? viLocale : enUS;
+
   const user = member.user || {
     id: member.user_id,
-    name: member.name || 'Unknown User',
+    name:
+      member.name ||
+      intl.formatMessage({
+        id: 'legal.userProfile.unknownUser',
+        defaultMessage: 'Unknown User',
+      }),
     email: member.email || '',
     avatar: member.avatar_url || '',
   };
@@ -80,17 +91,28 @@ export function MemberProfilePanel({
 
   // Helper function to safely format dates
   const formatSafeDate = (dateString: string | undefined | null) => {
-    if (!dateString) return 'Not available';
+    if (!dateString) {
+      return intl.formatMessage({
+        id: 'legal.userProfile.notAvailable',
+        defaultMessage: 'Not available',
+      });
+    }
 
     try {
       const date = new Date(dateString);
       // Check if date is valid
       if (isNaN(date.getTime())) {
-        return 'Not available';
+        return intl.formatMessage({
+          id: 'legal.userProfile.notAvailable',
+          defaultMessage: 'Not available',
+        });
       }
-      return formatDistanceToNow(date, { addSuffix: true });
+      return formatDistanceToNow(date, { addSuffix: true, locale: dateLocale });
     } catch (error) {
-      return 'Not available';
+      return intl.formatMessage({
+        id: 'legal.userProfile.notAvailable',
+        defaultMessage: 'Not available',
+      });
     }
   };
 
@@ -116,7 +138,12 @@ export function MemberProfilePanel({
       >
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-lg font-semibold">Member Profile</h2>
+          <h2 className="text-lg font-semibold">
+            {intl.formatMessage({
+              id: 'legal.userProfile.memberProfile',
+              defaultMessage: 'Member Profile',
+            })}
+          </h2>
           <Button
             variant="ghost"
             size="icon"
@@ -149,7 +176,12 @@ export function MemberProfilePanel({
                 variant="outline"
                 className={cn('capitalize', getRoleBadgeColor(member.role))}
               >
-                {member.role}
+                {intl.formatMessage(
+                  {
+                    id: `legal.userProfile.role.${member.role || 'member'}`,
+                    defaultMessage: member.role || 'member',
+                  }
+                )}
               </Badge>
               {/* <Badge
                 variant="outline"
@@ -191,14 +223,22 @@ export function MemberProfilePanel({
           {/* Contact Information */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Contact Information
+              {intl.formatMessage({
+                id: 'legal.userProfile.contactInfo',
+                defaultMessage: 'Contact Information',
+              })}
             </h4>
 
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground">
+                    {intl.formatMessage({
+                      id: 'legal.userProfile.email',
+                      defaultMessage: 'Email',
+                    })}
+                  </p>
                   <p className="text-sm break-all">{user.email}</p>
                 </div>
               </div>
@@ -212,14 +252,22 @@ export function MemberProfilePanel({
           {/* Workspace Information */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Workspace Details
+              {intl.formatMessage({
+                id: 'legal.userProfile.workspaceInfo',
+                defaultMessage: 'Workspace Details',
+              })}
             </h4>
 
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Joined</p>
+                  <p className="text-xs text-muted-foreground">
+                    {intl.formatMessage({
+                      id: 'legal.userProfile.joined',
+                      defaultMessage: 'Joined',
+                    })}
+                  </p>
                   <p className="text-sm">
                     {formatSafeDate(member.joined_at)}
                   </p>
@@ -229,8 +277,20 @@ export function MemberProfilePanel({
               <div className="flex items-start gap-3">
                 <Briefcase className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Role</p>
-                  <p className="text-sm capitalize">{member.role}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {intl.formatMessage({
+                      id: 'legal.userProfile.roleLabel',
+                      defaultMessage: 'Role',
+                    })}
+                  </p>
+                  <p className="text-sm capitalize">
+                    {intl.formatMessage(
+                      {
+                        id: `legal.userProfile.role.${member.role || 'member'}`,
+                        defaultMessage: member.role || 'member',
+                      }
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -238,7 +298,12 @@ export function MemberProfilePanel({
                 <div className="flex items-start gap-3">
                   <Award className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div className="flex-1">
-                    <p className="text-xs text-muted-foreground mb-2">Permissions</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {intl.formatMessage({
+                        id: 'legal.userProfile.permissions',
+                        defaultMessage: 'Permissions',
+                      })}
+                    </p>
                     <div className="flex flex-wrap gap-1">
                       {member.permissions.map((permission) => (
                         <Badge

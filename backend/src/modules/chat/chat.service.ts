@@ -242,7 +242,7 @@ export class ChatService {
             created_by: userId,
           },
           send_push: true,
-          send_email: false,
+          send_email: createChannelDto.is_private === true,
         });
       } catch (error: any) {
         console.error(`Failed to send channel creation notifications:`, error);
@@ -2672,10 +2672,11 @@ export class ChatService {
             workspace_id: workspaceId,
             channel_id: channelId,
             channel_name: channel.name,
+            is_private: channel.is_private,
             added_by: requestingUserId,
           },
           send_push: true,
-          send_email: false,
+          send_email: channel.is_private === true,
         });
       } catch (error: any) {
         console.error('Failed to send notification for added member:', error);

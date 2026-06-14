@@ -220,16 +220,37 @@ export function VideoView() {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
     if (diffMinutes < 1) {
-      return intl.formatMessage({ id: 'common.justNow' }, { defaultMessage: 'Just now' })
+      return intl.formatMessage({ id: 'modules.videoCallsApp.formatTime.justNow', defaultMessage: 'Just now' })
     } else if (diffMinutes < 60) {
-      return `${diffMinutes}m ago`
+      return intl.formatMessage(
+        { id: 'modules.videoCallsApp.formatTime.minutesAgo', defaultMessage: '{minutes}m ago' },
+        { minutes: diffMinutes }
+      )
     } else if (diffHours < 24) {
-      return `${diffHours}h ago`
+      return intl.formatMessage(
+        { id: 'modules.videoCallsApp.formatTime.hoursAgo', defaultMessage: '{hours}h ago' },
+        { hours: diffHours }
+      )
     } else if (diffDays < 7) {
-      return `${diffDays}d ago`
+      return intl.formatMessage(
+        { id: 'modules.videoCallsApp.formatTime.daysAgo', defaultMessage: '{days}d ago' },
+        { days: diffDays }
+      )
     } else {
       return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
     }
+  }
+
+  const getCallDisplayTitle = (call: VideoCall) => {
+    if (!call.title || call.title === 'Video Call') {
+      return intl.formatMessage({ id: 'modules.videoCallsApp.history.defaultVideoCallTitle', defaultMessage: 'Video Call' })
+    }
+
+    if (call.title === 'Audio Call') {
+      return intl.formatMessage({ id: 'modules.videoCallsApp.history.defaultAudioCallTitle', defaultMessage: 'Audio Call' })
+    }
+
+    return call.title
   }
 
   // Get status color
@@ -503,7 +524,7 @@ export function VideoView() {
                       </div>
 
                       <div>
-                        <div className="font-medium">{call.title}</div>
+                        <div className="font-medium">{getCallDisplayTitle(call)}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-4">
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
@@ -627,7 +648,7 @@ export function VideoView() {
                             </div>
 
                             <div>
-                              <div className="font-medium">{call.title}</div>
+                              <div className="font-medium">{getCallDisplayTitle(call)}</div>
                               <div className="text-sm text-muted-foreground flex items-center gap-4">
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
@@ -686,7 +707,9 @@ export function VideoView() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-500" />
-              {selectedCallForSummary?.title || 'Meeting Summary'}
+              {selectedCallForSummary
+                ? getCallDisplayTitle(selectedCallForSummary)
+                : intl.formatMessage({ id: 'modules.videoCallsApp.history.meetingSummaryTitle', defaultMessage: 'Meeting Summary' })}
             </DialogTitle>
           </DialogHeader>
           {selectedCallForSummary && (

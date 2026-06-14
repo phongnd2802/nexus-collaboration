@@ -328,22 +328,22 @@ export function ChatRightSidebar({
                   className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div
-                    className="flex items-center gap-3 flex-1 cursor-pointer group"
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer group"
                     onClick={() => fullMemberData && openMemberProfile(fullMemberData)}
                   >
                     {member.user?.avatarUrl ? (
-                      <Avatar className="h-8 w-8 group-hover:ring-2 group-hover:ring-primary transition-all">
+                      <Avatar className="h-8 w-8 shrink-0 group-hover:ring-2 group-hover:ring-primary transition-all">
                         <AvatarImage src={member.user.avatarUrl} alt={member.user.name} />
                         <AvatarFallback>{member.user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium group-hover:ring-2 group-hover:ring-primary transition-all">
+                      <div className="w-8 h-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium group-hover:ring-2 group-hover:ring-primary transition-all">
                         {member.user?.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                     )}
-                    <div>
-                      <p className="text-sm font-medium group-hover:text-primary transition-colors">{member.user?.name}</p>
-                      <p className="text-xs text-muted-foreground">{member.user?.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium group-hover:text-primary transition-colors truncate">{member.user?.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{member.user?.email}</p>
                     </div>
                   </div>
 
@@ -352,7 +352,7 @@ export function ChatRightSidebar({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="h-8 w-8 shrink-0 ml-2 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => handleRemoveMember(member.userId)}
                       disabled={updateChannelMutation.isPending}
                     >

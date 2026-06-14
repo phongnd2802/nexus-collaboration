@@ -1210,27 +1210,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
                         <span>{intl.formatMessage({ id: 'modules.files.storage.used', defaultMessage: 'Used' })}</span>
                         <span>{formatFileSize(usedStorageBytes)}</span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
-                        <div
-                          className={cn(
-                            "h-2 rounded-full transition-all duration-300",
-                            usagePercentage < 60 && "bg-green-600",
-                            usagePercentage >= 60 && usagePercentage < 80 && "bg-yellow-600",
-                            usagePercentage >= 80 && "bg-red-600"
-                          )}
-                          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between text-xs mt-1">
-                        <span className={cn(
-                          "font-medium",
-                          usagePercentage < 60 && "text-green-600",
-                          usagePercentage >= 60 && usagePercentage < 80 && "text-yellow-600",
-                          usagePercentage >= 80 && "text-red-600"
-                        )}>
-                          {intl.formatMessage({ id: 'modules.files.storage.percentUsed', defaultMessage: '{percent}% used' }, { percent: usagePercentage.toFixed(0) })}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </TooltipTrigger>
@@ -1262,7 +1241,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <SidebarItem icon={<Cloud className="h-3 w-3" />} label={intl.formatMessage({ id: 'modules.files.storage.upgradeStorage', defaultMessage: 'Upgrade Storage' })} />
 
             <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">
               {intl.formatMessage({ id: 'modules.files.shared.heading', defaultMessage: 'SHARED' })}
