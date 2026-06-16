@@ -1,0 +1,3 @@
+[submodule "nexus-ai"]
+	path = nexus-ai
+	url = https://github.com/phongnd2802/nexus-ai.git
