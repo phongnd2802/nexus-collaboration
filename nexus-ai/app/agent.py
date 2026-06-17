@@ -8,44 +8,27 @@ from pydantic_ai.capabilities import Capability
 from pydantic_ai.models.openrouter import OpenRouterModel
 from pydantic_ai.providers.openrouter import OpenRouterProvider
 
-from app.backend_client import NexusBackendClient
 from app.config import settings
 from app.provider_capture import ProviderCaptureState, create_provider_http_client
-
-COMPACT_FIELDS = {
-    "assigned_to",
-    "created_at",
-    "description",
-    "due_date",
-    "id",
-    "kanban_stages",
-    "name",
-    "priority",
-    "project_id",
-    "status",
-    "title",
-    "type",
-    "updated_at",
-}
+from app.tools.projects.create_project import create_project as create_project_tool
+from app.tools.projects.get_project import get_project as get_project_tool
+from app.tools.projects.list_projects import list_projects as list_projects_tool
+from app.tools.projects.update_project import update_project as update_project_tool
+from app.tools.tasks.create_task import create_task as create_task_tool
+from app.tools.tasks.get_task import get_task as get_task_tool
+from app.tools.tasks.list_tasks import list_tasks as list_tasks_tool
+from app.tools.tasks.update_task import update_task as update_task_tool
+from app.tools.utils import compact_value
 
 
 @dataclass
 class AgentDeps:
     user_id: str
     workspace_id: str
-    backend: NexusBackendClient
 
 
 def _compact(value: Any) -> Any:
-    if isinstance(value, list):
-        return [_compact(item) for item in value[:20]]
-    if isinstance(value, dict):
-        return {key: _compact(val) for key, val in value.items() if key in COMPACT_FIELDS and val is not None}
-    return value
-
-
-def _omit_none(payload: dict[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in payload.items() if value is not None}
+    return compact_value(value)
 
 
 projects_tasks = Capability[AgentDeps](
@@ -64,13 +47,13 @@ projects_tasks = Capability[AgentDeps](
 @projects_tasks.tool
 async def list_projects(ctx: RunContext[AgentDeps], status: str | None = None, type: str | None = None) -> Any:
     """List projects in the current workspace, optionally filtered by status or type."""
-    return _compact(await ctx.deps.backend.list_projects(status=status, type=type))
+    return _compact(await list_projects_tool(ctx, status=status, type=type))
 
 
 @projects_tasks.tool
 async def get_project(ctx: RunContext[AgentDeps], project_id: str) -> Any:
     """Get one project by ID."""
-    return _compact(await ctx.deps.backend.get_project(project_id))
+    return _compact(await get_project_tool(ctx, project_id))
 
 
 @projects_tasks.tool
@@ -82,38 +65,16 @@ async def list_tasks(
     limit: int | None = 20,
 ) -> Any:
     """List tasks in one project or across the workspace."""
-    return _compact(await ctx.deps.backend.list_tasks(project_id=project_id, search=search, status=status, limit=limit))
+    return _compact(await list_tasks_tool(ctx, project_id=project_id, search=search, status=status, limit=limit))
 
 
 @projects_tasks.tool
 async def get_task(ctx: RunContext[AgentDeps], task_id: str) -> Any:
     """Get one task by ID."""
-    return _compact(await ctx.deps.backend.get_task(task_id))
+    return _compact(await get_task_tool(ctx, task_id))
 
 
-@projects_tasks.tool(requires_approval=True)
-async def create_project(
-    ctx: RunContext[AgentDeps],
-    name: str,
-    description: str | None = None,
-    type: str | None = "kanban",
-    status: str | None = "active",
-    priority: str | None = None,
-) -> Any:
-    """Create a project after explicit user approval."""
-    return _compact(
-        await ctx.deps.backend.create_project(
-            _omit_none(
-                {
-                    "name": name,
-                    "description": description,
-                    "type": type,
-                    "status": status,
-                    "priority": priority,
-                }
-            )
-        )
-    )
+projects_tasks.tool(requires_approval=True)(create_project_tool)
 
 
 @projects_tasks.tool(requires_approval=True)
@@ -127,17 +88,7 @@ async def update_project(
 ) -> Any:
     """Update basic project fields after explicit user approval."""
     return _compact(
-        await ctx.deps.backend.update_project(
-            project_id,
-            _omit_none(
-                {
-                    "name": name,
-                    "description": description,
-                    "status": status,
-                    "priority": priority,
-                }
-            ),
-        )
+        await update_project_tool(ctx, project_id, name=name, description=description, status=status, priority=priority)
     )
 
 
@@ -154,18 +105,15 @@ async def create_task(
 ) -> Any:
     """Create a task in a project after explicit user approval."""
     return _compact(
-        await ctx.deps.backend.create_task(
+        await create_task_tool(
+            ctx,
             project_id,
-            _omit_none(
-                {
-                    "title": title,
-                    "description": description,
-                    "status": status,
-                    "priority": priority,
-                    "assigned_to": assigned_to,
-                    "due_date": due_date,
-                }
-            ),
+            title=title,
+            description=description,
+            status=status,
+            priority=priority,
+            assigned_to=assigned_to,
+            due_date=due_date,
         )
     )
 
@@ -183,18 +131,15 @@ async def update_task(
 ) -> Any:
     """Update basic task fields after explicit user approval."""
     return _compact(
-        await ctx.deps.backend.update_task(
+        await update_task_tool(
+            ctx,
             task_id,
-            _omit_none(
-                {
-                    "title": title,
-                    "description": description,
-                    "status": status,
-                    "priority": priority,
-                    "assigned_to": assigned_to,
-                    "due_date": due_date,
-                }
-            ),
+            title=title,
+            description=description,
+            status=status,
+            priority=priority,
+            assigned_to=assigned_to,
+            due_date=due_date,
         )
     )
 
@@ -202,13 +147,13 @@ async def update_task(
 @projects_tasks.tool(requires_approval=True)
 async def assign_task(ctx: RunContext[AgentDeps], task_id: str, assigned_to: list[str]) -> Any:
     """Assign a task to user IDs after explicit user approval."""
-    return _compact(await ctx.deps.backend.update_task(task_id, {"assigned_to": assigned_to}))
+    return _compact(await update_task_tool(ctx, task_id, assigned_to=assigned_to))
 
 
 @projects_tasks.tool(requires_approval=True)
 async def move_task_status(ctx: RunContext[AgentDeps], task_id: str, status: str) -> Any:
     """Move a task to another status/stage after explicit user approval."""
-    return _compact(await ctx.deps.backend.update_task(task_id, {"status": status}))
+    return _compact(await update_task_tool(ctx, task_id, status=status))
 
 
 def build_agent(
