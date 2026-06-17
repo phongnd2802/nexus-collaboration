@@ -1,19 +1,9 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
-import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
-import {
-  aiChatApi,
-  aiChatKeys,
-  useAIChatConversations,
-  useAIChatMessages,
-  useAIChatTools,
-  useCreateAIChatConversation,
-  useDeleteAIChatConversation,
-  useRenameAIChatConversation,
-} from '@/lib/api/ai-chat-api'
+import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
 import type { ThinkingStep } from './AIChatMessage'
@@ -27,37 +17,29 @@ interface LocalMessage {
   timestamp: string
 }
 
+interface LocalConversation {
+  id: string
+  title: string
+  messages: LocalMessage[]
+  updatedAt: string
+}
+
 const MODELS_KEY = 'nexus_ai_chat_model'
-const SIDEBAR_KEY = 'nexus_ai_chat_sidebar'
 const EXECUTE_ACTIONS_KEY = 'nexus_ai_chat_execute_actions'
 
 export function AIChatPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const intl = useIntl()
 
-  const [conversationId, setConversationId] = useState<string | null>(null)
-  const [localMessages, setLocalMessages] = useState<LocalMessage[]>([])
+  const [conversations, setConversations] = useState<LocalConversation[]>([])
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [streamingSteps, setStreamingSteps] = useState<ThinkingStep[]>([])
   const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
-  const [executeActions, setExecuteActions] = useState(() => {
-    return localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true'
-  })
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_KEY)
-    return saved !== null ? saved === 'true' : true
-  })
+  const [executeActions, setExecuteActions] = useState(() => localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true')
   const abortRef = useRef<AbortController | null>(null)
-
-  const { data: conversations = [], isLoading: conversationsLoading } = useAIChatConversations(workspaceId || '')
-  const { data: serverMessages = [], isLoading: messagesLoading } = useAIChatMessages(conversationId)
-  const { data: mcpTools, isError: mcpToolsError, isLoading: mcpToolsLoading } = useAIChatTools(workspaceId || '')
-  const createConversation = useCreateAIChatConversation()
-  const deleteConversation = useDeleteAIChatConversation()
-  const renameConversation = useRenameAIChatConversation()
-  const queryClient = useQueryClient()
 
   useEffect(() => {
     localStorage.setItem(MODELS_KEY, model)
@@ -68,82 +50,74 @@ export function AIChatPage() {
   }, [executeActions])
 
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_KEY, String(sidebarOpen))
-  }, [sidebarOpen])
+    clearLegacyAIChatStorage()
+    setConversations([])
+    setActiveConversationId(null)
+    setIsStreaming(false)
+    setIsThinking(false)
+    setStreamingContent('')
+    setStreamingSteps([])
+    abortRef.current?.abort()
+    abortRef.current = null
+  }, [workspaceId])
 
-  useEffect(() => {
-    const handleSidebarToggle = () => {
-      setSidebarOpen(prev => !prev)
-    }
+  const activeConversation = conversations.find(item => item.id === activeConversationId) || null
+  const localMessages = activeConversation?.messages || []
 
-    window.addEventListener('nexus:toggle-ai-chat-sidebar', handleSidebarToggle)
-    return () => window.removeEventListener('nexus:toggle-ai-chat-sidebar', handleSidebarToggle)
+  const upsertConversation = useCallback((conversation: LocalConversation) => {
+    setConversations(prev => {
+      const exists = prev.some(item => item.id === conversation.id)
+      if (exists) {
+        return prev.map(item => (item.id === conversation.id ? conversation : item))
+      }
+      return [conversation, ...prev]
+    })
   }, [])
 
-  const prevMessagesRef = useRef<string>('')
-
-  useEffect(() => {
-    if (conversationId && serverMessages.length > 0) {
-      const key = JSON.stringify(serverMessages)
-      if (key !== prevMessagesRef.current) {
-        prevMessagesRef.current = key
-        setLocalMessages(serverMessages)
-      }
-    } else if (!conversationId) {
-      prevMessagesRef.current = ''
-      setLocalMessages([])
-    }
-  }, [conversationId, serverMessages])
-
-  const handleNewConversation = useCallback(async () => {
-    if (!workspaceId) return
-    try {
-      const result = await createConversation.mutateAsync(workspaceId)
-      setConversationId(result.sessionId)
-      setLocalMessages([])
-    } catch {
-      toast.error(intl.formatMessage({ id: 'modules.aiChat.errors.createConversation', defaultMessage: 'Failed to create conversation' }))
-    }
-  }, [workspaceId, createConversation, intl])
-
-  const handleSelectConversation = useCallback((id: string) => {
-    setConversationId(id)
-  }, [])
-
-  const handleDeleteConversation = useCallback(
-    (id: string) => {
-      if (!workspaceId) return
-      deleteConversation.mutate({ sessionId: id, workspaceId })
-      if (conversationId === id) {
-        setConversationId(null)
-        setLocalMessages([])
-      }
+  const updateActiveConversation = useCallback(
+    (updater: (messages: LocalMessage[]) => LocalMessage[], title?: string) => {
+      if (!activeConversationId) return
+      setConversations(prev =>
+        prev.map(conv => {
+          if (conv.id !== activeConversationId) return conv
+          const nextMessages = updater(conv.messages)
+          return {
+            ...conv,
+            title: title || conv.title || 'New conversation',
+            messages: nextMessages,
+            updatedAt: new Date().toISOString(),
+          }
+        }),
+      )
     },
-    [workspaceId, conversationId, deleteConversation]
+    [activeConversationId],
   )
 
-  const handleRenameConversation = useCallback(
-    (id: string, title: string) => {
-      if (!workspaceId) return
-      renameConversation.mutate({ sessionId: id, title, workspaceId })
+  const createConversation = useCallback(
+    (firstMessage?: string) => {
+      const id = crypto.randomUUID()
+      const now = new Date().toISOString()
+      const conversation: LocalConversation = {
+        id,
+        title: firstMessage?.trim() ? firstMessage.trim().slice(0, 48) : 'New conversation',
+        messages: [],
+        updatedAt: now,
+      }
+      setConversations(prev => [conversation, ...prev])
+      setActiveConversationId(id)
+      return conversation
     },
-    [workspaceId, renameConversation]
+    [],
   )
 
   const handleSend = useCallback(
     async (message: string, files: any[] = []) => {
       if (!workspaceId || isStreaming) return
 
-      let sessionId = conversationId
-      if (!sessionId) {
-        try {
-          const result = await createConversation.mutateAsync(workspaceId)
-          sessionId = result.sessionId
-          setConversationId(sessionId)
-        } catch {
-          toast.error(intl.formatMessage({ id: 'modules.aiChat.errors.createConversation', defaultMessage: 'Failed to create conversation' }))
-          return
-        }
+      const conversation =
+        activeConversation || createConversation(message)
+      if (!activeConversationId) {
+        setActiveConversationId(conversation.id)
       }
 
       const userMsg: LocalMessage = {
@@ -152,8 +126,19 @@ export function AIChatPage() {
         content: message,
         timestamp: new Date().toISOString(),
       }
-      const messagesForRequest = [...localMessages, userMsg]
-      setLocalMessages(messagesForRequest)
+      const messagesForRequest = [...conversation.messages, userMsg]
+      setConversations(prev =>
+        prev.map(item =>
+          item.id === conversation.id
+            ? {
+                ...item,
+                title: item.title === 'New conversation' ? message.trim().slice(0, 48) || item.title : item.title,
+                messages: messagesForRequest,
+                updatedAt: new Date().toISOString(),
+              }
+            : item,
+        ),
+      )
       setIsStreaming(true)
       setIsThinking(true)
       setStreamingContent('')
@@ -186,7 +171,7 @@ export function AIChatPage() {
                 resolve({ name: f.file.name, type: f.file.type, content: reader.result as string })
               reader.readAsText(f.file)
             })
-          })
+          }),
         )
       }
 
@@ -197,7 +182,6 @@ export function AIChatPage() {
           {
             command: message,
             workspaceId,
-            sessionId,
             executeActions,
             context,
           },
@@ -229,11 +213,17 @@ export function AIChatPage() {
                 content: finalContent,
                 timestamp: new Date().toISOString(),
               }
-              const nextMessages = [...messagesForRequest, aiMsg]
-              setLocalMessages(nextMessages)
-              aiChatApi.saveMessages(workspaceId, sessionId!, nextMessages, model)
-              queryClient.invalidateQueries({ queryKey: aiChatKeys.conversations(workspaceId) })
-              queryClient.invalidateQueries({ queryKey: aiChatKeys.messages(sessionId) })
+              setConversations(prev =>
+                prev.map(item =>
+                  item.id === conversation.id
+                    ? {
+                        ...item,
+                        messages: [...messagesForRequest, aiMsg],
+                        updatedAt: new Date().toISOString(),
+                      }
+                    : item,
+                ),
+              )
               setIsStreaming(false)
               setIsThinking(false)
               setStreamingContent('')
@@ -250,7 +240,7 @@ export function AIChatPage() {
             },
           },
           token,
-          controller.signal
+          controller.signal,
         )
       } catch (err: any) {
         if (err.name !== 'AbortError') {
@@ -262,8 +252,8 @@ export function AIChatPage() {
         setStreamingSteps([])
         abortRef.current = null
       }
-    },
-    [workspaceId, conversationId, isStreaming, model, executeActions, localMessages, createConversation, intl, queryClient]
+      },
+    [workspaceId, isStreaming, model, executeActions, localMessages, intl, activeConversation, activeConversationId, createConversation],
   )
 
   const handleStop = useCallback(() => {
@@ -278,13 +268,13 @@ export function AIChatPage() {
         content: streamingContent,
         timestamp: new Date().toISOString(),
       }
-      setLocalMessages(prev => [...prev, aiMsg])
+      updateActiveConversation(prev => [...prev, aiMsg])
     }
     setIsStreaming(false)
     setIsThinking(false)
     setStreamingContent('')
     setStreamingSteps([])
-  }, [streamingContent])
+  }, [streamingContent, updateActiveConversation])
 
   const handleRegenerate = useCallback(
     (messageId: string) => {
@@ -292,13 +282,42 @@ export function AIChatPage() {
       if (msgIndex < 1) return
       const userMsg = localMessages[msgIndex - 1]
       if (userMsg?.role !== 'user') return
-      setLocalMessages(prev => prev.slice(0, msgIndex))
+      updateActiveConversation(prev => prev.slice(0, msgIndex))
       handleSend(userMsg.content, [])
     },
-    [localMessages, handleSend]
+    [localMessages, handleSend, updateActiveConversation],
   )
 
-  const hasConversation = localMessages.length > 0 || isStreaming || conversationId !== null
+  const hasConversation = conversations.length > 0 || isStreaming
+
+  const handleNewConversation = useCallback(() => {
+    createConversation()
+  }, [createConversation])
+
+  const handleSelectConversation = useCallback((id: string) => {
+    setActiveConversationId(id)
+  }, [])
+
+  const handleDeleteConversation = useCallback((id: string) => {
+    setConversations(prev => {
+      const next = prev.filter(item => item.id !== id)
+      setActiveConversationId(current => {
+        if (current !== id) return current
+        return next[0]?.id ?? null
+      })
+      return next
+    })
+  }, [])
+
+  const handleRenameConversation = useCallback((id: string, title: string) => {
+    setConversations(prev =>
+      prev.map(item =>
+        item.id === id
+          ? { ...item, title, updatedAt: new Date().toISOString() }
+          : item,
+      ),
+    )
+  }, [])
 
   return (
     <div className="flex h-full bg-[#FAF9F5]">
@@ -315,56 +334,36 @@ export function AIChatPage() {
 
       <aside
         className={`bg-card/80 backdrop-blur-xl border-r border-border flex flex-col overflow-hidden transition-all duration-300 z-40 ${
-          sidebarOpen ? 'w-60' : 'w-0 pointer-events-none'
+          conversations.length > 0 ? 'w-60' : 'w-0 pointer-events-none'
         }`}
-        aria-hidden={!sidebarOpen}
+        aria-hidden={conversations.length === 0}
       >
         <div
           className={`h-full w-60 flex-shrink-0 transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            conversations.length > 0 ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <AIChatSidebar
-            conversations={conversations}
-            activeId={conversationId}
+            conversations={conversations.map(item => ({
+              id: item.id,
+              title: item.title,
+              messageCount: item.messages.length,
+              updatedAt: item.updatedAt,
+            }))}
+            activeId={activeConversationId}
             onSelect={handleSelectConversation}
             onNew={handleNewConversation}
             onDelete={handleDeleteConversation}
             onRename={handleRenameConversation}
-            isLoading={conversationsLoading}
+            isLoading={false}
           />
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center gap-3 px-4 pt-3 pb-1 h-[44px] flex-shrink-0">
-          {hasConversation && (
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] text-[#73726C] truncate font-medium">
-                {conversations.find(c => c.id === conversationId)?.title ||
-                  intl.formatMessage({ id: 'modules.aiChat.sidebar.newConversation', defaultMessage: 'New conversation' })}
-              </p>
-            </div>
-          )}
-          <div
-            className={`ml-auto rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-              mcpToolsError
-                ? 'border-[#E01E5A]/20 bg-[#E01E5A]/5 text-[#B91C1C]'
-                : 'border-[#D97757]/20 bg-[#D97757]/5 text-[#8A4B2F]'
-            }`}
-            title={
-              mcpToolsError
-                ? 'MCP server is not reachable'
-                : mcpToolsLoading
-                  ? 'Checking MCP tools'
-                : `${mcpTools?.count || 0} MCP tools available`
-            }
-          >
-            {mcpToolsError
-              ? 'MCP offline'
-              : mcpToolsLoading
-                ? 'MCP checking'
-                : `MCP ${mcpTools?.count || 0} tools`}
+          <div className="ml-auto rounded-full border px-2.5 py-1 text-[11px] font-medium border-[#D97757]/20 bg-[#D97757]/5 text-[#8A4B2F]">
+            Nexus AI
           </div>
           <button
             type="button"
@@ -399,7 +398,7 @@ export function AIChatPage() {
               isStreaming={isStreaming}
               streamingContent={streamingContent}
               streamingSteps={streamingSteps}
-              isLoading={messagesLoading}
+              isLoading={false}
               onRegenerate={handleRegenerate}
             />
             {isThinking && !streamingContent && (

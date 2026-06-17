@@ -38,7 +38,7 @@ import { GitHubModule } from './modules/integration-framework/github/github.modu
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
-import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
+import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
 
 @Module({
   imports: [
@@ -81,7 +81,7 @@ import { McpAgentModule } from './modules/mcp-agent/mcp-agent.module';
     IntegrationFrameworkModule,
     DocumentsModule,
     WorkflowsModule,
-    McpAgentModule,
+    AgentChatModule,
   ],
   providers: [
     {
