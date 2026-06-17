@@ -27,3 +27,8 @@ def compact_value(value: Any) -> Any:
 
 def omit_none(payload: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in payload.items() if value is not None}
+
+
+def log_tool_result(tool_name: str, result: Any) -> Any:
+    print("[nexus-ai] tool result", {"tool": tool_name, "result": result})
+    return result

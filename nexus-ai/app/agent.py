@@ -19,6 +19,9 @@ from app.tools.tasks.get_task import get_task as get_task_tool
 from app.tools.tasks.list_tasks import list_tasks as list_tasks_tool
 from app.tools.tasks.update_task import update_task as update_task_tool
 from app.tools.utils import compact_value
+from app.tools.workspace.get_member_id_by_name import (
+    get_member_id_by_name as get_member_id_by_name_tool,
+)
 
 
 @dataclass
@@ -37,6 +40,9 @@ projects_tasks = Capability[AgentDeps](
     instructions=(
         "Use these tools for Nexus project/task questions and actions. "
         "Prefer read tools before writing when IDs are unknown. "
+        "If the user's intent is to create a project, call create_project immediately to trigger the approval form UI. "
+        "Do not ask follow-up questions in chat to collect project fields first. "
+        "You may pass obvious values like name or description only as optional initial values for the form, and leave unknown fields empty. "
         "All write tools require user approval before execution. "
         "Do not delete or archive projects/tasks. Keep final answers compact."
     ),
@@ -74,7 +80,32 @@ async def get_task(ctx: RunContext[AgentDeps], task_id: str) -> Any:
     return _compact(await get_task_tool(ctx, task_id))
 
 
-projects_tasks.tool(requires_approval=True)(create_project_tool)
+@projects_tasks.tool
+async def get_member_id_by_name(ctx: RunContext[AgentDeps], name: str) -> Any:
+    """Resolve a workspace member user ID by exact name, username, or email."""
+    return await get_member_id_by_name_tool(ctx, name)
+
+
+@projects_tasks.tool(requires_approval=True)
+async def create_project(
+    ctx: RunContext[AgentDeps],
+    name: str | None = None,
+    description: str | None = None,
+    lead_id: str | None = None,
+    kanban_stages: list[dict[str, Any]] | None = None,
+    collaborative_data: dict[str, Any] | None = None,
+) -> Any:
+    """Trigger the project creation approval form immediately; missing fields will be collected in the UI."""
+    return _compact(
+        await create_project_tool(
+            ctx,
+            name=name,
+            description=description,
+            lead_id=lead_id or ctx.deps.user_id,
+            kanban_stages=kanban_stages,
+            collaborative_data=collaborative_data,
+        )
+    )
 
 
 @projects_tasks.tool(requires_approval=True)
@@ -177,7 +208,31 @@ def build_agent(
             "For ordinary questions, answer normally. For project/task requests, load the "
             "projects_tasks capability before using domain tools. Never claim an action was "
             "executed unless a tool result confirms it. All write actions must be approved by "
-            "the user first. Refuse delete/archive requests in this phase."
+            "the user first. For create_project, trigger the approval form workflow immediately "
+            "when the user wants to create a project, instead of asking chat follow-up questions "
+            "or trying to produce the final project payload yourself."
+        ),
+    )
+
+
+def build_post_action_agent(
+    model_name: str,
+    provider_http_client: httpx.AsyncClient | None = None,
+) -> Agent[None, str]:
+    provider = OpenRouterProvider(
+        api_key=settings.openrouter_api_key or None,
+        app_url=settings.openrouter_app_url,
+        app_title=settings.openrouter_app_title,
+        http_client=provider_http_client,
+    )
+    model = OpenRouterModel(model_name, provider=provider)
+    return Agent(
+        model,
+        output_type=str,
+        instructions=(
+            "You are Nexus AI. Write a concise follow-up after a successful workspace action. "
+            "State the result directly, never mention approval forms or internal tooling, and end "
+            "with one short next-step suggestion when requested."
         ),
     )
 
@@ -195,3 +250,13 @@ def build_agent_with_capture(
     capture_state = ProviderCaptureState()
     provider_http_client = create_provider_http_client(output_path, capture_state)
     return build_agent(model_name, provider_http_client=provider_http_client), provider_http_client, capture_state
+
+
+def build_post_action_agent_with_capture(
+    model_name: str,
+    completion_id: str,
+) -> tuple[Agent[None, str], httpx.AsyncClient, ProviderCaptureState]:
+    output_path = raw_provider_response_path(f"{completion_id}-post-action")
+    capture_state = ProviderCaptureState()
+    provider_http_client = create_provider_http_client(output_path, capture_state)
+    return build_post_action_agent(model_name, provider_http_client=provider_http_client), provider_http_client, capture_state

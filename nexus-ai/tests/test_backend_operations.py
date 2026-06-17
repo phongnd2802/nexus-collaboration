@@ -5,6 +5,7 @@ import pytest
 
 from app.config import settings
 
+backend_client_module = importlib.import_module("app.tools.backend_client")
 list_tasks_module = importlib.import_module("app.tools.tasks.list_tasks")
 
 
@@ -44,7 +45,7 @@ class FakeAsyncClient:
 @pytest.mark.asyncio
 async def test_list_tasks_uses_project_endpoint_when_project_id_is_present(monkeypatch: pytest.MonkeyPatch) -> None:
     client = FakeAsyncClient(FakeResponse({"id": "task_1", "title": "Todo", "status": "todo"}))
-    monkeypatch.setattr(list_tasks_module.httpx, "AsyncClient", lambda timeout: client)
+    monkeypatch.setattr(backend_client_module.httpx, "AsyncClient", lambda timeout: client)
     monkeypatch.setattr(settings, "nexus_internal_api_token", "token", raising=False)
     monkeypatch.setattr(settings, "nexus_backend_base_url", "http://backend.test/api/v1", raising=False)
 
@@ -70,7 +71,7 @@ async def test_list_tasks_uses_project_endpoint_when_project_id_is_present(monke
 @pytest.mark.asyncio
 async def test_list_tasks_uses_workspace_endpoint_without_project_id(monkeypatch: pytest.MonkeyPatch) -> None:
     client = FakeAsyncClient(FakeResponse({"id": "task_1", "title": "Roadmap", "status": "todo"}))
-    monkeypatch.setattr(list_tasks_module.httpx, "AsyncClient", lambda timeout: client)
+    monkeypatch.setattr(backend_client_module.httpx, "AsyncClient", lambda timeout: client)
     monkeypatch.setattr(settings, "nexus_internal_api_token", "token", raising=False)
     monkeypatch.setattr(settings, "nexus_backend_base_url", "http://backend.test/api/v1", raising=False)
 

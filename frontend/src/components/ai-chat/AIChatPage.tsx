@@ -5,11 +5,14 @@ import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
 import type { ApprovalRequiredEvent } from '@/lib/api/ai-chat-api'
+import { useWorkspaceMembers } from '@/lib/api/workspace-api'
+import { useAuth } from '@/contexts/AuthContext'
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
 import type { ThinkingStep } from './AIChatMessage'
 import { AIChatInput } from './AIChatInput'
 import { AIChatEmpty } from './AIChatEmpty'
+import { AIChatProjectApprovalForm } from './AIChatProjectApprovalForm'
 
 interface LocalMessage {
   id: string
@@ -43,6 +46,8 @@ export function AIChatPage() {
   const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
   const [executeActions, setExecuteActions] = useState(() => localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true')
   const abortRef = useRef<AbortController | null>(null)
+  const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
+  const { user } = useAuth()
 
   useEffect(() => {
     localStorage.setItem(MODELS_KEY, model)
@@ -302,7 +307,7 @@ export function AIChatPage() {
   }, [streamingContent, updateActiveConversation])
 
   const handleApprovalDecision = useCallback(
-    async (decision: 'approve' | 'deny') => {
+    async (decision: 'approve' | 'deny', formData?: Record<string, any>) => {
       if (!workspaceId || !pendingApproval || isStreaming || !activeConversation) return
 
       setIsStreaming(true)
@@ -321,6 +326,7 @@ export function AIChatPage() {
           pendingApproval.runId,
           pendingApproval.toolCallId,
           decision,
+          formData,
           {
             onTextDelta: (content: string) => {
               setIsThinking(false)
@@ -439,6 +445,44 @@ export function AIChatPage() {
     )
   }, [])
 
+  const approvalContent = pendingApproval && !isStreaming ? (
+    pendingApproval.approvalKind === 'project_create_form' ? (
+      <AIChatProjectApprovalForm
+        approval={pendingApproval}
+        members={workspaceMembers}
+        currentUserId={user?.id}
+        isSubmitting={isStreaming}
+        onApprove={async formData => handleApprovalDecision('approve', formData)}
+        onDeny={async () => handleApprovalDecision('deny')}
+      />
+    ) : (
+      <div className="rounded-2xl border border-[#D97757]/25 bg-[#FFF7ED] p-4 shadow-sm">
+        <div className="text-sm font-semibold text-[#8A4B2F]">
+          {pendingApproval.summary || `Approve ${pendingApproval.toolName}?`}
+        </div>
+        <pre className="mt-2 max-h-40 overflow-auto rounded-xl bg-white/70 p-3 text-xs text-[#3D3D3A]">
+          {JSON.stringify(pendingApproval.args, null, 2)}
+        </pre>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => handleApprovalDecision('approve')}
+            className="rounded-full bg-[#D97757] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#C86443]"
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            onClick={() => handleApprovalDecision('deny')}
+            className="rounded-full border border-[#D6D3CE] px-3 py-1.5 text-xs font-semibold text-[#3D3D3A] hover:bg-white"
+          >
+            Deny
+          </button>
+        </div>
+      </div>
+    )
+  ) : null
+
   return (
     <div className="flex h-full bg-[#FAF9F5]">
       <style>{`
@@ -516,40 +560,13 @@ export function AIChatPage() {
                 </div>
               </div>
             )}
-            {pendingApproval && !isStreaming && (
-              <div className="mx-auto mb-3 w-full max-w-3xl px-6">
-                <div className="rounded-2xl border border-[#D97757]/25 bg-[#FFF7ED] p-4 shadow-sm">
-                  <div className="text-sm font-semibold text-[#8A4B2F]">
-                    {pendingApproval.summary || `Approve ${pendingApproval.toolName}?`}
-                  </div>
-                  <pre className="mt-2 max-h-40 overflow-auto rounded-xl bg-white/70 p-3 text-xs text-[#3D3D3A]">
-                    {JSON.stringify(pendingApproval.args, null, 2)}
-                  </pre>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleApprovalDecision('approve')}
-                      className="rounded-full bg-[#D97757] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#C86443]"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleApprovalDecision('deny')}
-                      className="rounded-full border border-[#D6D3CE] px-3 py-1.5 text-xs font-semibold text-[#3D3D3A] hover:bg-white"
-                    >
-                      Deny
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
             <AIChatInput
               onSend={handleSend}
               onStop={handleStop}
               isStreaming={isStreaming}
               model={model}
               onModelChange={setModel}
+              approvalContent={approvalContent}
             />
           </>
         )}
