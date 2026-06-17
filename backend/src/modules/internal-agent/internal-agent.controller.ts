@@ -2,12 +2,16 @@ import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from
 import { Request } from 'express';
 import { ProjectsService } from '../projects/projects.service';
 import { CreateProjectDto, CreateTaskDto, UpdateProjectDto, UpdateTaskDto } from '../projects/dto';
+import { WorkspaceService } from '../workspace/workspace.service';
 import { InternalAgentGuard } from './internal-agent.guard';
 
 @Controller('internal/agent/workspaces/:workspaceId')
 @UseGuards(InternalAgentGuard)
 export class InternalAgentController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly workspaceService: WorkspaceService,
+  ) {}
 
   private userId(request: Request): string {
     return (request as any).user.sub || (request as any).user.userId;
@@ -19,6 +23,11 @@ export class InternalAgentController {
       status: query.status,
       type: query.type,
     });
+  }
+
+  @Get('members')
+  listWorkspaceMembers(@Param('workspaceId') workspaceId: string, @Req() request: Request) {
+    return this.workspaceService.getMembers(workspaceId, this.userId(request));
   }
 
   @Get('projects/:projectId')

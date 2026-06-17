@@ -5,6 +5,7 @@ import pytest
 
 from app.config import settings
 
+backend_client_module = importlib.import_module("app.tools.backend_client")
 create_project_module = importlib.import_module("app.tools.projects.create_project")
 
 
@@ -56,19 +57,22 @@ async def test_create_project_tool_filters_payload_and_compacts_response(monkeyp
             }
         )
     )
-    monkeypatch.setattr(create_project_module.httpx, "AsyncClient", lambda timeout: client)
+    monkeypatch.setattr(backend_client_module.httpx, "AsyncClient", lambda timeout: client)
     monkeypatch.setattr(settings, "nexus_internal_api_token", "token", raising=False)
     monkeypatch.setattr(settings, "nexus_backend_base_url", "http://backend.test/api/v1", raising=False)
 
-    ctx = SimpleNamespace(deps=SimpleNamespace(user_id="user_1", workspace_id="ws_1"))
+    ctx = SimpleNamespace(
+        deps=SimpleNamespace(user_id="user_1", workspace_id="ws_1"),
+        tool_call_metadata=None,
+    )
 
-    result = await create_project_module.create_project(ctx, name="Roadmap", description=None, priority=None)
+    result = await create_project_module.create_project(ctx, name="Roadmap")
 
     assert client.calls == [
         (
             "POST",
             "http://backend.test/api/v1/internal/agent/workspaces/ws_1/projects",
-            {"name": "Roadmap", "type": "kanban", "status": "active"},
+            {"name": "Roadmap", "lead_id": "user_1"},
             {
                 "x-nexus-internal-token": "token",
                 "x-user-id": "user_1",
@@ -82,3 +86,90 @@ async def test_create_project_tool_filters_payload_and_compacts_response(monkeyp
         "status": "active",
         "type": "kanban",
     }
+
+
+@pytest.mark.asyncio
+async def test_create_project_tool_prefers_form_data_metadata(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def fake_request_backend(**kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"id": "proj_1", "name": "Project From Form"}
+
+    monkeypatch.setattr(create_project_module, "request_backend", fake_request_backend)
+
+    ctx = SimpleNamespace(
+        deps=SimpleNamespace(user_id="user_1", workspace_id="ws_1"),
+        tool_call_metadata={
+            "form_data": {
+                "name": "Project From Form",
+                "description": "Filled in UI",
+                "lead_id": "user_9",
+                "kanban_stages": [{"id": "todo", "name": "To Do", "order": 1, "color": "#3B82F6"}],
+                "collaborative_data": {"default_assignee_ids": ["user_2"]},
+            }
+        },
+    )
+
+    result = await create_project_module.create_project(ctx, name=None)
+
+    assert captured["body"] == {
+        "name": "Project From Form",
+        "description": "Filled in UI",
+        "lead_id": "user_9",
+        "kanban_stages": [{"id": "todo", "name": "To Do", "order": 1, "color": "#3B82F6"}],
+        "collaborative_data": {"default_assignee_ids": ["user_2"]},
+    }
+    assert result == {"id": "proj_1", "name": "Project From Form"}
+
+
+@pytest.mark.asyncio
+async def test_create_project_tool_sends_extended_payload(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = FakeAsyncClient(FakeResponse({"id": "proj_1", "name": "Roadmap"}))
+    monkeypatch.setattr(backend_client_module.httpx, "AsyncClient", lambda timeout: client)
+    monkeypatch.setattr(settings, "nexus_internal_api_token", "token", raising=False)
+    monkeypatch.setattr(settings, "nexus_backend_base_url", "http://backend.test/api/v1", raising=False)
+
+    ctx = SimpleNamespace(
+        deps=SimpleNamespace(user_id="user_1", workspace_id="ws_1"),
+        tool_call_metadata=None,
+    )
+    kanban_stages = [
+        {
+            "id": "todo",
+            "name": "To Do",
+            "order": 1,
+            "color": "#3B82F6",
+        }
+    ]
+    collaborative_data = {
+        "default_assignee_ids": ["user_2", "user_3"],
+    }
+
+    await create_project_module.create_project(
+        ctx,
+        name="Roadmap",
+        description="Migration work",
+        lead_id="user_1",
+        kanban_stages=kanban_stages,
+        collaborative_data=collaborative_data,
+    )
+
+    assert client.calls == [
+        (
+            "POST",
+            "http://backend.test/api/v1/internal/agent/workspaces/ws_1/projects",
+            {
+                "name": "Roadmap",
+                "description": "Migration work",
+                "lead_id": "user_1",
+                "kanban_stages": kanban_stages,
+                "collaborative_data": collaborative_data,
+            },
+            {
+                "x-nexus-internal-token": "token",
+                "x-user-id": "user_1",
+                "x-workspace-id": "ws_1",
+            },
+        )
+    ]

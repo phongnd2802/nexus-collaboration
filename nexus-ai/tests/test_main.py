@@ -79,3 +79,36 @@ async def test_resume_run_reuses_existing_run(monkeypatch: pytest.MonkeyPatch) -
     assert getattr(response, "media_type", None) == "text/event-stream"
     first_chunk = await response.body_iterator.__anext__()
     assert first_chunk == "data: [DONE]\n\n"
+
+
+@pytest.mark.asyncio
+async def test_resume_run_passes_form_data_as_tool_call_metadata(monkeypatch: pytest.MonkeyPatch) -> None:
+    session = session_store.get_or_create("user_form", "ws_form", "sess_form")
+    run = run_store.create(session)
+    run.pending_tool_calls["tool_2"] = {"tool_name": "create_project", "args": {}}
+    request = ResumeRequest(
+        tool_call_id="tool_2",
+        decision="approve",
+        form_data={"name": "Project From Form"},
+    )
+
+    async def fake_stream_agent_run(*, deferred_tool_results=None, resume_run=None, **_kwargs: object):
+        assert resume_run is run
+        assert deferred_tool_results is not None
+        assert deferred_tool_results.approvals["tool_2"] is True
+        assert deferred_tool_results.metadata["tool_2"] == {"form_data": {"name": "Project From Form"}}
+        yield "data: [DONE]\n\n"
+
+    monkeypatch.setattr(orchestrator, "stream_agent_run", fake_stream_agent_run)
+
+    response = await orchestrator.resume_run("sess_form", run.run_id, request)
+
+    assert getattr(response, "media_type", None) == "text/event-stream"
+
+
+def test_tool_result_payload_returns_dict_content() -> None:
+    class FakePart:
+        def model_response_object(self) -> dict[str, object]:
+            return {"id": "proj_1", "name": "Roadmap"}
+
+    assert orchestrator._tool_result_payload(FakePart()) == {"id": "proj_1", "name": "Roadmap"}

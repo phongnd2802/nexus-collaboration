@@ -2,6 +2,7 @@ import time
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+import json
 from typing import Any
 
 from fastapi import HTTPException
@@ -14,7 +15,7 @@ from app.config import settings
 from app.schemas import ChatCompletionRequest, ResumeRequest
 from app.stores import RunState, run_store, session_store
 from app.streaming import CompletionAccumulator, accumulate_chunk, normalized_text_deltas, openai_chunk, tool_part_payload
-from app.agent import AgentDeps, build_agent_with_capture
+from app.agent import AgentDeps, build_agent_with_capture, build_post_action_agent_with_capture
 
 
 @dataclass
@@ -26,6 +27,68 @@ class ChatCompletionContext:
 
 
 class NexusAIOrchestrator:
+    def _post_create_project_prompt(self, result: dict[str, Any]) -> str:
+        return (
+            "A project was created successfully.\n"
+            f"Tool result JSON: {json.dumps(result, ensure_ascii=False)}\n"
+            "Write a concise reply to the end user in the same language they used most recently. "
+            "Confirm the project was created successfully, mention the project name if present, "
+            "and suggest creating the first task next. Do not mention approval forms, resumes, or tools."
+        )
+
+    async def _stream_post_action_follow_up(
+        self,
+        *,
+        model_name: str,
+        completion_id: str,
+        session_id: str,
+        run_id: str,
+        prompt: str,
+    ) -> AsyncIterator[str]:
+        agent, provider_http_client, capture_state = build_post_action_agent_with_capture(model_name, completion_id)
+        text = ""
+        async with provider_http_client:
+            first_text_emitted = False
+            async with agent.run_stream_events(prompt) as stream:
+                async for event in stream:
+                    if isinstance(event, PartDeltaEvent) and getattr(event.delta, "part_delta_kind", None) == "text":
+                        delta = event.delta.content_delta
+                        for text_delta in normalized_text_deltas(
+                            capture_state.first_text_delta,
+                            delta,
+                            first_text_emitted,
+                        ):
+                            text += text_delta
+                            yield openai_chunk(
+                                completion_id,
+                                model_name,
+                                "text_delta",
+                                session_id,
+                                run_id,
+                                content=text_delta,
+                            )
+                        first_text_emitted = True
+                    elif isinstance(event, AgentRunResultEvent) and not text:
+                        output = event.result.output
+                        text = str(output)
+                        yield openai_chunk(
+                            completion_id,
+                            model_name,
+                            "text_delta",
+                            session_id,
+                            run_id,
+                            content=text,
+                        )
+
+    def _tool_result_payload(self, part: Any) -> dict[str, Any] | None:
+        if hasattr(part, "model_response_object"):
+            try:
+                return part.model_response_object()
+            except Exception:
+                return None
+        content = getattr(part, "content", None)
+        return content if isinstance(content, dict) else None
+
     def metadata_value(self, request: ChatCompletionRequest, key: str) -> str | None:
         value = (request.metadata or {}).get(key)
         return str(value) if value else None
@@ -88,7 +151,17 @@ class NexusAIOrchestrator:
                         "tool_call_id": tool_call_id,
                         "tool_name": payload["tool_name"],
                         "args": payload["args"],
-                        "summary": f"Approve {payload['tool_name']}?",
+                        "summary": (
+                            "Complete project details and confirm creation"
+                            if payload["tool_name"] == "create_project"
+                            else f"Approve {payload['tool_name']}?"
+                        ),
+                        "approval_kind": (
+                            "project_create_form"
+                            if payload["tool_name"] == "create_project"
+                            else "generic"
+                        ),
+                        "initial_values": payload["args"] if payload["tool_name"] == "create_project" else None,
                     },
                 )
             )
@@ -139,6 +212,8 @@ class NexusAIOrchestrator:
         deferred_results = DeferredToolResults()
         if request.decision == "approve":
             deferred_results.approvals[request.tool_call_id] = True
+            if request.form_data is not None:
+                deferred_results.metadata[request.tool_call_id] = {"form_data": request.form_data}
         else:
             deferred_results.approvals[request.tool_call_id] = ToolDenied(request.comment or "User denied this action.")
 
@@ -179,6 +254,9 @@ class NexusAIOrchestrator:
         run_settings = self._model_settings(request)
         message_history = run.messages if deferred_tool_results else session.messages
         text = ""
+        latest_tool_name: str | None = None
+        latest_tool_result: dict[str, Any] | None = None
+        latest_tool_outcome: str | None = None
 
         yield openai_chunk(
             completion_id,
@@ -231,6 +309,9 @@ class NexusAIOrchestrator:
                             )
                         elif isinstance(event, FunctionToolResultEvent):
                             part = event.part
+                            latest_tool_name = getattr(part, "tool_name", None)
+                            latest_tool_result = self._tool_result_payload(part)
+                            latest_tool_outcome = getattr(part, "outcome", None)
                             yield openai_chunk(
                                 completion_id,
                                 model_name,
@@ -240,6 +321,8 @@ class NexusAIOrchestrator:
                                 extra={
                                     "tool_call_id": getattr(part, "tool_call_id", None),
                                     "tool_name": getattr(part, "tool_name", None),
+                                    "result": latest_tool_result,
+                                    "outcome": latest_tool_outcome,
                                 },
                             )
                         elif isinstance(event, AgentRunResultEvent):
@@ -276,6 +359,31 @@ class NexusAIOrchestrator:
                                     run.run_id,
                                     content=text,
                                 )
+            if (
+                deferred_tool_results
+                and latest_tool_name == "create_project"
+                and latest_tool_outcome == "success"
+                and latest_tool_result
+            ):
+                text = ""
+                async for chunk in self._stream_post_action_follow_up(
+                    model_name=model_name,
+                    completion_id=completion_id,
+                    session_id=session.session_id,
+                    run_id=run.run_id,
+                    prompt=self._post_create_project_prompt(latest_tool_result),
+                ):
+                    payload = chunk.removeprefix("data: ").strip()
+                    if payload != "[DONE]":
+                        try:
+                            parsed = json.loads(payload)
+                        except Exception:
+                            parsed = None
+                        if isinstance(parsed, dict):
+                            delta = parsed.get("delta")
+                            if isinstance(delta, str):
+                                text += delta
+                    yield chunk
         except Exception as error:
             message = self._runtime_error_message(error)
             yield openai_chunk(

@@ -1,0 +1,18 @@
+{
+    "name": "string",
+    "description": "string (optional)",
+    "lead_id": "string",
+    "kanban_stages": [
+        {
+            "id": "todo",
+            "name": "To Do",
+            "order": 1,
+            "color": "#3B82F6"
+        }
+    ],
+    "collaborative_data": {
+        "default_assignee_ids": [
+            "string"
+        ]
+    }
+}

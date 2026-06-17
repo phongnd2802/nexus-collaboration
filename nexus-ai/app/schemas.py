@@ -26,6 +26,7 @@ class ResumeRequest(BaseModel):
     tool_call_id: str
     decision: Literal["approve", "deny"]
     comment: str | None = None
+    form_data: dict[str, Any] | None = None
 
 
 class ErrorDetail(BaseModel):

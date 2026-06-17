@@ -56,6 +56,8 @@ export interface ApprovalRequiredEvent {
   toolName: string
   args: Record<string, any>
   summary?: string
+  approvalKind?: string
+  initialValues?: Record<string, any>
 }
 
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
@@ -96,6 +98,33 @@ function completionResult(sessionId: string | undefined, message: string, pendin
   }
 }
 
+function fallbackToolCompletionMessage(toolName?: string, result?: Record<string, any>): string {
+  if (!toolName) return ''
+
+  if (toolName === 'create_project') {
+    const projectName = typeof result?.name === 'string' ? result.name : undefined
+    return projectName ? `Project "${projectName}" created successfully.` : 'Project created successfully.'
+  }
+
+  return `${toolName.replaceAll('_', ' ')} completed successfully.`
+}
+
+function isApprovalBoilerplateMessage(message: string, toolName?: string): boolean {
+  const normalized = message.trim().toLowerCase()
+  if (!normalized) return false
+
+  if (toolName === 'create_project') {
+    return (
+      normalized.includes('approval form') ||
+      normalized.includes('triggered the project creation') ||
+      normalized.includes('complete the necessary fields') ||
+      normalized.includes('finalize the project creation')
+    )
+  }
+
+  return normalized.includes('approval required') || normalized.includes('confirm before')
+}
+
 function extractTextDelta(chunk: any): string {
   if (typeof chunk?.delta === 'string') return chunk.delta
   if (typeof chunk?.text === 'string') return chunk.text
@@ -117,6 +146,17 @@ async function consumeNexusAIStream(
   let sessionId = initialSessionId
   let runId: string | undefined
   let pendingApproval = false
+  let lastToolResult: { toolName?: string; result?: Record<string, any> } | null = null
+  const complete = () => {
+    const fallbackMessage = !pendingApproval
+      ? fallbackToolCompletionMessage(lastToolResult?.toolName, lastToolResult?.result)
+      : ''
+    const finalMessage =
+      assistantContent && !isApprovalBoilerplateMessage(assistantContent, lastToolResult?.toolName)
+        ? assistantContent
+        : fallbackMessage || assistantContent
+    callbacks.onComplete?.(completionResult(sessionId, finalMessage, pendingApproval))
+  }
 
   while (true) {
     const { done, value } = await reader.read()
@@ -132,7 +172,7 @@ async function consumeNexusAIStream(
 
       const raw = line.slice(6).trim()
       if (raw === '[DONE]') {
-        callbacks.onComplete?.(completionResult(sessionId, assistantContent, pendingApproval))
+        complete()
         return
       }
 
@@ -156,6 +196,10 @@ async function consumeNexusAIStream(
       }
 
       if (chunk?.type === 'tool_result') {
+        lastToolResult = {
+          toolName: chunk.tool_name,
+          result: chunk.result,
+        }
         callbacks.onStep?.({
           id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
           title: `${chunk.tool_name || 'Tool'} completed`,
@@ -175,6 +219,8 @@ async function consumeNexusAIStream(
           toolName: chunk.tool_name,
           args: chunk.args || {},
           summary: chunk.summary,
+          approvalKind: chunk.approval_kind,
+          initialValues: chunk.initial_values || undefined,
         })
         callbacks.onStep?.({
           id: chunk.tool_call_id,
@@ -195,7 +241,7 @@ async function consumeNexusAIStream(
     }
   }
 
-  callbacks.onComplete?.(completionResult(sessionId, assistantContent, pendingApproval))
+  complete()
 }
 
 export const aiChatApi = {
@@ -253,6 +299,7 @@ export const aiChatApi = {
     runId: string,
     toolCallId: string,
     decision: 'approve' | 'deny',
+    formData: Record<string, any> | undefined,
     callbacks: AIChatStreamCallbacks,
     token: string,
     signal?: AbortSignal,
@@ -267,7 +314,7 @@ export const aiChatApi = {
           Accept: 'text/event-stream',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ tool_call_id: toolCallId, decision }),
+        body: JSON.stringify({ tool_call_id: toolCallId, decision, form_data: formData }),
         signal,
       },
     )
