@@ -108,6 +108,10 @@ frontend/src-tauri/target/
 # Local development
 .local/
 .cache/
+nexus-ai/.venv/
+nexus-ai/.pytest_cache/
+nexus-ai/app/__pycache__/
+nexus-ai/.env
 docs
 # Legacy
 frontend-nextjs-old/
