@@ -10,12 +10,11 @@ from pydantic_ai import DeferredToolRequests, DeferredToolResults, ToolDenied
 from pydantic_ai.messages import FunctionToolCallEvent, FunctionToolResultEvent, PartDeltaEvent
 from pydantic_ai.run import AgentRunResultEvent
 
-from app.agent import AgentDeps, build_agent_with_capture
-from app.backend_client import NexusBackendClient
 from app.config import settings
 from app.schemas import ChatCompletionRequest, ResumeRequest
 from app.stores import RunState, run_store, session_store
 from app.streaming import CompletionAccumulator, accumulate_chunk, normalized_text_deltas, openai_chunk, tool_part_payload
+from app.agent import AgentDeps, build_agent_with_capture
 
 
 @dataclass
@@ -193,91 +192,90 @@ class NexusAIOrchestrator:
         try:
             agent, provider_http_client, capture_state = build_agent_with_capture(model_name, completion_id)
             async with provider_http_client:
-                async with NexusBackendClient(user_id, workspace_id) as backend:
-                    deps = AgentDeps(user_id=user_id, workspace_id=workspace_id, backend=backend)
-                    first_text_emitted = False
-                    async with agent.run_stream_events(
-                        user_prompt,
-                        deps=deps,
-                        message_history=message_history or None,
-                        deferred_tool_results=deferred_tool_results,
-                        model_settings=run_settings or None,
-                    ) as stream:
-                        async for event in stream:
-                            if isinstance(event, PartDeltaEvent) and getattr(event.delta, "part_delta_kind", None) == "text":
-                                delta = event.delta.content_delta
-                                for text_delta in normalized_text_deltas(
-                                    capture_state.first_text_delta,
-                                    delta,
-                                    first_text_emitted,
-                                ):
-                                    text += text_delta
-                                    yield openai_chunk(
-                                        completion_id,
-                                        model_name,
-                                        "text_delta",
-                                        session.session_id,
-                                        run.run_id,
-                                        content=text_delta,
-                                    )
-                                first_text_emitted = True
-                            elif isinstance(event, FunctionToolCallEvent):
-                                payload = tool_part_payload(event.part)
+                deps = AgentDeps(user_id=user_id, workspace_id=workspace_id)
+                first_text_emitted = False
+                async with agent.run_stream_events(
+                    user_prompt,
+                    deps=deps,
+                    message_history=message_history or None,
+                    deferred_tool_results=deferred_tool_results,
+                    model_settings=run_settings or None,
+                ) as stream:
+                    async for event in stream:
+                        if isinstance(event, PartDeltaEvent) and getattr(event.delta, "part_delta_kind", None) == "text":
+                            delta = event.delta.content_delta
+                            for text_delta in normalized_text_deltas(
+                                capture_state.first_text_delta,
+                                delta,
+                                first_text_emitted,
+                            ):
+                                text += text_delta
                                 yield openai_chunk(
                                     completion_id,
                                     model_name,
-                                    "tool_call",
+                                    "text_delta",
                                     session.session_id,
                                     run.run_id,
-                                    extra=payload,
+                                    content=text_delta,
                                 )
-                            elif isinstance(event, FunctionToolResultEvent):
-                                part = event.part
+                            first_text_emitted = True
+                        elif isinstance(event, FunctionToolCallEvent):
+                            payload = tool_part_payload(event.part)
+                            yield openai_chunk(
+                                completion_id,
+                                model_name,
+                                "tool_call",
+                                session.session_id,
+                                run.run_id,
+                                extra=payload,
+                            )
+                        elif isinstance(event, FunctionToolResultEvent):
+                            part = event.part
+                            yield openai_chunk(
+                                completion_id,
+                                model_name,
+                                "tool_result",
+                                session.session_id,
+                                run.run_id,
+                                extra={
+                                    "tool_call_id": getattr(part, "tool_call_id", None),
+                                    "tool_name": getattr(part, "tool_name", None),
+                                },
+                            )
+                        elif isinstance(event, AgentRunResultEvent):
+                            output = event.result.output
+                            run.messages = event.result.all_messages()
+                            session_store.save_messages(session.session_id, run.messages)
+                            if isinstance(output, DeferredToolRequests):
+                                context = ChatCompletionContext(
+                                    model_name=model_name,
+                                    completion_id=completion_id,
+                                    session_id=session.session_id,
+                                    run_id=run.run_id,
+                                )
+                                for approval_event in self._approval_events(context, run, output):
+                                    yield approval_event
+                                run_store.save(run)
                                 yield openai_chunk(
                                     completion_id,
                                     model_name,
-                                    "tool_result",
+                                    "done",
                                     session.session_id,
                                     run.run_id,
-                                    extra={
-                                        "tool_call_id": getattr(part, "tool_call_id", None),
-                                        "tool_name": getattr(part, "tool_name", None),
-                                    },
+                                    finish_reason="tool_calls",
                                 )
-                            elif isinstance(event, AgentRunResultEvent):
-                                output = event.result.output
-                                run.messages = event.result.all_messages()
-                                session_store.save_messages(session.session_id, run.messages)
-                                if isinstance(output, DeferredToolRequests):
-                                    context = ChatCompletionContext(
-                                        model_name=model_name,
-                                        completion_id=completion_id,
-                                        session_id=session.session_id,
-                                        run_id=run.run_id,
-                                    )
-                                    for approval_event in self._approval_events(context, run, output):
-                                        yield approval_event
-                                    run_store.save(run)
-                                    yield openai_chunk(
-                                        completion_id,
-                                        model_name,
-                                        "done",
-                                        session.session_id,
-                                        run.run_id,
-                                        finish_reason="tool_calls",
-                                    )
-                                    yield "data: [DONE]\n\n"
-                                    return
-                                if not text:
-                                    text = str(output)
-                                    yield openai_chunk(
-                                        completion_id,
-                                        model_name,
-                                        "text_delta",
-                                        session.session_id,
-                                        run.run_id,
-                                        content=text,
-                                    )
+                                yield "data: [DONE]\n\n"
+                                return
+                            if not text:
+                                text = str(output)
+                                yield openai_chunk(
+                                    completion_id,
+                                    model_name,
+                                    "text_delta",
+                                    session.session_id,
+                                    run.run_id,
+                                    content=text,
+                                )
         except Exception as error:
             message = self._runtime_error_message(error)
             yield openai_chunk(
