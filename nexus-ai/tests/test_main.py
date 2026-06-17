@@ -3,8 +3,10 @@ import json
 import pytest
 from fastapi.responses import JSONResponse
 
-from app.main import CompletionAccumulator, accumulate_chunk, handle_chat_completion, normalized_text_deltas
-from app.schemas import ChatCompletionRequest
+from app.orchestrator import orchestrator
+from app.schemas import ChatCompletionRequest, ResumeRequest
+from app.stores import run_store, session_store
+from app.streaming import CompletionAccumulator, accumulate_chunk, normalized_text_deltas
 
 
 def test_accumulate_chunk_tracks_content_and_finish_reason() -> None:
@@ -38,7 +40,7 @@ async def test_handle_chat_completion_uses_explicit_session_id(monkeypatch: pyte
         yield 'data: {"session_id":"sess_path","run_id":"run_1","choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\n'
         yield "data: [DONE]\n\n"
 
-    monkeypatch.setattr("app.main.stream_agent_run", fake_stream_agent_run)
+    monkeypatch.setattr(orchestrator, "stream_agent_run", fake_stream_agent_run)
 
     request = ChatCompletionRequest(
         model="test-model",
@@ -46,7 +48,7 @@ async def test_handle_chat_completion_uses_explicit_session_id(monkeypatch: pyte
         metadata={"user_id": "user_1", "workspace_id": "ws_1"},
     )
 
-    response = await handle_chat_completion(request, session_id="sess_path")
+    response = await orchestrator.chat_completions(request, session_id="sess_path")
 
     assert isinstance(response, JSONResponse)
     payload = json.loads(response.body)
@@ -54,3 +56,26 @@ async def test_handle_chat_completion_uses_explicit_session_id(monkeypatch: pyte
     assert payload["run_id"] == "run_1"
     assert payload["choices"][0]["message"]["content"] == "ok"
     assert payload["choices"][0]["finish_reason"] == "stop"
+
+
+@pytest.mark.asyncio
+async def test_resume_run_reuses_existing_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    session = session_store.get_or_create("user_resume", "ws_resume", "sess_resume")
+    run = run_store.create(session)
+    run.pending_tool_calls["tool_1"] = {"tool_name": "create_task", "args": {"title": "Test"}}
+    request = ResumeRequest(tool_call_id="tool_1", decision="approve")
+
+    async def fake_stream_agent_run(*, session_id: str | None, deferred_tool_results=None, resume_run=None, **_kwargs: object):
+        assert session_id == "sess_resume"
+        assert resume_run is run
+        assert deferred_tool_results is not None
+        assert deferred_tool_results.approvals["tool_1"] is True
+        yield "data: [DONE]\n\n"
+
+    monkeypatch.setattr(orchestrator, "stream_agent_run", fake_stream_agent_run)
+
+    response = await orchestrator.resume_run("sess_resume", run.run_id, request)
+
+    assert getattr(response, "media_type", None) == "text/event-stream"
+    first_chunk = await response.body_iterator.__anext__()
+    assert first_chunk == "data: [DONE]\n\n"
