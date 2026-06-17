@@ -39,6 +39,7 @@ import { IntegrationFrameworkModule } from './modules/integration-framework/inte
 import { DocumentsModule } from './modules/documents/documents.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
+import { InternalAgentModule } from './modules/internal-agent/internal-agent.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
     DocumentsModule,
     WorkflowsModule,
     AgentChatModule,
+    InternalAgentModule,
   ],
   providers: [
     {

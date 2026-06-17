@@ -35,4 +35,29 @@ export class AgentChatController {
   ): Promise<void> {
     await this.agentChat.proxyChatCompletions(body, (request as any).user, workspaceId, response);
   }
+
+  @Post('workspaces/:workspaceId/sessions/:sessionId/chat/completions')
+  @ApiOperation({ summary: 'Session-scoped OpenAI-compatible chat completions proxy for Nexus AI' })
+  async sessionChatCompletions(
+    @Param('workspaceId') workspaceId: string,
+    @Param('sessionId') sessionId: string,
+    @Body() body: any,
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<void> {
+    await this.agentChat.proxySessionChatCompletions(body, (request as any).user, workspaceId, sessionId, response);
+  }
+
+  @Post('workspaces/:workspaceId/sessions/:sessionId/runs/:runId/resume')
+  @ApiOperation({ summary: 'Resume a paused Nexus AI run after tool approval' })
+  async resumeRun(
+    @Param('workspaceId') workspaceId: string,
+    @Param('sessionId') sessionId: string,
+    @Param('runId') runId: string,
+    @Body() body: any,
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<void> {
+    await this.agentChat.proxyResume(body, (request as any).user, workspaceId, sessionId, runId, response);
+  }
 }

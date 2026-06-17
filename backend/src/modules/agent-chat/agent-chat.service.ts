@@ -1,6 +1,7 @@
 import { BadGatewayException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 
 @Injectable()
@@ -9,10 +10,49 @@ export class AgentChatService {
 
   constructor(private readonly config: ConfigService) {}
 
-  async proxyChatCompletions(body: any, user: any, workspaceId: string, response: Response): Promise<void> {
+  async proxyChatCompletions(
+    body: any,
+    user: any,
+    workspaceId: string,
+    response: Response,
+    sessionId?: string,
+  ): Promise<void> {
+    await this.proxyToNexusAi('/v1/chat/completions', body, user, workspaceId, response, sessionId);
+  }
+
+  async proxySessionChatCompletions(
+    body: any,
+    user: any,
+    workspaceId: string,
+    sessionId: string,
+    response: Response,
+  ): Promise<void> {
+    await this.proxyToNexusAi(`/v1/sessions/${sessionId}/chat/completions`, body, user, workspaceId, response, sessionId);
+  }
+
+  async proxyResume(
+    body: any,
+    user: any,
+    workspaceId: string,
+    sessionId: string,
+    runId: string,
+    response: Response,
+  ): Promise<void> {
+    await this.proxyToNexusAi(`/v1/sessions/${sessionId}/runs/${runId}/resume`, body, user, workspaceId, response, sessionId);
+  }
+
+  private async proxyToNexusAi(
+    path: string,
+    body: any,
+    user: any,
+    workspaceId: string,
+    response: Response,
+    sessionId?: string,
+  ): Promise<void> {
     const baseUrl = this.config.get<string>('NEXUS_AI_BASE_URL', 'http://localhost:8000')!;
     const apiKey = this.config.get<string>('NEXUS_AI_API_KEY', '');
     const timeoutMs = Number(this.config.get<string>('NEXUS_AI_TIMEOUT_MS', '60000'));
+    const expectsStream = Boolean(body?.stream) || path.includes('/resume');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -20,17 +60,18 @@ export class AgentChatService {
       ...body,
       metadata: {
         ...(body?.metadata || {}),
+        ...(sessionId ? { session_id: sessionId } : {}),
         user_id: user?.sub || user?.userId,
         workspace_id: workspaceId,
       },
     };
 
     try {
-      const upstream = await fetch(`${baseUrl.replace(/\/$/, '')}/v1/chat/completions`, {
+      const upstream = await fetch(`${baseUrl.replace(/\/$/, '')}${path}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Accept: body?.stream ? 'text/event-stream' : 'application/json',
+          Accept: expectsStream ? 'text/event-stream' : 'application/json',
           ...(apiKey ? { 'x-api-key': apiKey } : {}),
         },
         body: JSON.stringify(upstreamBody),
@@ -44,7 +85,7 @@ export class AgentChatService {
         }
       });
 
-      if (body?.stream) {
+      if (expectsStream) {
         response.setHeader('Cache-Control', 'no-cache');
         response.setHeader('Connection', 'keep-alive');
         response.setHeader('Content-Type', upstream.headers.get('content-type') || 'text/event-stream');
@@ -55,7 +96,7 @@ export class AgentChatService {
         return;
       }
 
-      Readable.fromWeb(upstream.body as any).pipe(response);
+      await pipeline(Readable.fromWeb(upstream.body as any), response);
     } catch (error: any) {
       if (error?.name === 'AbortError') {
         this.logger.error(`Nexus AI request timed out after ${timeoutMs}ms`);
