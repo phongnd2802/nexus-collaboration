@@ -6,7 +6,6 @@ import type { ViewType } from './NavigationRail'
 import { LeftSidebar } from './LeftSidebar'
 import { MainContent } from './MainContent'
 import { RightSidebar } from './RightSidebar'
-import { DeskiAssistantModal, DeskiAssistantFloatingButton } from '../ai/DeskiAssistantModal'
 import { WorkspaceHeader } from './WorkspaceHeader'
 import { VideoCallManager } from '@/components/video-call'
 import { WebRTCCallWrapper } from '@/components/video-call/WebRTCCallWrapper'
@@ -49,8 +48,6 @@ function WorkspaceLayoutInner({ children }: WorkspaceLayoutProps) {
     right: true,
   })
   const [isTabActive, setIsTabActive] = useState(true)
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false)
-
   const incomingCallWindowRef = useRef<Window | null>(null)
   const currentIncomingCallIdRef = useRef<string | null>(null)
 
@@ -123,10 +120,6 @@ function WorkspaceLayoutInner({ children }: WorkspaceLayoutProps) {
       ...prev,
       [side]: !prev[side]
     }))
-  }
-
-  const toggleAIModal = () => {
-    setIsAIModalOpen(prev => !prev)
   }
 
   const isInActiveCall = location.pathname.includes('/video-calls/') &&
@@ -322,29 +315,19 @@ function WorkspaceLayoutInner({ children }: WorkspaceLayoutProps) {
               >
                 {children}
               </MainContent>
-              {!isAIModalOpen && (
-                <RightSidebar
-                  currentView={currentView}
-                  isCollapsed={!sidebarStates.right}
-                  isMinimized={isMinimized}
-                  onToggleMinimized={toggleMinimized}
-                  workspaceId={workspaceId}
-                  projectsData={projectsData}
-                  chatData={chatData}
-                  dashboardData={dashboardResponse}
-                />
-              )}
+              <RightSidebar
+                currentView={currentView}
+                isCollapsed={!sidebarStates.right}
+                isMinimized={isMinimized}
+                onToggleMinimized={toggleMinimized}
+                workspaceId={workspaceId}
+                projectsData={projectsData}
+                chatData={chatData}
+                dashboardData={dashboardResponse}
+              />
             </div>
           </div>
         </div>
-        <DeskiAssistantModal
-          isOpen={isAIModalOpen}
-          onClose={() => setIsAIModalOpen(false)}
-          currentView={currentView}
-        />
-        {!isAIModalOpen && (
-          <DeskiAssistantFloatingButton onClick={() => setIsAIModalOpen(true)} />
-        )}
         {user && (
           <>
             <VideoCallManager

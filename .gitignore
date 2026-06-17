@@ -124,3 +124,4 @@ CLAUDE.md
 .uv-cache/
 .codex/
 llms.txt
+raw-provider-responses/

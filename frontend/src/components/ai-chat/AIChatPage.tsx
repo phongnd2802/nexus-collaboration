@@ -4,6 +4,7 @@ import { useIntl } from 'react-intl'
 import { toast } from 'sonner'
 import { Sparkles } from 'lucide-react'
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
+import type { ApprovalRequiredEvent } from '@/lib/api/ai-chat-api'
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
 import type { ThinkingStep } from './AIChatMessage'
@@ -19,6 +20,7 @@ interface LocalMessage {
 
 interface LocalConversation {
   id: string
+  sessionId?: string
   title: string
   messages: LocalMessage[]
   updatedAt: string
@@ -37,6 +39,7 @@ export function AIChatPage() {
   const [isThinking, setIsThinking] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [streamingSteps, setStreamingSteps] = useState<ThinkingStep[]>([])
+  const [pendingApproval, setPendingApproval] = useState<ApprovalRequiredEvent | null>(null)
   const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
   const [executeActions, setExecuteActions] = useState(() => localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true')
   const abortRef = useRef<AbortController | null>(null)
@@ -57,6 +60,7 @@ export function AIChatPage() {
     setIsThinking(false)
     setStreamingContent('')
     setStreamingSteps([])
+    setPendingApproval(null)
     abortRef.current?.abort()
     abortRef.current = null
   }, [workspaceId])
@@ -182,6 +186,7 @@ export function AIChatPage() {
           {
             command: message,
             workspaceId,
+            sessionId: conversation.sessionId,
             executeActions,
             context,
           },
@@ -205,7 +210,23 @@ export function AIChatPage() {
               assistantContent = content
               setStreamingContent(content)
             },
+            onSession: (sessionId: string) => {
+              setConversations(prev =>
+                prev.map(item => (item.id === conversation.id ? { ...item, sessionId } : item)),
+              )
+            },
+            onApprovalRequired: (approval: ApprovalRequiredEvent) => {
+              setPendingApproval(approval)
+              setIsThinking(false)
+            },
             onComplete: (result: any) => {
+              if (result?.reasoning === 'approval_required') {
+                setIsStreaming(false)
+                setIsThinking(false)
+                setStreamingContent('')
+                abortRef.current = null
+                return
+              }
               const finalContent = result?.message || assistantContent
               const aiMsg: LocalMessage = {
                 id: `assistant-${Date.now()}`,
@@ -224,6 +245,125 @@ export function AIChatPage() {
                     : item,
                 ),
               )
+              setIsStreaming(false)
+              setIsThinking(false)
+              setStreamingContent('')
+              setStreamingSteps([])
+              setPendingApproval(null)
+              abortRef.current = null
+            },
+            onError: (error: string) => {
+              toast.error(error || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+              setIsStreaming(false)
+              setIsThinking(false)
+              setStreamingContent('')
+              setStreamingSteps([])
+              setPendingApproval(null)
+              abortRef.current = null
+            },
+          },
+          token,
+          controller.signal,
+        )
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          toast.error(err?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+        }
+        setIsStreaming(false)
+        setIsThinking(false)
+        setStreamingContent('')
+        setStreamingSteps([])
+        setPendingApproval(null)
+        abortRef.current = null
+      }
+      },
+    [workspaceId, isStreaming, model, executeActions, localMessages, intl, activeConversation, activeConversationId, createConversation],
+  )
+
+  const handleStop = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current.abort()
+      abortRef.current = null
+    }
+    if (streamingContent) {
+      const aiMsg: LocalMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: streamingContent,
+        timestamp: new Date().toISOString(),
+      }
+      updateActiveConversation(prev => [...prev, aiMsg])
+    }
+    setIsStreaming(false)
+    setIsThinking(false)
+    setStreamingContent('')
+    setStreamingSteps([])
+    setPendingApproval(null)
+  }, [streamingContent, updateActiveConversation])
+
+  const handleApprovalDecision = useCallback(
+    async (decision: 'approve' | 'deny') => {
+      if (!workspaceId || !pendingApproval || isStreaming || !activeConversation) return
+
+      setIsStreaming(true)
+      setIsThinking(true)
+      setStreamingContent('')
+      setStreamingSteps([])
+      const token = localStorage.getItem('auth_token') || ''
+      const controller = new AbortController()
+      abortRef.current = controller
+      let assistantContent = ''
+
+      try {
+        await aiChatApi.resumeApproval(
+          workspaceId,
+          pendingApproval.sessionId,
+          pendingApproval.runId,
+          pendingApproval.toolCallId,
+          decision,
+          {
+            onTextDelta: (content: string) => {
+              setIsThinking(false)
+              assistantContent += content
+              setStreamingContent(prev => prev + content)
+            },
+            onStep: (step: ThinkingStep) => {
+              setStreamingSteps(prev => {
+                const index = prev.findIndex(item => item.id === step.id)
+                if (index === -1) return [...prev, step]
+                const next = [...prev]
+                next[index] = { ...next[index], ...step }
+                return next
+              })
+            },
+            onApprovalRequired: (approval: ApprovalRequiredEvent) => {
+              setPendingApproval(approval)
+            },
+            onComplete: (result: any) => {
+              if (result?.reasoning === 'approval_required') {
+                setIsStreaming(false)
+                setIsThinking(false)
+                setStreamingContent('')
+                abortRef.current = null
+                return
+              }
+              const finalContent = result?.message || assistantContent
+              if (finalContent) {
+                const aiMsg: LocalMessage = {
+                  id: `assistant-${Date.now()}`,
+                  role: 'assistant',
+                  content: finalContent,
+                  timestamp: new Date().toISOString(),
+                }
+                setConversations(prev =>
+                  prev.map(item =>
+                    item.id === activeConversation.id
+                      ? { ...item, messages: [...item.messages, aiMsg], updatedAt: new Date().toISOString() }
+                      : item,
+                  ),
+                )
+              }
+              setPendingApproval(null)
               setIsStreaming(false)
               setIsThinking(false)
               setStreamingContent('')
@@ -252,29 +392,9 @@ export function AIChatPage() {
         setStreamingSteps([])
         abortRef.current = null
       }
-      },
-    [workspaceId, isStreaming, model, executeActions, localMessages, intl, activeConversation, activeConversationId, createConversation],
+    },
+    [workspaceId, pendingApproval, isStreaming, activeConversation, intl],
   )
-
-  const handleStop = useCallback(() => {
-    if (abortRef.current) {
-      abortRef.current.abort()
-      abortRef.current = null
-    }
-    if (streamingContent) {
-      const aiMsg: LocalMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: streamingContent,
-        timestamp: new Date().toISOString(),
-      }
-      updateActiveConversation(prev => [...prev, aiMsg])
-    }
-    setIsStreaming(false)
-    setIsThinking(false)
-    setStreamingContent('')
-    setStreamingSteps([])
-  }, [streamingContent, updateActiveConversation])
 
   const handleRegenerate = useCallback(
     (messageId: string) => {
@@ -361,28 +481,6 @@ export function AIChatPage() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center gap-3 px-4 pt-3 pb-1 h-[44px] flex-shrink-0">
-          <div className="ml-auto rounded-full border px-2.5 py-1 text-[11px] font-medium border-[#D97757]/20 bg-[#D97757]/5 text-[#8A4B2F]">
-            Nexus AI
-          </div>
-          <button
-            type="button"
-            onClick={() => setExecuteActions(prev => !prev)}
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              executeActions
-                ? 'border-[#E01E5A]/25 bg-[#E01E5A]/10 text-[#B91C1C]'
-                : 'border-[#10B981]/20 bg-[#10B981]/5 text-[#047857]'
-            }`}
-            title={
-              executeActions
-                ? 'Write tools can execute real changes'
-                : 'Write tools return preview only'
-            }
-          >
-            {executeActions ? 'Execute on' : 'Preview'}
-          </button>
-        </div>
-
         {!hasConversation ? (
           <AIChatEmpty
             onSend={handleSend}
@@ -415,6 +513,34 @@ export function AIChatPage() {
                     <span className="w-1 h-1 rounded-full bg-[#D97757] animate-[thinkingPulse_1.4s_ease-in-out_0.2s_infinite]" />
                     <span className="w-1 h-1 rounded-full bg-[#D97757] animate-[thinkingPulse_1.4s_ease-in-out_0.4s_infinite]" />
                   </span>
+                </div>
+              </div>
+            )}
+            {pendingApproval && !isStreaming && (
+              <div className="mx-auto mb-3 w-full max-w-3xl px-6">
+                <div className="rounded-2xl border border-[#D97757]/25 bg-[#FFF7ED] p-4 shadow-sm">
+                  <div className="text-sm font-semibold text-[#8A4B2F]">
+                    {pendingApproval.summary || `Approve ${pendingApproval.toolName}?`}
+                  </div>
+                  <pre className="mt-2 max-h-40 overflow-auto rounded-xl bg-white/70 p-3 text-xs text-[#3D3D3A]">
+                    {JSON.stringify(pendingApproval.args, null, 2)}
+                  </pre>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleApprovalDecision('approve')}
+                      className="rounded-full bg-[#D97757] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#C86443]"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleApprovalDecision('deny')}
+                      className="rounded-full border border-[#D6D3CE] px-3 py-1.5 text-xs font-semibold text-[#3D3D3A] hover:bg-white"
+                    >
+                      Deny
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
