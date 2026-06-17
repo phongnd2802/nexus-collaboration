@@ -22,6 +22,12 @@ class ChatCompletionRequest(BaseModel):
     tool_choice: Any | None = None
 
 
+class ResumeRequest(BaseModel):
+    tool_call_id: str
+    decision: Literal["approve", "deny"]
+    comment: str | None = None
+
+
 class ErrorDetail(BaseModel):
     message: str
     type: str = "invalid_request_error"
