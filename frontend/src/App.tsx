@@ -180,6 +180,7 @@ function WorkspaceRoutes() {
         <Route path="chat" element={<ChatPage />} />
         <Route path="chat/:channelId" element={<ChatPage />} />
         <Route path="ai-chat" element={<AIChatPage />} />
+        <Route path="ai-chat/:sessionId" element={<AIChatPage />} />
         <Route path="projects/*" element={<ProjectsPage />} />
         <Route path="templates" element={<TemplatesPage />} />
         <Route path="files/*" element={<FilesPage />} />

@@ -54,6 +54,22 @@ export interface ApprovalRequiredEvent {
   initialValues?: Record<string, any>
 }
 
+export interface AIChatSessionSnapshot {
+  sessionId: string
+  title: string
+  items: Array<Record<string, any>>
+  updatedAt: string
+  activeApprovalItemId?: string | null
+}
+
+export interface AIChatSessionSummary {
+  sessionId: string
+  title: string
+  updatedAt: string
+  messageCount: number
+  hasPendingApproval?: boolean
+}
+
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 const STORAGE_PREFIX = 'nexus_ai_chat_'
 
@@ -329,6 +345,57 @@ export const aiChatApi = {
     }
 
     await consumeNexusAIStream(response, callbacks, sessionId)
+  },
+
+  getSession: async (workspaceId: string, sessionId: string, token: string): Promise<AIChatSessionSnapshot> => {
+    const response = await fetch(
+      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`),
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+      throw new Error(extractOpenAIError(payload, `Nexus AI session fetch failed (${response.status})`))
+    }
+
+    return response.json()
+  },
+
+  listSessions: async (workspaceId: string, token: string): Promise<AIChatSessionSummary[]> => {
+    const response = await fetch(
+      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions`),
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+      throw new Error(extractOpenAIError(payload, `Nexus AI sessions fetch failed (${response.status})`))
+    }
+
+    const payload = await response.json()
+    return Array.isArray(payload?.data) ? payload.data : []
   },
 
   listTools: async (_workspaceId: string, _token: string): Promise<AIChatToolsResponse> => {

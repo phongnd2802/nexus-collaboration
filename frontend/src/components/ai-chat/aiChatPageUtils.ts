@@ -78,3 +78,14 @@ export function toRequestMessages(items: AIChatTimelineItem[]) {
 export function createTimestamp() {
   return new Date().toISOString()
 }
+
+export function buildAIChatTitle(value?: string) {
+  const trimmed = value?.trim() || ''
+  return trimmed ? trimmed.slice(0, 48) : 'New conversation'
+}
+
+export function buildAIChatPath(workspaceId: string, sessionId?: string) {
+  return sessionId
+    ? `/workspaces/${workspaceId}/ai-chat/${sessionId}`
+    : `/workspaces/${workspaceId}/ai-chat`
+}

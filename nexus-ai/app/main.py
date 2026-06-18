@@ -63,6 +63,30 @@ async def session_chat_completions(session_id: str, request: ChatCompletionReque
     return await orchestrator.chat_completions(request, session_id=session_id)
 
 
+@app.get("/v1/sessions/{session_id}", dependencies=[Depends(require_api_key)])
+async def session_snapshot(
+    session_id: str,
+    x_user_id: str | None = Header(default=None),
+    x_workspace_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not x_user_id or not x_workspace_id:
+        raise HTTPException(status_code=400, detail="x-user-id and x-workspace-id are required")
+    return orchestrator.get_session_snapshot(session_id, x_user_id, x_workspace_id).model_dump()
+
+
+@app.get("/v1/sessions", dependencies=[Depends(require_api_key)])
+async def list_sessions(
+    x_user_id: str | None = Header(default=None),
+    x_workspace_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not x_user_id or not x_workspace_id:
+        raise HTTPException(status_code=400, detail="x-user-id and x-workspace-id are required")
+    return {
+        "object": "list",
+        "data": [item.model_dump() for item in orchestrator.list_sessions(x_user_id, x_workspace_id)],
+    }
+
+
 @app.post("/v1/sessions/{session_id}/runs/{run_id}/resume", dependencies=[Depends(require_api_key)])
 async def resume_run(session_id: str, run_id: str, request: ResumeRequest) -> Response:
     return await orchestrator.resume_run(session_id, run_id, request)
