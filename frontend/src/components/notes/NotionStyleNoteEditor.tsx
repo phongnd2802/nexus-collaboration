@@ -278,6 +278,11 @@ export function NotionStyleNoteEditor({
   const historyIndexRef = useRef<number>(-1)
   const isUndoRedoRef = useRef<boolean>(false)
 
+  // Stable refs for quillModules keyboard handlers - prevents modules from re-creating on every keystroke
+  const undoHandlerRef = useRef<() => void>(() => {})
+  const redoHandlerRef = useRef<() => void>(() => {})
+  const scheduleAutoSaveRef = useRef<() => void>(() => {})
+
   useEffect(() => {
     if (!isEditorReady || !quillRef.current || !toolbarStickyRef.current) {
       return
@@ -1613,7 +1618,17 @@ export function NotionStyleNoteEditor({
     'direction', // for RTL text
   ], [])
 
-  // Quill modules configuration
+  // Keep stable refs up-to-date so quillModules keyboard handlers always call the latest version
+  useEffect(() => { undoHandlerRef.current = undo }, [undo])
+  useEffect(() => { redoHandlerRef.current = redo }, [redo])
+  useEffect(() => { scheduleAutoSaveRef.current = scheduleAutoSave }, [scheduleAutoSave])
+
+  // Quill modules configuration - STABLE (no dependencies) to prevent duplicate toolbar bug.
+  // Previously this used useMemo([undo, redo, scheduleAutoSave]) which caused modules to
+  // re-create on every keystroke (history state change → undo/redo recreated → modules
+  // invalidated → ReactQuill re-rendered with new toolbar, but old toolbar was already
+  // DOM-moved to sticky container → two toolbars visible).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const quillModules = useMemo(() => ({
     toolbar: {
       container: [
@@ -1664,7 +1679,7 @@ export function NotionStyleNoteEditor({
                 
                 quill.deleteText(startIndex, length, 'user')
                 quill.clipboard.dangerouslyPasteHTML(startIndex, parsedHtml, 'user')
-                scheduleAutoSave()
+                scheduleAutoSaveRef.current()
                 return true
               } catch (err) {
                 console.error('Failed to parse markdown in clean handler:', err)
@@ -1698,26 +1713,26 @@ export function NotionStyleNoteEditor({
         undo: {
           key: 'Z',
           ctrlKey: true,
-          handler: () => { undo(); return false }
+          handler: () => { undoHandlerRef.current(); return false }
         },
         undo2: {
           key: 'Z',
           metaKey: true,
-          handler: () => { undo(); return false }
+          handler: () => { undoHandlerRef.current(); return false }
         },
         redo: {
           key: 'Y',
           ctrlKey: true,
-          handler: () => { redo(); return false }
+          handler: () => { redoHandlerRef.current(); return false }
         },
         redo2: {
           key: 'Y',
           metaKey: true,
-          handler: () => { redo(); return false }
+          handler: () => { redoHandlerRef.current(); return false }
         }
       }
     }
-  }), [undo, redo, scheduleAutoSave])
+  }), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Editor ready handler
   const handleEditorReady = useCallback(() => {

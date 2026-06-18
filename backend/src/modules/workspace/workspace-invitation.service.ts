@@ -44,6 +44,8 @@ export class WorkspaceInvitationService {
     invitedBy: string,
   ) {
     try {
+      const normalizedEmail = inviteDto.email.trim().toLowerCase();
+
       // Check if workspace exists
       const workspace = await this.db.findOne('workspaces', { id: workspaceId });
       if (!workspace) {
@@ -56,17 +58,27 @@ export class WorkspaceInvitationService {
       // Check workspace member limit based on subscription plan
       await this.checkMemberLimit(workspaceId, invitedBy);
 
-      // Check if user is already a member
-      const existingMember = await this.db
-        .table('workspace_members')
-        .select('*')
-        .where('workspace_id', '=', workspaceId)
-        .where('user_id', '=', inviteDto.email) // Check by email first
-        .where('is_active', '=', true)
-        .execute();
+      // If the invited email belongs to an existing account, stop early when that user
+      // is already an active workspace member.
+      const existingUserResult = await this.db.raw(
+        'SELECT id FROM "users" WHERE LOWER(email) = LOWER($1) LIMIT 1',
+        [normalizedEmail],
+      );
+      const existingUser = existingUserResult.rows?.[0];
 
-      if (existingMember.data && existingMember.data.length > 0) {
-        throw new ConflictException('User is already a member of this workspace');
+      if (existingUser?.id) {
+        const existingMember = await this.db
+          .table('workspace_members')
+          .select('*')
+          .where('workspace_id', '=', workspaceId)
+          .where('user_id', '=', existingUser.id)
+          .where('is_active', '=', true)
+          .limit(1)
+          .execute();
+
+        if (existingMember.data && existingMember.data.length > 0) {
+          throw new ConflictException('User is already a member of this workspace');
+        }
       }
 
       // Check if there's already a pending invitation
@@ -74,7 +86,7 @@ export class WorkspaceInvitationService {
         .table('workspace_invites')
         .select('*')
         .where('workspace_id', '=', workspaceId)
-        .where('email', '=', inviteDto.email)
+        .where('email', '=', normalizedEmail)
         .where('status', '=', 'pending')
         .execute();
 
@@ -90,7 +102,7 @@ export class WorkspaceInvitationService {
       // Create invitation in database
       const invitation = await this.db.insert('workspace_invites', {
         workspace_id: workspaceId,
-        email: inviteDto.email,
+        email: normalizedEmail,
         role: inviteDto.role || 'member',
         invited_by: invitedBy,
         token,
@@ -99,9 +111,9 @@ export class WorkspaceInvitationService {
       });
 
       // Send invitation email
-      await this.sendInvitationEmail(inviteDto.email, token, workspace.name, inviteDto.message);
+      await this.sendInvitationEmail(normalizedEmail, token, workspace.name, inviteDto.message);
       await this.sendInvitationNotification(
-        inviteDto.email,
+        normalizedEmail,
         token,
         workspace,
         inviteDto.message,
@@ -109,12 +121,12 @@ export class WorkspaceInvitationService {
         invitation.id,
       );
 
-      this.logger.log(`Invitation sent to ${inviteDto.email} for workspace ${workspaceId}`);
+      this.logger.log(`Invitation sent to ${normalizedEmail} for workspace ${workspaceId}`);
 
       return {
         success: true,
         invitationId: invitation.id,
-        email: inviteDto.email,
+        email: normalizedEmail,
         status: 'pending',
         expiresAt: invitation.expires_at,
         message: 'Invitation sent successfully. The user will receive an email with instructions.',
