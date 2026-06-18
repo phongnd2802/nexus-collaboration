@@ -2,17 +2,29 @@ import time
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 from typing import Any
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic_ai import DeferredToolRequests, DeferredToolResults, ToolDenied
-from pydantic_ai.messages import FunctionToolCallEvent, FunctionToolResultEvent, ModelResponse, PartDeltaEvent, TextPart
+from pydantic_ai.messages import (
+    FunctionToolCallEvent,
+    FunctionToolResultEvent,
+    ModelRequest,
+    ModelResponse,
+    PartDeltaEvent,
+    RetryPromptPart,
+    TextPart,
+    ToolCallPart,
+    ToolReturnPart,
+    UserPromptPart,
+)
 from pydantic_ai.run import AgentRunResultEvent
 
 from app.config import settings
-from app.schemas import ChatCompletionRequest, ResumeRequest
+from app.schemas import ChatCompletionRequest, ResumeRequest, SessionSnapshot, SessionSummary
 from app.stores import RunState, run_store, session_store
 from app.streaming import CompletionAccumulator, accumulate_chunk, normalized_text_deltas, openai_chunk, tool_part_payload
 from app.agent import AgentDeps, build_agent_with_capture, build_post_action_agent_with_capture
@@ -27,6 +39,21 @@ class ChatCompletionContext:
 
 
 class NexusAIOrchestrator:
+    def _timestamp_iso(self, value: Any) -> str:
+        if isinstance(value, datetime):
+            return value.astimezone(timezone.utc).isoformat()
+        return datetime.now(timezone.utc).isoformat()
+
+    def _approval_summary(self, tool_name: str) -> str:
+        return (
+            "Complete project details and confirm creation"
+            if tool_name == "create_project"
+            else f"Approve {tool_name}?"
+        )
+
+    def _approval_kind(self, tool_name: str) -> str:
+        return "project_create_form" if tool_name == "create_project" else "generic"
+
     def _post_create_project_prompt(self, result: dict[str, Any]) -> str:
         return (
             "A project was created successfully.\n"
@@ -94,6 +121,174 @@ class NexusAIOrchestrator:
         if messages and isinstance(messages[-1], ModelResponse):
             return [*messages[:-1], response]
         return [*messages, response]
+
+    def _find_session_run(self, session_id: str) -> RunState | None:
+        runs = run_store.list_by_session(session_id)
+        return runs[-1] if runs else None
+
+    def _build_session_items(
+        self,
+        messages: list[Any],
+        *,
+        session_id: str,
+        run: RunState | None,
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        items: list[dict[str, Any]] = []
+        active_approval_item_id: str | None = None
+
+        def flush_assistant_text(parts: list[str], timestamp: str) -> None:
+            content = "".join(parts).strip()
+            if not content:
+                return
+            items.append(
+                {
+                    "id": f"assistant-{len(items)}",
+                    "type": "assistant_message",
+                    "content": content,
+                    "status": "completed",
+                    "timestamp": timestamp,
+                }
+            )
+
+        for message in messages:
+            if isinstance(message, ModelRequest):
+                for part in message.parts:
+                    if isinstance(part, UserPromptPart):
+                        items.append(
+                            {
+                                "id": f"user-{len(items)}",
+                                "type": "user_message",
+                                "content": str(part.content),
+                                "timestamp": self._timestamp_iso(getattr(part, "timestamp", None) or message.timestamp),
+                            }
+                        )
+                continue
+
+            if not isinstance(message, ModelResponse):
+                continue
+
+            assistant_parts: list[str] = []
+            assistant_timestamp = self._timestamp_iso(message.timestamp)
+
+            for part in message.parts:
+                if isinstance(part, TextPart):
+                    assistant_parts.append(part.content)
+                    continue
+
+                flush_assistant_text(assistant_parts, assistant_timestamp)
+                assistant_parts = []
+
+                if isinstance(part, ToolCallPart):
+                    items.append(
+                        {
+                            "id": f"tool-call-{part.tool_call_id}",
+                            "type": "tool_call",
+                            "toolName": part.tool_name,
+                            "input": part.args_as_dict() if hasattr(part, "args_as_dict") else getattr(part, "args", None),
+                            "status": "completed",
+                            "timestamp": self._timestamp_iso(message.timestamp),
+                        }
+                    )
+                    continue
+
+                if isinstance(part, ToolReturnPart):
+                    items.append(
+                        {
+                            "id": f"tool-result-{part.tool_call_id}",
+                            "type": "tool_result",
+                            "toolName": part.tool_name,
+                            "result": self._tool_result_payload(part),
+                            "outcome": getattr(part, "outcome", None),
+                            "status": "error" if getattr(part, "outcome", None) in {"failed", "error", "denied"} else "completed",
+                            "timestamp": self._timestamp_iso(getattr(part, "timestamp", None) or message.timestamp),
+                        }
+                    )
+                    continue
+
+                if isinstance(part, RetryPromptPart):
+                    items.append(
+                        {
+                            "id": f"system-{len(items)}",
+                            "type": "system_event",
+                            "title": "Retry requested",
+                            "description": str(part.content),
+                            "status": "error",
+                            "timestamp": self._timestamp_iso(getattr(part, "timestamp", None) or message.timestamp),
+                        }
+                    )
+
+            flush_assistant_text(assistant_parts, assistant_timestamp)
+
+        if run and run.pending_tool_calls:
+            for tool_call_id, payload in run.pending_tool_calls.items():
+                item_id = f"approval-{tool_call_id}"
+                active_approval_item_id = item_id
+                items.append(
+                    {
+                        "id": item_id,
+                        "type": "approval_required",
+                        "approval": {
+                            "sessionId": session_id,
+                            "runId": run.run_id,
+                            "toolCallId": tool_call_id,
+                            "toolName": payload["tool_name"],
+                            "args": payload["args"],
+                            "summary": self._approval_summary(payload["tool_name"]),
+                            "approvalKind": self._approval_kind(payload["tool_name"]),
+                            "initialValues": payload["args"] if payload["tool_name"] == "create_project" else None,
+                        },
+                        "status": "pending",
+                        "timestamp": self._timestamp_iso(datetime.now(timezone.utc)),
+                    }
+                )
+                break
+
+        return items, active_approval_item_id
+
+    def get_session_snapshot(self, session_id: str, user_id: str, workspace_id: str) -> SessionSnapshot:
+        try:
+            session = session_store.get(session_id)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        if session.user_id != user_id or session.workspace_id != workspace_id:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        run = self._find_session_run(session_id)
+        items, active_approval_item_id = self._build_session_items(session.messages, session_id=session_id, run=run)
+        first_user_message = next((item for item in items if item["type"] == "user_message" and item.get("content")), None)
+        title = (
+            str(first_user_message["content"]).strip()[:48]
+            if first_user_message
+            else "New conversation"
+        ) or "New conversation"
+        updated_at = items[-1]["timestamp"] if items else self._timestamp_iso(datetime.now(timezone.utc))
+
+        return SessionSnapshot(
+            sessionId=session.session_id,
+            title=title,
+            items=items,
+            updatedAt=updated_at,
+            activeApprovalItemId=active_approval_item_id,
+        )
+
+    def list_sessions(self, user_id: str, workspace_id: str) -> list[SessionSummary]:
+        sessions = session_store.list_by_owner(user_id, workspace_id)
+        summaries: list[SessionSummary] = []
+
+        for session in sessions:
+            snapshot = self.get_session_snapshot(session.session_id, user_id, workspace_id)
+            summaries.append(
+                SessionSummary(
+                    sessionId=snapshot.sessionId,
+                    title=snapshot.title,
+                    updatedAt=snapshot.updatedAt,
+                    messageCount=len(snapshot.items),
+                    hasPendingApproval=snapshot.activeApprovalItemId is not None,
+                )
+            )
+
+        return sorted(summaries, key=lambda item: item.updatedAt, reverse=True)
 
     def metadata_value(self, request: ChatCompletionRequest, key: str) -> str | None:
         value = (request.metadata or {}).get(key)

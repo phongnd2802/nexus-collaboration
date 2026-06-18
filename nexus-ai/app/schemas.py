@@ -29,6 +29,22 @@ class ResumeRequest(BaseModel):
     form_data: dict[str, Any] | None = None
 
 
+class SessionSnapshot(BaseModel):
+    sessionId: str
+    title: str
+    items: list[dict[str, Any]]
+    updatedAt: str
+    activeApprovalItemId: str | None = None
+
+
+class SessionSummary(BaseModel):
+    sessionId: str
+    title: str
+    updatedAt: str
+    messageCount: int
+    hasPendingApproval: bool = False
+
+
 class ErrorDetail(BaseModel):
     message: str
     type: str = "invalid_request_error"
