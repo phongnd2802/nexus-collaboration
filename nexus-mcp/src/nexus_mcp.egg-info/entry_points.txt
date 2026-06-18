@@ -1,0 +1,2 @@
+[console_scripts]
+nexus-mcp = nexus_mcp.main:main

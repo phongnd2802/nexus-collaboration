@@ -675,17 +675,19 @@ export class AuthService {
         });
 
         if (this.emailProvider.isAvailable()) {
-          try {
-            await this.emailProvider.send({
+          // Gửi email chạy ngầm (fire-and-forget): KHÔNG await để response trả về ngay,
+          // người dùng thấy thông báo "Kiểm tra email" mà không phải chờ SMTP hoàn tất.
+          void this.emailProvider
+            .send({
               to: dto.email,
               subject: 'Đặt lại mật khẩu',
               html,
               text,
               tags: { type: 'password-reset' },
+            })
+            .catch((emailError) => {
+              this.logger.error(`Failed to send password reset email to ${dto.email}:`, emailError);
             });
-          } catch (emailError) {
-            this.logger.error(`Failed to send password reset email to ${dto.email}:`, emailError);
-          }
         } else {
           this.logger.error(`Email provider not available for password reset to ${dto.email}`);
         }
