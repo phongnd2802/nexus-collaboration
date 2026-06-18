@@ -7,12 +7,14 @@ from pydantic_ai import DeferredToolResults
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
+    ModelRequest,
     ModelResponse,
     PartDeltaEvent,
     TextPart,
     TextPartDelta,
     ToolCallPart,
     ToolReturnPart,
+    UserPromptPart,
 )
 from pydantic_ai.run import AgentRunResultEvent
 
@@ -126,6 +128,54 @@ def test_tool_result_payload_returns_dict_content() -> None:
             return {"id": "proj_1", "name": "Roadmap"}
 
     assert orchestrator._tool_result_payload(FakePart()) == {"id": "proj_1", "name": "Roadmap"}
+
+
+def test_get_session_snapshot_returns_timeline_items_and_pending_approval() -> None:
+    session = session_store.get_or_create("user_snapshot", "ws_snapshot", "sess_snapshot")
+    session.messages = [
+        ModelRequest(parts=[UserPromptPart(content="Create a project")]),
+        ModelResponse(parts=[ToolCallPart(tool_name="create_project", args={}, tool_call_id="call_snapshot")]),
+        ModelResponse(parts=[TextPart(content="The project creation approval form has been triggered.")]),
+    ]
+    run = run_store.create(session)
+    run.pending_tool_calls["call_snapshot"] = {"tool_name": "create_project", "args": {}}
+    run_store.save(run)
+
+    snapshot = orchestrator.get_session_snapshot("sess_snapshot", "user_snapshot", "ws_snapshot")
+
+    assert snapshot.sessionId == "sess_snapshot"
+    assert snapshot.title == "Create a project"
+    assert [item["type"] for item in snapshot.items] == [
+        "user_message",
+        "tool_call",
+        "assistant_message",
+        "approval_required",
+    ]
+    assert snapshot.activeApprovalItemId == "approval-call_snapshot"
+    assert snapshot.items[-1]["approval"]["runId"] == run.run_id
+
+
+def test_list_sessions_returns_workspace_user_sessions_sorted() -> None:
+    first = session_store.get_or_create("user_sessions", "ws_sessions", "sess_sessions_1")
+    first.messages = [ModelRequest(parts=[UserPromptPart(content="Old question")])]
+    second = session_store.get_or_create("user_sessions", "ws_sessions", "sess_sessions_2")
+    second.messages = [
+        ModelRequest(parts=[UserPromptPart(content="Newest question")]),
+        ModelResponse(parts=[TextPart(content="Answer")]),
+    ]
+    other = session_store.get_or_create("other_user_sessions", "ws_sessions", "sess_other_user")
+    other.messages = [ModelRequest(parts=[UserPromptPart(content="Should not be included")])]
+
+    run = run_store.create(second)
+    run.pending_tool_calls["call_pending"] = {"tool_name": "create_project", "args": {}}
+    run_store.save(run)
+
+    sessions = orchestrator.list_sessions("user_sessions", "ws_sessions")
+
+    assert [item.sessionId for item in sessions] == ["sess_sessions_2", "sess_sessions_1"]
+    assert sessions[0].title == "Newest question"
+    assert sessions[0].hasPendingApproval is True
+    assert sessions[1].title == "Old question"
 
 
 class FakeAsyncContextManager:

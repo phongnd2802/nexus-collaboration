@@ -56,6 +56,13 @@ class SessionStore:
     def get(self, session_id: str) -> SessionState:
         return self._sessions[session_id]
 
+    def list_by_owner(self, user_id: str, workspace_id: str) -> list[SessionState]:
+        return [
+            session
+            for session in self._sessions.values()
+            if session.user_id == user_id and session.workspace_id == workspace_id
+        ]
+
     def save_messages(self, session_id: str, messages: list[Any]) -> None:
         self._sessions[session_id].messages = messages
 
@@ -79,6 +86,9 @@ class RunStore:
         if session_id and run.session_id != session_id:
             raise KeyError("Run does not belong to this session")
         return run
+
+    def list_by_session(self, session_id: str) -> list[RunState]:
+        return [run for run in self._runs.values() if run.session_id == session_id]
 
     def save(self, run: RunState) -> None:
         self._runs[run.run_id] = run

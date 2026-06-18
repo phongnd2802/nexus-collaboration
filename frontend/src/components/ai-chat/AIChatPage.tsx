@@ -15,7 +15,7 @@ import type { AIChatTimelineItem } from './types'
 import { useAIChatPageState } from './useAIChatPageState'
 
 export function AIChatPage() {
-  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { workspaceId, sessionId } = useParams<{ workspaceId: string; sessionId?: string }>()
   const intl = useIntl()
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
   const { user } = useAuth()
@@ -27,6 +27,8 @@ export function AIChatPage() {
     timelineItems,
     isStreaming,
     isThinking,
+    isHydratingSession,
+    isLoadingSessions,
     model,
     setModel,
     hasConversation,
@@ -38,7 +40,7 @@ export function AIChatPage() {
     handleSelectConversation,
     handleDeleteConversation,
     handleRenameConversation,
-  } = useAIChatPageState({ workspaceId, intl })
+  } = useAIChatPageState({ workspaceId, routeSessionId: sessionId, intl })
 
   const renderApprovalContent = useCallback(
     (item: AIChatTimelineItem) => {
@@ -59,6 +61,8 @@ export function AIChatPage() {
     [activeApprovalItemId, isStreaming, workspaceMembers, user?.id, handleApprovalDecision],
   )
 
+  const showSidebar = conversations.length > 0 || isLoadingSessions
+
   return (
     <div className="flex h-full bg-[#FAF9F5]">
       <style>{`
@@ -74,13 +78,13 @@ export function AIChatPage() {
 
       <aside
         className={`bg-card/80 backdrop-blur-xl border-r border-border flex flex-col overflow-hidden transition-all duration-300 z-40 ${
-          conversations.length > 0 ? 'w-60' : 'w-0 pointer-events-none'
+          showSidebar ? 'w-60' : 'w-0 pointer-events-none'
         }`}
-        aria-hidden={conversations.length === 0}
+        aria-hidden={!showSidebar}
       >
         <div
           className={`h-full w-60 flex-shrink-0 transition-transform duration-300 ease-in-out ${
-            conversations.length > 0 ? 'translate-x-0' : '-translate-x-full'
+            showSidebar ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           <AIChatSidebar
@@ -95,13 +99,13 @@ export function AIChatPage() {
             onNew={handleNewConversation}
             onDelete={handleDeleteConversation}
             onRename={handleRenameConversation}
-            isLoading={false}
+            isLoading={isLoadingSessions}
           />
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {!hasConversation ? (
+        {!hasConversation && !isHydratingSession ? (
           <AIChatEmpty
             onSend={handleSend}
             isStreaming={isStreaming}
@@ -113,7 +117,7 @@ export function AIChatPage() {
           <>
             <AIChatMessages
               items={timelineItems}
-              isLoading={false}
+              isLoading={isHydratingSession && timelineItems.length === 0}
               onRegenerate={handleRegenerate}
               renderApprovalContent={renderApprovalContent}
             />
