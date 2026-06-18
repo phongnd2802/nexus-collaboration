@@ -115,13 +115,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
       description: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.videoDescription' })
     },
     {
-      id: 'nexus-audio',
-      name: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.audio' }),
-      icon: <Mic className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-green-500 to-blue-500',
-      description: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.audioDescription' })
-    },
-    {
       id: 'nexus-webinar',
       name: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.webinar' }),
       icon: <Users className="h-5 w-5" />,
@@ -368,7 +361,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
               {/* Meeting Platform Selection */}
               <div className="space-y-3">
                 <Label>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.meetingPlatform' })}</Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {platforms.map((platform) => (
                     <Card
                       key={platform.id}

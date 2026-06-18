@@ -2,12 +2,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Optional,
   Inject,
   forwardRef,
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { EmailTemplatesService } from '../email/email-templates.service';
 import { NotificationType } from '../notifications/dto';
 import { EntityEventIntegrationService } from '../workflows/entity-event-integration.service';
 import {
@@ -18,6 +20,8 @@ import {
   BulkDeleteDto,
   DuplicateNoteDto,
   BulkArchiveDto,
+  RequestNoteAccessDto,
+  RespondNoteAccessDto,
 } from './dto';
 
 @Injectable()
@@ -25,6 +29,7 @@ export class NotesService {
   constructor(
     private readonly db: DatabaseService,
     private notificationsService: NotificationsService,
+    private readonly emailTemplatesService: EmailTemplatesService,
     @Optional()
     @Inject(forwardRef(() => EntityEventIntegrationService))
     private entityEventIntegration?: EntityEventIntegrationService,
@@ -325,7 +330,15 @@ export class NotesService {
     const note = noteData[0];
 
     if (!this.canAccessNote(note, userId)) {
-      throw new BadRequestException('You do not have permission to access this note');
+      // Return structured 403 so frontend can show the access-request UI
+      throw new ForbiddenException({
+        message: 'You do not have permission to access this note',
+        error: 'ACCESS_DENIED',
+        noteId: note.id,
+        noteTitle: note.title,
+        ownerId: note.created_by,
+        workspaceId: note.workspace_id,
+      });
     }
 
     // Update view count
@@ -1609,5 +1622,320 @@ export class NotesService {
     }
 
     return count;
+  }
+
+  // ==================== NOTE ACCESS REQUEST METHODS ====================
+
+  /**
+   * Create an access request from a user who doesn't have permission to view a note.
+   * Sends in-app + email notification to the note owner.
+   */
+  async requestNoteAccess(
+    noteId: string,
+    workspaceId: string,
+    requesterId: string,
+    dto: RequestNoteAccessDto,
+  ) {
+    // Fetch the note without permission check (use raw query)
+    const noteQuery = await this.db
+      .table('notes')
+      .select('*')
+      .where('id', '=', noteId)
+      .where('workspace_id', '=', workspaceId)
+      .limit(1)
+      .execute();
+
+    const noteData = Array.isArray(noteQuery.data) ? noteQuery.data : [];
+    if (noteData.length === 0) {
+      throw new NotFoundException('Note not found');
+    }
+
+    const note = noteData[0];
+
+    // If user already has access, no need to request
+    if (this.canAccessNote(note, requesterId)) {
+      throw new BadRequestException('You already have access to this note');
+    }
+
+    // Check for existing pending request
+    const existingQuery = await this.db
+      .table('note_access_requests')
+      .select('*')
+      .where('note_id', '=', noteId)
+      .where('requester_id', '=', requesterId)
+      .limit(1)
+      .execute();
+
+    const existing = Array.isArray(existingQuery.data) ? existingQuery.data[0] : null;
+    if (existing && existing.status === 'pending') {
+      throw new BadRequestException('You already have a pending access request for this note');
+    }
+
+    const now = new Date().toISOString();
+    const ownerId = note.created_by;
+
+    // Create or re-create request record
+    let request: any;
+    if (existing) {
+      // Re-send after a previous deny
+      request = await this.db.update('note_access_requests', existing.id, {
+        status: 'pending',
+        message: dto.message || null,
+        updated_at: now,
+        responded_at: null,
+      });
+    } else {
+      request = await this.db.insert('note_access_requests', {
+        note_id: noteId,
+        requester_id: requesterId,
+        owner_id: ownerId,
+        workspace_id: workspaceId,
+        status: 'pending',
+        message: dto.message || null,
+        created_at: now,
+        updated_at: now,
+      });
+    }
+
+    // Fetch requester info for notification
+    let requesterName = 'Someone';
+    try {
+      const requesterUser: any = await this.db.getUserById(requesterId);
+      if (requesterUser) {
+        requesterName =
+          requesterUser.metadata?.name ||
+          requesterUser.fullName ||
+          requesterUser.name ||
+          requesterUser.email?.split('@')[0] ||
+          'Someone';
+      }
+    } catch {
+      // non-fatal
+    }
+
+    // Notify the owner (in-app + email)
+    try {
+      await this.notificationsService.sendNotification({
+        user_id: ownerId,
+        type: NotificationType.NOTE_ACCESS_REQUEST,
+        title: 'Note Access Request',
+        message: `${requesterName} wants to access your note "${note.title}"`,
+        action_url: `/workspaces/${workspaceId}/notes/${noteId}`,
+        priority: 'high' as any,
+        send_email: true,
+        force_send: true,
+        data: {
+          category: 'workspace',
+          entity_type: 'note_access_request',
+          entity_id: request.id,
+          actor_id: requesterId,
+          workspace_id: workspaceId,
+          note_id: noteId,
+          note_title: note.title,
+          requester_id: requesterId,
+          requester_name: requesterName,
+          request_id: request.id,
+          action: 'note_access_request',
+        },
+      });
+    } catch (err) {
+      console.error('[NotesService] Failed to notify owner about access request:', err);
+    }
+
+    // Fetch owner info to send access request email
+    try {
+      const owner = await this.db.getUserById(ownerId);
+      if (owner?.email) {
+        const appUrl = process.env.API_URL || 'http://localhost:3002';
+        const approveUrl = `${appUrl}/api/v1/notes-public/access-requests/${request.id}/respond-email?action=approve`;
+        const denyUrl = `${appUrl}/api/v1/notes-public/access-requests/${request.id}/respond-email?action=deny`;
+
+        await this.emailTemplatesService.sendNoteAccessRequestEmail({
+          to: owner.email,
+          requesterName,
+          noteTitle: note.title,
+          message: dto.message,
+          approveUrl,
+          denyUrl,
+        });
+      }
+    } catch (emailErr) {
+      console.error('[NotesService] Failed to send access request email to owner:', emailErr);
+    }
+
+    return {
+      success: true,
+      message: 'Access request sent to the note owner',
+      requestId: request.id,
+    };
+  }
+
+  /**
+   * Owner approves or denies an access request.
+   * On approve: grants read access via shareNote logic.
+   * Sends in-app + email notification to the requester.
+   */
+  async respondToNoteAccess(
+    requestId: string,
+    workspaceId: string,
+    ownerId: string,
+    dto: RespondNoteAccessDto,
+  ) {
+    // Fetch the request
+    const requestQuery = await this.db
+      .table('note_access_requests')
+      .select('*')
+      .where('id', '=', requestId)
+      .where('workspace_id', '=', workspaceId)
+      .limit(1)
+      .execute();
+
+    const requestData = Array.isArray(requestQuery.data) ? requestQuery.data : [];
+    if (requestData.length === 0) {
+      throw new NotFoundException('Access request not found');
+    }
+
+    const accessRequest = requestData[0];
+
+    // Only the note owner can respond
+    if (accessRequest.owner_id !== ownerId) {
+      throw new BadRequestException('Only the note owner can respond to access requests');
+    }
+
+    if (accessRequest.status !== 'pending') {
+      throw new BadRequestException('This access request has already been responded to');
+    }
+
+    const now = new Date().toISOString();
+    const newStatus = dto.action === 'approve' ? 'approved' : 'denied';
+
+    await this.db.update('note_access_requests', requestId, {
+      status: newStatus,
+      updated_at: now,
+      responded_at: now,
+    });
+
+    // If approved: grant access to the note
+    if (dto.action === 'approve') {
+      const { SharePermission } = await import('./dto/share-note.dto');
+      await this.shareNote(
+        accessRequest.note_id,
+        workspaceId,
+        { user_ids: [accessRequest.requester_id], permission: SharePermission.READ },
+        ownerId,
+      );
+    }
+
+    // Fetch note title for notification
+    let noteTitle = 'a note';
+    try {
+      const noteQ = await this.db
+        .table('notes')
+        .select('title')
+        .where('id', '=', accessRequest.note_id)
+        .limit(1)
+        .execute();
+      noteTitle = noteQ.data?.[0]?.title || noteTitle;
+    } catch {
+      // non-fatal
+    }
+
+    // Notify the requester
+    try {
+      await this.notificationsService.sendNotification({
+        user_id: accessRequest.requester_id,
+        type: NotificationType.NOTE_ACCESS_RESPONSE,
+        title: dto.action === 'approve' ? 'Access Granted' : 'Access Denied',
+        message:
+          dto.action === 'approve'
+            ? `Your request to access "${noteTitle}" has been approved`
+            : `Your request to access "${noteTitle}" has been denied`,
+        action_url:
+          dto.action === 'approve'
+            ? `/workspaces/${workspaceId}/notes/${accessRequest.note_id}`
+            : undefined,
+        priority: 'high' as any,
+        send_email: true,
+        force_send: true,
+        data: {
+          category: 'workspace',
+          entity_type: 'note_access_response',
+          entity_id: accessRequest.note_id,
+          actor_id: ownerId,
+          workspace_id: workspaceId,
+          note_id: accessRequest.note_id,
+          note_title: noteTitle,
+          action: dto.action === 'approve' ? 'note_access_approved' : 'note_access_denied',
+        },
+      });
+    } catch (err) {
+      console.error('[NotesService] Failed to notify requester about access response:', err);
+    }
+
+    return {
+      success: true,
+      message: dto.action === 'approve' ? 'Access granted successfully' : 'Access request denied',
+      status: newStatus,
+    };
+  }
+
+  /**
+   * Get the current access request status for a user on a specific note.
+   * Returns null if no request exists.
+   */
+  async getNoteAccessStatus(noteId: string, workspaceId: string, requesterId: string) {
+    const requestQuery = await this.db
+      .table('note_access_requests')
+      .select('*')
+      .where('note_id', '=', noteId)
+      .where('requester_id', '=', requesterId)
+      .limit(1)
+      .execute();
+
+    const data = Array.isArray(requestQuery.data) ? requestQuery.data : [];
+    return data.length > 0 ? data[0] : null;
+  }
+
+  /**
+   * Get a specific access request by ID. Only owner or requester can access.
+   */
+  async getAccessRequestById(requestId: string, workspaceId: string, userId: string) {
+    const requestQuery = await this.db
+      .table('note_access_requests')
+      .select('*')
+      .where('id', '=', requestId)
+      .where('workspace_id', '=', workspaceId)
+      .limit(1)
+      .execute();
+
+    const data = Array.isArray(requestQuery.data) ? requestQuery.data : [];
+    if (data.length === 0) {
+      throw new NotFoundException('Access request not found');
+    }
+
+    const request = data[0];
+    if (request.owner_id !== userId && request.requester_id !== userId) {
+      throw new BadRequestException('You do not have permission to view this request');
+    }
+
+    return request;
+  }
+
+  /**
+   * Get note access request raw by its ID without permissions validation.
+   */
+  async getAccessRequestByIdRaw(requestId: string) {
+    const requestQuery = await this.db
+      .table('note_access_requests')
+      .select('*')
+      .where('id', '=', requestId)
+      .limit(1)
+      .execute();
+
+    const data = Array.isArray(requestQuery.data) ? requestQuery.data : [];
+    if (data.length === 0) {
+      return null;
+    }
+    return data[0];
   }
 }

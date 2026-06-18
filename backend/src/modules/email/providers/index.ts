@@ -73,3 +73,4 @@ export { MailgunProvider } from './mailgun.provider';
 export { SesProvider } from './ses.provider';
 export { NoneEmailProvider } from './none.provider';
 export { buildTaskReminderEmail, TaskReminderEmailData } from './task-reminder-email.provider';
+export { buildNoteAccessRequestEmail, NoteAccessRequestEmailData } from './note-access-request-email.provider';

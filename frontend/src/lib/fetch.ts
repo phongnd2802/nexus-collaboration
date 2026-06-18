@@ -137,6 +137,18 @@ export async function fetchWithAuth(
   }
 }
 
+export class ApiRequestError extends Error {
+  status: number;
+  data: any;
+
+  constructor(message: string, status: number, data: any) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 // Helper function to handle common API response patterns
 export async function handleApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -156,7 +168,7 @@ export async function handleApiResponse<T>(response: Response): Promise<T> {
       errorMessage = response.statusText || errorMessage;
     }
     
-    throw new Error(errorMessage);
+    throw new ApiRequestError(errorMessage, response.status, errorData);
   }
   
   // Handle empty responses

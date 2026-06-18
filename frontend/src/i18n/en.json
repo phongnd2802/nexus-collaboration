@@ -34,7 +34,8 @@
     "time": "Time",
     "unknown": "Unknown",
     "workspaceNotFound": "Workspace not found",
-    "pleaseTryAgain": "Please try again"
+    "pleaseTryAgain": "Please try again",
+    "view": "View"
   },
   "invitation": {
     "loading": "Loading invitation...",
@@ -3251,6 +3252,39 @@
         "deletePermanently": "Delete Permanently",
         "moveToTrash": "Move to Trash",
         "untitled": "Untitled"
+      },
+
+      "accessDenied": {
+        "title": "Access Denied",
+        "message": "You don't have permission to view \"{title}\"",
+        "owner": "This note is owned by {owner}",
+        "sendRequest": "Request Access",
+        "cancel": "Go Back",
+        "requestSent": "Request Sent",
+        "requestPending": "Waiting for owner approval...",
+        "requestApproved": "Access granted! You can now view this note.",
+        "requestDenied": "Your access request was denied.",
+        "askRequest": "Would you like to request access from the owner?",
+        "addMessage": "Add an optional message",
+        "messagePlaceholder": "Describe why you need access...",
+        "sending": "Sending request...",
+        "requestSentToast": "Access request sent for \"{title}\"",
+        "requestFailed": "Failed to send access request. Please try again.",
+        "approvedHint": "Your request has been approved. You can view the note now.",
+        "deniedHint": "Your request was denied by the owner.",
+        "goBack": "Go Back"
+      },
+      "accessRequest": {
+        "notifTitle": "Access Request for your note",
+        "notifMessage": "{requester} wants to access \"{title}\"",
+        "approve": "Approve",
+        "deny": "Deny",
+        "approvedMessage": "You approved access for {requester}",
+        "deniedMessage": "You denied access for {requester}",
+        "alreadyApproved": "Approved",
+        "alreadyDenied": "Denied",
+        "respondFailed": "Failed to respond. Please try again.",
+        "invalid": "Request is no longer valid"
       }
     },
     "videoCalls": {

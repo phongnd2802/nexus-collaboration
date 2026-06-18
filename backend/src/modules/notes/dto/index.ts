@@ -8,6 +8,7 @@ export { BulkArchiveDto } from './bulk-archive.dto';
 export { NoteAgentRequestDto } from './note-agent-request.dto';
 export { ImportPdfDto, ImportPdfResponseDto } from './import-pdf.dto';
 export { ImportUrlDto, ImportUrlResponseDto } from './import-url.dto';
+export { RequestNoteAccessDto, RespondNoteAccessDto } from './note-access-request.dto';
 
 export {
   JoinNoteDto,
