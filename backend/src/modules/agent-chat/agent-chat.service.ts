@@ -127,6 +127,49 @@ export class AgentChatService {
     }
   }
 
+  async deleteSession(user: any, workspaceId: string, sessionId: string): Promise<any> {
+    const baseUrl = this.config.get<string>('NEXUS_AI_BASE_URL', 'http://localhost:8000')!;
+    const apiKey = this.config.get<string>('NEXUS_AI_API_KEY', '');
+    const timeoutMs = Number(this.config.get<string>('NEXUS_AI_TIMEOUT_MS', '60000'));
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const upstream = await fetch(`${baseUrl.replace(/\/$/, '')}/v1/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          ...(apiKey ? { 'x-api-key': apiKey } : {}),
+          'x-user-id': user?.sub || user?.userId,
+          'x-workspace-id': workspaceId,
+        },
+        signal: controller.signal,
+      });
+
+      const payload = await upstream.json().catch(() => ({}));
+      if (!upstream.ok) {
+        const message = payload?.error?.message || payload?.message || 'Failed to delete Nexus AI session';
+        throw new HttpException(message, upstream.status);
+      }
+
+      return payload;
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        this.logger.error(`Nexus AI delete session request timed out after ${timeoutMs}ms`);
+        throw new BadGatewayException('Nexus AI request timed out');
+      }
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      this.logger.error(`Failed to delete Nexus AI session: ${error?.message || error}`);
+      throw new BadGatewayException('Failed to reach Nexus AI service');
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   private async proxyToNexusAi(
     path: string,
     body: any,
