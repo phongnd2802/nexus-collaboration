@@ -27,6 +27,7 @@ export interface AIChatStreamCallbacks {
   onError?: (error: string) => void
   onSession?: (sessionId: string, runId?: string) => void
   onApprovalRequired?: (event: ApprovalRequiredEvent) => void
+  onAssistantPayload?: (payload: AssistantPayloadEvent) => void
 }
 
 export interface AIChatTool {
@@ -73,6 +74,23 @@ export interface AIChatSessionSummary {
 export interface AIChatDeleteSessionResponse {
   success: boolean
   sessionId: string
+}
+
+export interface ProjectCardPayload {
+  id: string
+  name: string
+  description?: string
+  status?: string
+  type?: string
+  updatedAt?: string
+  memberCount?: number
+  href: string
+}
+
+export interface AssistantPayloadEvent {
+  payloadType: 'project_list'
+  title: string
+  items: ProjectCardPayload[]
 }
 
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
@@ -263,6 +281,15 @@ async function consumeNexusAIStream(
           tool: chunk.tool_name,
           eventType: 'approval_required',
           input: chunk.args,
+        })
+        continue
+      }
+
+      if (chunk?.type === 'assistant_payload' && chunk?.payload_type === 'project_list') {
+        callbacks.onAssistantPayload?.({
+          payloadType: 'project_list',
+          title: typeof chunk.title === 'string' ? chunk.title : 'Projects',
+          items: Array.isArray(chunk.items) ? chunk.items : [],
         })
         continue
       }
