@@ -8,6 +8,7 @@ import { FileImportModal } from './FileImportModal'
 import { BulkActionsToolbar } from './BulkActionsToolbar'
 import { MergeNotesDialog } from './MergeNotesDialog'
 import { NotesShareModal } from './NotesShareModal'
+import { NoteAccessDenied } from './NoteAccessDenied'
 import { FilePreviewDialog } from '../files/FileOperationDialogs'
 import { EventPreviewDialog } from '../calendar/EventPreviewDialog'
 import { Button } from '../ui/button'
@@ -85,6 +86,12 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
   const [previewEvent, setPreviewEvent] = useState<CalendarEventAPI | null>(null)
   const [isEventPreviewOpen, setIsEventPreviewOpen] = useState(false)
   const [isEventPreviewLoading, setIsEventPreviewLoading] = useState(false)
+  const [accessDeniedInfo, setAccessDeniedInfo] = useState<{
+    noteId: string
+    noteTitle: string
+    ownerId: string
+    workspaceId: string
+  } | null>(null)
 
   // Utility functions for notes data
   const getNoteById = (noteId: string) => notes.find((note: Note) => note.id === noteId)
@@ -865,6 +872,37 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
     }
   }, [])
 
+  // Handle note access request responses from email redirect query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessStatus = params.get('access_request_status');
+    const errMessage = params.get('message');
+
+    if (accessStatus) {
+      if (accessStatus === 'approved') {
+        toast({
+          title: 'Cấp quyền truy cập note thành công',
+          description: 'Bạn đã phê duyệt quyền truy cập vào note thành công.',
+        });
+      } else if (accessStatus === 'denied') {
+        toast({
+          title: 'Đã từ chối yêu cầu truy cập',
+          description: 'Bạn đã từ chối yêu cầu truy cập vào note này.',
+        });
+      } else if (accessStatus === 'error') {
+        toast({
+          title: 'Lỗi xử lý yêu cầu',
+          description: errMessage || 'Đã có lỗi xảy ra khi thực hiện hành động này.',
+          variant: 'destructive',
+        });
+      }
+
+      // Remove query parameters from URL without reloading the page
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+  }, [toast])
+
   // Fetch note from API when noteId is in URL
   useEffect(() => {
     console.log('Fetch note effect running', { noteId, hasWorkspace: !!currentWorkspace })
@@ -969,8 +1007,23 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
 
           selectNote(localNote.id)
           console.log('Note fetched, added/updated to store, and selected:', localNote.id)
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to fetch note:', error)
+
+          // Check for 403 ACCESS_DENIED response
+          const errorData = error?.response?.data || error?.data
+          const status = error?.response?.status || error?.status
+          const actualErrorData = errorData?.details || errorData
+          if (status === 403 && actualErrorData?.error === 'ACCESS_DENIED') {
+            setAccessDeniedInfo({
+              noteId: actualErrorData.noteId || noteId,
+              noteTitle: actualErrorData.noteTitle || 'Untitled',
+              ownerId: actualErrorData.ownerId || '',
+              workspaceId: actualErrorData.workspaceId || currentWorkspace.id,
+            })
+            return
+          }
+
           console.error('Error details:', {
             noteId,
             workspaceId: currentWorkspace.id,
@@ -1064,7 +1117,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
         />
       )}
 
-      {isLoading || isFetchingNote || (noteId && !selectedNote) ? (
+      {isLoading || isFetchingNote || (noteId && !selectedNote && !accessDeniedInfo) ? (
         <div className="flex items-center justify-center h-full">
           <div className="flex flex-col items-center gap-3">
             <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -1075,6 +1128,17 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
         <div className="flex items-center justify-center h-full">
           <p className="text-red-500">Error loading notes</p>
         </div>
+      ) : accessDeniedInfo ? (
+        <NoteAccessDenied
+          noteId={accessDeniedInfo.noteId}
+          noteTitle={accessDeniedInfo.noteTitle}
+          ownerId={accessDeniedInfo.ownerId}
+          workspaceId={accessDeniedInfo.workspaceId}
+          onBack={() => {
+            setAccessDeniedInfo(null)
+            navigate(`/workspaces/${currentWorkspace?.id}/notes`, { replace: true })
+          }}
+        />
       ) : selectedNote ? (
         <NotionStyleNoteEditor
           note={selectedNote}

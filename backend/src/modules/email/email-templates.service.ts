@@ -1,7 +1,7 @@
-﻿import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { EmailProviderService } from './email.service';
-import { buildTaskReminderEmail, SendEmailInput, TaskReminderEmailData } from './providers';
+import { buildTaskReminderEmail, SendEmailInput, TaskReminderEmailData, buildNoteAccessRequestEmail, NoteAccessRequestEmailData } from './providers';
 
 export interface SendTaskReminderOptions {
   to: string;
@@ -83,6 +83,71 @@ export class EmailTemplatesService {
 
     this.logger.log(
       `[EmailTemplates] Sent task reminder via legacy SMTP to ${opts.to} for "${opts.taskTitle}" (${opts.remindBeforeLabel})`,
+    );
+    return true;
+  }
+
+  async sendNoteAccessRequestEmail(opts: {
+    to: string;
+    requesterName: string;
+    noteTitle: string;
+    message?: string;
+    approveUrl: string;
+    denyUrl: string;
+  }): Promise<boolean> {
+    if (!opts.to) {
+      this.logger.warn('[EmailTemplates] No recipient email for access request, skipping');
+      return false;
+    }
+
+    const data: NoteAccessRequestEmailData = {
+      requesterName: opts.requesterName,
+      noteTitle: opts.noteTitle,
+      message: opts.message,
+      approveUrl: opts.approveUrl,
+      denyUrl: opts.denyUrl,
+    };
+
+    const { html, text } = buildNoteAccessRequestEmail(data);
+
+    const input: SendEmailInput = {
+      to: opts.to,
+      subject: `[Nexus] Yêu cầu quyền truy cập vào note "${opts.noteTitle}"`,
+      html,
+      text,
+      tags: { type: 'note-access-request' },
+    };
+
+    if (this.emailProvider.isAvailable()) {
+      const result = await this.emailProvider.send(input);
+
+      if (!result.accepted) {
+        this.logger.warn(
+          `[EmailTemplates] Note access request email not accepted by provider for ${opts.to}`,
+        );
+        return false;
+      }
+
+      this.logger.log(
+        `[EmailTemplates] Sent note access request email to ${opts.to} for "${opts.noteTitle}"`,
+      );
+      return true;
+    }
+
+    this.logger.warn(
+      '[EmailTemplates] Email provider not available, falling back to legacy SMTP sender',
+    );
+    const legacyResult = await this.db.sendEmail(opts.to, input.subject, html, text);
+
+    if (!legacyResult?.success) {
+      this.logger.warn(
+        `[EmailTemplates] Legacy SMTP send failed for note access request to ${opts.to}: ${legacyResult?.error || 'unknown error'}`,
+      );
+      return false;
+    }
+
+    this.logger.log(
+      `[EmailTemplates] Sent note access request email via legacy SMTP to ${opts.to} for "${opts.noteTitle}"`,
     );
     return true;
   }

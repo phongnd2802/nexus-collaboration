@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
@@ -34,7 +34,8 @@
     "time": "Giờ",
     "unknown": "Không rõ",
     "workspaceNotFound": "Không tìm thấy không gian làm việc",
-    "pleaseTryAgain": "Vui lòng thử lại"
+    "pleaseTryAgain": "Vui lòng thử lại",
+    "view": "Xem"
   },
   "invitation": {
     "loading": "Đang tải lời mời...",
@@ -3247,6 +3248,38 @@
         "deletePermanently": "Xóa vĩnh viễn",
         "moveToTrash": "Chuyển vào thùng rác",
         "untitled": "Không tiêu đề"
+      },
+      "accessDenied": {
+        "title": "Từ chối truy cập",
+        "message": "Bạn không có quyền xem \"{title}\"",
+        "owner": "Ghi chú này thuộc sở hữu của {owner}",
+        "sendRequest": "Yêu cầu truy cập",
+        "cancel": "Quay lại",
+        "requestSent": "Đã gửi yêu cầu",
+        "requestPending": "Đang chờ chủ sở hữu phê duyệt...",
+        "requestApproved": "Đã được cấp quyền truy cập! Bạn có thể xem ghi chú này bây giờ.",
+        "requestDenied": "Yêu cầu truy cập của bạn đã bị từ chối.",
+        "askRequest": "Bạn có muốn gửi yêu cầu truy cập đến chủ sở hữu không?",
+        "addMessage": "Thêm lời nhắn (tùy chọn)",
+        "messagePlaceholder": "Mô tả lý do bạn cần truy cập...",
+        "sending": "Đang gửi yêu cầu...",
+        "requestSentToast": "Đã gửi yêu cầu truy cập cho \"{title}\"",
+        "requestFailed": "Gửi yêu cầu truy cập thất bại. Vui lòng thử lại.",
+        "approvedHint": "Yêu cầu của bạn đã được phê duyệt. Bạn có thể xem ghi chú.",
+        "deniedHint": "Yêu cầu của bạn đã bị từ chối bởi chủ sở hữu.",
+        "goBack": "Quay lại"
+      },
+      "accessRequest": {
+        "notifTitle": "Yêu cầu truy cập ghi chú",
+        "notifMessage": "{requester} muốn truy cập \"{title}\"",
+        "approve": "Chấp nhận",
+        "deny": "Từ chối",
+        "approvedMessage": "Bạn đã chấp nhận quyền truy cập cho {requester}",
+        "deniedMessage": "Bạn đã từ chối quyền truy cập cho {requester}",
+        "alreadyApproved": "Đã chấp nhận",
+        "alreadyDenied": "Đã từ chối",
+        "respondFailed": "Không thể xử lý phản hồi. Vui lòng thử lại.",
+        "invalid": "Yêu cầu không còn hiệu lực"
       }
     },
     "videoCalls": {

@@ -31,6 +31,8 @@ export enum NotificationType {
   CHANNEL_MEMBER_ADDED = 'channel_member_added',
   CHANNEL_MEMBER_REMOVED = 'channel_member_removed',
   VIDEO_CALL = 'video_call',
+  NOTE_ACCESS_REQUEST = 'note_access_request',
+  NOTE_ACCESS_RESPONSE = 'note_access_response',
   OTHER = 'other',
 }
 

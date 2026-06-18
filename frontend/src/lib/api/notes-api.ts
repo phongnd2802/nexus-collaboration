@@ -382,6 +382,50 @@ export const notesApi = {
     });
   },
 
+  // Access Request
+  async requestNoteAccess(
+    workspaceId: string,
+    noteId: string,
+    data?: { message?: string },
+  ): Promise<{ success: boolean; message: string; requestId: string }> {
+    return api.post(`/workspaces/${workspaceId}/notes/${noteId}/access-request`, data || {});
+  },
+
+  async respondToNoteAccess(
+    workspaceId: string,
+    requestId: string,
+    action: 'approve' | 'deny',
+  ): Promise<{ success: boolean; message: string; status: string }> {
+    return api.patch(`/workspaces/${workspaceId}/notes/access-requests/${requestId}`, { action });
+  },
+
+  async getNoteAccessStatus(
+    workspaceId: string,
+    noteId: string,
+  ): Promise<{
+    id: string;
+    status: 'pending' | 'approved' | 'denied';
+    created_at: string;
+  } | null> {
+    return api.get(`/workspaces/${workspaceId}/notes/${noteId}/access-request/status`);
+  },
+
+  async getAccessRequestById(
+    workspaceId: string,
+    requestId: string,
+  ): Promise<{
+    id: string;
+    note_id: string;
+    requester_id: string;
+    owner_id: string;
+    workspace_id: string;
+    status: 'pending' | 'approved' | 'denied';
+    message: string | null;
+    created_at: string;
+  }> {
+    return api.get(`/workspaces/${workspaceId}/notes/access-requests/${requestId}`);
+  },
+
 };
 
 // React Query Hooks
