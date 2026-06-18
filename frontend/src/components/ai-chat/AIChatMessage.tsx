@@ -1,181 +1,279 @@
-import React, { useState, useCallback } from 'react'
-import { User, Bot, Copy, RefreshCw, Check, Circle, CheckCircle2, AlertCircle, Loader2, ChevronRight } from 'lucide-react'
-import { MarkdownRenderer } from './MarkdownRenderer'
+import React, { useCallback, useState } from 'react'
+import {
+  AlertCircle,
+  Bot,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Circle,
+  Copy,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  User,
+  Wrench,
+  XCircle,
+} from 'lucide-react'
 import { useIntl } from 'react-intl'
 
-export interface ThinkingStep {
-  id: string
-  title: string
-  description?: string
-  status: 'pending' | 'running' | 'completed' | 'error'
-  tool?: string
-}
+import { MarkdownRenderer } from './MarkdownRenderer'
+import type { AIChatTimelineItem } from './types'
 
 interface AIChatMessageProps {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp?: string
-  isStreaming?: boolean
-  steps?: ThinkingStep[]
+  item: AIChatTimelineItem
+  approvalContent?: React.ReactNode
   onRegenerate?: () => void
 }
 
-function StepIcon({ status }: { status: ThinkingStep['status'] }) {
-  if (status === 'running') return <Loader2 className="h-3.5 w-3.5 animate-spin text-[#D97757]" />
-  if (status === 'completed') return <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />
-  if (status === 'error') return <AlertCircle className="h-3.5 w-3.5 text-[#E01E5A]" />
-  return <Circle className="h-3.5 w-3.5 text-[#A8A29E]" />
-}
-
-function ThinkingSteps({ steps }: { steps: ThinkingStep[] }) {
-  const [open, setOpen] = useState(false)
-  if (steps.length === 0) return null
-  const activeStep = [...steps].reverse().find(step => step.status === 'running') || steps[steps.length - 1]
-  const hasError = steps.some(step => step.status === 'error')
-  const completedCount = steps.filter(step => step.status === 'completed').length
+function JsonBlock({ value }: { value: unknown }) {
+  if (value == null) return null
 
   return (
-    <div className="mb-3 overflow-hidden rounded-2xl border border-[rgba(31,30,29,0.08)] bg-[#FAF9F5]">
+    <pre className="mt-2 max-h-56 overflow-auto rounded-xl bg-white/80 p-3 text-xs leading-5 text-[#3D3D3A]">
+      {JSON.stringify(value, null, 2)}
+    </pre>
+  )
+}
+
+function EventCard({
+  icon,
+  badge,
+  title,
+  description,
+  tone = 'neutral',
+  children,
+  defaultOpen = false,
+}: {
+  icon: React.ReactNode
+  badge?: string
+  title: string
+  description?: string
+  tone?: 'neutral' | 'success' | 'warning' | 'error'
+  children?: React.ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  const tones = {
+    neutral: 'border-[rgba(31,30,29,0.1)] bg-[#FAF9F5]',
+    success: 'border-[rgba(16,185,129,0.18)] bg-[#F0FDF4]',
+    warning: 'border-[rgba(217,119,87,0.2)] bg-[#FFF7ED]',
+    error: 'border-[rgba(224,30,90,0.2)] bg-[#FFF1F2]',
+  }
+
+  return (
+    <div className={`overflow-hidden rounded-2xl border ${tones[tone]}`}>
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
-        className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition-colors hover:bg-[rgba(31,30,29,0.03)]"
+        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[rgba(31,30,29,0.03)]"
       >
-        {hasError ? (
-          <AlertCircle className="h-4 w-4 flex-shrink-0 text-[#E01E5A]" />
-        ) : activeStep?.status === 'running' ? (
-          <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin text-[#D97757]" />
-        ) : (
-          <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#10B981]" />
-        )}
+        <div className="mt-0.5 flex-shrink-0">{icon}</div>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-medium leading-5 text-[#1F1E1D]">
-            {hasError
-              ? 'Thinking hit an issue'
-              : activeStep?.status === 'running'
-                ? 'Thinking...'
-                : 'Thought through the request'}
-          </p>
-          <p className="truncate text-[12px] leading-5 text-[#73726C]">
-            {activeStep?.description || activeStep?.title || `${completedCount} step(s) completed`}
-          </p>
-        </div>
-        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-[#73726C]">
-          {steps.length} steps
-        </span>
-        <ChevronRight className={`h-4 w-4 flex-shrink-0 text-[#73726C] transition-transform ${open ? 'rotate-90' : ''}`} />
-      </button>
-
-      {open && (
-        <div className="border-t border-[rgba(31,30,29,0.08)] px-3.5 py-3">
-          <div className="space-y-2.5">
-            {steps.map(step => (
-              <div key={step.id} className="flex gap-2.5">
-                <div className="mt-0.5 flex-shrink-0">
-                  <StepIcon status={step.status} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-[13px] font-medium leading-5 text-[#1F1E1D]">{step.title}</p>
-                    {step.tool && (
-                      <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-medium text-[#8A4B2F]">
-                        {step.tool}
-                      </span>
-                    )}
-                  </div>
-                  {step.description && (
-                    <p className="text-[12px] leading-5 text-[#73726C]">{step.description}</p>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="text-[13px] font-medium leading-5 text-[#1F1E1D]">{title}</div>
+            {badge ? (
+              <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#73726C]">
+                {badge}
+              </span>
+            ) : null}
           </div>
+          {description ? (
+            <div className="truncate text-[12px] leading-5 text-[#73726C]">{description}</div>
+          ) : null}
         </div>
-      )}
+        <ChevronRight
+          className={`mt-0.5 h-4 w-4 flex-shrink-0 text-[#73726C] transition-transform ${open ? 'rotate-90' : ''}`}
+        />
+      </button>
+      {open ? <div className="border-t border-[rgba(31,30,29,0.08)] px-4 py-3">{children}</div> : null}
     </div>
   )
 }
 
-export function AIChatMessage({ role, content, timestamp, isStreaming, steps = [], onRegenerate }: AIChatMessageProps) {
+export function AIChatMessage({ item, approvalContent, onRegenerate }: AIChatMessageProps) {
   const intl = useIntl()
   const [copied, setCopied] = useState(false)
-  const isUser = role === 'user'
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(content).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }, [content])
+  const handleCopy = useCallback(
+    (content: string) => {
+      navigator.clipboard.writeText(content).then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      })
+    },
+    [],
+  )
 
-  if (role === 'system') return null
-
-  return (
-    <div
-      className={`flex gap-4 px-6 py-5 animate-[fadeIn_0.3s_ease-out] ${
-        isUser ? 'justify-end' : 'justify-start'
-      }`}
-    >
-      {!isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#D97757] flex items-center justify-center mt-0.5">
-          <Bot className="h-3.5 w-3.5 text-white" />
-        </div>
-      )}
-
-      <div className={`min-w-0 ${isUser ? 'max-w-[70%]' : 'max-w-[85%]'}`}>
-        {isUser ? (
-          <div className="bg-[#F0F0ED] rounded-2xl rounded-br-md px-5 py-3">
-            <p className="text-[15px] leading-[24px] text-[#1F1E1D] whitespace-pre-wrap break-words">
-              {content}
+  if (item.type === 'user_message') {
+    return (
+      <div className="flex justify-end gap-4 px-6 py-5 animate-[fadeIn_0.3s_ease-out]">
+        <div className="min-w-0 max-w-[70%]">
+          <div className="rounded-2xl rounded-br-md bg-[#F0F0ED] px-5 py-3">
+            <p className="whitespace-pre-wrap break-words text-[15px] leading-[24px] text-[#1F1E1D]">
+              {item.content}
             </p>
           </div>
-        ) : (
-          <div className="text-[15px] leading-[24px] text-[#1F1E1D]">
-            {isStreaming && <ThinkingSteps steps={steps} />}
-            {content ? <MarkdownRenderer content={content} /> : null}
-            {isStreaming && (
-              <span className="inline-block w-1.5 h-4 ml-0.5 bg-[#D97757] animate-pulse rounded-sm align-middle" />
-            )}
+          <div className="mt-1.5 flex justify-end">
+            <span className="text-[11px] text-[#73726C]">
+              {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
           </div>
-        )}
+        </div>
+        <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#3D3D3A]">
+          <User className="h-3.5 w-3.5 text-white" />
+        </div>
+      </div>
+    )
+  }
 
-        {!isStreaming && content && (
-          <div className={`flex items-center gap-2 mt-1.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
-            {timestamp && (
-              <span className="text-[11px] text-[#73726C]">
-                {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            )}
-            {!isUser && (
-              <div className="flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity duration-200">
+  const renderBody = () => {
+    if (item.type === 'assistant_message') {
+      const isStreaming = item.status === 'streaming'
+      const statusLabel =
+        item.status === 'error' ? 'Response interrupted by error'
+          : item.status === 'stopped' ? 'Response stopped'
+            : null
+
+      return (
+        <div className="text-[15px] leading-[24px] text-[#1F1E1D]">
+          {contentBlock(item.content)}
+          {isStreaming ? (
+            <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-[#D97757] align-middle" />
+          ) : null}
+          {statusLabel ? (
+            <div className="mt-3 text-[12px] leading-5 text-[#8A4B2F]">{statusLabel}</div>
+          ) : null}
+        </div>
+      )
+    }
+
+    if (item.type === 'tool_call') {
+      return (
+        <EventCard
+          icon={item.status === 'running'
+            ? <Loader2 className="h-4 w-4 animate-spin text-[#D97757]" />
+            : <Wrench className="h-4 w-4 text-[#D97757]" />}
+          badge="Tool Call"
+          title={`Calling ${item.toolName || 'tool'}`}
+          description={item.status === 'running' ? 'Tool execution started' : 'Tool call recorded'}
+          tone="neutral"
+        >
+          <JsonBlock value={item.input} />
+        </EventCard>
+      )
+    }
+
+    if (item.type === 'tool_result') {
+      const tone = item.outcome === 'success' ? 'success' : item.outcome === 'error' ? 'error' : 'neutral'
+      return (
+        <EventCard
+          icon={item.outcome === 'success'
+            ? <CheckCircle2 className="h-4 w-4 text-[#10B981]" />
+            : item.outcome === 'error'
+              ? <AlertCircle className="h-4 w-4 text-[#E01E5A]" />
+              : <Circle className="h-4 w-4 text-[#73726C]" />}
+          badge="Tool Result"
+          title={`${item.toolName || 'Tool'} completed`}
+          description={item.outcome ? `Outcome: ${item.outcome}` : 'Tool result received'}
+          tone={tone}
+        >
+          <JsonBlock value={item.result} />
+        </EventCard>
+      )
+    }
+
+    if (item.type === 'approval_required') {
+      const tone = item.status === 'denied' ? 'error' : item.status === 'approved' ? 'success' : 'warning'
+      const description =
+        item.status === 'pending'
+          ? item.approval.summary || `Approve ${item.approval.toolName}?`
+          : item.status === 'approved'
+            ? 'Approval submitted. Nexus AI is applying the action.'
+            : 'Approval denied.'
+
+      return (
+        <EventCard
+          icon={item.status === 'pending'
+            ? <ShieldCheck className="h-4 w-4 text-[#D97757]" />
+            : item.status === 'approved'
+              ? <CheckCircle2 className="h-4 w-4 text-[#10B981]" />
+              : <XCircle className="h-4 w-4 text-[#E01E5A]" />}
+          badge={
+            item.status === 'pending'
+              ? 'Approval Needed'
+              : item.status === 'approved'
+                ? 'Approval Submitted'
+                : 'Approval Denied'
+          }
+          title={`Approval for ${item.approval.toolName}`}
+          description={description}
+          tone={tone}
+          defaultOpen={item.status === 'pending'}
+        >
+          {approvalContent || <JsonBlock value={item.submittedFormData || item.approval.args} />}
+        </EventCard>
+      )
+    }
+
+    return (
+      <EventCard
+        icon={item.status === 'error'
+          ? <AlertCircle className="h-4 w-4 text-[#E01E5A]" />
+          : <Sparkles className="h-4 w-4 text-[#73726C]" />}
+        badge={item.status === 'error' ? 'Error' : 'Event'}
+        title={item.title}
+        description={item.description}
+        tone={item.status === 'error' ? 'error' : 'neutral'}
+      />
+    )
+  }
+
+  const contentForCopy = item.type === 'assistant_message' ? item.content : ''
+  const canCopy = item.type === 'assistant_message' && item.content
+  const canRegenerate = item.type === 'assistant_message' && item.status === 'completed' && onRegenerate
+
+  return (
+    <div className="flex justify-start gap-4 px-6 py-5 animate-[fadeIn_0.3s_ease-out]">
+      <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#D97757]">
+        <Bot className="h-3.5 w-3.5 text-white" />
+      </div>
+
+      <div className="min-w-0 max-w-[85%]">
+        {renderBody()}
+
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="text-[11px] text-[#73726C]">
+            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          {canCopy || canRegenerate ? (
+            <div className="flex items-center gap-1 opacity-0 transition-opacity duration-200 hover:opacity-100">
+              {canCopy ? (
                 <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
+                  onClick={() => handleCopy(contentForCopy)}
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-[#73726C] transition-colors hover:bg-[rgba(31,30,29,0.04)] hover:text-[#1F1E1D]"
                   title={intl.formatMessage({ id: 'modules.aiChat.message.copy', defaultMessage: 'Copy' })}
                 >
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 </button>
-                {onRegenerate && (
-                  <button
-                    onClick={onRegenerate}
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-[#73726C] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors"
-                    title={intl.formatMessage({ id: 'modules.aiChat.message.regenerate', defaultMessage: 'Regenerate' })}
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#3D3D3A] flex items-center justify-center mt-0.5">
-          <User className="h-3.5 w-3.5 text-white" />
+              ) : null}
+              {canRegenerate ? (
+                <button
+                  onClick={onRegenerate}
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-[#73726C] transition-colors hover:bg-[rgba(31,30,29,0.04)] hover:text-[#1F1E1D]"
+                  title={intl.formatMessage({ id: 'modules.aiChat.message.regenerate', defaultMessage: 'Regenerate' })}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
-      )}
+      </div>
     </div>
   )
+}
+
+function contentBlock(content: string) {
+  return content ? <MarkdownRenderer content={content} /> : null
 }

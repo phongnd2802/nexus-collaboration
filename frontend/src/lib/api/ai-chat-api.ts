@@ -1,4 +1,5 @@
 import { API_CONFIG } from '@/lib/config'
+import type { ThinkingStep } from '@/components/ai-chat/types'
 
 export interface AIChatCommandRequest {
   command: string
@@ -10,14 +11,7 @@ export interface AIChatCommandRequest {
 
 export interface AIChatStreamCallbacks {
   onStatus?: (status: string, message: string) => void
-  onStep?: (step: {
-    id: string
-    title: string
-    description?: string
-    status: 'pending' | 'running' | 'completed' | 'error'
-    tool?: string
-    input?: Record<string, any>
-  }) => void
+  onStep?: (step: ThinkingStep) => void
   onAction?: (tool: string, success: boolean, message: string) => void
   onText?: (content: string) => void
   onTextDelta?: (content: string) => void
@@ -190,6 +184,7 @@ async function consumeNexusAIStream(
           description: 'Nexus AI is using a workspace tool',
           status: 'running',
           tool: chunk.tool_name,
+          eventType: 'tool_call',
           input: chunk.args,
         })
         continue
@@ -206,6 +201,9 @@ async function consumeNexusAIStream(
           description: 'Tool result received',
           status: 'completed',
           tool: chunk.tool_name,
+          eventType: 'tool_result',
+          result: chunk.result,
+          outcome: chunk.outcome,
         })
         continue
       }
@@ -228,6 +226,7 @@ async function consumeNexusAIStream(
           description: chunk.summary || 'Confirm before Nexus AI changes workspace data',
           status: 'pending',
           tool: chunk.tool_name,
+          eventType: 'approval_required',
           input: chunk.args,
         })
         continue

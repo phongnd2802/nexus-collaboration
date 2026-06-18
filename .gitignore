@@ -125,3 +125,4 @@ CLAUDE.md
 .codex/
 llms.txt
 raw-provider-responses/
+debug/
