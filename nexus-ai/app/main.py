@@ -87,6 +87,17 @@ async def list_sessions(
     }
 
 
+@app.delete("/v1/sessions/{session_id}", dependencies=[Depends(require_api_key)])
+async def delete_session(
+    session_id: str,
+    x_user_id: str | None = Header(default=None),
+    x_workspace_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not x_user_id or not x_workspace_id:
+        raise HTTPException(status_code=400, detail="x-user-id and x-workspace-id are required")
+    return orchestrator.delete_session(session_id, x_user_id, x_workspace_id)
+
+
 @app.post("/v1/sessions/{session_id}/runs/{run_id}/resume", dependencies=[Depends(require_api_key)])
 async def resume_run(session_id: str, run_id: str, request: ResumeRequest) -> Response:
     return await orchestrator.resume_run(session_id, run_id, request)

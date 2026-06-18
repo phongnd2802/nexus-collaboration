@@ -11,6 +11,7 @@ import { AIChatMessages } from './AIChatMessages'
 import { AIChatInput } from './AIChatInput'
 import { AIChatEmpty } from './AIChatEmpty'
 import { AIChatApprovalContent } from './AIChatApprovalContent'
+import { ConfirmationDialog } from '@/components/shared/ConfirmationDialog'
 import type { AIChatTimelineItem } from './types'
 import { useAIChatPageState } from './useAIChatPageState'
 
@@ -29,6 +30,8 @@ export function AIChatPage() {
     isThinking,
     isHydratingSession,
     isLoadingSessions,
+    deleteConversationDialog,
+    isDeletingConversation,
     model,
     setModel,
     hasConversation,
@@ -39,6 +42,8 @@ export function AIChatPage() {
     handleNewConversation,
     handleSelectConversation,
     handleDeleteConversation,
+    handleDeleteConversationDialogChange,
+    confirmDeleteConversation,
     handleRenameConversation,
   } = useAIChatPageState({ workspaceId, routeSessionId: sessionId, intl })
 
@@ -148,6 +153,30 @@ export function AIChatPage() {
           </>
         )}
       </div>
+      <ConfirmationDialog
+        open={Boolean(deleteConversationDialog)}
+        onOpenChange={handleDeleteConversationDialogChange}
+        title={intl.formatMessage({
+          id: 'modules.aiChat.deleteSession.title',
+          defaultMessage: 'Delete AI chat session?',
+        })}
+        description={intl.formatMessage(
+          {
+            id: 'modules.aiChat.deleteSession.description',
+            defaultMessage:
+              'Delete "{title}"? This will remove the conversation history and cancel any pending approvals in this session.',
+          },
+          { title: deleteConversationDialog?.title || intl.formatMessage({ id: 'modules.aiChat.sidebar.untitled', defaultMessage: 'Untitled chat' }) },
+        )}
+        confirmText={intl.formatMessage({
+          id: 'modules.aiChat.deleteSession.confirm',
+          defaultMessage: 'Delete session',
+        })}
+        cancelText={intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
+        onConfirm={confirmDeleteConversation}
+        isLoading={isDeletingConversation}
+        variant="destructive"
+      />
     </div>
   )
 }

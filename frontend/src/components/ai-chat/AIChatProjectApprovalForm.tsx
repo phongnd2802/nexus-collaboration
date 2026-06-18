@@ -41,6 +41,7 @@ interface ProjectStageFormValue {
 }
 
 interface ProjectApprovalFormData {
+  project_id?: string
   name: string
   description?: string
   lead_id: string
@@ -49,6 +50,7 @@ interface ProjectApprovalFormData {
     default_assignee_ids: string[]
   }
 }
+export type { ProjectApprovalFormData }
 
 interface VisibleMember {
   id: string
@@ -145,6 +147,7 @@ interface AIChatProjectApprovalFormProps {
   members: WorkspaceMember[]
   currentUserId?: string
   isSubmitting: boolean
+  mode?: 'create' | 'update'
   onApprove: (formData: ProjectApprovalFormData) => Promise<void> | void
   onDeny: () => Promise<void> | void
 }
@@ -175,6 +178,7 @@ export function AIChatProjectApprovalForm({
   members,
   currentUserId,
   isSubmitting,
+  mode = 'create',
   onApprove,
   onDeny,
 }: AIChatProjectApprovalFormProps) {
@@ -294,6 +298,7 @@ export function AIChatProjectApprovalForm({
     if (!canSubmit) return
 
     await onApprove({
+      project_id: mode === 'update' && typeof initialValues.project_id === 'string' ? initialValues.project_id : undefined,
       name: name.trim(),
       description: description.trim() || undefined,
       lead_id: leadId,
@@ -315,10 +320,12 @@ export function AIChatProjectApprovalForm({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <CardTitle className="font-serif text-[20px] font-normal leading-[28px] tracking-[-0.2px] text-[#1F1E1D]">
-              {approval.summary || 'Complete project details and confirm creation'}
+              {approval.summary || (mode === 'update' ? 'Review project details and confirm update' : 'Complete project details and confirm creation')}
             </CardTitle>
             <CardDescription className="mt-1 text-[13px] leading-5 text-[#73726C]">
-              Review the fields below, then confirm to create the project.
+              {mode === 'update'
+                ? 'Review the current project details, adjust them if needed, then confirm to update the project.'
+                : 'Review the fields below, then confirm to create the project.'}
             </CardDescription>
           </div>
           <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em]">
@@ -493,7 +500,7 @@ export function AIChatProjectApprovalForm({
 
       <CardFooter className="flex flex-col gap-2 bg-[#FAF9F5] px-4 py-4 sm:flex-row sm:justify-end sm:px-5">
         <Button type="button" onClick={handleApprove} disabled={isSubmitting || !canSubmit}>
-          Create project
+          {mode === 'update' ? 'Update project' : 'Create project'}
         </Button>
         <Button type="button" variant="outline" onClick={onDeny} disabled={isSubmitting}>
           Deny

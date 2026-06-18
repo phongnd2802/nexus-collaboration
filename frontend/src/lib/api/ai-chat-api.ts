@@ -70,6 +70,11 @@ export interface AIChatSessionSummary {
   hasPendingApproval?: boolean
 }
 
+export interface AIChatDeleteSessionResponse {
+  success: boolean
+  sessionId: string
+}
+
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 const STORAGE_PREFIX = 'nexus_ai_chat_'
 
@@ -116,6 +121,11 @@ function fallbackToolCompletionMessage(toolName?: string, result?: Record<string
     return projectName ? `Project "${projectName}" created successfully.` : 'Project created successfully.'
   }
 
+  if (toolName === 'update_project') {
+    const projectName = typeof result?.name === 'string' ? result.name : undefined
+    return projectName ? `Project "${projectName}" updated successfully.` : 'Project updated successfully.'
+  }
+
   return `${toolName.replaceAll('_', ' ')} completed successfully.`
 }
 
@@ -129,6 +139,15 @@ function isApprovalBoilerplateMessage(message: string, toolName?: string): boole
       normalized.includes('triggered the project creation') ||
       normalized.includes('complete the necessary fields') ||
       normalized.includes('finalize the project creation')
+    )
+  }
+
+  if (toolName === 'update_project') {
+    return (
+      normalized.includes('approval form') ||
+      normalized.includes('triggered the project update') ||
+      normalized.includes('complete the necessary fields') ||
+      normalized.includes('finalize the project update')
     )
   }
 
@@ -396,6 +415,35 @@ export const aiChatApi = {
 
     const payload = await response.json()
     return Array.isArray(payload?.data) ? payload.data : []
+  },
+
+  deleteSession: async (
+    workspaceId: string,
+    sessionId: string,
+    token: string,
+  ): Promise<AIChatDeleteSessionResponse> => {
+    const response = await fetch(
+      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`),
+      {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+      throw new Error(extractOpenAIError(payload, `Nexus AI session delete failed (${response.status})`))
+    }
+
+    return response.json()
   },
 
   listTools: async (_workspaceId: string, _token: string): Promise<AIChatToolsResponse> => {
