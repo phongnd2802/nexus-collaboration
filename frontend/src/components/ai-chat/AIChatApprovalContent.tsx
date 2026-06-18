@@ -1,6 +1,7 @@
 import React from 'react'
 
 import type { WorkspaceMember } from '@/types'
+import { Button } from '@/components/ui/button'
 
 import { AIChatProjectApprovalForm } from './AIChatProjectApprovalForm'
 import type { ApprovalRequiredItem } from './types'
@@ -41,26 +42,45 @@ export function AIChatApprovalContent({
     )
   }
 
+  if (item.approval.approvalKind === 'project_update_form') {
+    return (
+      <div className="mt-3">
+        <AIChatProjectApprovalForm
+          approval={item.approval}
+          members={members}
+          currentUserId={currentUserId}
+          isSubmitting={isSubmitting}
+          mode="update"
+          onApprove={async formData => onApprove(formData)}
+          onDeny={async () => onDeny()}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="mt-3">
       <pre className="max-h-40 overflow-auto rounded-xl bg-white/80 p-3 text-xs text-[#3D3D3A]">
         {JSON.stringify(item.approval.args, null, 2)}
       </pre>
       <div className="mt-3 flex gap-2">
-        <button
+        <Button
           type="button"
           onClick={() => onApprove()}
-          className="rounded-full bg-[#D97757] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#C86443]"
+          size="sm"
+          className="rounded-full bg-[#D97757] text-xs font-semibold text-white hover:bg-[#C86443]"
         >
           Approve
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => onDeny()}
-          className="rounded-full border border-[#D6D3CE] px-3 py-1.5 text-xs font-semibold text-[#3D3D3A] hover:bg-white"
+          size="sm"
+          variant="outline"
+          className="rounded-full text-xs font-semibold text-[#3D3D3A] hover:bg-white"
         >
           Deny
-        </button>
+        </Button>
       </div>
     </div>
   )

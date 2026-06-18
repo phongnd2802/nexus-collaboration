@@ -41,6 +41,10 @@ projects_tasks = Capability[AgentDeps](
         "Use these tools for Nexus project/task questions and actions. "
         "Prefer read tools before writing when IDs are unknown. "
         "If the user's intent is to create a project, call create_project immediately to trigger the approval form UI. "
+        "If the user's intent is to update a project, resolve the target project_id first from recent context or read tools, "
+        "and only call update_project once the target is unambiguous. "
+        "If multiple projects match or no project matches, ask the user to clarify instead of guessing. "
+        "After project_id is known, call update_project promptly to trigger the approval form UI rather than collecting all fields in chat. "
         "Do not ask follow-up questions in chat to collect project fields first. "
         "You may pass obvious values like name or description only as optional initial values for the form, and leave unknown fields empty. "
         "All write tools require user approval before execution. "
@@ -114,12 +118,21 @@ async def update_project(
     project_id: str,
     name: str | None = None,
     description: str | None = None,
-    status: str | None = None,
-    priority: str | None = None,
+    lead_id: str | None = None,
+    kanban_stages: list[dict[str, Any]] | None = None,
+    collaborative_data: dict[str, Any] | None = None,
 ) -> Any:
     """Update basic project fields after explicit user approval."""
     return _compact(
-        await update_project_tool(ctx, project_id, name=name, description=description, status=status, priority=priority)
+        await update_project_tool(
+            ctx,
+            project_id,
+            name=name,
+            description=description,
+            lead_id=lead_id,
+            kanban_stages=kanban_stages,
+            collaborative_data=collaborative_data,
+        )
     )
 
 
@@ -210,7 +223,10 @@ def build_agent(
             "executed unless a tool result confirms it. All write actions must be approved by "
             "the user first. For create_project, trigger the approval form workflow immediately "
             "when the user wants to create a project, instead of asking chat follow-up questions "
-            "or trying to produce the final project payload yourself."
+            "or trying to produce the final project payload yourself. For update_project, resolve "
+            "the target project_id first; if the target is ambiguous, ask the user to clarify. "
+            "Once project_id is known, trigger the approval form workflow instead of collecting "
+            "all update fields manually in chat."
         ),
     )
 

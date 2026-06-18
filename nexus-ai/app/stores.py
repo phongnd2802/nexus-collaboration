@@ -19,6 +19,7 @@ class RunState:
     workspace_id: str
     messages: list[Any] = field(default_factory=list)
     pending_tool_calls: dict[str, dict[str, Any]] = field(default_factory=dict)
+    consumed_tool_call_ids: set[str] = field(default_factory=set)
 
 
 class MemoryStore:
@@ -66,6 +67,9 @@ class SessionStore:
     def save_messages(self, session_id: str, messages: list[Any]) -> None:
         self._sessions[session_id].messages = messages
 
+    def delete(self, session_id: str) -> None:
+        del self._sessions[session_id]
+
 
 class RunStore:
     def __init__(self) -> None:
@@ -92,6 +96,11 @@ class RunStore:
 
     def save(self, run: RunState) -> None:
         self._runs[run.run_id] = run
+
+    def delete_by_session(self, session_id: str) -> None:
+        run_ids = [run_id for run_id, run in self._runs.items() if run.session_id == session_id]
+        for run_id in run_ids:
+            del self._runs[run_id]
 
 
 memory_store = MemoryStore()
