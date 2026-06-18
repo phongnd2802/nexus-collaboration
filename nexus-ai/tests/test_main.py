@@ -170,6 +170,49 @@ def test_get_session_snapshot_ignores_consumed_pending_approval() -> None:
     assert snapshot.activeApprovalItemId is None
 
 
+def test_get_session_snapshot_renders_project_list_payload_after_assistant_summary() -> None:
+    session = session_store.get_or_create("user_snapshot_projects", "ws_snapshot_projects", "sess_snapshot_projects")
+    session.messages = [
+        ModelRequest(parts=[UserPromptPart(content="List projects")]),
+        ModelResponse(
+            parts=[
+                ToolReturnPart(
+                    tool_name="list_projects",
+                    content=[{"id": "proj_1", "name": "Roadmap"}],
+                    tool_call_id="tool_list_projects",
+                    metadata={
+                        "payload_type": "project_list",
+                        "title": "Projects",
+                        "items": [
+                            {
+                                "id": "proj_1",
+                                "name": "Roadmap",
+                                "description": "Q4 roadmap",
+                                "status": "active",
+                                "type": "kanban",
+                                "updatedAt": "2026-06-18T00:00:00Z",
+                                "memberCount": 3,
+                                "href": "/workspaces/ws_snapshot_projects/projects/proj_1",
+                            }
+                        ],
+                    },
+                )
+            ]
+        ),
+        ModelResponse(parts=[TextPart(content="Mình tìm thấy 1 project đang hoạt động.")]),
+    ]
+
+    snapshot = orchestrator.get_session_snapshot("sess_snapshot_projects", "user_snapshot_projects", "ws_snapshot_projects")
+
+    assert [item["type"] for item in snapshot.items] == [
+        "user_message",
+        "tool_result",
+        "assistant_message",
+        "assistant_project_list",
+    ]
+    assert snapshot.items[-1]["projects"][0]["id"] == "proj_1"
+
+
 @pytest.mark.asyncio
 async def test_approval_events_tag_update_project_form_with_existing_project_values(
     monkeypatch: pytest.MonkeyPatch,
@@ -341,6 +384,18 @@ def text_deltas_from_sse(chunks: list[str]) -> str:
     return "".join(deltas)
 
 
+def assistant_payloads_from_sse(chunks: list[str]) -> list[dict[str, object]]:
+    payloads: list[dict[str, object]] = []
+    for chunk in chunks:
+        if not chunk.startswith("data: {"):
+            continue
+        payload = json.loads(chunk.removeprefix("data: ").strip())
+        if payload.get("type") != "assistant_payload":
+            continue
+        payloads.append(payload)
+    return payloads
+
+
 @pytest.mark.asyncio
 async def test_resume_create_project_discards_stale_form_text_and_persists_follow_up(
     monkeypatch: pytest.MonkeyPatch,
@@ -417,6 +472,94 @@ async def test_resume_create_project_discards_stale_form_text_and_persists_follo
     assert isinstance(run.messages[-1], ModelResponse)
     assert run.messages[-1].parts[0].content == final_text
     assert session_store.get(session.session_id).messages[-1].parts[0].content == final_text
+
+
+@pytest.mark.asyncio
+async def test_stream_list_projects_emits_assistant_payload_for_project_cards(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = session_store.get_or_create("user_project_cards", "ws_project_cards", "sess_project_cards")
+    run = run_store.create(session)
+    summary_text = "Mình tìm thấy 1 project đang hoạt động."
+
+    project_payload = {
+        "payload_type": "project_list",
+        "title": "Projects",
+        "items": [
+            {
+                "id": "proj_1",
+                "name": "Roadmap",
+                "description": "Q4 roadmap",
+                "status": "active",
+                "type": "kanban",
+                "updatedAt": "2026-06-18T00:00:00Z",
+                "memberCount": 3,
+                "href": "/workspaces/ws_project_cards/projects/proj_1",
+            }
+        ],
+    }
+    main_messages = [
+        ModelResponse(
+            parts=[
+                ToolReturnPart(
+                    tool_name="list_projects",
+                    content=[{"id": "proj_1", "name": "Roadmap"}],
+                    tool_call_id="tool_list_projects",
+                    metadata=project_payload,
+                    outcome="success",
+                )
+            ]
+        ),
+        ModelResponse(parts=[TextPart(content=summary_text)]),
+    ]
+    main_events = [
+        FunctionToolResultEvent(
+            ToolReturnPart(
+                tool_name="list_projects",
+                content=[{"id": "proj_1", "name": "Roadmap"}],
+                tool_call_id="tool_list_projects",
+                metadata=project_payload,
+                outcome="success",
+            )
+        ),
+        PartDeltaEvent(index=0, delta=TextPartDelta(content_delta=summary_text)),
+        AgentRunResultEvent(result=FakeRunResult(output=summary_text, messages=main_messages)),
+    ]
+
+    monkeypatch.setattr(
+        orchestrator_module,
+        "build_agent_with_capture",
+        lambda *_args, **_kwargs: (
+            FakeAgent(main_events),
+            FakeProviderClient(),
+            SimpleNamespace(first_text_delta=None),
+        ),
+    )
+
+    request = ChatCompletionRequest(
+        model="test-model",
+        messages=[{"role": "user", "content": "List projects"}],
+        stream=True,
+        metadata={"user_id": "user_project_cards", "workspace_id": "ws_project_cards"},
+    )
+
+    chunks = [
+        chunk
+        async for chunk in orchestrator.stream_agent_run(
+            request=request,
+            session_id=session.session_id,
+            resume_run=run,
+        )
+    ]
+
+    payloads = assistant_payloads_from_sse(chunks)
+    assert len(payloads) == 1
+    assert payloads[0]["payload_type"] == "project_list"
+    assert payloads[0]["items"][0]["id"] == "proj_1"
+
+    snapshot = orchestrator.get_session_snapshot(session.session_id, "user_project_cards", "ws_project_cards")
+    assert snapshot.items[-1]["type"] == "assistant_project_list"
+    assert snapshot.items[-1]["projects"][0]["href"] == "/workspaces/ws_project_cards/projects/proj_1"
 
 
 @pytest.mark.asyncio

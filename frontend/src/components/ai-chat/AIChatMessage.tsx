@@ -16,6 +16,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useIntl } from 'react-intl'
+import { useNavigate } from 'react-router-dom'
 
 import { MarkdownRenderer } from './MarkdownRenderer'
 import type { AIChatTimelineItem } from './types'
@@ -93,6 +94,7 @@ function EventCard({
 
 export function AIChatMessage({ item, approvalContent, onRegenerate }: AIChatMessageProps) {
   const intl = useIntl()
+  const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
 
   const handleCopy = useCallback(
@@ -144,6 +146,78 @@ export function AIChatMessage({ item, approvalContent, onRegenerate }: AIChatMes
           {statusLabel ? (
             <div className="mt-3 text-[12px] leading-5 text-[#8A4B2F]">{statusLabel}</div>
           ) : null}
+        </div>
+      )
+    }
+
+    if (item.type === 'assistant_project_list') {
+      return (
+        <div className="space-y-3">
+          <div className="text-[13px] font-medium uppercase tracking-[0.08em] text-[#73726C]">
+            {item.title}
+          </div>
+          <div className="grid gap-3">
+            {item.projects.map(project => {
+              const statusTone =
+                project.status === 'completed'
+                  ? 'border-[rgba(16,185,129,0.16)] bg-[#F0FDF4] text-[#15803D]'
+                  : project.status === 'on_hold' || project.status === 'on-hold'
+                    ? 'border-[rgba(210,153,34,0.2)] bg-[#FFF7ED] text-[#B45309]'
+                    : 'border-[rgba(217,119,87,0.18)] bg-[#FFF7ED] text-[#C2410C]'
+
+              return (
+                <button
+                  key={project.id}
+                  type="button"
+                  onClick={() => navigate(project.href)}
+                  className="w-full rounded-[18px] border border-[rgba(31,30,29,0.12)] bg-white p-4 text-left shadow-[rgba(0,0,0,0.04)_0px_4px_20px_0px] transition-all hover:border-[rgba(31,30,29,0.22)] hover:shadow-[rgba(0,0,0,0.08)_0px_12px_28px_0px]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[16px] font-medium leading-6 text-[#1F1E1D]">{project.name}</div>
+                      <div className="mt-1 line-clamp-2 text-[14px] leading-6 text-[#73726C]">
+                        {project.description || intl.formatMessage({ id: 'modules.aiChat.projects.noDescription', defaultMessage: 'No description provided.' })}
+                      </div>
+                    </div>
+                    <ChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#73726C]" />
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {project.status ? (
+                      <span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.04em] ${statusTone}`}>
+                        {project.status.replaceAll('_', ' ')}
+                      </span>
+                    ) : null}
+                    {project.type ? (
+                      <span className="rounded-full border border-[rgba(31,30,29,0.12)] bg-[#FAF9F5] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.04em] text-[#3D3D3A]">
+                        {project.type.replaceAll('_', ' ')}
+                      </span>
+                    ) : null}
+                    {typeof project.memberCount === 'number' ? (
+                      <span className="text-[12px] leading-5 text-[#73726C]">
+                        {intl.formatMessage(
+                          { id: 'modules.aiChat.projects.members', defaultMessage: '{count} members' },
+                          { count: project.memberCount },
+                        )}
+                      </span>
+                    ) : null}
+                    {project.updatedAt ? (
+                      <span className="text-[12px] leading-5 text-[#73726C]">
+                        {intl.formatMessage(
+                          { id: 'modules.aiChat.projects.updated', defaultMessage: 'Updated {date}' },
+                          {
+                            date: new Date(project.updatedAt).toLocaleDateString([], {
+                              month: 'short',
+                              day: '2-digit',
+                            }),
+                          },
+                        )}
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
       )
     }
