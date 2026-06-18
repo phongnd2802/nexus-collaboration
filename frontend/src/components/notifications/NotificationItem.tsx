@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { enUS, vi as viLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { type Notification } from '@/lib/api/notifications-api';
+import { NoteAccessRequestNotification } from '../notes/NoteAccessRequestNotification';
 import {
   FolderIcon,
   CalendarIcon,
@@ -26,6 +27,7 @@ const stripHtml = (html: string): string => {
 interface NotificationItemProps {
   notification: Notification;
   onClick: () => void;
+  onResponded?: (action: 'approve' | 'deny') => void;
 }
 
 const getWorkspaceInvitationContext = (notification: Notification) => {
@@ -52,7 +54,18 @@ const getWorkspaceInvitationContext = (notification: Notification) => {
   };
 };
 
-const getLocalizedNotificationTitle = (notification: Notification, intl: ReturnType<typeof useIntl>) => {
+export const getLocalizedNotificationTitle = (notification: Notification, intl: ReturnType<typeof useIntl>) => {
+  if (notification.type === 'note_access_request') {
+    return intl.formatMessage({ id: 'modules.notes.accessRequest.notifTitle' });
+  }
+
+  if (notification.type === 'note_access_response') {
+    const isApproved = notification.data?.action === 'note_access_approved';
+    return isApproved
+      ? intl.formatMessage({ id: 'modules.notes.accessDenied.requestApproved' })
+      : intl.formatMessage({ id: 'modules.notes.accessDenied.requestDenied' });
+  }
+
   const workspaceInvitation = getWorkspaceInvitationContext(notification);
   if (workspaceInvitation) {
     return intl.formatMessage(
@@ -84,12 +97,29 @@ const getLocalizedNotificationTitle = (notification: Notification, intl: ReturnT
   return notification.title;
 };
 
-const getLocalizedNotificationMessage = (
+export const getLocalizedNotificationMessage = (
   notification: Notification,
   intl: ReturnType<typeof useIntl>
 ) => {
   if (!notification.message) {
     return '';
+  }
+
+  if (notification.type === 'note_access_request') {
+    const requester = notification.data?.requester_name || 'Someone';
+    const title = notification.data?.note_title || 'a note';
+    return intl.formatMessage(
+      { id: 'modules.notes.accessRequest.notifMessage' },
+      { requester, title }
+    );
+  }
+
+  if (notification.type === 'note_access_response') {
+    const isApproved = notification.data?.action === 'note_access_approved';
+    const title = notification.data?.note_title || 'a note';
+    return isApproved
+      ? intl.formatMessage({ id: 'modules.notes.accessDenied.requestApproved' })
+      : intl.formatMessage({ id: 'modules.notes.accessDenied.requestDenied' });
   }
 
   if (getWorkspaceInvitationContext(notification)) {
@@ -157,7 +187,7 @@ const getPriorityColor = (priority?: string) => {
   }
 };
 
-export function NotificationItem({ notification, onClick }: NotificationItemProps) {
+export function NotificationItem({ notification, onClick, onResponded }: NotificationItemProps) {
   const intl = useIntl();
 
   // Extract category from data object if it exists
@@ -197,6 +227,18 @@ export function NotificationItem({ notification, onClick }: NotificationItemProp
           <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
             {message}
           </p>
+        )}
+        {notification.type === 'note_access_request' && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <NoteAccessRequestNotification
+              requestId={notification.data?.request_id || notification.data?.entity_id}
+              workspaceId={notification.data?.workspace_id}
+              requesterName={notification.data?.requester_name || 'Someone'}
+              noteTitle={notification.data?.note_title || 'a note'}
+              initialStatus={notification.data?.responded_status}
+              onResponded={onResponded}
+            />
+          </div>
         )}
         <p className="text-xs text-muted-foreground mt-2">
           {notification.created_at

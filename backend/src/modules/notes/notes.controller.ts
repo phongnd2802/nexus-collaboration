@@ -38,6 +38,8 @@ import {
   ImportPdfResponseDto,
   ImportUrlDto,
   ImportUrlResponseDto,
+  RequestNoteAccessDto,
+  RespondNoteAccessDto,
 } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
@@ -696,5 +698,64 @@ export class NotesController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.notesService.createTemplate(workspaceId, templateData, userId);
+  }
+
+  // ==================== NOTE ACCESS REQUEST ENDPOINTS ====================
+
+  @Post(':noteId/access-request')
+  @ApiOperation({ summary: 'Request access to a note' })
+  @ApiResponse({ status: 201, description: 'Access request sent to note owner' })
+  @ApiResponse({ status: 400, description: 'Already has access or pending request exists' })
+  @ApiResponse({ status: 404, description: 'Note not found' })
+  async requestNoteAccess(
+    @Param('workspaceId') workspaceId: string,
+    @Param('noteId') noteId: string,
+    @Body() requestNoteAccessDto: RequestNoteAccessDto,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.notesService.requestNoteAccess(noteId, workspaceId, userId, requestNoteAccessDto);
+  }
+
+  @Patch('access-requests/:requestId')
+  @ApiOperation({ summary: 'Owner responds to a note access request (approve or deny)' })
+  @ApiParam({ name: 'requestId', description: 'Access request ID' })
+  @ApiResponse({ status: 200, description: 'Access request responded to' })
+  @ApiResponse({ status: 400, description: 'Not the owner or already responded' })
+  @ApiResponse({ status: 404, description: 'Request not found' })
+  async respondToNoteAccess(
+    @Param('workspaceId') workspaceId: string,
+    @Param('requestId') requestId: string,
+    @Body() respondNoteAccessDto: RespondNoteAccessDto,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.notesService.respondToNoteAccess(
+      requestId,
+      workspaceId,
+      userId,
+      respondNoteAccessDto,
+    );
+  }
+
+  @Get(':noteId/access-request/status')
+  @ApiOperation({ summary: 'Get current access request status for a note' })
+  @ApiResponse({ status: 200, description: 'Access request status or null' })
+  async getNoteAccessStatus(
+    @Param('workspaceId') workspaceId: string,
+    @Param('noteId') noteId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.notesService.getNoteAccessStatus(noteId, workspaceId, userId);
+  }
+
+  @Get('access-requests/:requestId')
+  @ApiOperation({ summary: 'Get access request by ID' })
+  @ApiResponse({ status: 200, description: 'Access request' })
+  @ApiResponse({ status: 404, description: 'Request not found' })
+  async getAccessRequestById(
+    @Param('workspaceId') workspaceId: string,
+    @Param('requestId') requestId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.notesService.getAccessRequestById(requestId, workspaceId, userId);
   }
 }

@@ -10,7 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { notificationsApi, type Notification } from '@/lib/api/notifications-api';
-import { NotificationItem } from './NotificationItem';
+import { NotificationItem, getLocalizedNotificationTitle, getLocalizedNotificationMessage } from './NotificationItem';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { toast } from 'sonner';
@@ -103,9 +103,11 @@ export function NotificationBell() {
   // Show desktop notification
   const showDesktopNotification = useCallback((notification: Notification) => {
     if ('Notification' in window && Notification.permission === 'granted') {
+      const title = getLocalizedNotificationTitle(notification, intl);
+      const rawMessage = getLocalizedNotificationMessage(notification, intl);
       // Strip HTML from message for plain text display
-      const plainTextMessage = stripHtml(notification.message || '');
-      const notif = new Notification(notification.title, {
+      const plainTextMessage = stripHtml(rawMessage || '');
+      const notif = new Notification(title, {
         body: plainTextMessage,
         icon: 'https://cdn.nexusapp.io/nexus-logo.png',
         badge: 'https://cdn.nexusapp.io/nexus-logo.png',
@@ -122,7 +124,7 @@ export function NotificationBell() {
         notif.close();
       };
     }
-  }, [navigate]);
+  }, [navigate, intl]);
 
   // Real-time notification listener
   useEffect(() => {
@@ -146,13 +148,15 @@ export function NotificationBell() {
       setUnreadCount(prev => prev + 1);
 
       // Always show toast notification (sooner - top-right corner)
+      const title = getLocalizedNotificationTitle(notification, intl);
+      const rawMessage = getLocalizedNotificationMessage(notification, intl);
       // Strip HTML from message for plain text display
-      const plainTextMessage = stripHtml(notification.message || '');
-      toast(notification.title, {
+      const plainTextMessage = stripHtml(rawMessage || '');
+      toast(title, {
         description: plainTextMessage,
         duration: 5000,
         action: notification.action_url ? {
-          label: 'View',
+          label: intl.formatMessage({ id: 'common.view' }),
           onClick: () => navigate(notification.action_url),
         } : undefined,
       });
@@ -183,7 +187,7 @@ export function NotificationBell() {
       socket.off('notification:event', handleNewNotification);
       socket.off('notification_read', handleNotificationRead);
     };
-  }, [socket, navigate]);
+  }, [socket, navigate, intl, showDesktopNotification]);
 
   // Load notifications when dropdown opens
   useEffect(() => {
