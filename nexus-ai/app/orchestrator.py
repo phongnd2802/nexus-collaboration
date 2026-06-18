@@ -42,6 +42,7 @@ class ChatCompletionContext:
 class NexusAIOrchestrator:
     PROJECT_CREATE_TOOL = "create_project"
     PROJECT_UPDATE_TOOL = "update_project"
+    PROJECT_LIST_TOOL = "list_projects"
 
     def _timestamp_iso(self, value: Any) -> str:
         if isinstance(value, datetime):
@@ -195,11 +196,32 @@ class NexusAIOrchestrator:
     def _tool_result_payload(self, part: Any) -> dict[str, Any] | None:
         if hasattr(part, "model_response_object"):
             try:
-                return part.model_response_object()
+                data = part.model_response_object()
+                return data if isinstance(data, dict) else None
             except Exception:
                 return None
         content = getattr(part, "content", None)
         return content if isinstance(content, dict) else None
+
+    def _tool_result_metadata(self, part: Any) -> dict[str, Any] | None:
+        metadata = getattr(part, "metadata", None)
+        return metadata if isinstance(metadata, dict) else None
+
+    def _assistant_payload_item(self, payload: dict[str, Any], timestamp: str) -> dict[str, Any] | None:
+        if payload.get("payload_type") != "project_list":
+            return None
+
+        items = payload.get("items")
+        if not isinstance(items, list) or not items:
+            return None
+
+        return {
+            "id": f"assistant-project-list-{len(items)}-{timestamp}",
+            "type": "assistant_project_list",
+            "title": payload.get("title") if isinstance(payload.get("title"), str) else "Projects",
+            "projects": items,
+            "timestamp": timestamp,
+        }
 
     def _replace_last_response_text(self, messages: list[Any], text: str) -> list[Any]:
         response = ModelResponse(parts=[TextPart(content=text)])
@@ -220,6 +242,7 @@ class NexusAIOrchestrator:
     ) -> tuple[list[dict[str, Any]], str | None]:
         items: list[dict[str, Any]] = []
         active_approval_item_id: str | None = None
+        pending_assistant_payloads: list[tuple[dict[str, Any], str]] = []
 
         def flush_assistant_text(parts: list[str], timestamp: str) -> None:
             content = "".join(parts).strip()
@@ -234,6 +257,14 @@ class NexusAIOrchestrator:
                     "timestamp": timestamp,
                 }
             )
+
+            if not pending_assistant_payloads:
+                return
+            for payload, payload_timestamp in pending_assistant_payloads:
+                item = self._assistant_payload_item(payload, payload_timestamp)
+                if item is not None:
+                    items.append(item)
+            pending_assistant_payloads.clear()
 
         for message in messages:
             if isinstance(message, ModelRequest):
@@ -288,6 +319,14 @@ class NexusAIOrchestrator:
                             "timestamp": self._timestamp_iso(getattr(part, "timestamp", None) or message.timestamp),
                         }
                     )
+                    metadata = self._tool_result_metadata(part)
+                    if metadata is not None:
+                        pending_assistant_payloads.append(
+                            (
+                                metadata,
+                                self._timestamp_iso(getattr(part, "timestamp", None) or message.timestamp),
+                            )
+                        )
                     continue
 
                 if isinstance(part, RetryPromptPart):
@@ -303,6 +342,11 @@ class NexusAIOrchestrator:
                     )
 
             flush_assistant_text(assistant_parts, assistant_timestamp)
+
+        for payload, payload_timestamp in pending_assistant_payloads:
+            item = self._assistant_payload_item(payload, payload_timestamp)
+            if item is not None:
+                items.append(item)
 
         if run and run.pending_tool_calls:
             for tool_call_id, payload in run.pending_tool_calls.items():
@@ -559,6 +603,7 @@ class NexusAIOrchestrator:
         buffered_main_text = ""
         latest_tool_name: str | None = None
         latest_tool_result: dict[str, Any] | None = None
+        latest_tool_metadata: dict[str, Any] | None = None
         latest_tool_outcome: str | None = None
         completed_messages: list[Any] | None = None
         deferred_tool_call_id = next(iter(deferred_tool_results.approvals), None) if deferred_tool_results else None
@@ -646,6 +691,7 @@ class NexusAIOrchestrator:
                                 continue
                             latest_tool_name = getattr(part, "tool_name", None)
                             latest_tool_result = self._tool_result_payload(part)
+                            latest_tool_metadata = self._tool_result_metadata(part)
                             latest_tool_outcome = getattr(part, "outcome", None)
                             yield openai_chunk(
                                 completion_id,
@@ -740,6 +786,24 @@ class NexusAIOrchestrator:
                                     run.run_id,
                                     content=text,
                                 )
+            if latest_tool_name == self.PROJECT_LIST_TOOL and latest_tool_outcome == "success" and latest_tool_metadata:
+                assistant_payload_item = self._assistant_payload_item(
+                    latest_tool_metadata,
+                    self._timestamp_iso(datetime.now(timezone.utc)),
+                )
+                if assistant_payload_item is not None:
+                    yield openai_chunk(
+                        completion_id,
+                        model_name,
+                        "assistant_payload",
+                        session.session_id,
+                        run.run_id,
+                        extra={
+                            "payload_type": "project_list",
+                            "title": assistant_payload_item["title"],
+                            "items": assistant_payload_item["projects"],
+                        },
+                    )
             if (
                 suppress_main_agent_text
                 and latest_tool_name in {self.PROJECT_CREATE_TOOL, self.PROJECT_UPDATE_TOOL}

@@ -1,4 +1,4 @@
-import type { ApprovalRequiredEvent } from '@/lib/api/ai-chat-api'
+import type { ApprovalRequiredEvent, ProjectCardPayload } from '@/lib/api/ai-chat-api'
 
 export interface ThinkingStep {
   id: string
@@ -26,6 +26,12 @@ export interface AssistantMessageItem extends TimelineItemBase {
   type: 'assistant_message'
   content: string
   status: 'streaming' | 'completed' | 'error' | 'stopped'
+}
+
+export interface AssistantProjectListItem extends TimelineItemBase {
+  type: 'assistant_project_list'
+  title: string
+  projects: ProjectCardPayload[]
 }
 
 export interface ToolCallItem extends TimelineItemBase {
@@ -60,6 +66,7 @@ export interface SystemEventItem extends TimelineItemBase {
 export type AIChatTimelineItem =
   | UserMessageItem
   | AssistantMessageItem
+  | AssistantProjectListItem
   | ToolCallItem
   | ToolResultItem
   | ApprovalRequiredItem
