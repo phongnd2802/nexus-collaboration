@@ -1,26 +1,23 @@
-import React, { useRef, useEffect } from 'react'
-import { AIChatMessage } from './AIChatMessage'
-import type { ThinkingStep } from './AIChatMessage'
+import React, { useEffect, useRef } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
 import { useIntl } from 'react-intl'
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp: string
-}
+import { AIChatMessage } from './AIChatMessage'
+import type { AIChatTimelineItem } from './types'
 
 interface AIChatMessagesProps {
-  messages: Message[]
-  isStreaming: boolean
-  streamingContent: string
-  streamingSteps?: ThinkingStep[]
+  items: AIChatTimelineItem[]
   isLoading: boolean
   onRegenerate: (messageId: string) => void
+  renderApprovalContent?: (item: AIChatTimelineItem) => React.ReactNode
 }
 
-export function AIChatMessages({ messages, isStreaming, streamingContent, streamingSteps = [], isLoading, onRegenerate }: AIChatMessagesProps) {
+export function AIChatMessages({
+  items,
+  isLoading,
+  onRegenerate,
+  renderApprovalContent,
+}: AIChatMessagesProps) {
   const intl = useIntl()
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -30,7 +27,7 @@ export function AIChatMessages({ messages, isStreaming, streamingContent, stream
     if (isAutoScrollRef.current && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages, streamingContent, streamingSteps])
+  }, [items])
 
   const handleScroll = () => {
     if (!scrollRef.current) return
@@ -40,17 +37,17 @@ export function AIChatMessages({ messages, isStreaming, streamingContent, stream
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-5 w-5 animate-spin text-[#73726C]" />
       </div>
     )
   }
 
-  if (messages.length === 0 && !isStreaming) {
+  if (items.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <Sparkles className="h-8 w-8 text-[#73726C] mx-auto mb-3" />
+          <Sparkles className="mx-auto mb-3 h-8 w-8 text-[#73726C]" />
           <p className="text-[15px] text-[#73726C]">
             {intl.formatMessage({ id: 'modules.aiChat.messages.startConversation', defaultMessage: 'Start a conversation' })}
           </p>
@@ -65,26 +62,15 @@ export function AIChatMessages({ messages, isStreaming, streamingContent, stream
       onScroll={handleScroll}
       className="flex-1 overflow-y-auto overscroll-contain"
     >
-      <div className="max-w-3xl mx-auto py-4">
-        {messages.map((msg) => (
+      <div className="mx-auto max-w-3xl py-4">
+        {items.map(item => (
           <AIChatMessage
-            key={msg.id}
-            id={msg.id}
-            role={msg.role}
-            content={msg.content}
-            timestamp={msg.timestamp}
-            onRegenerate={msg.role === 'assistant' ? () => onRegenerate(msg.id) : undefined}
+            key={item.id}
+            item={item}
+            approvalContent={renderApprovalContent?.(item)}
+            onRegenerate={item.type === 'assistant_message' ? () => onRegenerate(item.id) : undefined}
           />
         ))}
-        {isStreaming && (streamingContent || streamingSteps.length > 0) && (
-          <AIChatMessage
-            id="streaming"
-            role="assistant"
-            content={streamingContent}
-            steps={streamingSteps}
-            isStreaming
-          />
-        )}
       </div>
       <div ref={bottomRef} />
     </div>

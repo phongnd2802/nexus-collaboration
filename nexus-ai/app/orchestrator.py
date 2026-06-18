@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic_ai import DeferredToolRequests, DeferredToolResults, ToolDenied
-from pydantic_ai.messages import FunctionToolCallEvent, FunctionToolResultEvent, PartDeltaEvent
+from pydantic_ai.messages import FunctionToolCallEvent, FunctionToolResultEvent, ModelResponse, PartDeltaEvent, TextPart
 from pydantic_ai.run import AgentRunResultEvent
 
 from app.config import settings
@@ -88,6 +88,12 @@ class NexusAIOrchestrator:
                 return None
         content = getattr(part, "content", None)
         return content if isinstance(content, dict) else None
+
+    def _replace_last_response_text(self, messages: list[Any], text: str) -> list[Any]:
+        response = ModelResponse(parts=[TextPart(content=text)])
+        if messages and isinstance(messages[-1], ModelResponse):
+            return [*messages[:-1], response]
+        return [*messages, response]
 
     def metadata_value(self, request: ChatCompletionRequest, key: str) -> str | None:
         value = (request.metadata or {}).get(key)
@@ -254,9 +260,23 @@ class NexusAIOrchestrator:
         run_settings = self._model_settings(request)
         message_history = run.messages if deferred_tool_results else session.messages
         text = ""
+        buffered_main_text = ""
         latest_tool_name: str | None = None
         latest_tool_result: dict[str, Any] | None = None
         latest_tool_outcome: str | None = None
+        completed_messages: list[Any] | None = None
+        deferred_tool_call_id = next(iter(deferred_tool_results.approvals), None) if deferred_tool_results else None
+        resumed_tool_name = (
+            run.pending_tool_calls.get(deferred_tool_call_id, {}).get("tool_name")
+            if deferred_tool_call_id
+            else None
+        )
+        suppress_main_agent_text = (
+            deferred_tool_results is not None
+            and resumed_tool_name == "create_project"
+            and deferred_tool_call_id is not None
+            and deferred_tool_results.approvals.get(deferred_tool_call_id) is True
+        )
 
         yield openai_chunk(
             completion_id,
@@ -287,15 +307,18 @@ class NexusAIOrchestrator:
                                 delta,
                                 first_text_emitted,
                             ):
-                                text += text_delta
-                                yield openai_chunk(
-                                    completion_id,
-                                    model_name,
-                                    "text_delta",
-                                    session.session_id,
-                                    run.run_id,
-                                    content=text_delta,
-                                )
+                                if suppress_main_agent_text:
+                                    buffered_main_text += text_delta
+                                else:
+                                    text += text_delta
+                                    yield openai_chunk(
+                                        completion_id,
+                                        model_name,
+                                        "text_delta",
+                                        session.session_id,
+                                        run.run_id,
+                                        content=text_delta,
+                                    )
                             first_text_emitted = True
                         elif isinstance(event, FunctionToolCallEvent):
                             payload = tool_part_payload(event.part)
@@ -327,9 +350,10 @@ class NexusAIOrchestrator:
                             )
                         elif isinstance(event, AgentRunResultEvent):
                             output = event.result.output
-                            run.messages = event.result.all_messages()
-                            session_store.save_messages(session.session_id, run.messages)
+                            completed_messages = event.result.all_messages()
                             if isinstance(output, DeferredToolRequests):
+                                run.messages = completed_messages
+                                session_store.save_messages(session.session_id, run.messages)
                                 context = ChatCompletionContext(
                                     model_name=model_name,
                                     completion_id=completion_id,
@@ -349,7 +373,10 @@ class NexusAIOrchestrator:
                                 )
                                 yield "data: [DONE]\n\n"
                                 return
-                            if not text:
+                            if suppress_main_agent_text:
+                                if not buffered_main_text:
+                                    buffered_main_text = str(output)
+                            elif not text:
                                 text = str(output)
                                 yield openai_chunk(
                                     completion_id,
@@ -360,7 +387,7 @@ class NexusAIOrchestrator:
                                     content=text,
                                 )
             if (
-                deferred_tool_results
+                suppress_main_agent_text
                 and latest_tool_name == "create_project"
                 and latest_tool_outcome == "success"
                 and latest_tool_result
@@ -384,6 +411,21 @@ class NexusAIOrchestrator:
                             if isinstance(delta, str):
                                 text += delta
                     yield chunk
+                if completed_messages is not None:
+                    completed_messages = self._replace_last_response_text(completed_messages, text)
+            elif suppress_main_agent_text and buffered_main_text:
+                text = buffered_main_text
+                yield openai_chunk(
+                    completion_id,
+                    model_name,
+                    "text_delta",
+                    session.session_id,
+                    run.run_id,
+                    content=text,
+                )
+            if completed_messages is not None:
+                run.messages = completed_messages
+                session_store.save_messages(session.session_id, run.messages)
         except Exception as error:
             message = self._runtime_error_message(error)
             yield openai_chunk(
