@@ -42,7 +42,8 @@ export class NotesPublicController {
       );
 
       // 4. Redirect with success status
-      const redirectUrl = `${frontendUrl}/workspaces/${workspace_id}/notes/${note_id}?access_request_status=${action}d`;
+      const resultStatus = action === 'approve' ? 'approved' : 'denied';
+      const redirectUrl = `${frontendUrl}/workspaces/${workspace_id}/notes/${note_id}?access_request_status=${resultStatus}`;
       return res.redirect(redirectUrl);
     } catch (error: any) {
       console.error('[NotesPublicController] Error handling email response:', error);
