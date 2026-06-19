@@ -1228,12 +1228,24 @@ export class NotificationsService {
       action: notificationData.action_url
         ? {
             label: 'Xem chi tiết',
-            url: notificationData.action_url,
+            url: this.toAbsoluteActionUrl(notificationData.action_url),
           }
         : undefined,
       footer:
         'Nếu bạn không muốn nhận email cho loại thông báo này, bạn có thể cập nhật tuỳ chọn thông báo trong phần cài đặt tài khoản.',
     });
+  }
+
+  /**
+   * Turn a (possibly relative) notification action_url into an absolute URL so
+   * email clients can open it. Relative paths like "/workspaces/..." are
+   * prefixed with FRONTEND_URL; already-absolute URLs are left untouched.
+   */
+  private toAbsoluteActionUrl(url: string): string {
+    if (/^https?:\/\//i.test(url)) return url;
+    const base = (process.env.FRONTEND_URL || 'http://localhost:5175').replace(/\/+$/, '');
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${base}${path}`;
   }
 
   private getDefaultPreferences(userId: string): NotificationPreferences {
