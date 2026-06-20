@@ -1,21 +1,16 @@
-import { useMemo, useState, useEffect } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { format, isToday, isTomorrow, addDays, startOfDay, endOfDay, isWithinInterval, addHours, isAfter, isBefore } from 'date-fns'
+import { useMemo, useState } from 'react'
+import { format, isToday, isTomorrow, addDays, startOfDay, endOfDay, isWithinInterval, addHours } from 'date-fns'
 import { useIntl } from 'react-intl'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '../ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '../ui/progress'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '../ui/input'
-import { Label } from '@/components/ui/label'
 import { useCalendarStore, useAnalyticsStore } from '../../stores/calendarStore'
 import type { CalendarEvent } from '../../types/calendar'
 import { QuickMeetingDialog } from './QuickMeetingDialog'
 import { useMeetingRooms, useRoomBookings } from '../../lib/api/calendar-api'
 import { useWorkspace } from '../../contexts/WorkspaceContext'
-import { toast } from 'sonner'
 import {
   Calendar,
   Clock,
@@ -35,9 +30,10 @@ interface MeetingRoomItemProps {
   room: any
   workspaceId?: string
   events: CalendarEvent[]
+  onRoomClick: (room: any) => void
 }
 
-function MeetingRoomItem({ room, workspaceId, events }: MeetingRoomItemProps) {
+function MeetingRoomItem({ room, workspaceId, events, onRoomClick }: MeetingRoomItemProps) {
   const intl = useIntl()
   // Fetch bookings for this specific room
   const { data: bookings = [], isLoading, error } = useRoomBookings(workspaceId, room.id)
@@ -169,7 +165,10 @@ function MeetingRoomItem({ room, workspaceId, events }: MeetingRoomItemProps) {
   const roomStatus = getRoomStatus()
   
   return (
-    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+    <div
+      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+      onClick={() => onRoomClick(room)}
+    >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <div 
@@ -198,15 +197,26 @@ function MeetingRoomItem({ room, workspaceId, events }: MeetingRoomItemProps) {
             )}
           </div>
         )}
-        {room.facilities && room.facilities.length > 0 && (
-          <div className="flex gap-1 mt-1">
-            {room.facilities.slice(0, 3).map((facility: string, index: number) => (
-              <Badge key={index} variant="outline" className="text-xs py-0 h-5">
-                {facility}
-              </Badge>
-            ))}
-            {room.facilities.length > 3 && (
-              <span className="text-xs text-muted-foreground">+{room.facilities.length - 3}</span>
+        {room.equipment && room.equipment.length > 0 && (
+          <div className="flex gap-1 mt-1 flex-wrap">
+            {room.equipment.slice(0, 2).map((facility: string, index: number) => {
+              const facilityLabelMap: Record<string, string> = {
+                projector: intl.formatMessage({ id: 'modules.calendar.main.facilityProjector' }),
+                whiteboard: intl.formatMessage({ id: 'modules.calendar.main.facilityWhiteboard' }),
+                video_conferencing: intl.formatMessage({ id: 'modules.calendar.main.facilityVideoConferencing' }),
+                wifi: intl.formatMessage({ id: 'modules.calendar.main.facilityWifi' }),
+                coffee: intl.formatMessage({ id: 'modules.calendar.main.facilityCoffeeTea' }),
+                air_conditioning: intl.formatMessage({ id: 'modules.calendar.main.facilityAirConditioning' }),
+              }
+              const label = facilityLabelMap[facility] ?? facility.replace(/_/g, ' ')
+              return (
+                <Badge key={index} variant="outline" className="text-xs py-0 h-5">
+                  {label}
+                </Badge>
+              )
+            })}
+            {room.equipment.length > 2 && (
+              <span className="text-xs text-muted-foreground">+{room.equipment.length - 2}</span>
             )}
           </div>
         )}
@@ -223,13 +233,14 @@ function MeetingRoomItem({ room, workspaceId, events }: MeetingRoomItemProps) {
 
 export function CalendarRightSidebar() {
   const intl = useIntl()
-  const queryClient = useQueryClient()
-  const { events, categories, conflicts } = useCalendarStore()
+const { events, categories, conflicts } = useCalendarStore()
   const { setShowAnalytics } = useAnalyticsStore()
   const { currentWorkspace } = useWorkspace()
   const [showQuickMeetingDialog, setShowQuickMeetingDialog] = useState(false)
 
-  
+  const handleRoomClick = (room: any) => {
+    window.dispatchEvent(new CustomEvent('openEditMeetingRoom', { detail: room }))
+  }
 
   // Fetch meeting rooms from API
   const { data: meetingRooms = [], isLoading: roomsLoading } = useMeetingRooms(currentWorkspace?.id)
@@ -628,11 +639,12 @@ export function CalendarRightSidebar() {
             </div>
           ) : (
             meetingRooms.map((room: any) => (
-              <MeetingRoomItem 
-                key={room.id} 
-                room={room} 
-                workspaceId={currentWorkspace?.id} 
+              <MeetingRoomItem
+                key={room.id}
+                room={room}
+                workspaceId={currentWorkspace?.id}
                 events={events}
+                onRoomClick={handleRoomClick}
               />
             ))
           )}
