@@ -91,12 +91,6 @@ const CareersPage = lazy(() => import('./pages/company/CareersPage'));
 const PressPage = lazy(() => import('./pages/company/PressPage'));
 const ChangelogPage = lazy(() => import('./pages/company/ChangelogPage'));
 
-// Document Builder Pages
-const DocumentBuilder = lazy(() => import('./pages/documents').then(m => ({ default: m.DocumentBuilder })));
-const CreateDocument = lazy(() => import('./pages/documents').then(m => ({ default: m.CreateDocument })));
-const NewDocument = lazy(() => import('./pages/documents').then(m => ({ default: m.NewDocument })));
-const DocumentDetail = lazy(() => import('./pages/documents').then(m => ({ default: m.DocumentDetail })));
-
 // Admin Pages
 const AdminDashboard = lazy(() => import('./pages/admin').then(m => ({ default: m.AdminDashboard })));
 const UserManagement = lazy(() => import('./pages/admin').then(m => ({ default: m.UserManagement })));

@@ -703,7 +703,11 @@
         "private": "Riêng tư",
         "archived": "Kênh đã lưu trữ",
         "noChannels": "Chưa có kênh",
-        "empty": "Chưa có kênh"
+        "empty": "Chưa có kênh",
+        "leave": "Rời kênh",
+        "leaveConfirmTitle": "Rời kênh",
+        "leaveConfirmDescription": "Bạn có chắc muốn rời khỏi \"{channelName}\"? Bạn sẽ không còn nhận được tin nhắn từ kênh này.",
+        "leaveConfirmButton": "Rời kênh"
       },
       "conversations": {
         "title": "Tin nhắn trực tiếp",
@@ -1882,6 +1886,19 @@
         "deletePermanently": "Xóa vĩnh viễn",
         "restore": "Khôi phục",
         "open": "Mở"
+      },
+      "properties": {
+        "title": "Thuộc tính",
+        "name": "Tên",
+        "type": "Loại",
+        "size": "Kích thước",
+        "created": "Ngày tạo",
+        "modified": "Ngày sửa đổi",
+        "status": "Trạng thái",
+        "starred": "⭐ Đã gắn sao",
+        "folder": "Thư mục",
+        "file": "Tệp",
+        "close": "Đóng"
       },
       "messages": {
         "downloading": "Đang tải xuống tệp...",
@@ -3248,6 +3265,11 @@
         "deletePermanently": "Xóa vĩnh viễn",
         "moveToTrash": "Chuyển vào thùng rác",
         "untitled": "Không tiêu đề"
+      },
+      "notInWorkspace": {
+        "title": "Không tìm thấy ghi chú",
+        "message": "Bạn đã là thành viên của không gian làm việc chưa?",
+        "goBack": "Quay lại"
       },
       "accessDenied": {
         "title": "Từ chối truy cập",
