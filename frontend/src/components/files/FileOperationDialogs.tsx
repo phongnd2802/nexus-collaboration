@@ -411,7 +411,10 @@ interface FilePropertiesDialogProps {
 }
 
 export function FilePropertiesDialog({ isOpen, onClose, file }: FilePropertiesDialogProps) {
+  const intl = useIntl();
   if (!file) return null;
+
+  const t = (id: string) => intl.formatMessage({ id: `modules.files.properties.${id}` });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -423,39 +426,39 @@ export function FilePropertiesDialog({ isOpen, onClose, file }: FilePropertiesDi
             ) : (
               <FileText className="h-5 w-5" />
             )}
-            Properties
+            {t('title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-3 items-center gap-4">
-            <Label className="text-right text-muted-foreground">Name</Label>
+            <Label className="text-right text-muted-foreground">{t('name')}</Label>
             <div className="col-span-2 font-medium">{file.name}</div>
           </div>
 
           <div className="grid grid-cols-3 items-center gap-4">
-            <Label className="text-right text-muted-foreground">Type</Label>
+            <Label className="text-right text-muted-foreground">{t('type')}</Label>
             <div className="col-span-2">
-              {file.type === 'folder' ? 'Folder' : file.mimeType || 'File'}
+              {file.type === 'folder' ? t('folder') : file.mimeType || t('file')}
             </div>
           </div>
 
           {file.type === 'file' && (
             <div className="grid grid-cols-3 items-center gap-4">
-              <Label className="text-right text-muted-foreground">Size</Label>
+              <Label className="text-right text-muted-foreground">{t('size')}</Label>
               <div className="col-span-2">{formatFileSize(file.size || 0)}</div>
             </div>
           )}
 
           <div className="grid grid-cols-3 items-center gap-4">
-            <Label className="text-right text-muted-foreground">Created</Label>
+            <Label className="text-right text-muted-foreground">{t('created')}</Label>
             <div className="col-span-2">
               {file.createdAt ? new Date(file.createdAt).toLocaleString() : 'Unknown'}
             </div>
           </div>
 
           <div className="grid grid-cols-3 items-center gap-4">
-            <Label className="text-right text-muted-foreground">Modified</Label>
+            <Label className="text-right text-muted-foreground">{t('modified')}</Label>
             <div className="col-span-2">
               {file.updatedAt ? new Date(file.updatedAt).toLocaleString() : 'Unknown'}
             </div>
@@ -463,15 +466,15 @@ export function FilePropertiesDialog({ isOpen, onClose, file }: FilePropertiesDi
 
           {file.starred && (
             <div className="grid grid-cols-3 items-center gap-4">
-              <Label className="text-right text-muted-foreground">Status</Label>
-              <div className="col-span-2">⭐ Starred</div>
+              <Label className="text-right text-muted-foreground">{t('status')}</Label>
+              <div className="col-span-2">{t('starred')}</div>
             </div>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Close
+            {t('close')}
           </Button>
         </DialogFooter>
       </DialogContent>

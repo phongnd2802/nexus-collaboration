@@ -36,7 +36,6 @@ import { EmailModule } from './modules/integration-framework/email/email.module'
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { GitHubModule } from './modules/integration-framework/github/github.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
-import { DocumentsModule } from './modules/documents/documents.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
 import { InternalAgentModule } from './modules/internal-agent/internal-agent.module';
@@ -80,7 +79,6 @@ import { InternalAgentModule } from './modules/internal-agent/internal-agent.mod
     IntegrationsModule,
     GitHubModule,
     IntegrationFrameworkModule,
-    DocumentsModule,
     WorkflowsModule,
     AgentChatModule,
     InternalAgentModule,

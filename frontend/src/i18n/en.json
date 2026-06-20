@@ -703,7 +703,11 @@
         "private": "Private Channels",
         "archived": "Archived Channels",
         "noChannels": "No channels yet",
-        "empty": "No channels yet"
+        "empty": "No channels yet",
+        "leave": "Leave Channel",
+        "leaveConfirmTitle": "Leave Channel",
+        "leaveConfirmDescription": "Are you sure you want to leave \"{channelName}\"? You will no longer receive messages from this channel.",
+        "leaveConfirmButton": "Leave Channel"
       },
       "conversations": {
         "title": "Direct Messages",
@@ -1886,6 +1890,19 @@
         "deletePermanently": "Delete permanently",
         "restore": "Restore",
         "open": "Open"
+      },
+      "properties": {
+        "title": "Properties",
+        "name": "Name",
+        "type": "Type",
+        "size": "Size",
+        "created": "Created",
+        "modified": "Modified",
+        "status": "Status",
+        "starred": "⭐ Starred",
+        "folder": "Folder",
+        "file": "File",
+        "close": "Close"
       },
       "messages": {
         "downloading": "Downloading file...",
@@ -3254,6 +3271,11 @@
         "untitled": "Untitled"
       },
 
+      "notInWorkspace": {
+        "title": "Note not found",
+        "message": "Are you a member of the workspace?",
+        "goBack": "Go Back"
+      },
       "accessDenied": {
         "title": "Access Denied",
         "message": "You don't have permission to view \"{title}\"",

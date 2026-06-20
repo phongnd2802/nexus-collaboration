@@ -37,7 +37,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
   const { currentWorkspace } = useWorkspace()
   const { toast } = useToast()
   const navigate = useNavigate()
-  const { noteId } = useParams()
+  const { noteId, workspaceId: urlWorkspaceId } = useParams()
   const queryClient = useQueryClient()
 
   // UI State from Zustand store
@@ -92,6 +92,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
     ownerId: string
     workspaceId: string
   } | null>(null)
+  const [notInWorkspace, setNotInWorkspace] = useState(false)
 
   // Utility functions for notes data
   const getNoteById = (noteId: string) => notes.find((note: Note) => note.id === noteId)
@@ -912,6 +913,13 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
       return
     }
 
+    // User has a note link but is not a member of the workspace in the URL
+    if (urlWorkspaceId && urlWorkspaceId !== currentWorkspace.id) {
+      setNotInWorkspace(true)
+      return
+    }
+    setNotInWorkspace(false)
+
     // Check if note was recently deleted (prevents fetch loop after AI deletion)
     if (recentlyDeletedNoteIds.has(noteId)) {
       console.log('Note was recently deleted, skipping fetch and redirecting:', noteId)
@@ -1050,7 +1058,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
     } else {
       console.log('Note already exists in store, no need to fetch')
     }
-  }, [noteId, currentWorkspace?.id, recentlyDeletedNoteIds])
+  }, [noteId, urlWorkspaceId, currentWorkspace?.id, recentlyDeletedNoteIds])
 
   // Sync URL param to selected note
   useEffect(() => {
@@ -1117,7 +1125,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
         />
       )}
 
-      {isLoading || isFetchingNote || (noteId && !selectedNote && !accessDeniedInfo) ? (
+      {isLoading || isFetchingNote || (noteId && !selectedNote && !accessDeniedInfo && !notInWorkspace) ? (
         <div className="flex items-center justify-center h-full">
           <div className="flex flex-col items-center gap-3">
             <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -1127,6 +1135,33 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
       ) : error ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-red-500">Error loading notes</p>
+        </div>
+      ) : notInWorkspace ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="flex flex-col items-center gap-4 text-center max-w-sm">
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">
+                {intl.formatMessage({ id: 'modules.notes.notInWorkspace.title', defaultMessage: 'Note not found' })}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {intl.formatMessage({ id: 'modules.notes.notInWorkspace.message', defaultMessage: 'Are you a member of the workspace?' })}
+              </p>
+            </div>
+            <button
+              className="text-sm text-primary hover:underline"
+              onClick={() => {
+                setNotInWorkspace(false)
+                navigate(`/workspaces/${currentWorkspace?.id}/notes`, { replace: true })
+              }}
+            >
+              {intl.formatMessage({ id: 'modules.notes.notInWorkspace.goBack', defaultMessage: 'Go Back' })}
+            </button>
+          </div>
         </div>
       ) : accessDeniedInfo ? (
         <NoteAccessDenied
