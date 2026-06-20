@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { IntlShape } from 'react-intl'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
-import type { ApprovalRequiredEvent } from '@/lib/api/ai-chat-api'
+import type { ApprovalRequiredEvent, AssistantPayloadEvent } from '@/lib/api/ai-chat-api'
 
 import {
-  CREATE_PROJECT_APPROVAL_INTRO,
+  buildAIChatPath,
+  buildAIChatTitle,
   EXECUTE_ACTIONS_KEY,
   MODELS_KEY,
   createTimestamp,
-  isCreateProjectApprovalBoilerplate,
-  isPotentialCreateProjectApprovalBoilerplate,
-  stripCreateProjectApprovalBoilerplate,
+  getApprovalIntro,
+  isPotentialToolApprovalBoilerplate,
+  isToolApprovalBoilerplate,
+  stripToolApprovalBoilerplate,
   toRequestMessages,
 } from './aiChatPageUtils'
 import type {
@@ -30,22 +33,35 @@ interface LocalConversation {
   updatedAt: string
 }
 
+interface DeleteConversationDialogState {
+  id: string
+  title: string
+  sessionId?: string
+}
+
 interface UseAIChatPageStateArgs {
   workspaceId?: string
+  routeSessionId?: string
   intl: IntlShape
 }
 
-export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs) {
+export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIChatPageStateArgs) {
+  const navigate = useNavigate()
   const [conversations, setConversations] = useState<LocalConversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
+  const [isHydratingSession, setIsHydratingSession] = useState(false)
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
   const [executeActions, setExecuteActions] = useState(() => localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true')
   const [activeApprovalItemId, setActiveApprovalItemId] = useState<string | null>(null)
+  const [deleteConversationDialog, setDeleteConversationDialog] = useState<DeleteConversationDialogState | null>(null)
+  const [isDeletingConversation, setIsDeletingConversation] = useState(false)
 
   const abortRef = useRef<AbortController | null>(null)
   const currentAssistantItemIdRef = useRef<string | null>(null)
+  const hydrateRequestRef = useRef<string | null>(null)
 
   useEffect(() => {
     localStorage.setItem(MODELS_KEY, model)
@@ -61,8 +77,12 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     setActiveConversationId(null)
     setIsStreaming(false)
     setIsThinking(false)
+    setIsHydratingSession(false)
     setActiveApprovalItemId(null)
+    setDeleteConversationDialog(null)
+    setIsDeletingConversation(false)
     currentAssistantItemIdRef.current = null
+    hydrateRequestRef.current = null
     abortRef.current?.abort()
     abortRef.current = null
   }, [workspaceId])
@@ -139,7 +159,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     const now = createTimestamp()
     const conversation: LocalConversation = {
       id,
-      title: firstMessage?.trim() ? firstMessage.trim().slice(0, 48) : 'New conversation',
+      title: buildAIChatTitle(firstMessage),
       items: [],
       updatedAt: now,
     }
@@ -147,6 +167,70 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     setActiveConversationId(id)
     return conversation
   }, [])
+
+  const activateConversationBySession = useCallback(
+    (sessionId: string) => {
+      const existing = conversations.find(item => item.sessionId === sessionId)
+      if (!existing) return false
+      setActiveConversationId(existing.id)
+      setActiveApprovalItemId(
+        existing.items.find(item => item.type === 'approval_required' && item.status === 'pending')?.id || null,
+      )
+      return existing.items.length > 0
+    },
+    [conversations],
+  )
+
+  const syncRoute = useCallback(
+    (sessionId?: string) => {
+      if (!workspaceId) return
+      const nextPath = buildAIChatPath(workspaceId, sessionId)
+      navigate(nextPath, { replace: true })
+    },
+    [navigate, workspaceId],
+  )
+
+  const upsertConversationSnapshot = useCallback(
+    (
+      sessionId: string,
+      snapshot: {
+        title: string
+        items: AIChatTimelineItem[]
+        updatedAt: string
+        activeApprovalItemId?: string | null
+      },
+    ) => {
+      setConversations(prev => {
+        const existing = prev.find(item => item.sessionId === sessionId)
+        const nextConversation: LocalConversation = existing
+          ? {
+              ...existing,
+              title: snapshot.title,
+              sessionId,
+              items: snapshot.items,
+              updatedAt: snapshot.updatedAt,
+            }
+          : {
+              id: sessionId,
+              sessionId,
+              title: snapshot.title,
+              items: snapshot.items,
+              updatedAt: snapshot.updatedAt,
+            }
+
+        return existing
+          ? prev.map(item => (item.id === existing.id ? nextConversation : item))
+          : [nextConversation, ...prev]
+      })
+
+      setActiveConversationId(current => {
+        const existing = conversations.find(item => item.sessionId === sessionId)
+        return existing?.id || sessionId || current
+      })
+      setActiveApprovalItemId(snapshot.activeApprovalItemId || null)
+    },
+    [conversations],
+  )
 
   const ensureAssistantItem = useCallback(
     (conversationId: string) => {
@@ -206,9 +290,10 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
 
   const ensureApprovalIntroBeforeForm = useCallback(
     (conversationId: string, approval: ApprovalRequiredEvent, currentContent: string) => {
-      if (approval.toolName !== 'create_project') return
+      const fallbackIntro = getApprovalIntro(approval.toolName)
+      if (!fallbackIntro) return
 
-      const introContent = currentContent.trim() || CREATE_PROJECT_APPROVAL_INTRO
+      const introContent = currentContent.trim() || fallbackIntro
       if (currentAssistantItemIdRef.current) {
         finalizeAssistantItem(conversationId, introContent, 'completed')
         return
@@ -239,6 +324,21 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     [appendItem],
   )
 
+  const appendAssistantPayload = useCallback(
+    (conversationId: string, payload: AssistantPayloadEvent) => {
+      if (payload.payloadType !== 'project_list' || payload.items.length === 0) return
+
+      appendItem(conversationId, {
+        id: `assistant-project-list-${Date.now()}-${crypto.randomUUID()}`,
+        type: 'assistant_project_list',
+        title: payload.title,
+        projects: payload.items,
+        timestamp: createTimestamp(),
+      })
+    },
+    [appendItem],
+  )
+
   const startStream = useCallback(() => {
     setIsStreaming(true)
     setIsThinking(true)
@@ -252,9 +352,89 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     currentAssistantItemIdRef.current = null
   }, [])
 
+  useEffect(() => {
+    if (!workspaceId || !routeSessionId) return
+    if (activateConversationBySession(routeSessionId)) return
+    if (hydrateRequestRef.current === routeSessionId) return
+
+    const token = localStorage.getItem('auth_token') || ''
+    hydrateRequestRef.current = routeSessionId
+    setIsHydratingSession(true)
+
+    aiChatApi
+      .getSession(workspaceId, routeSessionId, token)
+      .then(snapshot => {
+        upsertConversationSnapshot(routeSessionId, {
+          title: snapshot.title,
+          items: snapshot.items as AIChatTimelineItem[],
+          updatedAt: snapshot.updatedAt,
+          activeApprovalItemId: snapshot.activeApprovalItemId,
+        })
+      })
+      .catch((error: Error) => {
+        toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+        syncRoute()
+      })
+      .finally(() => {
+        hydrateRequestRef.current = null
+        setIsHydratingSession(false)
+      })
+  }, [activateConversationBySession, intl, routeSessionId, syncRoute, upsertConversationSnapshot, workspaceId])
+
+  useEffect(() => {
+    if (!workspaceId) return
+
+    const token = localStorage.getItem('auth_token') || ''
+    let cancelled = false
+    setIsLoadingSessions(true)
+
+    aiChatApi
+      .listSessions(workspaceId, token)
+      .then(sessions => {
+        if (cancelled) return
+        setConversations(prev => {
+          const drafts = prev.filter(item => !item.sessionId)
+          const bySessionId = new Map(prev.filter(item => item.sessionId).map(item => [item.sessionId as string, item]))
+
+          const hydrated = sessions.map(session => {
+            const existing = bySessionId.get(session.sessionId)
+            if (existing) {
+              return {
+                ...existing,
+                title: session.title,
+                sessionId: session.sessionId,
+                updatedAt: session.updatedAt,
+              }
+            }
+
+            return {
+              id: session.sessionId,
+              sessionId: session.sessionId,
+              title: session.title,
+              items: [],
+              updatedAt: session.updatedAt,
+            }
+          })
+
+          return [...drafts, ...hydrated]
+        })
+      })
+      .catch((error: Error) => {
+        if (cancelled) return
+        toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSessions(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [intl, workspaceId])
+
   const handleSend = useCallback(
     async (message: string, files: any[] = []) => {
-      if (!workspaceId || isStreaming) return
+      if (!workspaceId || isStreaming || isHydratingSession) return
 
       const conversation = activeConversation || createConversation(message)
       if (!activeConversationId) {
@@ -271,7 +451,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
       appendItem(conversation.id, userMessageItem)
       updateConversation(conversation.id, current => ({
         ...current,
-        title: current.title === 'New conversation' ? message.trim().slice(0, 48) || current.title : current.title,
+        title: current.title === 'New conversation' ? buildAIChatTitle(message) : current.title,
         updatedAt: createTimestamp(),
       }))
 
@@ -312,6 +492,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
 
       let assistantContent = ''
       let approvalRequiredReceived = false
+      let approvalToolName: string | undefined
 
       try {
         await aiChatApi.streamChat(
@@ -325,7 +506,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
           {
             onTextDelta: (content: string) => {
               setIsThinking(false)
-              if (approvalRequiredReceived && isPotentialCreateProjectApprovalBoilerplate(content)) {
+              if (approvalRequiredReceived && isPotentialToolApprovalBoilerplate(content, approvalToolName)) {
                 return
               }
               assistantContent += content
@@ -429,10 +610,37 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
             },
             onSession: (sessionId: string) => {
               setConversationSession(conversation.id, sessionId)
+              syncRoute(sessionId)
+            },
+            onAssistantPayload: payload => {
+              appendAssistantPayload(conversation.id, payload)
             },
             onApprovalRequired: (approval: ApprovalRequiredEvent) => {
               setIsThinking(false)
               approvalRequiredReceived = true
+              approvalToolName = approval.toolName
+              const toolCallItemId = `tool-call-${approval.toolCallId}`
+              upsertItem(
+                conversation.id,
+                toolCallItemId,
+                () => ({
+                  id: toolCallItemId,
+                  type: 'tool_call',
+                  toolName: approval.toolName,
+                  input: approval.args,
+                  status: 'completed',
+                  timestamp: createTimestamp(),
+                }),
+                current => {
+                  if (current.type !== 'tool_call') return current
+                  return {
+                    ...current,
+                    toolName: approval.toolName || current.toolName,
+                    input: approval.args || current.input,
+                    status: 'completed',
+                  }
+                },
+              )
               ensureApprovalIntroBeforeForm(conversation.id, approval, assistantContent)
               const itemId = `approval-${approval.toolCallId}`
               setActiveApprovalItemId(itemId)
@@ -491,6 +699,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     [
       workspaceId,
       isStreaming,
+      isHydratingSession,
       activeConversation,
       createConversation,
       activeConversationId,
@@ -502,9 +711,11 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
       ensureAssistantItem,
       upsertItem,
       setConversationSession,
+      syncRoute,
       stopStreamState,
       finalizeAssistantItem,
       ensureApprovalIntroBeforeForm,
+      appendAssistantPayload,
       intl,
       appendSystemEvent,
     ],
@@ -551,6 +762,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
       abortRef.current = controller
       let assistantContent = ''
       let bufferedPreToolText = ''
+      const supportsApprovalBoilerplateCleanup = Boolean(getApprovalIntro(approval.toolName))
 
       const appendAssistantDelta = (content: string) => {
         if (!content) return
@@ -588,15 +800,15 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
           {
             onTextDelta: (content: string) => {
               setIsThinking(false)
-              if (approval.toolName === 'create_project') {
+              if (supportsApprovalBoilerplateCleanup) {
                 const candidate = bufferedPreToolText + content
-                if (isCreateProjectApprovalBoilerplate(candidate)) {
+                if (isToolApprovalBoilerplate(candidate, approval.toolName)) {
                   bufferedPreToolText = ''
-                  appendAssistantDelta(stripCreateProjectApprovalBoilerplate(candidate))
+                  appendAssistantDelta(stripToolApprovalBoilerplate(candidate, approval.toolName))
                   return
                 }
 
-                if (isPotentialCreateProjectApprovalBoilerplate(candidate)) {
+                if (isPotentialToolApprovalBoilerplate(candidate, approval.toolName)) {
                   bufferedPreToolText = candidate
                   return
                 }
@@ -639,10 +851,10 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
               }
 
               if (step.eventType === 'tool_result') {
-                if (approval.toolName === 'create_project' && bufferedPreToolText) {
-                  const stripped = isPotentialCreateProjectApprovalBoilerplate(bufferedPreToolText)
+                if (supportsApprovalBoilerplateCleanup && bufferedPreToolText) {
+                  const stripped = isPotentialToolApprovalBoilerplate(bufferedPreToolText, approval.toolName)
                     ? ''
-                    : stripCreateProjectApprovalBoilerplate(bufferedPreToolText)
+                    : stripToolApprovalBoilerplate(bufferedPreToolText, approval.toolName)
                   bufferedPreToolText = ''
                   appendAssistantDelta(stripped)
                 }
@@ -716,6 +928,9 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
                 },
               )
             },
+            onAssistantPayload: payload => {
+              appendAssistantPayload(activeConversation.id, payload)
+            },
             onComplete: (result: any) => {
               if (result?.reasoning === 'approval_required') {
                 finalizeAssistantItem(activeConversation.id, assistantContent, assistantContent ? 'completed' : 'stopped')
@@ -723,8 +938,9 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
                 return
               }
 
-              const finalContent = stripCreateProjectApprovalBoilerplate(
+              const finalContent = stripToolApprovalBoilerplate(
                 assistantContent || result?.message || '',
+                approval.toolName,
               )
               finalizeAssistantItem(activeConversation.id, finalContent, 'completed')
               setActiveApprovalItemId(null)
@@ -760,6 +976,7 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
       ensureAssistantItem,
       finalizeAssistantItem,
       stopStreamState,
+      appendAssistantPayload,
       intl,
       appendSystemEvent,
     ],
@@ -798,25 +1015,86 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
 
   const handleNewConversation = useCallback(() => {
     createConversation()
-  }, [createConversation])
+    syncRoute()
+  }, [createConversation, syncRoute])
 
   const handleSelectConversation = useCallback((id: string) => {
+    const conversation = conversations.find(item => item.id === id)
+    if (!conversation) return
     setActiveConversationId(id)
-  }, [])
+    setActiveApprovalItemId(
+      conversation.items.find(item => item.type === 'approval_required' && item.status === 'pending')?.id || null,
+    )
+    syncRoute(conversation.sessionId)
+  }, [conversations, syncRoute])
 
   const handleDeleteConversation = useCallback((id: string) => {
-    setConversations(prev => {
-      const next = prev.filter(item => item.id !== id)
-      setActiveConversationId(current => {
-        if (current !== id) return current
-        return next[0]?.id ?? null
-      })
-      return next
+    const conversation = conversations.find(item => item.id === id)
+    if (!conversation) return
+
+    setDeleteConversationDialog({
+      id: conversation.id,
+      title: conversation.title,
+      sessionId: conversation.sessionId,
     })
-    if (activeApprovalItemId && activeConversationId === id) {
-      setActiveApprovalItemId(null)
+  }, [conversations])
+
+  const handleDeleteConversationDialogChange = useCallback((open: boolean) => {
+    if (!open && !isDeletingConversation) {
+      setDeleteConversationDialog(null)
     }
-  }, [activeApprovalItemId, activeConversationId])
+  }, [isDeletingConversation])
+
+  const confirmDeleteConversation = useCallback(async () => {
+    const dialog = deleteConversationDialog
+    if (!dialog) return
+
+    const conversation = conversations.find(item => item.id === dialog.id)
+    if (!conversation) {
+      setDeleteConversationDialog(null)
+      return
+    }
+
+    const nextConversations = conversations.filter(item => item.id !== dialog.id)
+    const replacement = activeConversationId === dialog.id ? nextConversations[0] : null
+    const isDeletingActiveConversation = activeConversationId === dialog.id
+
+    try {
+      setIsDeletingConversation(true)
+
+      if (conversation.sessionId) {
+        const token = localStorage.getItem('auth_token') || ''
+        await aiChatApi.deleteSession(workspaceId || '', conversation.sessionId, token)
+      }
+
+      if (isDeletingActiveConversation && abortRef.current) {
+        abortRef.current.abort()
+        abortRef.current = null
+      }
+
+      setConversations(prev => prev.filter(item => item.id !== dialog.id))
+      setActiveConversationId(current => (current === dialog.id ? replacement?.id ?? null : current))
+
+      if (activeApprovalItemId && isDeletingActiveConversation) {
+        setActiveApprovalItemId(null)
+      }
+
+      if (isDeletingActiveConversation) {
+        setIsStreaming(false)
+        setIsThinking(false)
+        currentAssistantItemIdRef.current = null
+        syncRoute(replacement?.sessionId)
+      }
+
+      setDeleteConversationDialog(null)
+    } catch (error: any) {
+      toast.error(
+        error?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }),
+      )
+    } finally {
+      setIsDeletingConversation(false)
+    }
+  }, [activeApprovalItemId, activeConversationId, conversations, deleteConversationDialog, intl, syncRoute, workspaceId])
 
   const handleRenameConversation = useCallback((id: string, title: string) => {
     setConversations(prev =>
@@ -836,6 +1114,10 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     pendingApprovalItem,
     isStreaming,
     isThinking,
+    isHydratingSession,
+    isLoadingSessions,
+    deleteConversationDialog,
+    isDeletingConversation,
     model,
     setModel,
     hasConversation,
@@ -846,6 +1128,8 @@ export function useAIChatPageState({ workspaceId, intl }: UseAIChatPageStateArgs
     handleNewConversation,
     handleSelectConversation,
     handleDeleteConversation,
+    handleDeleteConversationDialogChange,
+    confirmDeleteConversation,
     handleRenameConversation,
   }
 }

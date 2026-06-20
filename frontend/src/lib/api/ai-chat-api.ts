@@ -27,6 +27,7 @@ export interface AIChatStreamCallbacks {
   onError?: (error: string) => void
   onSession?: (sessionId: string, runId?: string) => void
   onApprovalRequired?: (event: ApprovalRequiredEvent) => void
+  onAssistantPayload?: (payload: AssistantPayloadEvent) => void
 }
 
 export interface AIChatTool {
@@ -52,6 +53,44 @@ export interface ApprovalRequiredEvent {
   summary?: string
   approvalKind?: string
   initialValues?: Record<string, any>
+}
+
+export interface AIChatSessionSnapshot {
+  sessionId: string
+  title: string
+  items: Array<Record<string, any>>
+  updatedAt: string
+  activeApprovalItemId?: string | null
+}
+
+export interface AIChatSessionSummary {
+  sessionId: string
+  title: string
+  updatedAt: string
+  messageCount: number
+  hasPendingApproval?: boolean
+}
+
+export interface AIChatDeleteSessionResponse {
+  success: boolean
+  sessionId: string
+}
+
+export interface ProjectCardPayload {
+  id: string
+  name: string
+  description?: string
+  status?: string
+  type?: string
+  updatedAt?: string
+  memberCount?: number
+  href: string
+}
+
+export interface AssistantPayloadEvent {
+  payloadType: 'project_list'
+  title: string
+  items: ProjectCardPayload[]
 }
 
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
@@ -100,6 +139,11 @@ function fallbackToolCompletionMessage(toolName?: string, result?: Record<string
     return projectName ? `Project "${projectName}" created successfully.` : 'Project created successfully.'
   }
 
+  if (toolName === 'update_project') {
+    const projectName = typeof result?.name === 'string' ? result.name : undefined
+    return projectName ? `Project "${projectName}" updated successfully.` : 'Project updated successfully.'
+  }
+
   return `${toolName.replaceAll('_', ' ')} completed successfully.`
 }
 
@@ -113,6 +157,15 @@ function isApprovalBoilerplateMessage(message: string, toolName?: string): boole
       normalized.includes('triggered the project creation') ||
       normalized.includes('complete the necessary fields') ||
       normalized.includes('finalize the project creation')
+    )
+  }
+
+  if (toolName === 'update_project') {
+    return (
+      normalized.includes('approval form') ||
+      normalized.includes('triggered the project update') ||
+      normalized.includes('complete the necessary fields') ||
+      normalized.includes('finalize the project update')
     )
   }
 
@@ -232,6 +285,15 @@ async function consumeNexusAIStream(
         continue
       }
 
+      if (chunk?.type === 'assistant_payload' && chunk?.payload_type === 'project_list') {
+        callbacks.onAssistantPayload?.({
+          payloadType: 'project_list',
+          title: typeof chunk.title === 'string' ? chunk.title : 'Projects',
+          items: Array.isArray(chunk.items) ? chunk.items : [],
+        })
+        continue
+      }
+
       const delta = extractTextDelta(chunk)
       if (delta) {
         assistantContent += delta
@@ -329,6 +391,86 @@ export const aiChatApi = {
     }
 
     await consumeNexusAIStream(response, callbacks, sessionId)
+  },
+
+  getSession: async (workspaceId: string, sessionId: string, token: string): Promise<AIChatSessionSnapshot> => {
+    const response = await fetch(
+      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`),
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+      throw new Error(extractOpenAIError(payload, `Nexus AI session fetch failed (${response.status})`))
+    }
+
+    return response.json()
+  },
+
+  listSessions: async (workspaceId: string, token: string): Promise<AIChatSessionSummary[]> => {
+    const response = await fetch(
+      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions`),
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+      throw new Error(extractOpenAIError(payload, `Nexus AI sessions fetch failed (${response.status})`))
+    }
+
+    const payload = await response.json()
+    return Array.isArray(payload?.data) ? payload.data : []
+  },
+
+  deleteSession: async (
+    workspaceId: string,
+    sessionId: string,
+    token: string,
+  ): Promise<AIChatDeleteSessionResponse> => {
+    const response = await fetch(
+      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`),
+      {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+
+    if (!response.ok) {
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch {
+        payload = null
+      }
+      throw new Error(extractOpenAIError(payload, `Nexus AI session delete failed (${response.status})`))
+    }
+
+    return response.json()
   },
 
   listTools: async (_workspaceId: string, _token: string): Promise<AIChatToolsResponse> => {

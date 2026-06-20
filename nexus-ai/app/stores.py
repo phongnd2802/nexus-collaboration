@@ -19,6 +19,7 @@ class RunState:
     workspace_id: str
     messages: list[Any] = field(default_factory=list)
     pending_tool_calls: dict[str, dict[str, Any]] = field(default_factory=dict)
+    consumed_tool_call_ids: set[str] = field(default_factory=set)
 
 
 class MemoryStore:
@@ -56,8 +57,18 @@ class SessionStore:
     def get(self, session_id: str) -> SessionState:
         return self._sessions[session_id]
 
+    def list_by_owner(self, user_id: str, workspace_id: str) -> list[SessionState]:
+        return [
+            session
+            for session in self._sessions.values()
+            if session.user_id == user_id and session.workspace_id == workspace_id
+        ]
+
     def save_messages(self, session_id: str, messages: list[Any]) -> None:
         self._sessions[session_id].messages = messages
+
+    def delete(self, session_id: str) -> None:
+        del self._sessions[session_id]
 
 
 class RunStore:
@@ -80,8 +91,16 @@ class RunStore:
             raise KeyError("Run does not belong to this session")
         return run
 
+    def list_by_session(self, session_id: str) -> list[RunState]:
+        return [run for run in self._runs.values() if run.session_id == session_id]
+
     def save(self, run: RunState) -> None:
         self._runs[run.run_id] = run
+
+    def delete_by_session(self, session_id: str) -> None:
+        run_ids = [run_id for run_id, run in self._runs.items() if run.session_id == session_id]
+        for run_id in run_ids:
+            del self._runs[run_id]
 
 
 memory_store = MemoryStore()
