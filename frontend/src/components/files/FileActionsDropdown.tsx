@@ -29,7 +29,6 @@ import {
   RotateCcw,
   Upload,
   MessageSquare,
-  CloudOff,
 } from 'lucide-react';
 
 interface FileActionsDropdownProps {
@@ -177,14 +176,7 @@ export function FileActionsDropdown({
                   <Download className="mr-2 h-4 w-4" />
                   {intl.formatMessage({ id: 'modules.files.contextMenu.download' })}
                 </DropdownMenuItem>
-                {onToggleOffline && (
-                  <DropdownMenuItem onSelect={handleAction(onToggleOffline)}>
-                    <CloudOff className={`mr-2 h-4 w-4 ${isOffline ? 'text-primary' : ''}`} />
-                    {isOffline
-                      ? intl.formatMessage({ id: 'modules.files.contextMenu.removeOffline', defaultMessage: 'Remove from offline' })
-                      : intl.formatMessage({ id: 'modules.files.contextMenu.makeOffline', defaultMessage: 'Make available offline' })}
-                  </DropdownMenuItem>
-                )}
+
                 <DropdownMenuSeparator />
               </>
             )}
