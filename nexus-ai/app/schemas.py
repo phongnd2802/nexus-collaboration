@@ -33,6 +33,7 @@ class SessionSnapshot(BaseModel):
     sessionId: str
     title: str
     items: list[dict[str, Any]]
+    uiMessages: list[dict[str, Any]] | None = None
     updatedAt: str
     activeApprovalItemId: str | None = None
 

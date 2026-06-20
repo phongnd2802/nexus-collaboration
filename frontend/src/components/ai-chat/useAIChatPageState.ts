@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
-import type { ApprovalRequiredEvent, AssistantPayloadEvent } from '@/lib/api/ai-chat-api'
+import type { ApprovalRequiredEvent, ProjectListEvent } from '@/lib/api/ai-chat-api'
 
 import {
   buildAIChatPath,
@@ -18,6 +18,7 @@ import {
   stripToolApprovalBoilerplate,
   toRequestMessages,
 } from './aiChatPageUtils'
+import { uiMessagesToTimeline } from './uiMessageTimeline'
 import type {
   AIChatTimelineItem,
   ApprovalRequiredItem,
@@ -324,13 +325,13 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     [appendItem],
   )
 
-  const appendAssistantPayload = useCallback(
-    (conversationId: string, payload: AssistantPayloadEvent) => {
-      if (payload.payloadType !== 'project_list' || payload.items.length === 0) return
+  const appendProjectList = useCallback(
+    (conversationId: string, payload: ProjectListEvent) => {
+      if (payload.items.length === 0) return
 
       appendItem(conversationId, {
         id: `assistant-project-list-${Date.now()}-${crypto.randomUUID()}`,
-        type: 'assistant_project_list',
+        type: 'project_list',
         title: payload.title,
         projects: payload.items,
         timestamp: createTimestamp(),
@@ -364,11 +365,12 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     aiChatApi
       .getSession(workspaceId, routeSessionId, token)
       .then(snapshot => {
+        const uiTimeline = uiMessagesToTimeline(snapshot.uiMessages)
         upsertConversationSnapshot(routeSessionId, {
           title: snapshot.title,
-          items: snapshot.items as AIChatTimelineItem[],
+          items: (uiTimeline?.items || snapshot.items) as AIChatTimelineItem[],
           updatedAt: snapshot.updatedAt,
-          activeApprovalItemId: snapshot.activeApprovalItemId,
+          activeApprovalItemId: uiTimeline?.activeApprovalItemId || snapshot.activeApprovalItemId,
         })
       })
       .catch((error: Error) => {
@@ -612,8 +614,8 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
               setConversationSession(conversation.id, sessionId)
               syncRoute(sessionId)
             },
-            onAssistantPayload: payload => {
-              appendAssistantPayload(conversation.id, payload)
+            onProjectList: payload => {
+              appendProjectList(conversation.id, payload)
             },
             onApprovalRequired: (approval: ApprovalRequiredEvent) => {
               setIsThinking(false)
@@ -715,7 +717,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       stopStreamState,
       finalizeAssistantItem,
       ensureApprovalIntroBeforeForm,
-      appendAssistantPayload,
+      appendProjectList,
       intl,
       appendSystemEvent,
     ],
@@ -928,8 +930,8 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
                 },
               )
             },
-            onAssistantPayload: payload => {
-              appendAssistantPayload(activeConversation.id, payload)
+            onProjectList: payload => {
+              appendProjectList(activeConversation.id, payload)
             },
             onComplete: (result: any) => {
               if (result?.reasoning === 'approval_required') {
@@ -976,7 +978,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       ensureAssistantItem,
       finalizeAssistantItem,
       stopStreamState,
-      appendAssistantPayload,
+      appendProjectList,
       intl,
       appendSystemEvent,
     ],

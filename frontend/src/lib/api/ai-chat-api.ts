@@ -27,7 +27,7 @@ export interface AIChatStreamCallbacks {
   onError?: (error: string) => void
   onSession?: (sessionId: string, runId?: string) => void
   onApprovalRequired?: (event: ApprovalRequiredEvent) => void
-  onAssistantPayload?: (payload: AssistantPayloadEvent) => void
+  onProjectList?: (payload: ProjectListEvent) => void
 }
 
 export interface AIChatTool {
@@ -59,6 +59,7 @@ export interface AIChatSessionSnapshot {
   sessionId: string
   title: string
   items: Array<Record<string, any>>
+  uiMessages?: Array<Record<string, any>>
   updatedAt: string
   activeApprovalItemId?: string | null
 }
@@ -87,10 +88,30 @@ export interface ProjectCardPayload {
   href: string
 }
 
-export interface AssistantPayloadEvent {
-  payloadType: 'project_list'
+export interface ProjectListEvent {
   title: string
   items: ProjectCardPayload[]
+}
+
+interface UIMessagePart {
+  type: string
+  text?: string
+  input?: Record<string, any>
+  output?: Record<string, any>
+  toolCallId?: string
+  toolName?: string
+  state?: string
+  approval?: {
+    id: string
+    approved?: boolean
+    reason?: string
+  }
+}
+
+interface UIMessage {
+  id: string
+  role: 'system' | 'user' | 'assistant'
+  parts: UIMessagePart[]
 }
 
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
@@ -131,55 +152,25 @@ function completionResult(sessionId: string | undefined, message: string, pendin
   }
 }
 
-function fallbackToolCompletionMessage(toolName?: string, result?: Record<string, any>): string {
-  if (!toolName) return ''
-
-  if (toolName === 'create_project') {
-    const projectName = typeof result?.name === 'string' ? result.name : undefined
-    return projectName ? `Project "${projectName}" created successfully.` : 'Project created successfully.'
-  }
-
-  if (toolName === 'update_project') {
-    const projectName = typeof result?.name === 'string' ? result.name : undefined
-    return projectName ? `Project "${projectName}" updated successfully.` : 'Project updated successfully.'
-  }
-
-  return `${toolName.replaceAll('_', ' ')} completed successfully.`
+function toUIRequestMessages(messages: Array<{ role: string; content: string }>): UIMessage[] {
+  return messages
+    .filter(message => typeof message.content === 'string' && message.content.trim())
+    .map((message, index) => ({
+      id: `msg-${index}-${crypto.randomUUID()}`,
+      role:
+        message.role === 'assistant' || message.role === 'system'
+          ? message.role
+          : 'user',
+      parts: [
+        {
+          type: 'text',
+          text: message.content,
+        },
+      ],
+    }))
 }
 
-function isApprovalBoilerplateMessage(message: string, toolName?: string): boolean {
-  const normalized = message.trim().toLowerCase()
-  if (!normalized) return false
-
-  if (toolName === 'create_project') {
-    return (
-      normalized.includes('approval form') ||
-      normalized.includes('triggered the project creation') ||
-      normalized.includes('complete the necessary fields') ||
-      normalized.includes('finalize the project creation')
-    )
-  }
-
-  if (toolName === 'update_project') {
-    return (
-      normalized.includes('approval form') ||
-      normalized.includes('triggered the project update') ||
-      normalized.includes('complete the necessary fields') ||
-      normalized.includes('finalize the project update')
-    )
-  }
-
-  return normalized.includes('approval required') || normalized.includes('confirm before')
-}
-
-function extractTextDelta(chunk: any): string {
-  if (typeof chunk?.delta === 'string') return chunk.delta
-  if (typeof chunk?.text === 'string') return chunk.text
-  const content = chunk?.choices?.[0]?.delta?.content
-  return typeof content === 'string' ? content : ''
-}
-
-async function consumeNexusAIStream(
+async function consumeNexusAIUIStream(
   response: Response,
   callbacks: AIChatStreamCallbacks,
   initialSessionId?: string,
@@ -193,16 +184,10 @@ async function consumeNexusAIStream(
   let sessionId = initialSessionId
   let runId: string | undefined
   let pendingApproval = false
-  let lastToolResult: { toolName?: string; result?: Record<string, any> } | null = null
+  const toolCalls = new Map<string, { toolName?: string; input?: Record<string, any> }>()
+
   const complete = () => {
-    const fallbackMessage = !pendingApproval
-      ? fallbackToolCompletionMessage(lastToolResult?.toolName, lastToolResult?.result)
-      : ''
-    const finalMessage =
-      assistantContent && !isApprovalBoilerplateMessage(assistantContent, lastToolResult?.toolName)
-        ? assistantContent
-        : fallbackMessage || assistantContent
-    callbacks.onComplete?.(completionResult(sessionId, finalMessage, pendingApproval))
+    callbacks.onComplete?.(completionResult(sessionId, assistantContent, pendingApproval))
   }
 
   while (true) {
@@ -224,80 +209,115 @@ async function consumeNexusAIStream(
       }
 
       const chunk = JSON.parse(raw)
-      if (chunk?.session_id) {
-        sessionId = String(chunk.session_id)
-        runId = chunk.run_id || runId
-        callbacks.onSession?.(sessionId, runId)
+
+      if (chunk?.type === 'data-session') {
+        sessionId = chunk.data?.sessionId || sessionId
+        runId = chunk.data?.runId || runId
+        if (sessionId) {
+          callbacks.onSession?.(sessionId, runId)
+        }
+        continue
       }
 
-      if (chunk?.type === 'tool_call') {
+      if (chunk?.type === 'text-delta' && typeof chunk.delta === 'string') {
+        assistantContent += chunk.delta
+        callbacks.onTextDelta?.(chunk.delta)
+        continue
+      }
+
+      if (chunk?.type === 'tool-input-available') {
+        toolCalls.set(chunk.tool_call_id, {
+          toolName: chunk.tool_name,
+          input: chunk.input,
+        })
         callbacks.onStep?.({
           id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
           title: `Calling ${chunk.tool_name || 'tool'}`,
           description: 'Nexus AI is using a workspace tool',
-          status: 'running',
-          tool: chunk.tool_name,
-          eventType: 'tool_call',
-          input: chunk.args,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'tool_result') {
-        lastToolResult = {
-          toolName: chunk.tool_name,
-          result: chunk.result,
-        }
-        callbacks.onStep?.({
-          id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
-          title: `${chunk.tool_name || 'Tool'} completed`,
-          description: 'Tool result received',
           status: 'completed',
           tool: chunk.tool_name,
-          eventType: 'tool_result',
-          result: chunk.result,
-          outcome: chunk.outcome,
+          eventType: 'tool_call',
+          input: chunk.input,
         })
         continue
       }
 
-      if (chunk?.type === 'approval_required') {
-        pendingApproval = true
-        callbacks.onApprovalRequired?.({
-          sessionId: chunk.session_id,
-          runId: chunk.run_id,
-          toolCallId: chunk.tool_call_id,
-          toolName: chunk.tool_name,
-          args: chunk.args || {},
-          summary: chunk.summary,
-          approvalKind: chunk.approval_kind,
-          initialValues: chunk.initial_values || undefined,
-        })
+      if (chunk?.type === 'tool-output-available') {
+        const toolCall = toolCalls.get(chunk.tool_call_id)
         callbacks.onStep?.({
-          id: chunk.tool_call_id,
-          title: `Approval required: ${chunk.tool_name}`,
-          description: chunk.summary || 'Confirm before Nexus AI changes workspace data',
-          status: 'pending',
-          tool: chunk.tool_name,
-          eventType: 'approval_required',
-          input: chunk.args,
+          id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
+          title: `${toolCall?.toolName || 'Tool'} completed`,
+          description: 'Tool result received',
+          status: 'completed',
+          tool: toolCall?.toolName,
+          eventType: 'tool_result',
+          input: toolCall?.input,
+          result: chunk.output,
+          outcome: 'success',
         })
         continue
       }
 
-      if (chunk?.type === 'assistant_payload' && chunk?.payload_type === 'project_list') {
-        callbacks.onAssistantPayload?.({
-          payloadType: 'project_list',
-          title: typeof chunk.title === 'string' ? chunk.title : 'Projects',
-          items: Array.isArray(chunk.items) ? chunk.items : [],
+      if (chunk?.type === 'tool-output-error') {
+        const toolCall = toolCalls.get(chunk.tool_call_id)
+        callbacks.onStep?.({
+          id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
+          title: `${toolCall?.toolName || 'Tool'} failed`,
+          description: chunk.error_text || 'Tool execution failed',
+          status: 'error',
+          tool: toolCall?.toolName,
+          eventType: 'tool_result',
+          input: toolCall?.input,
+          result: { error: chunk.error_text },
+          outcome: 'error',
         })
         continue
       }
 
-      const delta = extractTextDelta(chunk)
-      if (delta) {
-        assistantContent += delta
-        callbacks.onTextDelta?.(delta)
+      if (chunk?.type === 'tool-output-denied') {
+        const toolCall = toolCalls.get(chunk.tool_call_id)
+        callbacks.onStep?.({
+          id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
+          title: `${toolCall?.toolName || 'Tool'} denied`,
+          description: 'Tool execution denied',
+          status: 'error',
+          tool: toolCall?.toolName,
+          eventType: 'tool_result',
+          input: toolCall?.input,
+          result: undefined,
+          outcome: 'denied',
+        })
+        continue
+      }
+
+      if (chunk?.type === 'data-approval_required') {
+        pendingApproval = true
+        sessionId = chunk.data?.sessionId || sessionId
+        runId = chunk.data?.runId || runId
+        callbacks.onApprovalRequired?.({
+          sessionId: chunk.data?.sessionId,
+          runId: chunk.data?.runId,
+          toolCallId: chunk.data?.toolCallId,
+          toolName: chunk.data?.toolName,
+          args: chunk.data?.args || {},
+          summary: chunk.data?.summary,
+          approvalKind: chunk.data?.approvalKind,
+          initialValues: chunk.data?.initialValues || undefined,
+        })
+        continue
+      }
+
+      if (chunk?.type === 'data-project_list') {
+        callbacks.onProjectList?.({
+          title: typeof chunk.data?.title === 'string' ? chunk.data.title : 'Projects',
+          items: Array.isArray(chunk.data?.items) ? chunk.data.items : [],
+        })
+        continue
+      }
+
+      if (chunk?.type === 'error') {
+        callbacks.onError?.(chunk.error_text || 'Nexus AI request failed')
+        return
       }
     }
   }
@@ -319,8 +339,8 @@ export const aiChatApi = {
 
     callbacks.onStatus?.('running', 'Connecting to Nexus AI')
     const path = data.sessionId
-      ? `/agent-chat/workspaces/${data.workspaceId}/sessions/${data.sessionId}/chat/completions`
-      : `/agent-chat/workspaces/${data.workspaceId}/chat/completions`
+      ? `/agent-chat/ui/workspaces/${data.workspaceId}/sessions/${data.sessionId}/chat/completions`
+      : `/agent-chat/ui/workspaces/${data.workspaceId}/chat/completions`
 
     const response = await fetch(API_CONFIG.getApiUrl(path), {
       method: 'POST',
@@ -330,13 +350,10 @@ export const aiChatApi = {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        trigger: 'submit-message',
+        id: data.sessionId || crypto.randomUUID(),
+        messages: toUIRequestMessages(messages),
         model: normalizeModel(data.context?.model),
-        messages,
-        stream: true,
-        metadata: {
-          session_id: data.sessionId,
-          workspace_id: data.workspaceId,
-        },
       }),
       signal,
     })
@@ -351,7 +368,7 @@ export const aiChatApi = {
       throw new Error(extractOpenAIError(payload, `Nexus AI request failed (${response.status})`))
     }
 
-    await consumeNexusAIStream(response, callbacks, data.sessionId)
+    await consumeNexusAIUIStream(response, callbacks, data.sessionId)
   },
 
   resumeApproval: async (
@@ -367,7 +384,7 @@ export const aiChatApi = {
   ): Promise<void> => {
     callbacks.onStatus?.('running', decision === 'approve' ? 'Applying approved action' : 'Sending denial')
     const response = await fetch(
-      API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}/runs/${runId}/resume`),
+      API_CONFIG.getApiUrl(`/agent-chat/ui/workspaces/${workspaceId}/sessions/${sessionId}/runs/${runId}/resume`),
       {
         method: 'POST',
         headers: {
@@ -390,7 +407,7 @@ export const aiChatApi = {
       throw new Error(extractOpenAIError(payload, `Nexus AI resume failed (${response.status})`))
     }
 
-    await consumeNexusAIStream(response, callbacks, sessionId)
+    await consumeNexusAIUIStream(response, callbacks, sessionId)
   },
 
   getSession: async (workspaceId: string, sessionId: string, token: string): Promise<AIChatSessionSnapshot> => {

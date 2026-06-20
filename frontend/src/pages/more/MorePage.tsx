@@ -6,10 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ChevronRight,
   LayoutTemplate,
-  FileText,
 } from 'lucide-react';
 import TemplatesPage from '../templates/TemplatesPage';
-import { DocumentBuilder, CreateDocument, TemplatePreview, FillTemplate, NewDocument, DocumentDetail } from '../documents';
 
 // Feature card component for built-in Nexus features
 interface FeatureCardProps {
@@ -52,13 +50,6 @@ function MoreGrid() {
 
   // Nexus Features
   const features = [
-    {
-      name: intl.formatMessage({ id: 'tools.documentBuilder.name', defaultMessage: 'Document Builder' }),
-      description: intl.formatMessage({ id: 'tools.documentBuilder.description', defaultMessage: 'Create professional documents from templates' }),
-      icon: <FileText className="w-6 h-6" />,
-      color: '#10b981',
-      path: 'documents',
-    },
     {
       name: intl.formatMessage({ id: 'tools.projectTemplates.name', defaultMessage: 'Project Templates' }),
       description: intl.formatMessage({ id: 'tools.projectTemplates.description', defaultMessage: 'Create projects from predefined templates' }),
@@ -107,13 +98,6 @@ export function MorePage() {
   return (
     <Routes>
       <Route path="/" element={<MoreGrid />} />
-      <Route path="/documents" element={<DocumentBuilder />} />
-      <Route path="/documents/create" element={<CreateDocument />} />
-      <Route path="/documents/templates/:templateId" element={<TemplatePreview />} />
-      <Route path="/documents/templates/:templateId/fill" element={<FillTemplate />} />
-      <Route path="/documents/new" element={<NewDocument />} />
-      <Route path="/documents/:documentId" element={<DocumentDetail />} />
-      <Route path="/documents/:documentId/edit" element={<DocumentDetail />} />
       <Route path="/templates/*" element={<TemplatesPage />} />
     </Routes>
   );
