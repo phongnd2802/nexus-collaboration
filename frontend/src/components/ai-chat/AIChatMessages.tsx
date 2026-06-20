@@ -1,21 +1,24 @@
 import React, { useEffect, useRef } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
 import { useIntl } from 'react-intl'
+import type { UIMessage } from 'ai'
 
 import { AIChatMessage } from './AIChatMessage'
-import type { AIChatTimelineItem } from './types'
+import type { ApprovalRequiredView } from './types'
 
 interface AIChatMessagesProps {
-  items: AIChatTimelineItem[]
+  messages: UIMessage[]
   isLoading: boolean
   onRegenerate: (messageId: string) => void
-  renderApprovalContent?: (item: AIChatTimelineItem) => React.ReactNode
+  activeApprovalItemId?: string | null
+  renderApprovalContent?: (item: ApprovalRequiredView) => React.ReactNode
 }
 
 export function AIChatMessages({
-  items,
+  messages,
   isLoading,
   onRegenerate,
+  activeApprovalItemId,
   renderApprovalContent,
 }: AIChatMessagesProps) {
   const intl = useIntl()
@@ -27,7 +30,7 @@ export function AIChatMessages({
     if (isAutoScrollRef.current && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [items])
+  }, [messages])
 
   const handleScroll = () => {
     if (!scrollRef.current) return
@@ -43,7 +46,7 @@ export function AIChatMessages({
     )
   }
 
-  if (items.length === 0) {
+  if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
@@ -57,18 +60,15 @@ export function AIChatMessages({
   }
 
   return (
-    <div
-      ref={scrollRef}
-      onScroll={handleScroll}
-      className="flex-1 overflow-y-auto overscroll-contain"
-    >
+    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overscroll-contain">
       <div className="mx-auto max-w-3xl py-4">
-        {items.map(item => (
+        {messages.map(message => (
           <AIChatMessage
-            key={item.id}
-            item={item}
-            approvalContent={renderApprovalContent?.(item)}
-            onRegenerate={item.type === 'assistant_message' ? () => onRegenerate(item.id) : undefined}
+            key={message.id}
+            message={message}
+            activeApprovalItemId={activeApprovalItemId}
+            renderApprovalContent={renderApprovalContent}
+            onRegenerate={message.role === 'assistant' ? () => onRegenerate(message.id) : undefined}
           />
         ))}
       </div>

@@ -4,10 +4,10 @@ import type { WorkspaceMember } from '@/types'
 import { Button } from '@/components/ui/button'
 
 import { AIChatProjectApprovalForm } from './AIChatProjectApprovalForm'
-import type { ApprovalRequiredItem } from './types'
+import type { ApprovalRequiredView } from './types'
 
 interface AIChatApprovalContentProps {
-  item: ApprovalRequiredItem
+  item: ApprovalRequiredView
   isActive: boolean
   isSubmitting: boolean
   members: WorkspaceMember[]

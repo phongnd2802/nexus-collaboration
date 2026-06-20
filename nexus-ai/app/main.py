@@ -3,15 +3,12 @@ from typing import Any
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
-from pydantic import TypeAdapter
-from pydantic_ai.ui.vercel_ai.request_types import RequestData
 
 from app.config import settings
 from app.orchestrator import orchestrator
-from app.schemas import ErrorDetail, ResumeRequest
+from app.schemas import ErrorDetail
 
 app = FastAPI(title="Nexus AI", version="0.2.0")
-ui_request_ta: TypeAdapter[RequestData] = TypeAdapter(RequestData)
 
 
 def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
@@ -24,17 +21,6 @@ def openai_error(message: str, status_code: int = 400, param: str | None = None)
         status_code=status_code,
         content={"error": ErrorDetail(message=message, param=param).model_dump()},
     )
-
-
-def latest_ui_prompt(payload: RequestData) -> str:
-    for message in reversed(payload.messages):
-        if message.role != "user":
-            continue
-        text_parts = [part.text for part in message.parts if getattr(part, "type", None) == "text" and getattr(part, "text", None)]
-        content = "\n".join(text_parts).strip()
-        if content:
-            return content
-    raise HTTPException(status_code=400, detail="messages must include a user text message")
 
 
 @app.exception_handler(HTTPException)
@@ -72,15 +58,13 @@ async def ui_chat_completions(
 ) -> Response:
     if not x_user_id or not x_workspace_id:
         raise HTTPException(status_code=400, detail="x-user-id and x-workspace-id are required")
-    body = await request.body()
-    payload = ui_request_ta.validate_json(body)
     raw = await request.json()
     model = raw.get("model") if isinstance(raw.get("model"), str) else None
-    return await orchestrator.ui_chat_completions(
+    return await orchestrator.dispatch_ui_request(
+        request=request,
         user_id=x_user_id,
         workspace_id=x_workspace_id,
-        user_prompt=latest_ui_prompt(payload),
-        session_id=payload.id or None,
+        session_id=None,
         model_name=model,
     )
 
@@ -94,14 +78,12 @@ async def ui_session_chat_completions(
 ) -> Response:
     if not x_user_id or not x_workspace_id:
         raise HTTPException(status_code=400, detail="x-user-id and x-workspace-id are required")
-    body = await request.body()
-    payload = ui_request_ta.validate_json(body)
     raw = await request.json()
     model = raw.get("model") if isinstance(raw.get("model"), str) else None
-    return await orchestrator.ui_chat_completions(
+    return await orchestrator.dispatch_ui_request(
+        request=request,
         user_id=x_user_id,
         workspace_id=x_workspace_id,
-        user_prompt=latest_ui_prompt(payload),
         session_id=session_id,
         model_name=model,
     )
@@ -141,7 +123,3 @@ async def delete_session(
         raise HTTPException(status_code=400, detail="x-user-id and x-workspace-id are required")
     return orchestrator.delete_session(session_id, x_user_id, x_workspace_id)
 
-
-@app.post("/v1/ui/sessions/{session_id}/runs/{run_id}/resume", dependencies=[Depends(require_api_key)])
-async def ui_resume_run(session_id: str, run_id: str, request: ResumeRequest) -> Response:
-    return await orchestrator.ui_resume_run(session_id, run_id, request)

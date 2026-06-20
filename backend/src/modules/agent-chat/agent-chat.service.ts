@@ -2,7 +2,7 @@ import { BadGatewayException, HttpException, Injectable, Logger } from '@nestjs/
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { pipeline } from 'stream/promises';
-import { Readable } from 'stream';
+import { Readable, Transform } from 'stream';
 
 @Injectable()
 export class AgentChatService {
@@ -28,17 +28,6 @@ export class AgentChatService {
     response: Response,
   ): Promise<void> {
     await this.proxyUiToNexusAi(`/v1/ui/sessions/${sessionId}/chat/completions`, body, user, workspaceId, response, sessionId);
-  }
-
-  async proxyUiResume(
-    body: any,
-    user: any,
-    workspaceId: string,
-    sessionId: string,
-    runId: string,
-    response: Response,
-  ): Promise<void> {
-    await this.proxyUiToNexusAi(`/v1/ui/sessions/${sessionId}/runs/${runId}/resume`, body, user, workspaceId, response, sessionId);
   }
 
   async getSessionSnapshot(user: any, workspaceId: string, sessionId: string): Promise<any> {
@@ -183,9 +172,18 @@ export class AgentChatService {
     const timeoutMs = Number(this.config.get<string>('NEXUS_AI_TIMEOUT_MS', '60000'));
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const upstreamUrl = `${baseUrl.replace(/\/$/, '')}${path}`;
+    const startedAt = Date.now();
+    const debugLog = this.config.get<string>('AGENT_CHAT_DEBUG_LOG', 'false') === 'true';
 
     try {
-      const upstream = await fetch(`${baseUrl.replace(/\/$/, '')}${path}`, {
+      if (debugLog) {
+        this.logger.log(
+          `Nexus AI UI request path=${path} workspaceId=${workspaceId} bodyId=${typeof body?.id === 'string' ? body.id : 'missing'} messages=${Array.isArray(body?.messages) ? body.messages.length : 0}`,
+        );
+      }
+
+      const upstream = await fetch(upstreamUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,6 +195,12 @@ export class AgentChatService {
         body: JSON.stringify(body),
         signal: controller.signal,
       });
+
+      if (debugLog) {
+        this.logger.log(
+          `Nexus AI UI upstream status=${upstream.status} contentType=${upstream.headers.get('content-type') || 'missing'} uiStream=${upstream.headers.get('x-vercel-ai-ui-message-stream') || 'missing'} path=${path} workspaceId=${workspaceId}`,
+        );
+      }
 
       response.status(upstream.status);
       upstream.headers.forEach((value, key) => {
@@ -213,14 +217,47 @@ export class AgentChatService {
         return;
       }
 
-      await pipeline(Readable.fromWeb(upstream.body as any), response);
+      const streamStats = {
+        chunkCount: 0,
+        firstType: undefined as string | undefined,
+        lastType: undefined as string | undefined,
+      };
+      const inspectStream = new Transform({
+        transform(chunk, _encoding, callback) {
+          if (debugLog) {
+            streamStats.chunkCount += 1;
+            const text = chunk.toString('utf8');
+            for (const match of text.matchAll(/^data:\s*(\{.*\})/gm)) {
+              try {
+                const parsed = JSON.parse(match[1]);
+                if (typeof parsed?.type === 'string') {
+                  streamStats.firstType ||= parsed.type;
+                  streamStats.lastType = parsed.type;
+                }
+              } catch {
+                // Ignore partial chunks; this log is diagnostic only.
+              }
+            }
+          }
+          callback(null, chunk);
+        },
+      });
+
+      await pipeline(Readable.fromWeb(upstream.body as any), inspectStream, response);
+      if (debugLog) {
+        this.logger.log(
+          `Nexus AI UI stream complete path=${path} workspaceId=${workspaceId} chunks=${streamStats.chunkCount} firstType=${streamStats.firstType || 'unknown'} lastType=${streamStats.lastType || 'unknown'} durationMs=${Date.now() - startedAt}`,
+        );
+      }
     } catch (error: any) {
       if (error?.name === 'AbortError') {
         this.logger.error(`Nexus AI UI request timed out after ${timeoutMs}ms`);
         throw new BadGatewayException('Nexus AI request timed out');
       }
 
-      this.logger.error(`Failed to proxy Nexus AI UI request: ${error?.message || error}`);
+      this.logger.error(
+        `Failed to proxy Nexus AI UI request path=${path} workspaceId=${workspaceId} upstreamUrl=${upstreamUrl}: ${error?.message || error}`,
+      );
       throw new BadGatewayException('Failed to reach Nexus AI service');
     } finally {
       clearTimeout(timeout);

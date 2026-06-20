@@ -22,13 +22,6 @@ class ChatCompletionRequest(BaseModel):
     tool_choice: Any | None = None
 
 
-class ResumeRequest(BaseModel):
-    tool_call_id: str
-    decision: Literal["approve", "deny"]
-    comment: str | None = None
-    form_data: dict[str, Any] | None = None
-
-
 class SessionSnapshot(BaseModel):
     sessionId: str
     title: str

@@ -1,5 +1,3 @@
-import type { AIChatTimelineItem } from './types'
-
 export const MODELS_KEY = 'nexus_ai_chat_model'
 export const EXECUTE_ACTIONS_KEY = 'nexus_ai_chat_execute_actions'
 export const CREATE_PROJECT_APPROVAL_INTRO =
@@ -104,19 +102,6 @@ export function stripToolApprovalBoilerplate(value: string, toolName?: string) {
   }
 
   return isToolApprovalBoilerplate(next, toolName) ? '' : next
-}
-
-export function toRequestMessages(items: AIChatTimelineItem[]) {
-  return items
-    .filter(
-      (item): item is Extract<AIChatTimelineItem, { type: 'user_message' | 'assistant_message' }> =>
-        item.type === 'user_message' || item.type === 'assistant_message',
-    )
-    .filter(item => item.content.trim().length > 0)
-    .map(item => ({
-      role: item.type === 'user_message' ? 'user' : 'assistant',
-      content: item.content,
-    }))
 }
 
 export function createTimestamp() {

@@ -12,7 +12,7 @@ import { AIChatInput } from './AIChatInput'
 import { AIChatEmpty } from './AIChatEmpty'
 import { AIChatApprovalContent } from './AIChatApprovalContent'
 import { ConfirmationDialog } from '@/components/shared/ConfirmationDialog'
-import type { AIChatTimelineItem } from './types'
+import type { ApprovalRequiredView } from './types'
 import { useAIChatPageState } from './useAIChatPageState'
 
 export function AIChatPage() {
@@ -25,7 +25,7 @@ export function AIChatPage() {
     conversations,
     activeConversationId,
     activeApprovalItemId,
-    timelineItems,
+    messages,
     isStreaming,
     isThinking,
     isHydratingSession,
@@ -48,9 +48,7 @@ export function AIChatPage() {
   } = useAIChatPageState({ workspaceId, routeSessionId: sessionId, intl })
 
   const renderApprovalContent = useCallback(
-    (item: AIChatTimelineItem) => {
-      if (item.type !== 'approval_required') return null
-
+    (item: ApprovalRequiredView) => {
       return (
         <AIChatApprovalContent
           item={item}
@@ -96,7 +94,7 @@ export function AIChatPage() {
             conversations={conversations.map(item => ({
               id: item.id,
               title: item.title,
-              messageCount: item.items.length,
+              messageCount: item.uiMessages.length,
               updatedAt: item.updatedAt,
             }))}
             activeId={activeConversationId}
@@ -121,9 +119,10 @@ export function AIChatPage() {
         ) : (
           <>
             <AIChatMessages
-              items={timelineItems}
-              isLoading={isHydratingSession && timelineItems.length === 0}
+              messages={messages}
+              isLoading={isHydratingSession && messages.length === 0}
               onRegenerate={handleRegenerate}
+              activeApprovalItemId={activeApprovalItemId}
               renderApprovalContent={renderApprovalContent}
             />
             {isThinking && (

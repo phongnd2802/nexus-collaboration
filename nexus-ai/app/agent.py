@@ -34,6 +34,12 @@ def _compact(value: Any) -> Any:
     return compact_value(value)
 
 
+def _canonical_model_name(model_name: str) -> str:
+    if model_name == "openai/gpt-4o-mini":
+        return "openai/gpt-4o-mini"
+    return model_name
+
+
 projects_tasks = Capability[AgentDeps](
     id="projects_tasks",
     description="Project and task lookup or safe user-confirmed create/update actions in Nexus.",
@@ -204,13 +210,14 @@ def build_agent(
     model_name: str,
     provider_http_client: httpx.AsyncClient | None = None,
 ) -> Agent[AgentDeps, str | DeferredToolRequests]:
+    resolved_model_name = _canonical_model_name(model_name)
     provider = OpenRouterProvider(
         api_key=settings.openrouter_api_key or None,
         app_url=settings.openrouter_app_url,
         app_title=settings.openrouter_app_title,
         http_client=provider_http_client,
     )
-    model = OpenRouterModel(model_name, provider=provider)
+    model = OpenRouterModel(resolved_model_name, provider=provider)
     return Agent(
         model,
         deps_type=AgentDeps,
@@ -235,13 +242,14 @@ def build_post_action_agent(
     model_name: str,
     provider_http_client: httpx.AsyncClient | None = None,
 ) -> Agent[None, str]:
+    resolved_model_name = _canonical_model_name(model_name)
     provider = OpenRouterProvider(
         api_key=settings.openrouter_api_key or None,
         app_url=settings.openrouter_app_url,
         app_title=settings.openrouter_app_title,
         http_client=provider_http_client,
     )
-    model = OpenRouterModel(model_name, provider=provider)
+    model = OpenRouterModel(resolved_model_name, provider=provider)
     return Agent(
         model,
         output_type=str,
@@ -262,9 +270,12 @@ def build_agent_with_capture(
     model_name: str,
     completion_id: str,
 ) -> tuple[Agent[AgentDeps, str | DeferredToolRequests], httpx.AsyncClient, ProviderCaptureState]:
-    output_path = raw_provider_response_path(completion_id)
     capture_state = ProviderCaptureState()
-    provider_http_client = create_provider_http_client(output_path, capture_state)
+    output_path = raw_provider_response_path(completion_id)
+    provider_http_client = create_provider_http_client(
+        output_path if settings.nexus_ai_raw_provider_capture else None,
+        capture_state,
+    )
     return build_agent(model_name, provider_http_client=provider_http_client), provider_http_client, capture_state
 
 
@@ -272,7 +283,10 @@ def build_post_action_agent_with_capture(
     model_name: str,
     completion_id: str,
 ) -> tuple[Agent[None, str], httpx.AsyncClient, ProviderCaptureState]:
-    output_path = raw_provider_response_path(f"{completion_id}-post-action")
     capture_state = ProviderCaptureState()
-    provider_http_client = create_provider_http_client(output_path, capture_state)
+    output_path = raw_provider_response_path(f"{completion_id}-post-action")
+    provider_http_client = create_provider_http_client(
+        output_path if settings.nexus_ai_raw_provider_capture else None,
+        capture_state,
+    )
     return build_post_action_agent(model_name, provider_http_client=provider_http_client), provider_http_client, capture_state

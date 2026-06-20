@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     nexus_backend_base_url: str = "http://localhost:3002/api/v1"
     nexus_internal_api_token: str = ""
     nexus_ai_raw_response_dir: str = "raw-provider-responses"
+    nexus_ai_debug_log: bool = False
+    nexus_ai_raw_provider_capture: bool = False
     openrouter_app_url: str | None = None
     openrouter_app_title: str | None = "Nexus"
 

@@ -64,16 +64,4 @@ export class AgentChatController {
     return this.agentChat.deleteSession((request as any).user, workspaceId, sessionId);
   }
 
-  @Post('ui/workspaces/:workspaceId/sessions/:sessionId/runs/:runId/resume')
-  @ApiOperation({ summary: 'Resume a paused Nexus AI UI run after tool approval' })
-  async uiResumeRun(
-    @Param('workspaceId') workspaceId: string,
-    @Param('sessionId') sessionId: string,
-    @Param('runId') runId: string,
-    @Body() body: any,
-    @Req() request: Request,
-    @Res() response: Response,
-  ): Promise<void> {
-    await this.agentChat.proxyUiResume(body, (request as any).user, workspaceId, sessionId, runId, response);
-  }
 }

@@ -37,46 +37,62 @@ class ProviderCaptureState:
 
 
 class TeeAsyncByteStream(httpx.AsyncByteStream):
-    def __init__(self, stream: httpx.AsyncByteStream, output_path: Path, capture_state: ProviderCaptureState) -> None:
+    def __init__(
+        self,
+        stream: httpx.AsyncByteStream,
+        output_path: Path | None,
+        capture_state: ProviderCaptureState,
+    ) -> None:
         self._stream = stream
         self._output_path = output_path
         self._capture_state = capture_state
 
     async def __aiter__(self) -> AsyncIterator[bytes]:
-        with self._output_path.open("ab") as handle:
+        handle = self._output_path.open("ab") if self._output_path else None
+        try:
             async for chunk in self._stream:
-                handle.write(chunk)
+                if handle:
+                    handle.write(chunk)
                 self._capture_state.ingest_bytes(chunk)
                 yield chunk
+        finally:
+            if handle:
+                handle.close()
 
     async def aclose(self) -> None:
         await self._stream.aclose()
 
 
 class RawCaptureTransport(httpx.AsyncBaseTransport):
-    def __init__(self, wrapped: httpx.AsyncBaseTransport, output_path: Path, capture_state: ProviderCaptureState) -> None:
+    def __init__(
+        self,
+        wrapped: httpx.AsyncBaseTransport,
+        output_path: Path | None,
+        capture_state: ProviderCaptureState,
+    ) -> None:
         self._wrapped = wrapped
         self._output_path = output_path
         self._capture_state = capture_state
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        self._output_path.parent.mkdir(parents=True, exist_ok=True)
-        with self._output_path.open("ab") as handle:
-            handle.write(
-                json.dumps(
-                    {
-                        "request": {
-                            "method": request.method,
-                            "url": str(request.url),
-                            "headers": dict(request.headers),
-                        }
-                    },
-                    ensure_ascii=True,
-                    indent=2,
-                ).encode("utf-8")
-            )
-            handle.write(b"\n")
-            handle.write(b"--- provider raw response ---\n")
+        if self._output_path:
+            self._output_path.parent.mkdir(parents=True, exist_ok=True)
+            with self._output_path.open("ab") as handle:
+                handle.write(
+                    json.dumps(
+                        {
+                            "request": {
+                                "method": request.method,
+                                "url": str(request.url),
+                                "headers": dict(request.headers),
+                            }
+                        },
+                        ensure_ascii=True,
+                        indent=2,
+                    ).encode("utf-8")
+                )
+                handle.write(b"\n")
+                handle.write(b"--- provider raw response ---\n")
 
         response = await self._wrapped.handle_async_request(request)
         stream = response.stream
@@ -84,15 +100,16 @@ class RawCaptureTransport(httpx.AsyncBaseTransport):
             response.stream = TeeAsyncByteStream(stream, self._output_path, self._capture_state)
             return response
 
-        with self._output_path.open("ab") as handle:
-            handle.write(response.content)
-            handle.write(b"\n")
+        if self._output_path:
+            with self._output_path.open("ab") as handle:
+                handle.write(response.content)
+                handle.write(b"\n")
         return response
 
     async def aclose(self) -> None:
         await self._wrapped.aclose()
 
 
-def create_provider_http_client(output_path: Path, capture_state: ProviderCaptureState) -> httpx.AsyncClient:
+def create_provider_http_client(output_path: Path | None, capture_state: ProviderCaptureState) -> httpx.AsyncClient:
     transport = RawCaptureTransport(httpx.AsyncHTTPTransport(), output_path, capture_state)
     return httpx.AsyncClient(transport=transport, timeout=60)

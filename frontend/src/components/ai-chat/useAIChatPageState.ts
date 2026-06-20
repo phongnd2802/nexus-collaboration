@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { UIMessage } from 'ai'
 import type { IntlShape } from 'react-intl'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
-import type { ApprovalRequiredEvent, ProjectListEvent } from '@/lib/api/ai-chat-api'
+import { useAIChatSession } from './useAIChatSession'
 
 import {
   buildAIChatPath,
@@ -12,25 +13,14 @@ import {
   EXECUTE_ACTIONS_KEY,
   MODELS_KEY,
   createTimestamp,
-  getApprovalIntro,
-  isPotentialToolApprovalBoilerplate,
-  isToolApprovalBoilerplate,
-  stripToolApprovalBoilerplate,
-  toRequestMessages,
 } from './aiChatPageUtils'
-import { uiMessagesToTimeline } from './uiMessageTimeline'
-import type {
-  AIChatTimelineItem,
-  ApprovalRequiredItem,
-  AssistantMessageItem,
-  ThinkingStep,
-} from './types'
+import type { ApprovalRequiredView } from './types'
 
 interface LocalConversation {
   id: string
   sessionId?: string
   title: string
-  items: AIChatTimelineItem[]
+  uiMessages: UIMessage[]
   updatedAt: string
 }
 
@@ -46,23 +36,182 @@ interface UseAIChatPageStateArgs {
   intl: IntlShape
 }
 
+interface PendingSend {
+  conversationId: string
+  message: string
+}
+
+function messagesEqual(left: UIMessage[], right: UIMessage[]) {
+  return JSON.stringify(left) === JSON.stringify(right)
+}
+
+function textFromMessage(message: UIMessage) {
+  return message.parts
+    .filter((part: any) => part?.type === 'text' && typeof part.text === 'string')
+    .map((part: any) => part.text)
+    .join('')
+}
+
+function providerApprovalMetadata(part: Record<string, any>): Record<string, any> {
+  const providerMetadata = part.callProviderMetadata || part.call_provider_metadata
+  const pydanticAI = providerMetadata?.pydantic_ai
+  const details = pydanticAI?.provider_details || pydanticAI?.providerDetails
+  return details && typeof details === 'object' ? details : {}
+}
+
+function approvalFromToolPart(part: Record<string, any>): ApprovalRequiredView | null {
+  if (typeof part?.type !== 'string' || !part.type.startsWith('tool-')) return null
+
+  const toolCallId =
+    typeof part.toolCallId === 'string'
+      ? part.toolCallId
+      : typeof part.tool_call_id === 'string'
+        ? part.tool_call_id
+        : null
+  if (!toolCallId) return null
+
+  const state = typeof part.state === 'string' ? part.state : ''
+  const details = providerApprovalMetadata(part)
+  const approvalRequired = details.approval_required === true || details.approvalRequired === true
+  if (!approvalRequired && state !== 'approval-requested' && state !== 'approval-responded' && state !== 'output-denied') {
+    return null
+  }
+
+  const approved = part.approval?.approved
+  const status =
+    state === 'approval-responded'
+      ? approved === false ? 'denied' : 'approved'
+      : state === 'output-denied'
+        ? 'denied'
+        : 'pending'
+  const toolName =
+    typeof details.tool_name === 'string'
+      ? details.tool_name
+      : typeof details.toolName === 'string'
+        ? details.toolName
+        : part.type.slice(5)
+
+  return {
+    id: `approval-${toolCallId}`,
+    status,
+    part,
+    approval: {
+      sessionId:
+        typeof details.session_id === 'string'
+          ? details.session_id
+          : typeof details.sessionId === 'string'
+            ? details.sessionId
+            : '',
+      runId:
+        typeof details.run_id === 'string'
+          ? details.run_id
+          : typeof details.runId === 'string'
+            ? details.runId
+            : '',
+      toolCallId,
+      toolName,
+      args:
+        part.input && typeof part.input === 'object'
+          ? part.input
+          : details.args && typeof details.args === 'object'
+            ? details.args
+            : {},
+      summary: typeof details.summary === 'string' ? details.summary : undefined,
+      approvalKind:
+        typeof details.approval_kind === 'string'
+          ? details.approval_kind
+          : typeof details.approvalKind === 'string'
+            ? details.approvalKind
+            : undefined,
+      initialValues:
+        details.initial_values && typeof details.initial_values === 'object'
+          ? details.initial_values
+          : details.initialValues && typeof details.initialValues === 'object'
+            ? details.initialValues
+            : undefined,
+    },
+  }
+}
+
+function pendingApprovalFromMessages(messages: UIMessage[]): ApprovalRequiredView | null {
+  for (const message of [...messages].reverse()) {
+    if (message.role !== 'assistant') continue
+    for (const part of [...message.parts].reverse()) {
+      const approval = approvalFromToolPart(part as Record<string, any>)
+      if (approval?.status === 'pending') return approval
+    }
+  }
+  return null
+}
+
+function withToolApprovalInput(
+  messages: UIMessage[],
+  toolCallId: string,
+  formData?: Record<string, any>,
+): UIMessage[] {
+  if (!formData) return messages
+
+  return messages.map(message => {
+    if (message.role !== 'assistant') return message
+
+    let changed = false
+    const parts = message.parts.map(part => {
+      const candidate = part as any
+      const currentToolCallId =
+        typeof candidate?.toolCallId === 'string'
+          ? candidate.toolCallId
+          : typeof candidate?.tool_call_id === 'string'
+            ? candidate.tool_call_id
+            : null
+
+      if (currentToolCallId !== toolCallId || typeof candidate?.type !== 'string' || !candidate.type.startsWith('tool-')) {
+        return part
+      }
+
+      changed = true
+      return { ...candidate, input: formData } as typeof part
+    })
+
+    return changed ? { ...message, parts } : message
+  })
+}
+
+function hasAssistantActivity(messages: UIMessage[]) {
+  const lastUserIndex = [...messages].reverse().findIndex(message => message.role === 'user')
+  if (lastUserIndex === -1) return messages.some(message => message.role === 'assistant')
+
+  const sliceStart = messages.length - lastUserIndex
+  return messages.slice(sliceStart).some(message => message.role === 'assistant' && message.parts.length > 0)
+}
+
+function initialModelSelection() {
+  const stored = localStorage.getItem(MODELS_KEY)
+  return stored === 'thinking' || stored === 'fast' || stored === 'auto' ? stored : 'auto'
+}
+
 export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIChatPageStateArgs) {
   const navigate = useNavigate()
   const [conversations, setConversations] = useState<LocalConversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
-  const [isStreaming, setIsStreaming] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
   const [isHydratingSession, setIsHydratingSession] = useState(false)
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
-  const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
-  const [executeActions, setExecuteActions] = useState(() => localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true')
-  const [activeApprovalItemId, setActiveApprovalItemId] = useState<string | null>(null)
+  const [model, setModel] = useState(initialModelSelection)
+  const [executeActions, setExecuteActions] = useState(
+    () => localStorage.getItem(EXECUTE_ACTIONS_KEY) === 'true',
+  )
   const [deleteConversationDialog, setDeleteConversationDialog] = useState<DeleteConversationDialogState | null>(null)
   const [isDeletingConversation, setIsDeletingConversation] = useState(false)
+  const [isResumingApproval, setIsResumingApproval] = useState(false)
 
-  const abortRef = useRef<AbortController | null>(null)
-  const currentAssistantItemIdRef = useRef<string | null>(null)
   const hydrateRequestRef = useRef<string | null>(null)
+  const pendingSendRef = useRef<PendingSend | null>(null)
+  const activeConversation = conversations.find(item => item.id === activeConversationId) || null
+  const pendingApprovalItem = useMemo(
+    () => pendingApprovalFromMessages(activeConversation?.uiMessages || []),
+    [activeConversation?.uiMessages],
+  )
+  const activeApprovalItemId = pendingApprovalItem?.id || null
 
   useEffect(() => {
     localStorage.setItem(MODELS_KEY, model)
@@ -76,26 +225,13 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     clearLegacyAIChatStorage()
     setConversations([])
     setActiveConversationId(null)
-    setIsStreaming(false)
     setIsThinking(false)
     setIsHydratingSession(false)
-    setActiveApprovalItemId(null)
     setDeleteConversationDialog(null)
     setIsDeletingConversation(false)
-    currentAssistantItemIdRef.current = null
+    setIsResumingApproval(false)
     hydrateRequestRef.current = null
-    abortRef.current?.abort()
-    abortRef.current = null
   }, [workspaceId])
-
-  const activeConversation = conversations.find(item => item.id === activeConversationId) || null
-  const timelineItems = activeConversation?.items || []
-
-  const pendingApprovalItem = useMemo(() => {
-    if (!activeConversation || !activeApprovalItemId) return null
-    const item = activeConversation.items.find(candidate => candidate.id === activeApprovalItemId)
-    return item?.type === 'approval_required' ? item : null
-  }, [activeConversation, activeApprovalItemId])
 
   const updateConversation = useCallback(
     (conversationId: string, updater: (conversation: LocalConversation) => LocalConversation) => {
@@ -104,53 +240,12 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     [],
   )
 
-  const appendItem = useCallback(
-    (conversationId: string, item: AIChatTimelineItem) => {
-      updateConversation(conversationId, conversation => ({
-        ...conversation,
-        items: [...conversation.items, item],
-        updatedAt: createTimestamp(),
-      }))
-    },
-    [updateConversation],
-  )
-
-  const upsertItem = useCallback(
-    (
-      conversationId: string,
-      itemId: string,
-      factory: () => AIChatTimelineItem,
-      merge?: (item: AIChatTimelineItem) => AIChatTimelineItem,
-    ) => {
+  const setConversationMessages = useCallback(
+    (conversationId: string, uiMessages: UIMessage[]) => {
       updateConversation(conversationId, conversation => {
-        const index = conversation.items.findIndex(item => item.id === itemId)
-        if (index === -1) {
-          return {
-            ...conversation,
-            items: [...conversation.items, factory()],
-            updatedAt: createTimestamp(),
-          }
-        }
-
-        const nextItems = [...conversation.items]
-        nextItems[index] = merge ? merge(nextItems[index]) : factory()
-        return {
-          ...conversation,
-          items: nextItems,
-          updatedAt: createTimestamp(),
-        }
+        if (messagesEqual(conversation.uiMessages, uiMessages)) return conversation
+        return { ...conversation, uiMessages, updatedAt: createTimestamp() }
       })
-    },
-    [updateConversation],
-  )
-
-  const setConversationSession = useCallback(
-    (conversationId: string, sessionId: string) => {
-      updateConversation(conversationId, conversation => ({
-        ...conversation,
-        sessionId,
-        updatedAt: createTimestamp(),
-      }))
     },
     [updateConversation],
   )
@@ -160,8 +255,9 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     const now = createTimestamp()
     const conversation: LocalConversation = {
       id,
+      sessionId: undefined,
       title: buildAIChatTitle(firstMessage),
-      items: [],
+      uiMessages: [],
       updatedAt: now,
     }
     setConversations(prev => [conversation, ...prev])
@@ -169,209 +265,118 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     return conversation
   }, [])
 
-  const activateConversationBySession = useCallback(
-    (sessionId: string) => {
-      const existing = conversations.find(item => item.sessionId === sessionId)
-      if (!existing) return false
-      setActiveConversationId(existing.id)
-      setActiveApprovalItemId(
-        existing.items.find(item => item.type === 'approval_required' && item.status === 'pending')?.id || null,
-      )
-      return existing.items.length > 0
-    },
-    [conversations],
-  )
-
   const syncRoute = useCallback(
     (sessionId?: string) => {
       if (!workspaceId) return
-      const nextPath = buildAIChatPath(workspaceId, sessionId)
-      navigate(nextPath, { replace: true })
+      navigate(buildAIChatPath(workspaceId, sessionId), { replace: true })
     },
     [navigate, workspaceId],
   )
 
-  const upsertConversationSnapshot = useCallback(
-    (
-      sessionId: string,
-      snapshot: {
-        title: string
-        items: AIChatTimelineItem[]
-        updatedAt: string
-        activeApprovalItemId?: string | null
-      },
-    ) => {
-      setConversations(prev => {
-        const existing = prev.find(item => item.sessionId === sessionId)
-        const nextConversation: LocalConversation = existing
-          ? {
-              ...existing,
-              title: snapshot.title,
-              sessionId,
-              items: snapshot.items,
-              updatedAt: snapshot.updatedAt,
-            }
-          : {
-              id: sessionId,
-              sessionId,
-              title: snapshot.title,
-              items: snapshot.items,
-              updatedAt: snapshot.updatedAt,
-            }
-
-        return existing
-          ? prev.map(item => (item.id === existing.id ? nextConversation : item))
-          : [nextConversation, ...prev]
-      })
-
-      setActiveConversationId(current => {
-        const existing = conversations.find(item => item.sessionId === sessionId)
-        return existing?.id || sessionId || current
-      })
-      setActiveApprovalItemId(snapshot.activeApprovalItemId || null)
+  const activeSession = useAIChatSession({
+    workspaceId,
+    conversation: activeConversation,
+    model,
+    onError: error => {
+      toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+      setIsThinking(false)
     },
-    [conversations],
-  )
+  })
 
-  const ensureAssistantItem = useCallback(
-    (conversationId: string) => {
-      if (currentAssistantItemIdRef.current) return currentAssistantItemIdRef.current
+  useEffect(() => {
+    if (!activeConversation || !activeSession.isConversationInitialized) return
+    setConversationMessages(activeConversation.id, activeSession.messages)
+  }, [activeConversation, activeSession.isConversationInitialized, activeSession.messages, setConversationMessages])
 
-      const itemId = `assistant-${Date.now()}-${crypto.randomUUID()}`
-      currentAssistantItemIdRef.current = itemId
-      appendItem(conversationId, {
-        id: itemId,
-        type: 'assistant_message',
-        content: '',
-        status: 'streaming',
-        timestamp: createTimestamp(),
+  useEffect(() => {
+    const pendingSend = pendingSendRef.current
+    if (!pendingSend) return
+    if (!activeConversation || activeConversation.id !== pendingSend.conversationId) return
+    if (!activeSession.isConversationInitialized) return
+
+    pendingSendRef.current = null
+    void activeSession.sendMessage(
+      { text: pendingSend.message },
+      { body: { model, currentView: 'ai-chat', executeActions } },
+    )
+  }, [activeConversation, activeSession, executeActions, model])
+
+  useEffect(() => {
+    if (!isThinking || !activeConversation) return
+    if (hasAssistantActivity(activeConversation.uiMessages)) setIsThinking(false)
+  }, [activeConversation, isThinking])
+
+  useEffect(() => {
+    if (activeSession.status === 'ready') setIsThinking(false)
+  }, [activeSession.status])
+
+  const previousSessionStatusRef = useRef(activeSession.status)
+
+  useEffect(() => {
+    const previousStatus = previousSessionStatusRef.current
+    previousSessionStatusRef.current = activeSession.status
+
+    if (!workspaceId || !activeConversation) return
+    if (activeSession.status !== 'ready') return
+    if (previousStatus !== 'submitted' && previousStatus !== 'streaming') return
+
+    aiChatApi
+      .getSession(workspaceId, activeConversation.sessionId || activeConversation.id)
+      .then(snapshot => {
+        const uiMessages = Array.isArray(snapshot.uiMessages) ? snapshot.uiMessages : []
+        setConversations(prev =>
+          prev.map(item =>
+            item.id === activeConversation.id
+              ? {
+                  ...item,
+                  id: snapshot.sessionId,
+                  sessionId: snapshot.sessionId,
+                  title: snapshot.title,
+                  uiMessages,
+                  updatedAt: snapshot.updatedAt,
+                }
+              : item,
+          ),
+        )
+        setActiveConversationId(current => (current === activeConversation.id ? snapshot.sessionId : current))
+        syncRoute(snapshot.sessionId)
       })
-      return itemId
-    },
-    [appendItem],
-  )
-
-  const finalizeAssistantItem = useCallback(
-    (conversationId: string, finalContent: string, status: AssistantMessageItem['status']) => {
-      const currentId = currentAssistantItemIdRef.current
-      if (!currentId) {
-        if (!finalContent) return
-        appendItem(conversationId, {
-          id: `assistant-${Date.now()}-${crypto.randomUUID()}`,
-          type: 'assistant_message',
-          content: finalContent,
-          status,
-          timestamp: createTimestamp(),
-        })
-        return
-      }
-
-      upsertItem(
-        conversationId,
-        currentId,
-        () => ({
-          id: currentId,
-          type: 'assistant_message',
-          content: finalContent,
-          status,
-          timestamp: createTimestamp(),
-        }),
-        current => {
-          if (current.type !== 'assistant_message') return current
-          return {
-            ...current,
-            content: finalContent || current.content,
-            status,
-          }
-        },
-      )
-    },
-    [appendItem, upsertItem],
-  )
-
-  const ensureApprovalIntroBeforeForm = useCallback(
-    (conversationId: string, approval: ApprovalRequiredEvent, currentContent: string) => {
-      const fallbackIntro = getApprovalIntro(approval.toolName)
-      if (!fallbackIntro) return
-
-      const introContent = currentContent.trim() || fallbackIntro
-      if (currentAssistantItemIdRef.current) {
-        finalizeAssistantItem(conversationId, introContent, 'completed')
-        return
-      }
-
-      appendItem(conversationId, {
-        id: `assistant-${Date.now()}-${crypto.randomUUID()}`,
-        type: 'assistant_message',
-        content: introContent,
-        status: 'completed',
-        timestamp: createTimestamp(),
+      .catch((error: Error) => {
+        toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
       })
-    },
-    [appendItem, finalizeAssistantItem],
-  )
-
-  const appendSystemEvent = useCallback(
-    (conversationId: string, title: string, description: string | undefined, status: 'info' | 'error') => {
-      appendItem(conversationId, {
-        id: `system-${Date.now()}-${crypto.randomUUID()}`,
-        type: 'system_event',
-        title,
-        description,
-        status,
-        timestamp: createTimestamp(),
-      })
-    },
-    [appendItem],
-  )
-
-  const appendProjectList = useCallback(
-    (conversationId: string, payload: ProjectListEvent) => {
-      if (payload.items.length === 0) return
-
-      appendItem(conversationId, {
-        id: `assistant-project-list-${Date.now()}-${crypto.randomUUID()}`,
-        type: 'project_list',
-        title: payload.title,
-        projects: payload.items,
-        timestamp: createTimestamp(),
-      })
-    },
-    [appendItem],
-  )
-
-  const startStream = useCallback(() => {
-    setIsStreaming(true)
-    setIsThinking(true)
-    currentAssistantItemIdRef.current = null
-  }, [])
-
-  const stopStreamState = useCallback(() => {
-    setIsStreaming(false)
-    setIsThinking(false)
-    abortRef.current = null
-    currentAssistantItemIdRef.current = null
-  }, [])
+  }, [activeConversation, activeSession.status, intl, syncRoute, workspaceId])
 
   useEffect(() => {
     if (!workspaceId || !routeSessionId) return
-    if (activateConversationBySession(routeSessionId)) return
+    const existing = conversations.find(item => item.id === routeSessionId || item.sessionId === routeSessionId)
+    if (existing) {
+      setActiveConversationId(existing.id)
+      return
+    }
     if (hydrateRequestRef.current === routeSessionId) return
 
-    const token = localStorage.getItem('auth_token') || ''
     hydrateRequestRef.current = routeSessionId
     setIsHydratingSession(true)
 
     aiChatApi
-      .getSession(workspaceId, routeSessionId, token)
+      .getSession(workspaceId, routeSessionId)
       .then(snapshot => {
-        const uiTimeline = uiMessagesToTimeline(snapshot.uiMessages)
-        upsertConversationSnapshot(routeSessionId, {
-          title: snapshot.title,
-          items: (uiTimeline?.items || snapshot.items) as AIChatTimelineItem[],
-          updatedAt: snapshot.updatedAt,
-          activeApprovalItemId: uiTimeline?.activeApprovalItemId || snapshot.activeApprovalItemId,
+        const uiMessages = Array.isArray(snapshot.uiMessages) ? snapshot.uiMessages : []
+        setConversations(prev => {
+          const existingConversation = prev.find(item => item.id === routeSessionId || item.sessionId === routeSessionId)
+          const nextConversation: LocalConversation = {
+            id: routeSessionId,
+            sessionId: snapshot.sessionId,
+            title: snapshot.title,
+            uiMessages,
+            updatedAt: snapshot.updatedAt,
+          }
+          if (existingConversation) {
+            return prev.map(item => (item.id === existingConversation.id ? nextConversation : item))
+          }
+          return [nextConversation, ...prev]
         })
+        setActiveConversationId(routeSessionId)
       })
       .catch((error: Error) => {
         toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
@@ -381,49 +386,39 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
         hydrateRequestRef.current = null
         setIsHydratingSession(false)
       })
-  }, [activateConversationBySession, intl, routeSessionId, syncRoute, upsertConversationSnapshot, workspaceId])
+  }, [conversations, intl, routeSessionId, syncRoute, workspaceId])
 
   useEffect(() => {
     if (!workspaceId) return
 
-    const token = localStorage.getItem('auth_token') || ''
     let cancelled = false
     setIsLoadingSessions(true)
 
     aiChatApi
-      .listSessions(workspaceId, token)
+      .listSessions(workspaceId)
       .then(sessions => {
         if (cancelled) return
         setConversations(prev => {
           const drafts = prev.filter(item => !item.sessionId)
           const bySessionId = new Map(prev.filter(item => item.sessionId).map(item => [item.sessionId as string, item]))
-
           const hydrated = sessions.map(session => {
             const existing = bySessionId.get(session.sessionId)
-            if (existing) {
-              return {
-                ...existing,
-                title: session.title,
-                sessionId: session.sessionId,
-                updatedAt: session.updatedAt,
-              }
-            }
-
             return {
+              ...(existing || {}),
               id: session.sessionId,
               sessionId: session.sessionId,
               title: session.title,
-              items: [],
+              uiMessages: existing?.uiMessages || [],
               updatedAt: session.updatedAt,
             }
           })
-
           return [...drafts, ...hydrated]
         })
       })
       .catch((error: Error) => {
-        if (cancelled) return
-        toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+        if (!cancelled) {
+          toast.error(error.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoadingSessions(false)
@@ -435,617 +430,134 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
   }, [intl, workspaceId])
 
   const handleSend = useCallback(
-    async (message: string, files: any[] = []) => {
-      if (!workspaceId || isStreaming || isHydratingSession) return
+    async (message: string, _files: any[] = []) => {
+      if (!workspaceId || isHydratingSession) return
 
       const conversation = activeConversation || createConversation(message)
-      if (!activeConversationId) {
-        setActiveConversationId(conversation.id)
-      }
+      if (!activeConversationId) setActiveConversationId(conversation.id)
 
-      const userMessageItem: AIChatTimelineItem = {
-        id: `user-${Date.now()}-${crypto.randomUUID()}`,
-        type: 'user_message',
-        content: message,
-        timestamp: createTimestamp(),
-      }
-
-      appendItem(conversation.id, userMessageItem)
       updateConversation(conversation.id, current => ({
         ...current,
+        sessionId: current.sessionId || conversation.id,
         title: current.title === 'New conversation' ? buildAIChatTitle(message) : current.title,
         updatedAt: createTimestamp(),
       }))
+      syncRoute(conversation.id)
 
-      startStream()
-      setActiveApprovalItemId(null)
+      setIsThinking(true)
 
-      const token = localStorage.getItem('auth_token') || ''
-      const controller = new AbortController()
-      abortRef.current = controller
-
-      const baseItems = [...conversation.items, userMessageItem]
-      const context: Record<string, any> = {
-        model,
-        currentView: 'ai-chat',
-        executeActions,
-        messages: toRequestMessages(baseItems),
+      if (!activeConversation) {
+        pendingSendRef.current = { conversationId: conversation.id, message }
+        return
       }
 
-      if (files.length > 0) {
-        context.files = await Promise.all(
-          files.map(async (f: any) => {
-            if (f.file.type.startsWith('image/')) {
-              return new Promise<string>(resolve => {
-                const reader = new FileReader()
-                reader.onloadend = () => resolve(reader.result as string)
-                reader.readAsDataURL(f.file)
-              }).then(base64 => ({ name: f.file.name, type: f.file.type, data: base64 }))
-            }
-            return new Promise<{ name: string; type: string; content: string }>(resolve => {
-              const reader = new FileReader()
-              reader.onloadend = () =>
-                resolve({ name: f.file.name, type: f.file.type, content: reader.result as string })
-              reader.readAsText(f.file)
-            })
-          }),
-        )
-      }
-
-      let assistantContent = ''
-      let approvalRequiredReceived = false
-      let approvalToolName: string | undefined
-
-      try {
-        await aiChatApi.streamChat(
-          {
-            command: message,
-            workspaceId,
-            sessionId: conversation.sessionId,
-            executeActions,
-            context,
-          },
-          {
-            onTextDelta: (content: string) => {
-              setIsThinking(false)
-              if (approvalRequiredReceived && isPotentialToolApprovalBoilerplate(content, approvalToolName)) {
-                return
-              }
-              assistantContent += content
-              const itemId = ensureAssistantItem(conversation.id)
-              upsertItem(
-                conversation.id,
-                itemId,
-                () => ({
-                  id: itemId,
-                  type: 'assistant_message',
-                  content: assistantContent,
-                  status: 'streaming',
-                  timestamp: createTimestamp(),
-                }),
-                current => {
-                  if (current.type !== 'assistant_message') return current
-                  return {
-                    ...current,
-                    content: current.content + content,
-                    status: 'streaming',
-                  }
-                },
-              )
-            },
-            onStep: (step: ThinkingStep) => {
-              if (step.eventType === 'approval_required') return
-
-              if (step.eventType === 'tool_call') {
-                const itemId = `tool-call-${step.id}`
-                upsertItem(
-                  conversation.id,
-                  itemId,
-                  () => ({
-                    id: itemId,
-                    type: 'tool_call',
-                    toolName: step.tool,
-                    input: step.input,
-                    status: 'running',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_call') return current
-                    return {
-                      ...current,
-                      toolName: step.tool || current.toolName,
-                      input: step.input || current.input,
-                      status: step.status === 'error' ? 'error' : step.status === 'completed' ? 'completed' : 'running',
-                    }
-                  },
-                )
-                return
-              }
-
-              if (step.eventType === 'tool_result') {
-                const callItemId = `tool-call-${step.id}`
-                upsertItem(
-                  conversation.id,
-                  callItemId,
-                  () => ({
-                    id: callItemId,
-                    type: 'tool_call',
-                    toolName: step.tool,
-                    input: step.input,
-                    status: 'completed',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_call') return current
-                    return {
-                      ...current,
-                      status: step.status === 'error' ? 'error' : 'completed',
-                    }
-                  },
-                )
-
-                const resultItemId = `tool-result-${step.id}`
-                upsertItem(
-                  conversation.id,
-                  resultItemId,
-                  () => ({
-                    id: resultItemId,
-                    type: 'tool_result',
-                    toolName: step.tool,
-                    result: step.result,
-                    outcome: step.outcome,
-                    status: step.status === 'error' ? 'error' : 'completed',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_result') return current
-                    return {
-                      ...current,
-                      toolName: step.tool || current.toolName,
-                      result: step.result || current.result,
-                      outcome: step.outcome || current.outcome,
-                      status: step.status === 'error' ? 'error' : 'completed',
-                    }
-                  },
-                )
-              }
-            },
-            onSession: (sessionId: string) => {
-              setConversationSession(conversation.id, sessionId)
-              syncRoute(sessionId)
-            },
-            onProjectList: payload => {
-              appendProjectList(conversation.id, payload)
-            },
-            onApprovalRequired: (approval: ApprovalRequiredEvent) => {
-              setIsThinking(false)
-              approvalRequiredReceived = true
-              approvalToolName = approval.toolName
-              const toolCallItemId = `tool-call-${approval.toolCallId}`
-              upsertItem(
-                conversation.id,
-                toolCallItemId,
-                () => ({
-                  id: toolCallItemId,
-                  type: 'tool_call',
-                  toolName: approval.toolName,
-                  input: approval.args,
-                  status: 'completed',
-                  timestamp: createTimestamp(),
-                }),
-                current => {
-                  if (current.type !== 'tool_call') return current
-                  return {
-                    ...current,
-                    toolName: approval.toolName || current.toolName,
-                    input: approval.args || current.input,
-                    status: 'completed',
-                  }
-                },
-              )
-              ensureApprovalIntroBeforeForm(conversation.id, approval, assistantContent)
-              const itemId = `approval-${approval.toolCallId}`
-              setActiveApprovalItemId(itemId)
-              upsertItem(
-                conversation.id,
-                itemId,
-                () => ({
-                  id: itemId,
-                  type: 'approval_required',
-                  approval,
-                  status: 'pending',
-                  timestamp: createTimestamp(),
-                }),
-                current => {
-                  if (current.type !== 'approval_required') return current
-                  return {
-                    ...current,
-                    approval,
-                    status: 'pending',
-                  }
-                },
-              )
-            },
-            onComplete: (result: any) => {
-              if (result?.reasoning === 'approval_required') {
-                finalizeAssistantItem(conversation.id, assistantContent, assistantContent ? 'completed' : 'stopped')
-                stopStreamState()
-                return
-              }
-
-              const finalContent = result?.message || assistantContent
-              finalizeAssistantItem(conversation.id, finalContent, 'completed')
-              setActiveApprovalItemId(null)
-              stopStreamState()
-            },
-            onError: (error: string) => {
-              toast.error(error || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
-              finalizeAssistantItem(conversation.id, assistantContent, 'error')
-              appendSystemEvent(conversation.id, 'Request failed', error, 'error')
-              stopStreamState()
-            },
-          },
-          token,
-          controller.signal,
-        )
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          const messageText = err?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' })
-          toast.error(messageText)
-          finalizeAssistantItem(conversation.id, assistantContent, 'error')
-          appendSystemEvent(conversation.id, 'Request failed', messageText, 'error')
-        }
-        stopStreamState()
-      }
+      await activeSession.sendMessage(
+        { text: message },
+        { body: { model, currentView: 'ai-chat', executeActions } },
+      )
     },
     [
       workspaceId,
-      isStreaming,
       isHydratingSession,
       activeConversation,
       createConversation,
       activeConversationId,
-      appendItem,
       updateConversation,
-      startStream,
+      syncRoute,
+      activeSession,
       model,
       executeActions,
-      ensureAssistantItem,
-      upsertItem,
-      setConversationSession,
-      syncRoute,
-      stopStreamState,
-      finalizeAssistantItem,
-      ensureApprovalIntroBeforeForm,
-      appendProjectList,
-      intl,
-      appendSystemEvent,
     ],
   )
 
   const handleStop = useCallback(() => {
-    if (!activeConversation) return
-
-    if (abortRef.current) {
-      abortRef.current.abort()
-      abortRef.current = null
-    }
-
-    finalizeAssistantItem(activeConversation.id, '', 'stopped')
-    appendSystemEvent(activeConversation.id, 'Response stopped', 'Streaming was stopped before completion.', 'info')
-    stopStreamState()
-  }, [activeConversation, appendSystemEvent, finalizeAssistantItem, stopStreamState])
+    void activeSession.stop()
+    setIsThinking(false)
+  }, [activeSession])
 
   const handleApprovalDecision = useCallback(
     async (decision: 'approve' | 'deny', formData?: Record<string, any>) => {
-      if (!workspaceId || !pendingApprovalItem || isStreaming || !activeConversation) return
+      if (!workspaceId || !pendingApprovalItem || !activeConversation) return
 
-      const approval = pendingApprovalItem.approval
-      const approvalItemId = pendingApprovalItem.id
-
-      upsertItem(
-        activeConversation.id,
-        approvalItemId,
-        () => pendingApprovalItem,
-        current => {
-          if (current.type !== 'approval_required') return current
-          return {
-            ...current,
-            status: decision === 'approve' ? 'approved' : 'denied',
-            submittedFormData: formData,
-          }
-        },
+      const nextMessages = withToolApprovalInput(
+        activeSession.messages,
+        pendingApprovalItem.approval.toolCallId,
+        formData,
       )
-
-      startStream()
-
-      const token = localStorage.getItem('auth_token') || ''
-      const controller = new AbortController()
-      abortRef.current = controller
-      let assistantContent = ''
-      let bufferedPreToolText = ''
-      const supportsApprovalBoilerplateCleanup = Boolean(getApprovalIntro(approval.toolName))
-
-      const appendAssistantDelta = (content: string) => {
-        if (!content) return
-        assistantContent += content
-        const itemId = ensureAssistantItem(activeConversation.id)
-        upsertItem(
-          activeConversation.id,
-          itemId,
-          () => ({
-            id: itemId,
-            type: 'assistant_message',
-            content: assistantContent,
-            status: 'streaming',
-            timestamp: createTimestamp(),
-          }),
-          current => {
-            if (current.type !== 'assistant_message') return current
-            return {
-              ...current,
-              content: current.content + content,
-              status: 'streaming',
-            }
-          },
-        )
-      }
+      setIsResumingApproval(true)
+      setIsThinking(true)
 
       try {
-        await aiChatApi.resumeApproval(
-          workspaceId,
-          approval.sessionId,
-          approval.runId,
-          approval.toolCallId,
-          decision,
-          formData,
-          {
-            onTextDelta: (content: string) => {
-              setIsThinking(false)
-              if (supportsApprovalBoilerplateCleanup) {
-                const candidate = bufferedPreToolText + content
-                if (isToolApprovalBoilerplate(candidate, approval.toolName)) {
-                  bufferedPreToolText = ''
-                  appendAssistantDelta(stripToolApprovalBoilerplate(candidate, approval.toolName))
-                  return
-                }
-
-                if (isPotentialToolApprovalBoilerplate(candidate, approval.toolName)) {
-                  bufferedPreToolText = candidate
-                  return
-                }
-
-                const textToFlush = candidate
-                bufferedPreToolText = ''
-                appendAssistantDelta(textToFlush)
-                return
-              }
-
-              appendAssistantDelta(content)
-            },
-            onStep: (step: ThinkingStep) => {
-              if (step.eventType === 'approval_required') return
-
-              if (step.eventType === 'tool_call') {
-                const itemId = `tool-call-${step.id}`
-                upsertItem(
-                  activeConversation.id,
-                  itemId,
-                  () => ({
-                    id: itemId,
-                    type: 'tool_call',
-                    toolName: step.tool,
-                    input: step.input,
-                    status: 'running',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_call') return current
-                    return {
-                      ...current,
-                      toolName: step.tool || current.toolName,
-                      input: step.input || current.input,
-                      status: step.status === 'error' ? 'error' : step.status === 'completed' ? 'completed' : 'running',
-                    }
-                  },
-                )
-                return
-              }
-
-              if (step.eventType === 'tool_result') {
-                if (supportsApprovalBoilerplateCleanup && bufferedPreToolText) {
-                  const stripped = isPotentialToolApprovalBoilerplate(bufferedPreToolText, approval.toolName)
-                    ? ''
-                    : stripToolApprovalBoilerplate(bufferedPreToolText, approval.toolName)
-                  bufferedPreToolText = ''
-                  appendAssistantDelta(stripped)
-                }
-                const callItemId = `tool-call-${step.id}`
-                upsertItem(
-                  activeConversation.id,
-                  callItemId,
-                  () => ({
-                    id: callItemId,
-                    type: 'tool_call',
-                    toolName: step.tool,
-                    input: step.input,
-                    status: 'completed',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_call') return current
-                    return {
-                      ...current,
-                      status: step.status === 'error' ? 'error' : 'completed',
-                    }
-                  },
-                )
-
-                const resultItemId = `tool-result-${step.id}`
-                upsertItem(
-                  activeConversation.id,
-                  resultItemId,
-                  () => ({
-                    id: resultItemId,
-                    type: 'tool_result',
-                    toolName: step.tool,
-                    result: step.result,
-                    outcome: step.outcome,
-                    status: step.status === 'error' ? 'error' : 'completed',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_result') return current
-                    return {
-                      ...current,
-                      toolName: step.tool || current.toolName,
-                      result: step.result || current.result,
-                      outcome: step.outcome || current.outcome,
-                      status: step.status === 'error' ? 'error' : 'completed',
-                    }
-                  },
-                )
-              }
-            },
-            onApprovalRequired: (nextApproval: ApprovalRequiredEvent) => {
-              const itemId = `approval-${nextApproval.toolCallId}`
-              setActiveApprovalItemId(itemId)
-              upsertItem(
-                activeConversation.id,
-                itemId,
-                () => ({
-                  id: itemId,
-                  type: 'approval_required',
-                  approval: nextApproval,
-                  status: 'pending',
-                  timestamp: createTimestamp(),
-                }),
-                current => {
-                  if (current.type !== 'approval_required') return current
-                  return {
-                    ...current,
-                    approval: nextApproval,
-                    status: 'pending',
-                  }
-                },
-              )
-            },
-            onProjectList: payload => {
-              appendProjectList(activeConversation.id, payload)
-            },
-            onComplete: (result: any) => {
-              if (result?.reasoning === 'approval_required') {
-                finalizeAssistantItem(activeConversation.id, assistantContent, assistantContent ? 'completed' : 'stopped')
-                stopStreamState()
-                return
-              }
-
-              const finalContent = stripToolApprovalBoilerplate(
-                assistantContent || result?.message || '',
-                approval.toolName,
-              )
-              finalizeAssistantItem(activeConversation.id, finalContent, 'completed')
-              setActiveApprovalItemId(null)
-              stopStreamState()
-            },
-            onError: (error: string) => {
-              toast.error(error || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
-              finalizeAssistantItem(activeConversation.id, assistantContent, 'error')
-              appendSystemEvent(activeConversation.id, 'Resume failed', error, 'error')
-              stopStreamState()
-            },
+        activeSession.setMessages(nextMessages)
+        setConversationMessages(activeConversation.id, nextMessages)
+        await activeSession.addToolApprovalResponse({
+          id: pendingApprovalItem.approval.toolCallId,
+          approved: decision === 'approve',
+          reason: decision === 'deny' ? 'User denied this action.' : undefined,
+          options: {
+            body: { model, currentView: 'ai-chat', executeActions },
           },
-          token,
-          controller.signal,
-        )
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          const messageText = err?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' })
-          toast.error(messageText)
-          finalizeAssistantItem(activeConversation.id, assistantContent, 'error')
-          appendSystemEvent(activeConversation.id, 'Resume failed', messageText, 'error')
-        }
-        stopStreamState()
+        })
+      } catch (error: any) {
+        toast.error(error?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
+      } finally {
+        setIsResumingApproval(false)
       }
     },
     [
       workspaceId,
       pendingApprovalItem,
-      isStreaming,
       activeConversation,
-      upsertItem,
-      startStream,
-      ensureAssistantItem,
-      finalizeAssistantItem,
-      stopStreamState,
-      appendProjectList,
+      activeSession,
+      setConversationMessages,
       intl,
-      appendSystemEvent,
+      model,
+      executeActions,
     ],
   )
 
   const handleRegenerate = useCallback(
-    (messageId: string) => {
-      if (!activeConversation) return
-
-      const msgIndex = activeConversation.items.findIndex(item => item.id === messageId)
-      if (msgIndex < 0) return
-
-      const userIndex = [...activeConversation.items]
-        .slice(0, msgIndex)
-        .map((item, index) => ({ item, index }))
-        .reverse()
-        .find(({ item }) => item.type === 'user_message')?.index
-
-      if (userIndex == null) return
-
-      const userItem = activeConversation.items[userIndex]
-      if (userItem.type !== 'user_message') return
-
-      updateConversation(activeConversation.id, conversation => ({
-        ...conversation,
-        items: conversation.items.slice(0, userIndex + 1),
-        updatedAt: createTimestamp(),
-      }))
-      setActiveApprovalItemId(null)
-      handleSend(userItem.content, [])
+    async (messageId: string) => {
+      await activeSession.regenerate({
+        messageId,
+        body: { model, currentView: 'ai-chat', executeActions },
+      })
     },
-    [activeConversation, updateConversation, handleSend],
+    [activeSession, executeActions, model],
   )
 
-  const hasConversation = conversations.length > 0 || isStreaming
+  const hasConversation = conversations.length > 0 || activeSession.status !== 'ready' || isResumingApproval
 
   const handleNewConversation = useCallback(() => {
     createConversation()
     syncRoute()
   }, [createConversation, syncRoute])
 
-  const handleSelectConversation = useCallback((id: string) => {
-    const conversation = conversations.find(item => item.id === id)
-    if (!conversation) return
-    setActiveConversationId(id)
-    setActiveApprovalItemId(
-      conversation.items.find(item => item.type === 'approval_required' && item.status === 'pending')?.id || null,
-    )
-    syncRoute(conversation.sessionId)
-  }, [conversations, syncRoute])
+  const handleSelectConversation = useCallback(
+    (id: string) => {
+      const conversation = conversations.find(item => item.id === id)
+      if (!conversation) return
+      setActiveConversationId(id)
+      syncRoute(conversation.sessionId)
+    },
+    [conversations, syncRoute],
+  )
 
-  const handleDeleteConversation = useCallback((id: string) => {
-    const conversation = conversations.find(item => item.id === id)
-    if (!conversation) return
+  const handleDeleteConversation = useCallback(
+    (id: string) => {
+      const conversation = conversations.find(item => item.id === id)
+      if (!conversation) return
+      setDeleteConversationDialog({ id: conversation.id, title: conversation.title, sessionId: conversation.sessionId })
+    },
+    [conversations],
+  )
 
-    setDeleteConversationDialog({
-      id: conversation.id,
-      title: conversation.title,
-      sessionId: conversation.sessionId,
-    })
-  }, [conversations])
-
-  const handleDeleteConversationDialogChange = useCallback((open: boolean) => {
-    if (!open && !isDeletingConversation) {
-      setDeleteConversationDialog(null)
-    }
-  }, [isDeletingConversation])
+  const handleDeleteConversationDialogChange = useCallback(
+    (open: boolean) => {
+      if (!open && !isDeletingConversation) setDeleteConversationDialog(null)
+    },
+    [isDeletingConversation],
+  )
 
   const confirmDeleteConversation = useCallback(async () => {
     const dialog = deleteConversationDialog
@@ -1063,58 +575,37 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
 
     try {
       setIsDeletingConversation(true)
-
-      if (conversation.sessionId) {
-        const token = localStorage.getItem('auth_token') || ''
-        await aiChatApi.deleteSession(workspaceId || '', conversation.sessionId, token)
-      }
-
-      if (isDeletingActiveConversation && abortRef.current) {
-        abortRef.current.abort()
-        abortRef.current = null
-      }
+      if (conversation.sessionId) await aiChatApi.deleteSession(workspaceId || '', conversation.sessionId)
+      if (isDeletingActiveConversation) void activeSession.stop()
 
       setConversations(prev => prev.filter(item => item.id !== dialog.id))
       setActiveConversationId(current => (current === dialog.id ? replacement?.id ?? null : current))
 
-      if (activeApprovalItemId && isDeletingActiveConversation) {
-        setActiveApprovalItemId(null)
-      }
-
       if (isDeletingActiveConversation) {
-        setIsStreaming(false)
         setIsThinking(false)
-        currentAssistantItemIdRef.current = null
         syncRoute(replacement?.sessionId)
+        activeSession.setMessages(replacement?.uiMessages || [])
       }
 
       setDeleteConversationDialog(null)
     } catch (error: any) {
-      toast.error(
-        error?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }),
-      )
+      toast.error(error?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
     } finally {
       setIsDeletingConversation(false)
     }
-  }, [activeApprovalItemId, activeConversationId, conversations, deleteConversationDialog, intl, syncRoute, workspaceId])
+  }, [activeConversationId, activeSession, conversations, deleteConversationDialog, intl, syncRoute, workspaceId])
 
   const handleRenameConversation = useCallback((id: string, title: string) => {
-    setConversations(prev =>
-      prev.map(item =>
-        item.id === id
-          ? { ...item, title, updatedAt: createTimestamp() }
-          : item,
-      ),
-    )
-  }, [])
+    updateConversation(id, conversation => ({ ...conversation, title, updatedAt: createTimestamp() }))
+  }, [updateConversation])
 
   return {
     conversations,
     activeConversationId,
     activeApprovalItemId,
-    timelineItems,
     pendingApprovalItem,
-    isStreaming,
+    messages: activeConversation?.uiMessages || [],
+    isStreaming: activeSession.status === 'submitted' || activeSession.status === 'streaming' || isResumingApproval,
     isThinking,
     isHydratingSession,
     isLoadingSessions,
@@ -1133,7 +624,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     handleDeleteConversationDialogChange,
     confirmDeleteConversation,
     handleRenameConversation,
+    executeActions,
+    setExecuteActions,
   }
 }
-
-export type UseAIChatPageStateReturn = ReturnType<typeof useAIChatPageState>
