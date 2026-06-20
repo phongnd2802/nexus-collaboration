@@ -302,9 +302,9 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
                         {intl.formatMessage({ id: 'modules.calendar.calendarSettings.capacityLabel' }, { capacity: room.capacity })}
                       </span>
                     </div>
-                    {room.facilities && room.facilities.length > 0 && (
+                    {room.equipment && room.equipment.length > 0 && (
                       <div className="flex gap-2 mt-2 flex-wrap">
-                        {room.facilities.map((facility: string) => {
+                        {room.equipment.map((facility: string) => {
                           const facilityOption = FACILITY_OPTIONS.find(f => f.value === facility);
                           return facilityOption ? (
                             <Badge key={facility} variant="secondary" className="text-xs">

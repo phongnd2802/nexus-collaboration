@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
 import { useCalendarStore, useAnalyticsStore } from '../../stores/calendarStore'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
-import { useCalendarEvents, useEventCategories, useUpdateEvent, useCreateMeetingRoom } from '@/lib/api/calendar-api'
+import { useCalendarEvents, useEventCategories, useUpdateEvent, useCreateMeetingRoom, useUpdateMeetingRoom, useDeleteMeetingRoom } from '@/lib/api/calendar-api'
 import { CalendarHeader } from './CalendarHeader'
 import { DayView } from './DayView'
 import { WeekView } from './WeekView'
@@ -48,8 +48,12 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
   const [newEventDate, setNewEventDate] = useState<Date | null>(null)
   const [newEventHour, setNewEventHour] = useState<number | null>(null)
 
-  // Room creation state
+  // Room creation/edit state
   const createRoomMutation = useCreateMeetingRoom()
+  const updateRoomMutation = useUpdateMeetingRoom()
+  const deleteRoomMutation = useDeleteMeetingRoom()
+  const [editingRoom, setEditingRoom] = useState<any>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [roomForm, setRoomForm] = useState({
     name: '',
     roomNumber: '',
@@ -189,16 +193,37 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
     }
 
     const handleOpenCreateRoom = () => {
+      setEditingRoom(null)
+      setShowDeleteConfirm(false)
+      resetRoomForm()
       setOpenRoomDialog(true)
-      // Don't open settings dialog, just open the room dialog directly
+    }
+
+    const handleOpenEditRoom = (e: Event) => {
+      const room = (e as CustomEvent).detail
+      setEditingRoom(room)
+      setShowDeleteConfirm(false)
+      setRoomForm({
+        name: room.name || '',
+        roomNumber: room.room_code || '',
+        capacity: room.capacity || 10,
+        location: room.location || '',
+        facilities: room.equipment || [],
+        color: room.color || '#3b82f6',
+        description: room.description || '',
+        room_type: room.room_type || 'meeting',
+      })
+      setOpenRoomDialog(true)
     }
 
     window.addEventListener('openCalendarSettings', handleOpenSettings)
     window.addEventListener('openCreateMeetingRoom', handleOpenCreateRoom)
+    window.addEventListener('openEditMeetingRoom', handleOpenEditRoom)
 
     return () => {
       window.removeEventListener('openCalendarSettings', handleOpenSettings)
       window.removeEventListener('openCreateMeetingRoom', handleOpenCreateRoom)
+      window.removeEventListener('openEditMeetingRoom', handleOpenEditRoom)
     }
   }, [])
 
@@ -343,6 +368,7 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
 
     const roomData = {
       name: roomForm.name,
+      room_code: roomForm.roomNumber,
       description: roomForm.description,
       capacity: roomForm.capacity,
       location: roomForm.location,
@@ -350,22 +376,58 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
       room_type: roomForm.room_type
     }
 
-    createRoomMutation.mutate({
+    if (editingRoom) {
+      updateRoomMutation.mutate({
+        workspaceId: currentWorkspace.id,
+        roomId: editingRoom.id,
+        data: roomData,
+      }, {
+        onSuccess: () => {
+          toast.success(intl.formatMessage({ id: 'modules.calendar.main.roomUpdatedSuccess' }))
+          setOpenRoomDialog(false)
+          resetRoomForm()
+        },
+        onError: () => {
+          toast.error(intl.formatMessage({ id: 'modules.calendar.main.roomUpdatedError' }))
+        }
+      })
+    } else {
+      createRoomMutation.mutate({
+        workspaceId: currentWorkspace.id,
+        data: roomData
+      }, {
+        onSuccess: () => {
+          toast.success(intl.formatMessage({ id: 'modules.calendar.main.roomCreatedSuccess' }))
+          setOpenRoomDialog(false)
+          resetRoomForm()
+        },
+        onError: () => {
+          toast.error(intl.formatMessage({ id: 'modules.calendar.main.roomCreatedError' }))
+        }
+      })
+    }
+  }
+
+  const handleDeleteRoom = () => {
+    if (!editingRoom || !currentWorkspace) return
+    deleteRoomMutation.mutate({
       workspaceId: currentWorkspace.id,
-      data: roomData
+      roomId: editingRoom.id,
     }, {
       onSuccess: () => {
-        toast.success(intl.formatMessage({ id: 'modules.calendar.main.roomCreatedSuccess' }))
+        toast.success(intl.formatMessage({ id: 'modules.calendar.main.roomDeletedSuccess' }))
         setOpenRoomDialog(false)
         resetRoomForm()
       },
       onError: () => {
-        toast.error(intl.formatMessage({ id: 'modules.calendar.main.roomCreatedError' }))
+        toast.error(intl.formatMessage({ id: 'modules.calendar.main.roomDeletedError' }))
       }
     })
   }
 
   const resetRoomForm = () => {
+    setEditingRoom(null)
+    setShowDeleteConfirm(false)
     setRoomForm({
       name: '',
       roomNumber: '',
@@ -569,16 +631,22 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
         />
       )}
 
-      {/* Create Meeting Room Dialog */}
+      {/* Create / Edit Meeting Room Dialog */}
       <Dialog open={openRoomDialog} onOpenChange={(open) => {
         setOpenRoomDialog(open)
         if (!open) resetRoomForm()
       }}>
         <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>{intl.formatMessage({ id: 'modules.calendar.main.createMeetingRoom' })}</DialogTitle>
+            <DialogTitle>
+              {editingRoom
+                ? intl.formatMessage({ id: 'modules.calendar.main.editMeetingRoom' })
+                : intl.formatMessage({ id: 'modules.calendar.main.createMeetingRoom' })}
+            </DialogTitle>
             <DialogDescription>
-              {intl.formatMessage({ id: 'modules.calendar.main.createMeetingRoomDesc' })}
+              {editingRoom
+                ? intl.formatMessage({ id: 'modules.calendar.main.editMeetingRoomDesc' })
+                : intl.formatMessage({ id: 'modules.calendar.main.createMeetingRoomDesc' })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto pr-2 pl-4 pb-4">
@@ -703,12 +771,52 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
             </div>
           </div>
           <DialogFooter className="flex-shrink-0 mt-4">
-            <Button variant="outline" onClick={() => setOpenRoomDialog(false)}>
-              {intl.formatMessage({ id: 'common.cancel' })}
-            </Button>
-            <Button onClick={handleSaveRoom} disabled={createRoomMutation.isPending}>
-              {createRoomMutation.isPending ? intl.formatMessage({ id: 'modules.calendar.main.creatingRoom' }) : intl.formatMessage({ id: 'modules.calendar.main.createRoomButton' })}
-            </Button>
+            {editingRoom && !showDeleteConfirm && (
+              <Button
+                variant="destructive"
+                className="mr-auto"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                {intl.formatMessage({ id: 'modules.calendar.main.deleteRoomButton' })}
+              </Button>
+            )}
+            {editingRoom && showDeleteConfirm && (
+              <div className="mr-auto flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {intl.formatMessage({ id: 'common.confirm' })}?
+                </span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteRoom}
+                  disabled={deleteRoomMutation.isPending}
+                >
+                  {intl.formatMessage({ id: 'common.delete' })}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)}>
+                  {intl.formatMessage({ id: 'common.cancel' })}
+                </Button>
+              </div>
+            )}
+            {!showDeleteConfirm && (
+              <>
+                <Button variant="outline" onClick={() => setOpenRoomDialog(false)}>
+                  {intl.formatMessage({ id: 'common.cancel' })}
+                </Button>
+                <Button
+                  onClick={handleSaveRoom}
+                  disabled={createRoomMutation.isPending || updateRoomMutation.isPending}
+                >
+                  {editingRoom
+                    ? (updateRoomMutation.isPending
+                        ? intl.formatMessage({ id: 'modules.calendar.main.updatingRoom' })
+                        : intl.formatMessage({ id: 'modules.calendar.main.editRoomButton' }))
+                    : (createRoomMutation.isPending
+                        ? intl.formatMessage({ id: 'modules.calendar.main.creatingRoom' })
+                        : intl.formatMessage({ id: 'modules.calendar.main.createRoomButton' }))}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

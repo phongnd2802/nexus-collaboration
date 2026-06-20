@@ -321,7 +321,7 @@ export const calendarApi = {
     name: string;
     capacity: number;
     location: string;
-    facilities: string[];
+    equipment: string[];
     color: string;
     is_active: boolean;
     description?: string;
@@ -342,6 +342,7 @@ export const calendarApi = {
 
   async updateMeetingRoom(workspaceId: string, roomId: string, data: Partial<{
     name: string;
+    room_code?: string;
     description?: string;
     capacity: number;
     location?: string;
