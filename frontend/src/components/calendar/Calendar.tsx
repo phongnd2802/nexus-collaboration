@@ -372,6 +372,7 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
       description: roomForm.description,
       capacity: roomForm.capacity,
       location: roomForm.location,
+      color: roomForm.color,
       equipment: roomForm.facilities,
       room_type: roomForm.room_type
     }
@@ -739,23 +740,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
                     </button>
                   )
                 })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{intl.formatMessage({ id: 'modules.calendar.main.roomColorLabel' })}</Label>
-              <div className="flex gap-2">
-                {ROOM_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full border-2 transition-colors ${
-                      roomForm.color === color ? 'border-gray-900' : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setRoomForm({ ...roomForm, color })}
-                  />
-                ))}
               </div>
             </div>
 

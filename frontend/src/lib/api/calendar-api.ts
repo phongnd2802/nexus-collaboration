@@ -346,6 +346,7 @@ export const calendarApi = {
     description?: string;
     capacity: number;
     location?: string;
+    color?: string;
     equipment?: string[];
     room_type: 'conference' | 'meeting' | 'huddle' | 'training' | 'presentation' | 'phone_booth';
   }>): Promise<any> {
