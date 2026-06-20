@@ -235,7 +235,6 @@ export function NotificationItem({ notification, onClick, onResponded }: Notific
               workspaceId={notification.data?.workspace_id}
               requesterName={notification.data?.requester_name || 'Someone'}
               noteTitle={notification.data?.note_title || 'a note'}
-              initialStatus={notification.data?.responded_status}
               onResponded={onResponded}
             />
           </div>
@@ -253,4 +252,3 @@ export function NotificationItem({ notification, onClick, onResponded }: Notific
     </div>
   );
 }
-

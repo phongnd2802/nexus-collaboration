@@ -1,6 +1,7 @@
 from typing import Any
 
 from pydantic_ai import RunContext, ToolReturn
+from pydantic_ai.ui.vercel_ai.response_types import DataChunk
 
 from app.tools.backend_client import request_backend
 from app.tools.utils import compact_value, log_tool_result
@@ -24,7 +25,7 @@ def _project_member_count(project: dict[str, Any]) -> int | None:
     return len(member_ids) or None
 
 
-def _project_card_payload(workspace_id: str, projects: Any) -> dict[str, Any] | None:
+def _project_card_payload(workspace_id: str, projects: Any) -> DataChunk | None:
     if not isinstance(projects, list):
         return None
 
@@ -53,11 +54,13 @@ def _project_card_payload(workspace_id: str, projects: Any) -> dict[str, Any] | 
     if not items:
         return None
 
-    return {
-        "payload_type": "project_list",
-        "title": "Projects",
-        "items": items,
-    }
+    return DataChunk(
+        type="data-project_list",
+        data={
+            "title": "Projects",
+            "items": items,
+        },
+    )
 
 
 async def list_projects(

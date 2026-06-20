@@ -12,40 +12,27 @@ import { AgentChatService } from './agent-chat.service';
 export class AgentChatController {
   constructor(private readonly agentChat: AgentChatService) {}
 
-  @Post('chat/completions')
-  @ApiOperation({ summary: 'OpenAI-compatible chat completions proxy for Nexus AI' })
-  async chatCompletions(
-    @Body() body: any,
-    @Req() request: Request,
-    @Res() response: Response,
-  ): Promise<void> {
-    const workspaceId = String(
-      request.headers['x-workspace-id'] || request.body?.workspaceId || request.query?.workspaceId || '',
-    );
-    await this.agentChat.proxyChatCompletions(body, (request as any).user, workspaceId, response);
-  }
-
-  @Post('workspaces/:workspaceId/chat/completions')
-  @ApiOperation({ summary: 'Workspace-scoped OpenAI-compatible chat completions proxy for Nexus AI' })
-  async workspaceChatCompletions(
+  @Post('ui/workspaces/:workspaceId/chat/completions')
+  @ApiOperation({ summary: 'Workspace-scoped Vercel AI UI chat proxy for Nexus AI' })
+  async uiWorkspaceChatCompletions(
     @Param('workspaceId') workspaceId: string,
     @Body() body: any,
     @Req() request: Request,
     @Res() response: Response,
   ): Promise<void> {
-    await this.agentChat.proxyChatCompletions(body, (request as any).user, workspaceId, response);
+    await this.agentChat.proxyUiChatCompletions(body, (request as any).user, workspaceId, response);
   }
 
-  @Post('workspaces/:workspaceId/sessions/:sessionId/chat/completions')
-  @ApiOperation({ summary: 'Session-scoped OpenAI-compatible chat completions proxy for Nexus AI' })
-  async sessionChatCompletions(
+  @Post('ui/workspaces/:workspaceId/sessions/:sessionId/chat/completions')
+  @ApiOperation({ summary: 'Session-scoped Vercel AI UI chat proxy for Nexus AI' })
+  async uiSessionChatCompletions(
     @Param('workspaceId') workspaceId: string,
     @Param('sessionId') sessionId: string,
     @Body() body: any,
     @Req() request: Request,
     @Res() response: Response,
   ): Promise<void> {
-    await this.agentChat.proxySessionChatCompletions(body, (request as any).user, workspaceId, sessionId, response);
+    await this.agentChat.proxyUiSessionChatCompletions(body, (request as any).user, workspaceId, sessionId, response);
   }
 
   @Get('workspaces/:workspaceId/sessions/:sessionId')
@@ -77,9 +64,9 @@ export class AgentChatController {
     return this.agentChat.deleteSession((request as any).user, workspaceId, sessionId);
   }
 
-  @Post('workspaces/:workspaceId/sessions/:sessionId/runs/:runId/resume')
-  @ApiOperation({ summary: 'Resume a paused Nexus AI run after tool approval' })
-  async resumeRun(
+  @Post('ui/workspaces/:workspaceId/sessions/:sessionId/runs/:runId/resume')
+  @ApiOperation({ summary: 'Resume a paused Nexus AI UI run after tool approval' })
+  async uiResumeRun(
     @Param('workspaceId') workspaceId: string,
     @Param('sessionId') sessionId: string,
     @Param('runId') runId: string,
@@ -87,6 +74,6 @@ export class AgentChatController {
     @Req() request: Request,
     @Res() response: Response,
   ): Promise<void> {
-    await this.agentChat.proxyResume(body, (request as any).user, workspaceId, sessionId, runId, response);
+    await this.agentChat.proxyUiResume(body, (request as any).user, workspaceId, sessionId, runId, response);
   }
 }

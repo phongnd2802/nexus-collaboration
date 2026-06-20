@@ -1918,32 +1918,6 @@ export function NotionStyleNoteEditor({
 
         scheduleAutoSave()
         return
-        
-        // Set new timeout - only fires after user stops for 2 seconds
-        saveTimeout = setTimeout(async () => {
-          console.log('🚨 TIMEOUT FIRED - Making API call now!')
-          
-          // Set state BEFORE calling autoSave so the condition check passes
-          setHasUnsavedChanges(true)
-          setShowSaved(false)
-          
-          // Small delay to ensure state is set
-          setTimeout(async () => {
-            try {
-              console.log('📡 Calling autoSave()...')
-              if (autoSaveRef.current) {
-                await autoSaveRef.current()
-                console.log('✅ autoSave() completed successfully')
-              } else {
-                console.error('❌ autoSaveRef.current is null')
-              }
-            } catch (error) {
-              console.error('❌ autoSave() failed:', error)
-            }
-          }, 10)
-        }, 2000)
-        
-        console.log('⏰ New 2-second timeout set')
       }
       
       // Attach the listener

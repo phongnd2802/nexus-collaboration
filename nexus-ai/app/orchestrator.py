@@ -1,13 +1,11 @@
-import time
 import uuid
 from collections.abc import AsyncIterator
-from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
 from typing import Any
 
 from fastapi import HTTPException
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic_ai import DeferredToolRequests, DeferredToolResults, ToolDenied
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
@@ -22,32 +20,101 @@ from pydantic_ai.messages import (
     UserPromptPart,
 )
 from pydantic_ai.run import AgentRunResultEvent
+from pydantic_ai.ui.vercel_ai.response_types import (
+    BaseChunk,
+    DataChunk,
+    DoneChunk,
+    ErrorChunk,
+    FinishChunk,
+    FinishStepChunk,
+    StartChunk,
+    StartStepChunk,
+    TextDeltaChunk,
+    TextEndChunk,
+    TextStartChunk,
+    ToolApprovalRequestChunk,
+    ToolInputAvailableChunk,
+    ToolOutputAvailableChunk,
+    ToolOutputDeniedChunk,
+    ToolOutputErrorChunk,
+)
 
 from app.config import settings
-from app.schemas import ChatCompletionRequest, ResumeRequest, SessionSnapshot, SessionSummary
+from app.schemas import ResumeRequest, SessionSnapshot, SessionSummary
 from app.stores import RunState, run_store, session_store
-from app.streaming import CompletionAccumulator, accumulate_chunk, normalized_text_deltas, openai_chunk, tool_part_payload
+from app.streaming import normalized_text_deltas, tool_part_payload
 from app.agent import AgentDeps, build_agent_with_capture, build_post_action_agent_with_capture
 from app.tools.backend_client import request_backend
-
-
-@dataclass
-class ChatCompletionContext:
-    model_name: str
-    completion_id: str
-    session_id: str
-    run_id: str
 
 
 class NexusAIOrchestrator:
     PROJECT_CREATE_TOOL = "create_project"
     PROJECT_UPDATE_TOOL = "update_project"
     PROJECT_LIST_TOOL = "list_projects"
+    UI_SDK_VERSION = 6
 
     def _timestamp_iso(self, value: Any) -> str:
         if isinstance(value, datetime):
             return value.astimezone(timezone.utc).isoformat()
         return datetime.now(timezone.utc).isoformat()
+
+    def _encode_ui_chunk(self, chunk: BaseChunk) -> str:
+        return f"data: {chunk.encode(self.UI_SDK_VERSION)}\n\n"
+
+    def _project_list_payload(self, payload: Any) -> dict[str, Any] | None:
+        if isinstance(payload, DataChunk) and payload.type == "data-project_list" and isinstance(payload.data, dict):
+            return payload.data
+        if isinstance(payload, dict) and payload.get("payload_type") == "project_list":
+            return {
+                "title": payload.get("title"),
+                "items": payload.get("items"),
+            }
+        return None
+
+    def _metadata_ui_chunks(self, metadata: Any) -> list[DataChunk]:
+        if isinstance(metadata, DataChunk) and metadata.type.startswith("data-"):
+            return [metadata]
+        if isinstance(metadata, list):
+            return [item for item in metadata if isinstance(item, DataChunk) and item.type.startswith("data-")]
+
+        project_list = self._project_list_payload(metadata)
+        if project_list is None:
+            return []
+
+        return [
+            DataChunk(
+                type="data-project_list",
+                data={
+                    "title": project_list.get("title") if isinstance(project_list.get("title"), str) else "Projects",
+                    "items": project_list.get("items") if isinstance(project_list.get("items"), list) else [],
+                },
+            )
+        ]
+
+    def _approval_required_data(
+        self,
+        *,
+        session_id: str,
+        run_id: str,
+        tool_call_id: str,
+        tool_name: str,
+        args: dict[str, Any],
+        initial_values: dict[str, Any] | None,
+    ) -> DataChunk:
+        return DataChunk(
+            type="data-approval_required",
+            id=f"approval-{tool_call_id}",
+            data={
+                "sessionId": session_id,
+                "runId": run_id,
+                "toolCallId": tool_call_id,
+                "toolName": tool_name,
+                "args": args,
+                "summary": self._approval_summary(tool_name),
+                "approvalKind": self._approval_kind(tool_name),
+                "initialValues": initial_values,
+            },
+        )
 
     def _approval_summary(self, tool_name: str) -> str:
         if tool_name == self.PROJECT_CREATE_TOOL:
@@ -149,13 +216,11 @@ class NexusAIOrchestrator:
                 sanitized.append(ModelResponse(parts=filtered_parts, timestamp=message.timestamp))
         return sanitized
 
-    async def _stream_post_action_follow_up(
+    async def _stream_post_action_follow_up_text(
         self,
         *,
         model_name: str,
         completion_id: str,
-        session_id: str,
-        run_id: str,
         prompt: str,
     ) -> AsyncIterator[str]:
         agent, provider_http_client, capture_state = build_post_action_agent_with_capture(model_name, completion_id)
@@ -172,26 +237,12 @@ class NexusAIOrchestrator:
                             first_text_emitted,
                         ):
                             text += text_delta
-                            yield openai_chunk(
-                                completion_id,
-                                model_name,
-                                "text_delta",
-                                session_id,
-                                run_id,
-                                content=text_delta,
-                            )
+                            yield text_delta
                         first_text_emitted = True
                     elif isinstance(event, AgentRunResultEvent) and not text:
                         output = event.result.output
                         text = str(output)
-                        yield openai_chunk(
-                            completion_id,
-                            model_name,
-                            "text_delta",
-                            session_id,
-                            run_id,
-                            content=text,
-                        )
+                        yield text
 
     def _tool_result_payload(self, part: Any) -> dict[str, Any] | None:
         if hasattr(part, "model_response_object"):
@@ -203,22 +254,25 @@ class NexusAIOrchestrator:
         content = getattr(part, "content", None)
         return content if isinstance(content, dict) else None
 
-    def _tool_result_metadata(self, part: Any) -> dict[str, Any] | None:
+    def _tool_result_metadata(self, part: Any) -> Any:
         metadata = getattr(part, "metadata", None)
-        return metadata if isinstance(metadata, dict) else None
+        if isinstance(metadata, (DataChunk, list, dict)):
+            return metadata
+        return None
 
-    def _assistant_payload_item(self, payload: dict[str, Any], timestamp: str) -> dict[str, Any] | None:
-        if payload.get("payload_type") != "project_list":
+    def _project_list_item(self, payload: Any, timestamp: str) -> dict[str, Any] | None:
+        project_list = self._project_list_payload(payload)
+        if project_list is None:
             return None
 
-        items = payload.get("items")
+        items = project_list.get("items")
         if not isinstance(items, list) or not items:
             return None
 
         return {
             "id": f"assistant-project-list-{len(items)}-{timestamp}",
-            "type": "assistant_project_list",
-            "title": payload.get("title") if isinstance(payload.get("title"), str) else "Projects",
+            "type": "project_list",
+            "title": project_list.get("title") if isinstance(project_list.get("title"), str) else "Projects",
             "projects": items,
             "timestamp": timestamp,
         }
@@ -233,6 +287,151 @@ class NexusAIOrchestrator:
         runs = run_store.list_by_session(session_id)
         return runs[-1] if runs else None
 
+    def _build_ui_messages(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        ui_messages: list[dict[str, Any]] = []
+        for item in items:
+            timestamp = item.get("timestamp") if isinstance(item.get("timestamp"), str) else self._timestamp_iso(None)
+            metadata = {"timestamp": timestamp}
+
+            if item["type"] == "user_message":
+                ui_messages.append(
+                    {
+                        "id": item["id"],
+                        "role": "user",
+                        "metadata": metadata,
+                        "parts": [{"type": "text", "text": item.get("content", ""), "state": "done"}],
+                    }
+                )
+                continue
+
+            if item["type"] == "assistant_message":
+                ui_messages.append(
+                    {
+                        "id": item["id"],
+                        "role": "assistant",
+                        "metadata": metadata,
+                        "parts": [{"type": "text", "text": item.get("content", ""), "state": "done"}],
+                    }
+                )
+                continue
+
+            if item["type"] == "project_list":
+                ui_messages.append(
+                    {
+                        "id": item["id"],
+                        "role": "assistant",
+                        "metadata": metadata,
+                        "parts": [
+                            {
+                                "type": "data-project_list",
+                                "id": item["id"],
+                                "data": {
+                                    "title": item.get("title", "Projects"),
+                                    "items": item.get("projects", []),
+                                },
+                            }
+                        ],
+                    }
+                )
+                continue
+
+            if item["type"] == "tool_call":
+                tool_name = item.get("toolName") or "tool"
+                ui_messages.append(
+                    {
+                        "id": item["id"],
+                        "role": "assistant",
+                        "metadata": metadata,
+                        "parts": [
+                            {
+                                "type": f"tool-{tool_name}",
+                                "toolCallId": item["id"].removeprefix("tool-call-"),
+                                "state": "input-available",
+                                "input": item.get("input"),
+                            }
+                        ],
+                    }
+                )
+                continue
+
+            if item["type"] == "tool_result":
+                tool_name = item.get("toolName") or "tool"
+                state = "output-available"
+                if item.get("outcome") == "denied":
+                    state = "output-denied"
+                elif item.get("status") == "error":
+                    state = "output-error"
+                part: dict[str, Any] = {
+                    "type": f"tool-{tool_name}",
+                    "toolCallId": item["id"].removeprefix("tool-result-"),
+                    "state": state,
+                    "output": item.get("result"),
+                }
+                if state == "output-error":
+                    part["errorText"] = (
+                        item.get("result", {}).get("error")
+                        if isinstance(item.get("result"), dict)
+                        else "Tool execution failed"
+                    )
+                ui_messages.append(
+                    {
+                        "id": item["id"],
+                        "role": "assistant",
+                        "metadata": metadata,
+                        "parts": [part],
+                    }
+                )
+                continue
+
+            if item["type"] == "approval_required":
+                approval = item.get("approval") or {}
+                tool_name = approval.get("toolName") or "tool"
+                tool_call_id = approval.get("toolCallId") or item["id"].removeprefix("approval-")
+                if item.get("status") == "approved":
+                    tool_part = {
+                        "type": f"tool-{tool_name}",
+                        "toolCallId": tool_call_id,
+                        "state": "approval-responded",
+                        "input": approval.get("args") or {},
+                        "approval": {"id": tool_call_id, "approved": True},
+                    }
+                elif item.get("status") == "denied":
+                    tool_part = {
+                        "type": f"tool-{tool_name}",
+                        "toolCallId": tool_call_id,
+                        "state": "output-denied",
+                        "input": approval.get("args") or {},
+                        "approval": {"id": tool_call_id, "approved": False},
+                    }
+                else:
+                    tool_part = {
+                        "type": f"tool-{tool_name}",
+                        "toolCallId": tool_call_id,
+                        "state": "approval-requested",
+                        "input": approval.get("args") or {},
+                        "approval": {"id": tool_call_id},
+                    }
+                ui_messages.append(
+                    {
+                        "id": item["id"],
+                        "role": "assistant",
+                        "metadata": metadata,
+                        "parts": [
+                            tool_part,
+                            self._approval_required_data(
+                                session_id=approval.get("sessionId") or "",
+                                run_id=approval.get("runId") or "",
+                                tool_call_id=tool_call_id,
+                                tool_name=tool_name,
+                                args=approval.get("args") or {},
+                                initial_values=approval.get("initialValues"),
+                            ).model_dump(by_alias=True, exclude_none=True),
+                        ],
+                    }
+                )
+
+        return ui_messages
+
     def _build_session_items(
         self,
         messages: list[Any],
@@ -242,7 +441,7 @@ class NexusAIOrchestrator:
     ) -> tuple[list[dict[str, Any]], str | None]:
         items: list[dict[str, Any]] = []
         active_approval_item_id: str | None = None
-        pending_assistant_payloads: list[tuple[dict[str, Any], str]] = []
+        pending_project_list_parts: list[tuple[Any, str]] = []
 
         def flush_assistant_text(parts: list[str], timestamp: str) -> None:
             content = "".join(parts).strip()
@@ -258,13 +457,13 @@ class NexusAIOrchestrator:
                 }
             )
 
-            if not pending_assistant_payloads:
+            if not pending_project_list_parts:
                 return
-            for payload, payload_timestamp in pending_assistant_payloads:
-                item = self._assistant_payload_item(payload, payload_timestamp)
+            for payload, payload_timestamp in pending_project_list_parts:
+                item = self._project_list_item(payload, payload_timestamp)
                 if item is not None:
                     items.append(item)
-            pending_assistant_payloads.clear()
+            pending_project_list_parts.clear()
 
         for message in messages:
             if isinstance(message, ModelRequest):
@@ -321,7 +520,7 @@ class NexusAIOrchestrator:
                     )
                     metadata = self._tool_result_metadata(part)
                     if metadata is not None:
-                        pending_assistant_payloads.append(
+                        pending_project_list_parts.append(
                             (
                                 metadata,
                                 self._timestamp_iso(getattr(part, "timestamp", None) or message.timestamp),
@@ -343,8 +542,8 @@ class NexusAIOrchestrator:
 
             flush_assistant_text(assistant_parts, assistant_timestamp)
 
-        for payload, payload_timestamp in pending_assistant_payloads:
-            item = self._assistant_payload_item(payload, payload_timestamp)
+        for payload, payload_timestamp in pending_project_list_parts:
+            item = self._project_list_item(payload, payload_timestamp)
             if item is not None:
                 items.append(item)
 
@@ -387,6 +586,7 @@ class NexusAIOrchestrator:
 
         run = self._find_session_run(session_id)
         items, active_approval_item_id = self._build_session_items(session.messages, session_id=session_id, run=run)
+        ui_messages = self._build_ui_messages(items)
         first_user_message = next((item for item in items if item["type"] == "user_message" and item.get("content")), None)
         title = (
             str(first_user_message["content"]).strip()[:48]
@@ -399,6 +599,7 @@ class NexusAIOrchestrator:
             sessionId=session.session_id,
             title=title,
             items=items,
+            uiMessages=ui_messages,
             updatedAt=updated_at,
             activeApprovalItemId=active_approval_item_id,
         )
@@ -434,34 +635,6 @@ class NexusAIOrchestrator:
         session_store.delete(session_id)
         return {"success": True, "sessionId": session_id}
 
-    def metadata_value(self, request: ChatCompletionRequest, key: str) -> str | None:
-        value = (request.metadata or {}).get(key)
-        return str(value) if value else None
-
-    def _model_settings(self, request: ChatCompletionRequest) -> dict[str, Any]:
-        settings_map: dict[str, Any] = {}
-        if request.temperature is not None:
-            settings_map["temperature"] = request.temperature
-        if request.max_tokens is not None:
-            settings_map["max_tokens"] = request.max_tokens
-        return settings_map
-
-    def _latest_user_prompt(self, request: ChatCompletionRequest) -> str:
-        if not request.messages:
-            raise HTTPException(status_code=400, detail="messages must contain at least one item")
-
-        if request.tools or request.tool_choice:
-            raise HTTPException(status_code=400, detail="Client-supplied tools are not supported")
-
-        for index, message in enumerate(request.messages):
-            if not isinstance(message.content, str):
-                raise HTTPException(status_code=400, detail=f"messages[{index}].content must be a text string")
-
-        for message in reversed(request.messages):
-            if message.role == "user":
-                return str(message.content)
-        raise HTTPException(status_code=400, detail="messages must include a user message")
-
     def _runtime_error_message(self, error: Exception) -> str:
         if isinstance(error, HTTPException):
             detail = str(error.detail)
@@ -470,9 +643,10 @@ class NexusAIOrchestrator:
             return detail
         return "Nexus AI could not complete that request."
 
-    async def _approval_events(
+    async def _ui_approval_events(
         self,
-        context: ChatCompletionContext,
+        *,
+        session_id: str,
         run: RunState,
         output: DeferredToolRequests,
     ) -> list[str]:
@@ -492,59 +666,49 @@ class NexusAIOrchestrator:
                 "initial_values": initial_values,
             }
             events.append(
-                openai_chunk(
-                    context.completion_id,
-                    context.model_name,
-                    "approval_required",
-                    context.session_id,
-                    run.run_id,
-                    finish_reason="tool_calls",
-                    extra={
-                        "tool_call_id": tool_call_id,
-                        "tool_name": payload["tool_name"],
-                        "args": payload["args"],
-                        "summary": self._approval_summary(payload["tool_name"]),
-                        "approval_kind": self._approval_kind(payload["tool_name"]),
-                        "initial_values": initial_values,
-                    },
+                self._encode_ui_chunk(
+                    ToolApprovalRequestChunk(
+                        approval_id=tool_call_id,
+                        tool_call_id=tool_call_id,
+                    )
+                )
+            )
+            events.append(
+                self._encode_ui_chunk(
+                    self._approval_required_data(
+                        session_id=session_id,
+                        run_id=run.run_id,
+                        tool_call_id=tool_call_id,
+                        tool_name=payload["tool_name"],
+                        args=payload["args"],
+                        initial_values=initial_values,
+                    )
                 )
             )
         return events
 
-    def _json_completion_response(
+    async def ui_chat_completions(
         self,
-        request: ChatCompletionRequest,
-        completion: CompletionAccumulator,
-    ) -> JSONResponse:
-        return JSONResponse(
-            {
-                "id": f"chatcmpl-{uuid.uuid4().hex}",
-                "object": "chat.completion",
-                "created": int(time.time()),
-                "model": request.model or settings.nexus_ai_model,
-                "session_id": completion.session_id,
-                "run_id": completion.run_id,
-                "choices": [
-                    {
-                        "index": 0,
-                        "message": {"role": "assistant", "content": completion.content},
-                        "finish_reason": completion.finish_reason,
-                    }
-                ],
-                "usage": {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None},
-            }
+        *,
+        user_id: str,
+        workspace_id: str,
+        user_prompt: str,
+        session_id: str | None,
+        model_name: str | None = None,
+    ) -> Response:
+        return StreamingResponse(
+            self.stream_ui_agent_run(
+                user_id=user_id,
+                workspace_id=workspace_id,
+                user_prompt=user_prompt,
+                session_id=session_id,
+                model_name=model_name,
+            ),
+            media_type="text/event-stream",
+            headers={"x-vercel-ai-ui-message-stream": "v1"},
         )
 
-    async def chat_completions(self, request: ChatCompletionRequest, session_id: str | None) -> Response:
-        if request.stream:
-            return StreamingResponse(self.stream_agent_run(request=request, session_id=session_id), media_type="text/event-stream")
-
-        completion = CompletionAccumulator(session_id=session_id)
-        async for chunk in self.stream_agent_run(request=request, session_id=session_id):
-            accumulate_chunk(completion, chunk)
-        return self._json_completion_response(request, completion)
-
-    async def resume_run(self, session_id: str, run_id: str, request: ResumeRequest) -> Response:
+    async def ui_resume_run(self, session_id: str, run_id: str, request: ResumeRequest) -> Response:
         try:
             run = run_store.get(run_id, session_id=session_id)
         except KeyError:
@@ -563,49 +727,45 @@ class NexusAIOrchestrator:
         else:
             deferred_results.approvals[request.tool_call_id] = ToolDenied(request.comment or "User denied this action.")
 
-        chat_request = ChatCompletionRequest(
-            model=None,
-            messages=[{"role": "user", "content": "Continue"}],
-            stream=True,
-            metadata={"user_id": run.user_id, "workspace_id": run.workspace_id},
-        )
         return StreamingResponse(
-            self.stream_agent_run(
-                request=chat_request,
+            self.stream_ui_agent_run(
+                user_id=run.user_id,
+                workspace_id=run.workspace_id,
+                user_prompt="Continue after tool approval.",
                 session_id=session_id,
                 deferred_tool_results=deferred_results,
                 resume_run=run,
             ),
             media_type="text/event-stream",
+            headers={"x-vercel-ai-ui-message-stream": "v1"},
         )
 
-    async def stream_agent_run(
+    async def stream_ui_agent_run(
         self,
         *,
-        request: ChatCompletionRequest,
+        user_id: str,
+        workspace_id: str,
+        user_prompt: str,
         session_id: str | None,
+        model_name: str | None = None,
         deferred_tool_results: DeferredToolResults | None = None,
         resume_run: RunState | None = None,
     ) -> AsyncIterator[str]:
-        model_name = request.model or settings.nexus_ai_model
+        resolved_model_name = model_name or settings.nexus_ai_model
         completion_id = f"chatcmpl-{uuid.uuid4().hex}"
-        user_id = self.metadata_value(request, "user_id")
-        workspace_id = self.metadata_value(request, "workspace_id")
-        if not user_id or not workspace_id:
-            raise HTTPException(status_code=400, detail="metadata.user_id and metadata.workspace_id are required")
-
         session = session_store.get_or_create(user_id, workspace_id, session_id)
         run = resume_run or run_store.create(session)
-        user_prompt = "Continue after tool approval." if deferred_tool_results else self._latest_user_prompt(request)
-        run_settings = self._model_settings(request)
         message_history = run.messages if deferred_tool_results else session.messages
         text = ""
         buffered_main_text = ""
         latest_tool_name: str | None = None
         latest_tool_result: dict[str, Any] | None = None
-        latest_tool_metadata: dict[str, Any] | None = None
+        latest_tool_metadata: Any = None
         latest_tool_outcome: str | None = None
         completed_messages: list[Any] | None = None
+        text_part_id = f"assistant-text-{run.run_id}"
+        text_started = False
+        finish_reason = "stop"
         deferred_tool_call_id = next(iter(deferred_tool_results.approvals), None) if deferred_tool_results else None
         deferred_tool_approval = (
             deferred_tool_results.approvals.get(deferred_tool_call_id)
@@ -630,18 +790,38 @@ class NexusAIOrchestrator:
         approval_granted = deferred_tool_approval is True
         approval_denied = isinstance(deferred_tool_approval, ToolDenied)
         suppressed_duplicate_denial = False
+        def emit_text_delta(delta: str) -> list[str]:
+            nonlocal text_started
+            chunks: list[str] = []
+            if not delta:
+                return chunks
+            if not text_started:
+                chunks.append(self._encode_ui_chunk(TextStartChunk(id=text_part_id)))
+                text_started = True
+            chunks.append(self._encode_ui_chunk(TextDeltaChunk(id=text_part_id, delta=delta)))
+            return chunks
 
-        yield openai_chunk(
-            completion_id,
-            model_name,
-            "run_started" if session_id else "session_started",
-            session.session_id,
-            run.run_id,
-            content="",
+        def finish_stream(reason: str) -> list[str]:
+            chunks: list[str] = []
+            if text_started:
+                chunks.append(self._encode_ui_chunk(TextEndChunk(id=text_part_id)))
+            chunks.append(self._encode_ui_chunk(FinishStepChunk()))
+            chunks.append(self._encode_ui_chunk(FinishChunk(finish_reason=reason)))
+            chunks.append(self._encode_ui_chunk(DoneChunk()))
+            return chunks
+
+        yield self._encode_ui_chunk(StartChunk(message_id=f"assistant-{run.run_id}"))
+        yield self._encode_ui_chunk(StartStepChunk())
+        yield self._encode_ui_chunk(
+            DataChunk(
+                type="data-session",
+                id=session.session_id,
+                data={"sessionId": session.session_id, "runId": run.run_id},
+            )
         )
 
         try:
-            agent, provider_http_client, capture_state = build_agent_with_capture(model_name, completion_id)
+            agent, provider_http_client, capture_state = build_agent_with_capture(resolved_model_name, completion_id)
             async with provider_http_client:
                 deps = AgentDeps(user_id=user_id, workspace_id=workspace_id)
                 first_text_emitted = False
@@ -650,7 +830,6 @@ class NexusAIOrchestrator:
                     deps=deps,
                     message_history=message_history or None,
                     deferred_tool_results=deferred_tool_results,
-                    model_settings=run_settings or None,
                 ) as stream:
                     async for event in stream:
                         if isinstance(event, PartDeltaEvent) and getattr(event.delta, "part_delta_kind", None) == "text":
@@ -664,48 +843,48 @@ class NexusAIOrchestrator:
                                     buffered_main_text += text_delta
                                 else:
                                     text += text_delta
-                                    yield openai_chunk(
-                                        completion_id,
-                                        model_name,
-                                        "text_delta",
-                                        session.session_id,
-                                        run.run_id,
-                                        content=text_delta,
-                                    )
+                                    for chunk in emit_text_delta(text_delta):
+                                        yield chunk
                             first_text_emitted = True
                         elif isinstance(event, FunctionToolCallEvent):
                             payload = tool_part_payload(event.part)
+                            tool_call_id = str(payload["tool_call_id"])
                             if approval_denied and payload.get("tool_name") == resumed_tool_name:
                                 continue
-                            yield openai_chunk(
-                                completion_id,
-                                model_name,
-                                "tool_call",
-                                session.session_id,
-                                run.run_id,
-                                extra=payload,
+                            yield self._encode_ui_chunk(
+                                ToolInputAvailableChunk(
+                                    tool_call_id=tool_call_id,
+                                    tool_name=payload["tool_name"],
+                                    input=payload["args"],
+                                )
                             )
                         elif isinstance(event, FunctionToolResultEvent):
                             part = event.part
+                            tool_call_id = str(getattr(part, "tool_call_id", ""))
                             if approval_denied and getattr(part, "tool_name", None) == resumed_tool_name:
                                 continue
                             latest_tool_name = getattr(part, "tool_name", None)
                             latest_tool_result = self._tool_result_payload(part)
                             latest_tool_metadata = self._tool_result_metadata(part)
                             latest_tool_outcome = getattr(part, "outcome", None)
-                            yield openai_chunk(
-                                completion_id,
-                                model_name,
-                                "tool_result",
-                                session.session_id,
-                                run.run_id,
-                                extra={
-                                    "tool_call_id": getattr(part, "tool_call_id", None),
-                                    "tool_name": getattr(part, "tool_name", None),
-                                    "result": latest_tool_result,
-                                    "outcome": latest_tool_outcome,
-                                },
-                            )
+                            if latest_tool_outcome == "denied":
+                                yield self._encode_ui_chunk(ToolOutputDeniedChunk(tool_call_id=tool_call_id))
+                            elif latest_tool_outcome in {"failed", "error"}:
+                                yield self._encode_ui_chunk(
+                                    ToolOutputErrorChunk(
+                                        tool_call_id=tool_call_id,
+                                        error_text=part.model_response_str(),
+                                    )
+                                )
+                            else:
+                                yield self._encode_ui_chunk(
+                                    ToolOutputAvailableChunk(
+                                        tool_call_id=tool_call_id,
+                                        output=latest_tool_result,
+                                    )
+                                )
+                            for metadata_chunk in self._metadata_ui_chunks(latest_tool_metadata):
+                                yield self._encode_ui_chunk(metadata_chunk)
                         elif isinstance(event, AgentRunResultEvent):
                             output = event.result.output
                             completed_messages = event.result.all_messages()
@@ -754,56 +933,25 @@ class NexusAIOrchestrator:
                                     )
                                 run.messages = completed_messages
                                 session_store.save_messages(session.session_id, run.messages)
-                                context = ChatCompletionContext(
-                                    model_name=model_name,
-                                    completion_id=completion_id,
+                                for approval_event in await self._ui_approval_events(
                                     session_id=session.session_id,
-                                    run_id=run.run_id,
-                                )
-                                for approval_event in await self._approval_events(context, run, output):
+                                    run=run,
+                                    output=output,
+                                ):
                                     yield approval_event
                                 run_store.save(run)
-                                yield openai_chunk(
-                                    completion_id,
-                                    model_name,
-                                    "done",
-                                    session.session_id,
-                                    run.run_id,
-                                    finish_reason="tool_calls",
-                                )
-                                yield "data: [DONE]\n\n"
+                                finish_reason = "tool-calls"
+                                for chunk in finish_stream(finish_reason):
+                                    yield chunk
                                 return
                             if suppress_main_agent_text:
                                 if not buffered_main_text:
                                     buffered_main_text = str(output)
                             elif not text:
                                 text = str(output)
-                                yield openai_chunk(
-                                    completion_id,
-                                    model_name,
-                                    "text_delta",
-                                    session.session_id,
-                                    run.run_id,
-                                    content=text,
-                                )
-            if latest_tool_name == self.PROJECT_LIST_TOOL and latest_tool_outcome == "success" and latest_tool_metadata:
-                assistant_payload_item = self._assistant_payload_item(
-                    latest_tool_metadata,
-                    self._timestamp_iso(datetime.now(timezone.utc)),
-                )
-                if assistant_payload_item is not None:
-                    yield openai_chunk(
-                        completion_id,
-                        model_name,
-                        "assistant_payload",
-                        session.session_id,
-                        run.run_id,
-                        extra={
-                            "payload_type": "project_list",
-                            "title": assistant_payload_item["title"],
-                            "items": assistant_payload_item["projects"],
-                        },
-                    )
+                                for chunk in emit_text_delta(text):
+                                    yield chunk
+
             if (
                 suppress_main_agent_text
                 and latest_tool_name in {self.PROJECT_CREATE_TOOL, self.PROJECT_UPDATE_TOOL}
@@ -813,71 +961,39 @@ class NexusAIOrchestrator:
                 prompt = self._post_action_prompt(latest_tool_name, latest_tool_result)
                 if prompt:
                     text = ""
-                    async for chunk in self._stream_post_action_follow_up(
-                        model_name=model_name,
+                    async for text_delta in self._stream_post_action_follow_up_text(
+                        model_name=resolved_model_name,
                         completion_id=completion_id,
-                        session_id=session.session_id,
-                        run_id=run.run_id,
                         prompt=prompt,
                     ):
-                        payload = chunk.removeprefix("data: ").strip()
-                        if payload != "[DONE]":
-                            try:
-                                parsed = json.loads(payload)
-                            except Exception:
-                                parsed = None
-                            if isinstance(parsed, dict):
-                                delta = parsed.get("delta")
-                                if isinstance(delta, str):
-                                    text += delta
-                        yield chunk
+                        text += text_delta
+                        for chunk in emit_text_delta(text_delta):
+                            yield chunk
                     if completed_messages is not None:
                         completed_messages = self._replace_last_response_text(completed_messages, text)
             elif suppress_main_agent_text and buffered_main_text and approval_granted and not suppressed_duplicate_denial:
                 text = buffered_main_text
-                yield openai_chunk(
-                    completion_id,
-                    model_name,
-                    "text_delta",
-                    session.session_id,
-                    run.run_id,
-                    content=text,
-                )
+                for chunk in emit_text_delta(text):
+                    yield chunk
+
             if completed_messages is not None:
                 run.messages = completed_messages
                 session_store.save_messages(session.session_id, run.messages)
         except Exception as error:
             message = self._runtime_error_message(error)
-            yield openai_chunk(
-                completion_id,
-                model_name,
-                "error",
-                session.session_id,
-                run.run_id,
-                extra={"error": message},
-            )
-            if not text:
-                yield openai_chunk(
-                    completion_id,
-                    model_name,
-                    "text_delta",
-                    session.session_id,
-                    run.run_id,
-                    content=message,
-                )
+            yield self._encode_ui_chunk(ErrorChunk(error_text=message))
             if deferred_tool_call_id:
                 run.pending_tool_calls.pop(deferred_tool_call_id, None)
                 run.consumed_tool_call_ids.discard(deferred_tool_call_id)
             run_store.save(run)
-            yield openai_chunk(completion_id, model_name, "done", session.session_id, run.run_id, finish_reason="error")
-            yield "data: [DONE]\n\n"
+            for chunk in finish_stream("error"):
+                yield chunk
             return
 
         run.pending_tool_calls.clear()
         run.consumed_tool_call_ids.clear()
         run_store.save(run)
-        yield openai_chunk(completion_id, model_name, "done", session.session_id, run.run_id, finish_reason="stop")
-        yield "data: [DONE]\n\n"
-
+        for chunk in finish_stream(finish_reason):
+            yield chunk
 
 orchestrator = NexusAIOrchestrator()

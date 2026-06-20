@@ -150,7 +150,7 @@ export function AIChatMessage({ item, approvalContent, onRegenerate }: AIChatMes
       )
     }
 
-    if (item.type === 'assistant_project_list') {
+    if (item.type === 'project_list') {
       return (
         <div className="space-y-3">
           <div className="text-[13px] font-medium uppercase tracking-[0.08em] text-[#73726C]">

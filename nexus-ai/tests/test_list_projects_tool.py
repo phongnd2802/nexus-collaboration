@@ -3,6 +3,7 @@ import importlib
 
 import pytest
 from pydantic_ai import ToolReturn
+from pydantic_ai.ui.vercel_ai.response_types import DataChunk
 
 list_projects_module = importlib.import_module("app.tools.projects.list_projects")
 
@@ -48,22 +49,24 @@ async def test_list_projects_returns_tool_return_with_project_card_metadata(
             "updated_at": "2026-06-18T00:00:00Z",
         }
     ]
-    assert result.metadata == {
-        "payload_type": "project_list",
-        "title": "Projects",
-        "items": [
-            {
-                "id": "proj_1",
-                "name": "Roadmap",
-                "description": "Q4 roadmap",
-                "status": "active",
-                "type": "kanban",
-                "updatedAt": "2026-06-18T00:00:00Z",
-                "memberCount": 3,
-                "href": "/workspaces/ws_1/projects/proj_1",
-            }
-        ],
-    }
+    assert result.metadata == DataChunk(
+        type="data-project_list",
+        data={
+            "title": "Projects",
+            "items": [
+                {
+                    "id": "proj_1",
+                    "name": "Roadmap",
+                    "description": "Q4 roadmap",
+                    "status": "active",
+                    "type": "kanban",
+                    "updatedAt": "2026-06-18T00:00:00Z",
+                    "memberCount": 3,
+                    "href": "/workspaces/ws_1/projects/proj_1",
+                }
+            ],
+        },
+    )
 
 
 @pytest.mark.asyncio

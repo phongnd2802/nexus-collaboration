@@ -28,8 +28,8 @@ export interface AssistantMessageItem extends TimelineItemBase {
   status: 'streaming' | 'completed' | 'error' | 'stopped'
 }
 
-export interface AssistantProjectListItem extends TimelineItemBase {
-  type: 'assistant_project_list'
+export interface ProjectListItem extends TimelineItemBase {
+  type: 'project_list'
   title: string
   projects: ProjectCardPayload[]
 }
@@ -66,7 +66,7 @@ export interface SystemEventItem extends TimelineItemBase {
 export type AIChatTimelineItem =
   | UserMessageItem
   | AssistantMessageItem
-  | AssistantProjectListItem
+  | ProjectListItem
   | ToolCallItem
   | ToolResultItem
   | ApprovalRequiredItem
