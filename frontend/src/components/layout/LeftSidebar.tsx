@@ -576,6 +576,7 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
     description: string;
     type: 'channel' | 'dm';
     is_private: boolean;
+    member_ids?: string[];
   }) => {
     if (!workspaceId) return;
 
@@ -586,16 +587,16 @@ export const LeftSidebar = React.memo(function LeftSidebar({ currentView, isColl
       // Close modal
       setShowCreateChannelModal(false);
 
-      // Refresh channels list and wait for it to complete
-      await refreshChannels();
+      // Immediately add to state so the channel appears without waiting for refresh
+      setChannels(prev => [...prev, { ...newChannel, unreadCount: 0 }]);
+
+      // Refresh in background to get accurate member_count and other server-computed fields
+      refreshChannels();
 
       // Show success message
       toast.success(`Channel "${channelData.name}" created successfully!`);
 
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        navigate(`/workspaces/${workspaceId}/chat/${newChannel.id}`);
-      }, 100);
+      navigate(`/workspaces/${workspaceId}/chat/${newChannel.id}`);
     } catch (error) {
       console.error('Failed to create channel:', error);
       toast.error('Failed to create channel. Please try again.');

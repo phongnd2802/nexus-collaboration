@@ -335,7 +335,6 @@ export class WorkspaceService {
           role = 'admin';
           break;
         case 'member':
-        case 'viewer':
         default:
           role = 'member';
           break;

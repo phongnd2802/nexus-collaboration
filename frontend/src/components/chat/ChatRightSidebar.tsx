@@ -26,7 +26,7 @@ import {
   UserMinus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useChannelMembers, useUpdateChannel } from '@/lib/api/chat-api';
+import { useChannelMembers, useRemoveChannelMember } from '@/lib/api/chat-api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { toast } from 'sonner';
@@ -75,7 +75,7 @@ export function ChatRightSidebar({
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
   const { openMemberProfile } = useMemberProfile();
-  const updateChannelMutation = useUpdateChannel();
+  const removeChannelMemberMutation = useRemoveChannelMember();
   const displayChannelDescription =
     channelDescription ||
     intl.formatMessage({
@@ -93,26 +93,28 @@ export function ChatRightSidebar({
     isPrivate && !!channelId && !!workspaceId && chatType === 'channel'
   );
 
-  // Check if current user is workspace owner/admin
-  const isWorkspaceOwnerOrAdmin = currentWorkspace?.owner_id === user?.id;
+  // Check if current user can remove members:
+  // - workspace owner, OR
+  // - workspace admin, OR
+  // - channel admin (includes channel creator, who is added as admin on creation)
+  const isWorkspaceOwner = currentWorkspace?.owner_id === user?.id;
+  const isWorkspaceAdmin = workspaceMembers.some(
+    m => m.user_id === user?.id && m.role === 'admin'
+  );
+  const isChannelAdmin = channelMembers.some(
+    m => m.userId === user?.id && m.role === 'admin'
+  );
+  const isWorkspaceOwnerOrAdmin = isWorkspaceOwner || isWorkspaceAdmin || isChannelAdmin;
 
   // Handle remove member
   const handleRemoveMember = async (memberUserId: string) => {
     if (!channelId || !workspaceId || !isPrivate) return;
 
     try {
-      // Get current member IDs excluding the one to remove
-      const updatedMemberIds = channelMembers
-        .filter(m => m.userId !== memberUserId)
-        .map(m => m.userId);
-
-      await updateChannelMutation.mutateAsync({
+      await removeChannelMemberMutation.mutateAsync({
         workspaceId,
         channelId,
-        data: {
-          is_private: true, // Required for backend to process member updates
-          member_ids: updatedMemberIds,
-        },
+        userId: memberUserId,
       });
 
       toast.success(intl.formatMessage({ id: 'modules.chat.rightSidebar.memberRemoved', defaultMessage: 'Member removed from channel' }));
@@ -354,7 +356,7 @@ export function ChatRightSidebar({
                       size="sm"
                       className="h-8 w-8 shrink-0 ml-2 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => handleRemoveMember(member.userId)}
-                      disabled={updateChannelMutation.isPending}
+                      disabled={removeChannelMemberMutation.isPending}
                     >
                       <UserMinus className="h-4 w-4" />
                     </Button>

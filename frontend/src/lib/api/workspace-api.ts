@@ -19,11 +19,11 @@ export interface UpdateWorkspaceRequest {
 
 export interface InviteMemberRequest {
   email: string;
-  role: 'admin' | 'member' | 'viewer';
+  role: 'admin' | 'member';
 }
 
 export interface UpdateMemberRoleRequest {
-  role: 'admin' | 'member' | 'viewer';
+  role: 'admin' | 'member';
   permissions?: string[];
 }
 

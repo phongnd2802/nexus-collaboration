@@ -578,9 +578,18 @@ export class ChatService {
 
     const workspace = workspaceData[0];
 
-    // Only workspace owner can delete channels
-    if (workspace.owner_id !== userId) {
-      throw new ForbiddenException('Only workspace owner can delete channels');
+    // Allow workspace owner or workspace admin to delete channels
+    const isOwner = workspace.owner_id === userId;
+    if (!isOwner) {
+      const membershipResult = await this.db.findMany('workspace_members', {
+        workspace_id: workspace.id,
+        user_id: userId,
+      });
+      const membershipData = Array.isArray(membershipResult.data) ? membershipResult.data : [];
+      const isAdmin = membershipData.length > 0 && membershipData[0].role === 'admin';
+      if (!isAdmin) {
+        throw new ForbiddenException('Only workspace owner or admin can delete channels');
+      }
     }
 
     // Archive the channel instead of hard delete to preserve messages
@@ -2379,19 +2388,20 @@ export class ChatService {
         }
 
         try {
-          // Check if user has voted on this poll
-          const userVote = await this.db.findOne('poll_votes', {
+          // Get all votes the user cast on this poll (supports multiple choice)
+          const userVotesResult = await this.db.findMany('poll_votes', {
             message_id: messageId,
             poll_id: item.poll.id,
             user_id: userId,
           });
+          const userVotes = Array.isArray(userVotesResult.data) ? userVotesResult.data : [];
+          const userVotedOptionIds = userVotes.map((v: any) => v.option_id);
 
-          // Add userVotedOptionId to the poll object
           return {
             ...item,
             poll: {
               ...item.poll,
-              userVotedOptionId: userVote?.option_id || null,
+              userVotedOptionIds: userVotedOptionIds.length > 0 ? userVotedOptionIds : null,
             },
           };
         } catch (error: any) {
@@ -2699,22 +2709,7 @@ export class ChatService {
     memberUserId: string,
     requestingUserId: string,
   ) {
-    // Verify requesting user is admin/owner of the channel
-    const channelMemberResult = await this.db.findMany('channel_members', {
-      channel_id: channelId,
-      user_id: requestingUserId,
-    });
-
-    const channelMemberData = Array.isArray(channelMemberResult.data)
-      ? channelMemberResult.data
-      : [];
-    const requesterMembership = channelMemberData[0];
-
-    if (!requesterMembership || requesterMembership.role !== 'admin') {
-      throw new ForbiddenException('Only channel admins can remove members');
-    }
-
-    // Get the channel
+    // Get the channel first (needed for workspace owner check and creator protection)
     const channelQueryResult = await this.db.findMany('channels', {
       id: channelId,
     });
@@ -2726,8 +2721,32 @@ export class ChatService {
 
     const channel = channelData[0];
 
-    // Don't allow removing the channel creator/owner
-    if (memberUserId === channel.created_by) {
+    // Channel creator has full control over their channel (can remove anyone, including workspace owner)
+    const isChannelCreator = channel.created_by === requestingUserId;
+
+    // Check if requester is workspace owner (skip if already channel creator)
+    let isWorkspaceOwner = false;
+    if (!isChannelCreator) {
+      const workspaceResult = await this.db.findMany('workspaces', { id: workspaceId });
+      const workspaceData = Array.isArray(workspaceResult.data) ? workspaceResult.data : [];
+      isWorkspaceOwner = workspaceData.length > 0 && workspaceData[0].owner_id === requestingUserId;
+    }
+
+    // Check if requester is channel admin (if not channel creator or workspace owner)
+    if (!isChannelCreator && !isWorkspaceOwner) {
+      const channelMemberResult = await this.db.findMany('channel_members', {
+        channel_id: channelId,
+        user_id: requestingUserId,
+      });
+      const channelMemberData = Array.isArray(channelMemberResult.data) ? channelMemberResult.data : [];
+      const requesterMembership = channelMemberData[0];
+      if (!requesterMembership || requesterMembership.role !== 'admin') {
+        throw new ForbiddenException('Only channel admins or workspace owners can remove members');
+      }
+    }
+
+    // Protect channel creator from removal — unless the requester IS the channel creator
+    if (memberUserId === channel.created_by && !isChannelCreator) {
       throw new ForbiddenException('Cannot remove channel creator');
     }
 
@@ -3919,7 +3938,11 @@ export class ChatService {
   /**
    * Vote on a poll
    */
-  async votePoll(messageId: string, pollId: string, optionId: string, userId: string) {
+  async votePoll(messageId: string, pollId: string, optionIds: string[], userId: string) {
+    if (!optionIds || optionIds.length === 0) {
+      throw new BadRequestException('At least one option must be selected');
+    }
+
     // Get the message containing the poll
     const messageResult = await this.db.findOne('messages', { id: messageId });
     if (!messageResult) {
@@ -3946,55 +3969,86 @@ export class ChatService {
 
     const poll = pollContent.poll;
 
-    // Check if poll is open
     if (!poll.isOpen) {
       throw new BadRequestException('Poll is closed');
     }
 
-    // Check if option exists
-    const optionExists = poll.options.some((opt: any) => opt.id === optionId);
-    if (!optionExists) {
-      throw new BadRequestException('Invalid option');
+    // Validate all submitted options exist in the poll
+    for (const optId of optionIds) {
+      if (!poll.options.some((opt: any) => opt.id === optId)) {
+        throw new BadRequestException(`Invalid option: ${optId}`);
+      }
     }
 
-    // Check if user already voted (using the poll_votes table)
-    const existingVote = await this.db.findOne('poll_votes', {
+    // Single-choice polls must not receive more than one option
+    if (!poll.allowMultipleChoice && optionIds.length > 1) {
+      throw new BadRequestException('This poll does not allow multiple choices');
+    }
+
+    // Get all existing votes for this user on this poll
+    const existingVotesResult = await this.db.findMany('poll_votes', {
       message_id: messageId,
       poll_id: pollId,
       user_id: userId,
     });
+    const existingVotes = Array.isArray(existingVotesResult.data)
+      ? existingVotesResult.data
+      : [];
+    const existingOptionIds: string[] = existingVotes.map((v: any) => v.option_id);
 
-    if (existingVote) {
-      throw new BadRequestException('You have already voted on this poll');
+    const isNewVoter = existingVotes.length === 0;
+
+    // No-op: same selection as before
+    const isSameSelection =
+      optionIds.length === existingOptionIds.length &&
+      optionIds.every((id) => existingOptionIds.includes(id));
+
+    if (isSameSelection) {
+      return {
+        message: 'Vote unchanged',
+        data: { poll, userVotedOptionIds: existingOptionIds },
+      };
     }
 
-    // Record the vote
-    await this.db.insert('poll_votes', {
-      message_id: messageId,
-      poll_id: pollId,
-      option_id: optionId,
-      user_id: userId,
-    });
+    // Replace all existing votes with the new selection
+    if (existingVotes.length > 0) {
+      await this.db.deleteMany('poll_votes', {
+        message_id: messageId,
+        poll_id: pollId,
+        user_id: userId,
+      });
+    }
+    for (const optId of optionIds) {
+      await this.db.insert('poll_votes', {
+        message_id: messageId,
+        poll_id: pollId,
+        option_id: optId,
+        user_id: userId,
+      });
+    }
 
-    // Update vote counts in the poll
-    const updatedOptions = poll.options.map((opt: any) => ({
-      ...opt,
-      voteCount: opt.id === optionId ? (opt.voteCount || 0) + 1 : opt.voteCount || 0,
-    }));
+    // Recalculate per-option vote counts
+    const updatedOptions = poll.options.map((opt: any) => {
+      const wasSelected = existingOptionIds.includes(opt.id);
+      const isNowSelected = optionIds.includes(opt.id);
+      const delta =
+        !wasSelected && isNowSelected ? 1 : wasSelected && !isNowSelected ? -1 : 0;
+      return { ...opt, voteCount: Math.max(0, (opt.voteCount || 0) + delta) };
+    });
 
     const updatedPoll = {
       ...poll,
       options: updatedOptions,
-      totalVotes: (poll.totalVotes || 0) + 1,
+      // totalVotes counts unique voters — only increment for first-time voters
+      totalVotes: (poll.totalVotes || 0) + (isNewVoter ? 1 : 0),
     };
 
-    // Update the linked_content in the message
-    const updatedLinkedContent = linkedContent.map((item: any) => {
-      if (item.type === 'poll' && item.poll?.id === pollId) {
-        return { ...item, poll: updatedPoll };
-      }
-      return item;
-    });
+    // Persist the updated poll inside linked_content
+    const updatedLinkedContent = linkedContent.map((item: any) =>
+      item.type === 'poll' && item.poll?.id === pollId
+        ? { ...item, poll: updatedPoll }
+        : item,
+    );
 
     await this.db
       .table('messages')
@@ -4005,8 +4059,6 @@ export class ChatService {
       .where('id', '=', messageId)
       .execute();
 
-    console.log('🗳️ Vote recorded:', { messageId, pollId, optionId, userId });
-
     // Emit WebSocket event for real-time update
     const room = messageResult.channel_id
       ? `channel:${messageResult.channel_id}`
@@ -4015,7 +4067,7 @@ export class ChatService {
     this.appGateway.emitToRoom(room, 'poll:voted', {
       messageId,
       pollId,
-      optionId,
+      optionIds,
       userId,
       poll: updatedPoll,
     });
@@ -4024,7 +4076,7 @@ export class ChatService {
       message: 'Vote recorded successfully',
       data: {
         poll: updatedPoll,
-        userVotedOptionId: optionId,
+        userVotedOptionIds: optionIds,
       },
     };
   }
@@ -4141,21 +4193,19 @@ export class ChatService {
 
     const poll = pollContent.poll;
 
-    // Check if user has voted
-    const userVote = await this.db.findOne('poll_votes', {
+    // Check if user has voted (supports multiple choice)
+    const userVotesResult = await this.db.findMany('poll_votes', {
       message_id: messageId,
       poll_id: pollId,
       user_id: userId,
     });
+    const userVotes = Array.isArray(userVotesResult.data) ? userVotesResult.data : [];
+    const userVotedOptionIds = userVotes.map((v: any) => v.option_id);
+    const hasVoted = userVotedOptionIds.length > 0;
 
-    const userVotedOptionId = userVote ? userVote.option_id : null;
-    const hasVoted = !!userVotedOptionId;
-
-    // Determine if we should show results
     // Show results if: poll is closed, user has voted, or showResultsBeforeVoting is true
     const showResults = !poll.isOpen || hasVoted || poll.showResultsBeforeVoting;
 
-    // If not showing results, hide vote counts
     let pollData = { ...poll };
     if (!showResults) {
       pollData = {
@@ -4171,7 +4221,7 @@ export class ChatService {
     return {
       data: {
         poll: pollData,
-        userVotedOptionId,
+        userVotedOptionIds,
         hasVoted,
         showResults,
       },

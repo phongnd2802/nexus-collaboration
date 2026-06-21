@@ -74,6 +74,11 @@ export class PollDto {
   @IsBoolean()
   showResultsBeforeVoting: boolean;
 
+  @ApiProperty({ description: 'Whether to allow multiple choice selection', default: false })
+  @IsOptional()
+  @IsBoolean()
+  allowMultipleChoice?: boolean;
+
   @ApiProperty({ description: 'User ID who created the poll' })
   @IsString()
   createdBy: string;

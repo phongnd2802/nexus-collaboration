@@ -11,59 +11,78 @@ interface PollMessageProps {
   poll: Poll;
   messageId: string;
   currentUserId: string;
-  userVotedOptionId?: string | null;
+  userVotedOptionIds?: string[] | null;
 }
 
 export function PollMessage({
   poll,
   messageId,
   currentUserId,
-  userVotedOptionId: initialUserVotedOptionId,
+  userVotedOptionIds: initialUserVotedOptionIds,
 }: PollMessageProps) {
   const intl = useIntl();
   const { workspaceId } = useParams();
-  const [userVotedOptionId, setUserVotedOptionId] = useState<string | null>(
-    initialUserVotedOptionId || null
+  const [userVotedOptionIds, setUserVotedOptionIds] = useState<string[]>(
+    initialUserVotedOptionIds || []
   );
   const [localPoll, setLocalPoll] = useState<Poll>(poll);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // selectedOptions tracks what the user has clicked but not yet submitted
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
   const voteMutation = useVotePoll();
   const closeMutation = useClosePoll();
 
-  // Sync local state with prop when it changes (e.g., from WebSocket updates)
   useEffect(() => {
     setLocalPoll(poll);
   }, [poll]);
 
-  // Sync userVotedOptionId with prop when it changes
   useEffect(() => {
-    if (initialUserVotedOptionId) {
-      setUserVotedOptionId(initialUserVotedOptionId);
+    if (initialUserVotedOptionIds) {
+      setUserVotedOptionIds(initialUserVotedOptionIds);
     }
-  }, [initialUserVotedOptionId]);
+  }, [initialUserVotedOptionIds]);
 
   const isCreator = currentUserId === localPoll.createdBy;
-  const hasVoted = !!userVotedOptionId;
-  const canVote = localPoll.isOpen && !hasVoted;
+  const hasVoted = userVotedOptionIds.length > 0;
+  const canVote = localPoll.isOpen;
   const canViewResults =
     hasVoted || localPoll.showResultsBeforeVoting || !localPoll.isOpen;
+  const isMultiple = !!localPoll.allowMultipleChoice;
 
-  const handleVote = async (optionId: string) => {
-    if (!workspaceId || !canVote) return;
+  const toggleOption = (optionId: string) => {
+    setSelectedOptions((prev) => {
+      if (isMultiple) {
+        // Checkbox: toggle freely
+        return prev.includes(optionId)
+          ? prev.filter((id) => id !== optionId)
+          : [...prev, optionId];
+      } else {
+        // Radio: toggle (deselect if same, replace otherwise)
+        return prev.includes(optionId) ? [] : [optionId];
+      }
+    });
+  };
+
+  // Show the Vote/Change Vote button when selection differs from current votes
+  const hasNewSelection =
+    selectedOptions.length > 0 &&
+    (selectedOptions.length !== userVotedOptionIds.length ||
+      !selectedOptions.every((id) => userVotedOptionIds.includes(id)));
+
+  const handleVote = async () => {
+    if (!workspaceId || !canVote || selectedOptions.length === 0) return;
 
     try {
       const result = await voteMutation.mutateAsync({
         workspaceId,
         messageId,
         pollId: localPoll.id,
-        optionId,
+        optionIds: selectedOptions,
       });
 
-      // Update local state with the result
-      setUserVotedOptionId(result.data.userVotedOptionId);
+      setUserVotedOptionIds(result.data.userVotedOptionIds);
       setLocalPoll(result.data.poll);
-      setSelectedOption(null);
+      setSelectedOptions([]);
     } catch (error) {
       console.error('Failed to vote:', error);
     }
@@ -79,7 +98,6 @@ export function PollMessage({
         pollId: localPoll.id,
       });
 
-      // Update local state
       setLocalPoll(result.data.poll);
     } catch (error) {
       console.error('Failed to close poll:', error);
@@ -102,6 +120,14 @@ export function PollMessage({
             defaultMessage: 'Poll',
           })}
         </span>
+        {isMultiple && (
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+            {intl.formatMessage({
+              id: 'modules.chat.poll.multipleChoice',
+              defaultMessage: 'Multiple choice',
+            })}
+          </span>
+        )}
         {!localPoll.isOpen && (
           <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
             {intl.formatMessage({
@@ -118,40 +144,50 @@ export function PollMessage({
       {/* Options */}
       <div className="space-y-2">
         {localPoll.options.map((option) => {
-          const isSelected = selectedOption === option.id;
-          const isVoted = userVotedOptionId === option.id;
+          const isSelected = selectedOptions.includes(option.id);
+          const isVoted = userVotedOptionIds.includes(option.id);
           const percentage = getVotePercentage(option);
 
           return (
             <div key={option.id} className="relative">
               {canVote ? (
-                // Voting mode - clickable options (with results if showResultsBeforeVoting)
+                // Voting mode — clickable options
                 <button
-                  onClick={() => setSelectedOption(option.id)}
+                  onClick={() => toggleOption(option.id)}
                   className={cn(
                     'w-full text-left p-3 rounded-md border transition-colors relative overflow-hidden',
                     isSelected
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary/40'
+                      : isVoted
+                        ? 'border-primary/50 bg-primary/10'
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
                   )}
                 >
-                  {/* Show progress bar if results visible before voting */}
                   {canViewResults && (
                     <div
-                      className="absolute inset-0 bg-muted/50 transition-all"
+                      className="absolute inset-0 bg-muted/40 transition-all"
                       style={{ width: `${percentage}%` }}
                     />
                   )}
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      {/* Square for multiple choice, circle for single choice */}
                       <div
                         className={cn(
-                          'w-4 h-4 rounded-full border-2 flex items-center justify-center',
-                          isSelected ? 'border-primary' : 'border-muted-foreground'
+                          'w-4 h-4 border-2 flex items-center justify-center shrink-0',
+                          isMultiple ? 'rounded' : 'rounded-full',
+                          isSelected || isVoted
+                            ? 'border-primary'
+                            : 'border-muted-foreground'
                         )}
                       >
                         {isSelected && (
-                          <div className="w-2 h-2 rounded-full bg-primary" />
+                          isMultiple
+                            ? <Check className="h-2.5 w-2.5 text-primary" />
+                            : <div className="w-2 h-2 rounded-full bg-primary" />
+                        )}
+                        {!isSelected && isVoted && (
+                          <Check className="h-2.5 w-2.5 text-primary" />
                         )}
                       </div>
                       <span className="text-sm">{option.text}</span>
@@ -164,14 +200,13 @@ export function PollMessage({
                   </div>
                 </button>
               ) : (
-                // Results mode - show progress bars
+                // Results mode — static display
                 <div
                   className={cn(
                     'relative overflow-hidden rounded-md border p-3',
                     isVoted ? 'border-primary' : 'border-border'
                   )}
                 >
-                  {/* Progress bar background */}
                   {canViewResults && (
                     <div
                       className={cn(
@@ -181,12 +216,9 @@ export function PollMessage({
                       style={{ width: `${percentage}%` }}
                     />
                   )}
-
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {isVoted && (
-                        <Check className="h-4 w-4 text-primary shrink-0" />
-                      )}
+                      {isVoted && <Check className="h-4 w-4 text-primary shrink-0" />}
                       <span className="text-sm">{option.text}</span>
                     </div>
                     {canViewResults ? (
@@ -204,10 +236,10 @@ export function PollMessage({
         })}
       </div>
 
-      {/* Vote button */}
-      {canVote && selectedOption && (
+      {/* Vote / Change Vote button */}
+      {canVote && hasNewSelection && (
         <Button
-          onClick={() => handleVote(selectedOption)}
+          onClick={handleVote}
           disabled={voteMutation.isPending}
           className="w-full mt-3"
           size="sm"
@@ -217,10 +249,15 @@ export function PollMessage({
                 id: 'modules.chat.poll.voting',
                 defaultMessage: 'Voting...',
               })
-            : intl.formatMessage({
-                id: 'modules.chat.poll.vote',
-                defaultMessage: 'Vote',
-              })}
+            : hasVoted
+              ? intl.formatMessage({
+                  id: 'modules.chat.poll.changeVote',
+                  defaultMessage: 'Change Vote',
+                })
+              : intl.formatMessage({
+                  id: 'modules.chat.poll.vote',
+                  defaultMessage: 'Vote',
+                })}
         </Button>
       )}
 
@@ -257,7 +294,6 @@ export function PollMessage({
         )}
       </div>
 
-      {/* Hint for users who haven't voted */}
       {!hasVoted && !localPoll.isOpen && (
         <p className="text-xs text-muted-foreground mt-2 italic">
           {intl.formatMessage({

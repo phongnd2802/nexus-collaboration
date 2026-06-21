@@ -75,24 +75,11 @@ export function CreateChannelModal({
   }, [editMode, initialData]);
 
   // Populate selected members from existing members in edit mode
-  // Exclude workspace owners from selected members
   React.useEffect(() => {
-    if (editMode && existingMembers.length > 0 && workspaceMembers.length > 0) {
-      // Filter out workspace owners from selected members
-      const memberIds = existingMembers
-        .filter(existingMember => {
-          // Find the corresponding workspace member
-          const workspaceMember = workspaceMembers.find(
-            wm => wm.user_id === existingMember.userId
-          );
-          // Exclude if they are a workspace owner
-          return workspaceMember?.role !== 'owner';
-        })
-        .map(m => m.userId);
-
-      setSelectedMembers(memberIds);
+    if (editMode && existingMembers.length > 0) {
+      setSelectedMembers(existingMembers.map(m => m.userId));
     }
-  }, [editMode, existingMembers, workspaceMembers]);
+  }, [editMode, existingMembers]);
 
   const toggleMemberSelection = (userId: string) => {
     setSelectedMembers(prev =>
@@ -111,11 +98,6 @@ export function CreateChannelModal({
 
     // Exclude the current user (they will be added as admin automatically)
     if (user && member.user_id === user.id) {
-      return false;
-    }
-
-    // In edit mode, exclude workspace owners (they can't be removed from channels)
-    if (editMode && member.role === 'admin') {
       return false;
     }
 

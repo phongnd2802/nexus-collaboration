@@ -592,7 +592,7 @@ export class ChatController {
     @Body() votePollDto: VotePollDto,
     @CurrentUser('sub') userId: string,
   ) {
-    return this.chatService.votePoll(messageId, pollId, votePollDto.optionId, userId);
+    return this.chatService.votePoll(messageId, pollId, votePollDto.optionIds, userId);
   }
 
   @Post('messages/:messageId/polls/:pollId/close')

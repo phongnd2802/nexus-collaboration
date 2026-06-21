@@ -715,7 +715,7 @@ export function MessageItem({
                           poll={item.poll}
                           messageId={message.id}
                           currentUserId={currentUserId || ''}
-                          userVotedOptionId={item.poll.userVotedOptionId}
+                          userVotedOptionIds={item.poll.userVotedOptionIds}
                         />
                       </div>
                     )

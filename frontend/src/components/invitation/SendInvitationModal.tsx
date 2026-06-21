@@ -112,11 +112,6 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
           id: 'invites.sendDialog.roleDescriptions.member',
           defaultMessage: 'Can collaborate on projects and tasks',
         });
-      case 'viewer':
-        return intl.formatMessage({
-          id: 'invites.sendDialog.roleDescriptions.viewer',
-          defaultMessage: 'Read-only access to workspace content',
-        });
       default:
         return '';
     }
@@ -249,12 +244,6 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
                     {intl.formatMessage({
                       id: 'invites.sendDialog.roles.admin',
                       defaultMessage: 'Admin',
-                    })}
-                  </SelectItem>
-                  <SelectItem value="viewer">
-                    {intl.formatMessage({
-                      id: 'invites.sendDialog.roles.viewer',
-                      defaultMessage: 'Viewer',
                     })}
                   </SelectItem>
                 </SelectContent>

@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 /**
- * DTO for voting on a poll
+ * DTO for voting on a poll (single or multiple choice)
  */
 export class VotePollDto {
-  @ApiProperty({ description: 'ID of the option to vote for' })
-  @IsString()
-  optionId: string;
+  @ApiProperty({ description: 'IDs of the option(s) to vote for', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  optionIds: string[];
 }
