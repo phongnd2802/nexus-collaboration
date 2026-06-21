@@ -175,7 +175,10 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ workspaceId: propWorksp
       ]);
 
       // Map WorkspaceMember[] to TeamMember[]
-      const teamMembers = membersData.map(mapWorkspaceMemberToTeamMember);
+      const teamMembers = membersData.map(m => ({
+        ...mapWorkspaceMemberToTeamMember(m),
+        is_owner: m.user_id === membershipData?.user_id,
+      }));
 
       setMembers(teamMembers);
       setStats(statsData);
@@ -556,7 +559,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ workspaceId: propWorksp
                 <TeamMemberCard
                   key={member.id}
                   member={member}
-                  onEdit={canManageTeam() ? handleEditMember : undefined}
+                  onEdit={canManageTeam() && (member.role !== 'owner' || currentUserMembership?.role === 'owner') ? handleEditMember : undefined}
                   onRemove={canManageTeam() ? handleRemoveMember : undefined}
                   onView={handleViewMember}
                 />
