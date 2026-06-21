@@ -41,26 +41,26 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
-  nexus-ai:
-    build:
-      context: ./nexus-ai
-    container_name: nexus-ai
-    restart: unless-stopped
-    ports:
-      - "${NEXUS_AI_PORT:-8000}:8000"
-    environment:
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      NEXUS_AI_MODEL: ${NEXUS_AI_MODEL:-openai/gpt-4o-mini}
-      NEXUS_AI_API_KEY: ${NEXUS_AI_API_KEY:-change-me}
-      NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
-      NEXUS_INTERNAL_API_TOKEN: ${NEXUS_INTERNAL_API_TOKEN:-change-me}
-      OPENROUTER_APP_URL: ${OPENROUTER_APP_URL:-http://localhost:5175}
-      OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-Nexus}
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+  # nexus-ai:
+  #   build:
+  #     context: ./nexus-ai
+  #   container_name: nexus-ai
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${NEXUS_AI_PORT:-8000}:8000"
+  #   environment:
+  #     OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  #     NEXUS_AI_MODEL: ${NEXUS_AI_MODEL:-openai/gpt-4o-mini}
+  #     NEXUS_AI_API_KEY: ${NEXUS_AI_API_KEY:-change-me}
+  #     NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
+  #     NEXUS_INTERNAL_API_TOKEN: ${NEXUS_INTERNAL_API_TOKEN:-change-me}
+  #     OPENROUTER_APP_URL: ${OPENROUTER_APP_URL:-http://localhost:5175}
+  #     OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-Nexus}
+  #   healthcheck:
+  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
 
 
   seaweed-master:
@@ -122,12 +122,12 @@ services:
   #   container_name: nexus-mcp
   #   restart: unless-stopped
   #   ports:
-  #     - "${NEXUS_MCP_PORT:-8000}:8000"
+  #     - "${NEXUS_MCP_PORT:-3100}:3100"
   #   environment:
-  #     MCP_SERVER_NAME: ${MCP_SERVER_NAME:-autopilot_core}
-  #     NEXUS_INTERNAL_API_URL: ${NEXUS_INTERNAL_API_URL:-http://host.docker.internal:3002/api/v1/internal/mcp}
-  #     NEXUS_INTERNAL_API_TOKEN: ${NEXUS_INTERNAL_API_TOKEN:-change-me}
-  #     REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-30}
+  #     PORT: 3100
+  #     MCP_SERVER_NAME: ${MCP_SERVER_NAME:-nexus-mcp-server}
+  #     NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
+  #     REQUEST_TIMEOUT_MS: ${REQUEST_TIMEOUT_MS:-30000}
   #   extra_hosts:
   #     - "host.docker.internal:host-gateway"
 
