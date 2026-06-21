@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
+export type WorkspaceRole = 'owner' | 'admin' | 'member';
 
 export const ROLES_KEY = 'roles';
 
@@ -39,10 +39,9 @@ export class RoleGuard implements CanActivate {
 
   private checkRoleHierarchy(userRole: string, requiredRoles: WorkspaceRole[]): boolean {
     const roleHierarchy: Record<WorkspaceRole, number> = {
-      viewer: 1,
-      member: 2,
-      admin: 3,
-      owner: 4,
+      member: 1,
+      admin: 2,
+      owner: 3,
     };
 
     const userRoleLevel = roleHierarchy[userRole as WorkspaceRole] || 0;

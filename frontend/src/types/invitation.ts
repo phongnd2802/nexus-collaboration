@@ -17,7 +17,7 @@ export enum InvitationStatus {
  * Team role type
  * Must match backend WorkspaceRole enum values
  */
-export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
+export type TeamRole = 'owner' | 'admin' | 'member';
 
 /**
  * Invitation interface

@@ -1217,6 +1217,33 @@
       "reactions": {
         "quickReactions": "Phản ứng nhanh",
         "moreReactions": "Thêm phản ứng"
+      },
+      "poll": {
+        "createTitle": "Tạo bình chọn",
+        "question": "Câu hỏi",
+        "questionPlaceholder": "Đặt một câu hỏi...",
+        "options": "Lựa chọn",
+        "optionPlaceholder": "Lựa chọn {number}",
+        "addOption": "Thêm lựa chọn",
+        "optionsHint": "Cho phép {min}-{max} lựa chọn",
+        "allowMultipleChoice": "Cho phép chọn nhiều",
+        "multipleChoiceOn": "Thành viên có thể chọn nhiều hơn một lựa chọn",
+        "multipleChoiceOff": "Thành viên chỉ có thể chọn một lựa chọn",
+        "showResults": "Hiển thị kết quả trước khi bình chọn",
+        "resultsVisible": "Người dùng có thể xem kết quả trước khi bình chọn",
+        "resultsHidden": "Kết quả ẩn cho đến khi bình chọn",
+        "cancel": "Hủy",
+        "create": "Tạo bình chọn",
+        "title": "Bình chọn",
+        "multipleChoice": "Nhiều lựa chọn",
+        "closed": "Đã đóng",
+        "voting": "Đang bình chọn...",
+        "changeVote": "Thay đổi lựa chọn",
+        "vote": "Bình chọn",
+        "totalVotes": "{count} lượt bình chọn",
+        "closing": "Đang đóng...",
+        "closePoll": "Đóng bình chọn",
+        "closedNoVote": "Bình chọn này đã đóng. Bạn chưa tham gia bình chọn."
       }
     },
     "aiChat": {

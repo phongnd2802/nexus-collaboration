@@ -137,7 +137,6 @@ const InvitationList: React.FC<InvitationListProps> = ({ workspaceId, onUpdate }
         return Shield;
       case 'member':
         return Code;
-      case 'viewer':
       default:
         return User;
     }
@@ -150,10 +149,8 @@ const InvitationList: React.FC<InvitationListProps> = ({ workspaceId, onUpdate }
       case 'admin':
         return 'from-blue-500 to-indigo-600';
       case 'member':
-        return 'from-blue-500 to-cyan-500';
-      case 'viewer':
       default:
-        return 'from-gray-500 to-gray-600';
+        return 'from-blue-500 to-cyan-500';
     }
   };
 
@@ -164,10 +161,8 @@ const InvitationList: React.FC<InvitationListProps> = ({ workspaceId, onUpdate }
       case 'admin':
         return intl.formatMessage({ id: 'roles.admin' });
       case 'member':
-        return intl.formatMessage({ id: 'roles.member' });
-      case 'viewer':
       default:
-        return intl.formatMessage({ id: 'roles.viewer' });
+        return intl.formatMessage({ id: 'roles.member' });
     }
   };
 

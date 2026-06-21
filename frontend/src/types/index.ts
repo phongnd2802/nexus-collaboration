@@ -47,7 +47,7 @@ export interface Workspace {
   logo?: string
   owner_id: string
   settings?: Record<string, any>
-  user_role?: 'owner' | 'admin' | 'member' | 'viewer'
+  user_role?: 'owner' | 'admin' | 'member'
   member_count?: number
   project_count?: number
   createdAt: string

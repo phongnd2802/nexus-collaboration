@@ -1217,6 +1217,33 @@
       "reactions": {
         "quickReactions": "Quick Reactions",
         "moreReactions": "More Reactions"
+      },
+      "poll": {
+        "createTitle": "Create Poll",
+        "question": "Question",
+        "questionPlaceholder": "Ask a question...",
+        "options": "Options",
+        "optionPlaceholder": "Option {number}",
+        "addOption": "Add Option",
+        "optionsHint": "{min}-{max} options allowed",
+        "allowMultipleChoice": "Allow multiple selections",
+        "multipleChoiceOn": "Members can select more than one option",
+        "multipleChoiceOff": "Members can only select one option",
+        "showResults": "Show results before voting",
+        "resultsVisible": "Users can see results without voting",
+        "resultsHidden": "Results hidden until user votes",
+        "cancel": "Cancel",
+        "create": "Create Poll",
+        "title": "Poll",
+        "multipleChoice": "Multiple choice",
+        "closed": "Closed",
+        "voting": "Voting...",
+        "changeVote": "Change Vote",
+        "vote": "Vote",
+        "totalVotes": "{count} {count, plural, one {vote} other {votes}}",
+        "closing": "Closing...",
+        "closePoll": "Close Poll",
+        "closedNoVote": "This poll is closed. You did not vote."
       }
     },
     "aiChat": {

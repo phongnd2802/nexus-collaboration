@@ -39,6 +39,7 @@ export function PollCreator({
     { id: generateId(), text: '' },
   ]);
   const [showResultsBeforeVoting, setShowResultsBeforeVoting] = useState(false);
+  const [allowMultipleChoice, setAllowMultipleChoice] = useState(false);
 
   const addOption = () => {
     if (options.length < MAX_OPTIONS) {
@@ -75,6 +76,7 @@ export function PollCreator({
       })),
       isOpen: true,
       showResultsBeforeVoting,
+      allowMultipleChoice,
       createdBy: creatorId,
       totalVotes: 0,
     };
@@ -99,6 +101,7 @@ export function PollCreator({
       { id: generateId(), text: '' },
     ]);
     setShowResultsBeforeVoting(false);
+    setAllowMultipleChoice(false);
   };
 
   const handleCancel = () => {
@@ -208,6 +211,37 @@ export function PollCreator({
                 { min: MIN_OPTIONS, max: MAX_OPTIONS }
               )}
             </p>
+          </div>
+
+          {/* Allow multiple choice toggle */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="space-y-1">
+              <Label
+                htmlFor="multiple-choice"
+                className="text-base font-medium cursor-pointer"
+              >
+                {intl.formatMessage({
+                  id: 'modules.chat.poll.allowMultipleChoice',
+                  defaultMessage: 'Allow multiple selections',
+                })}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {allowMultipleChoice
+                  ? intl.formatMessage({
+                      id: 'modules.chat.poll.multipleChoiceOn',
+                      defaultMessage: 'Members can select more than one option',
+                    })
+                  : intl.formatMessage({
+                      id: 'modules.chat.poll.multipleChoiceOff',
+                      defaultMessage: 'Members can only select one option',
+                    })}
+              </p>
+            </div>
+            <Switch
+              id="multiple-choice"
+              checked={allowMultipleChoice}
+              onCheckedChange={setAllowMultipleChoice}
+            />
           </div>
 
           {/* Show results before voting toggle */}

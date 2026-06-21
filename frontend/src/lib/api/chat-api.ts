@@ -104,9 +104,10 @@ export interface Poll {
   options: PollOption[];
   isOpen: boolean;
   showResultsBeforeVoting: boolean;
+  allowMultipleChoice: boolean;
   createdBy: string;
   totalVotes: number;
-  userVotedOptionId?: string; // Which option the current user voted for
+  userVotedOptionIds?: string[]; // Options the current user voted for
 }
 
 // Scheduled message types
@@ -709,8 +710,8 @@ export const chatApi = {
     return api.post<ChannelMember>(`/channels/${channelId}/members`, { userId, role });
   },
 
-  async removeChannelMember(channelId: string, userId: string): Promise<void> {
-    await api.delete(`/channels/${channelId}/members/${userId}`);
+  async removeChannelMember(workspaceId: string, channelId: string, userId: string): Promise<void> {
+    await api.delete(`/workspaces/${workspaceId}/channels/${channelId}/members/${userId}`);
   },
 
   async updateChannelMemberRole(channelId: string, userId: string, role: 'admin' | 'moderator' | 'member'): Promise<ChannelMember> {
@@ -797,11 +798,11 @@ export const chatApi = {
     workspaceId: string,
     messageId: string,
     pollId: string,
-    optionId: string
-  ): Promise<{ message: string; data: { poll: Poll; userVotedOptionId: string } }> {
-    return api.post<{ message: string; data: { poll: Poll; userVotedOptionId: string } }>(
+    optionIds: string[]
+  ): Promise<{ message: string; data: { poll: Poll; userVotedOptionIds: string[] } }> {
+    return api.post<{ message: string; data: { poll: Poll; userVotedOptionIds: string[] } }>(
       `/workspaces/${workspaceId}/messages/${messageId}/polls/${pollId}/vote`,
-      { optionId }
+      { optionIds }
     );
   },
 
@@ -946,6 +947,18 @@ export const useDeleteChannel = () => {
       chatApi.deleteChannel(workspaceId, channelId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chatKeys.channels() });
+    },
+  });
+};
+
+export const useRemoveChannelMember = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, channelId, userId }: { workspaceId: string; channelId: string; userId: string }) =>
+      chatApi.removeChannelMember(workspaceId, channelId, userId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: chatKeys.channelMembers(variables.channelId) });
     },
   });
 };
@@ -1302,15 +1315,14 @@ export const useVotePoll = () => {
       workspaceId,
       messageId,
       pollId,
-      optionId,
+      optionIds,
     }: {
       workspaceId: string;
       messageId: string;
       pollId: string;
-      optionId: string;
-    }) => chatApi.votePoll(workspaceId, messageId, pollId, optionId),
+      optionIds: string[];
+    }) => chatApi.votePoll(workspaceId, messageId, pollId, optionIds),
     onSuccess: () => {
-      // Invalidate all message queries to refresh poll data
       queryClient.invalidateQueries({ queryKey: chatKeys.all });
     },
   });

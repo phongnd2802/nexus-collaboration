@@ -516,7 +516,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ workspaceId: propWorksp
                       <option value="owner">{intl.formatMessage({ id: 'roles.owner' })}</option>
                       <option value="admin">{intl.formatMessage({ id: 'roles.admin' })}</option>
                       <option value="member">{intl.formatMessage({ id: 'roles.member' })}</option>
-                      <option value="viewer">{intl.formatMessage({ id: 'roles.viewer' })}</option>
                     </select>
                   </div>
                 </div>
@@ -678,7 +677,6 @@ const EditMemberModal: React.FC<EditMemberModalProps> = ({
           >
             <option value="admin">{intl.formatMessage({ id: 'roles.admin' })}</option>
             <option value="member">{intl.formatMessage({ id: 'roles.member' })}</option>
-            <option value="viewer">{intl.formatMessage({ id: 'roles.viewer' })}</option>
           </select>
           {member.role === 'owner' && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{intl.formatMessage({ id: 'roles.cannotChangeOwner' })}</p>
