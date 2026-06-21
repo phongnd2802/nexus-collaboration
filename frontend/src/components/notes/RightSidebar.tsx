@@ -1,23 +1,23 @@
-import React from 'react'
-import { useParams } from 'react-router-dom'
-import { cn } from '../../lib/utils'
-import type { ViewType } from '../layout/NavigationRail'
-import { CalendarRightSidebar } from '../calendar/CalendarRightSidebar'
-import { ProjectsRightSidebar } from '../projects/ProjectsRightSidebar'
-import { VideoRightSidebar } from '@/components/video-call'
-import { Button } from '../ui/button'
-import { Progress } from '../ui/progress'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { useIntl } from 'react-intl'
-import { useNotesStore } from '../../stores/notesStore'
-import { useWorkspaceMembers } from '@/lib/api/workspace-api'
-import { useAuth } from '@/contexts/AuthContext'
-import { notesApi } from '@/lib/api/notes-api'
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { cn } from '../../lib/utils';
+import type { ViewType } from '../layout/NavigationRail';
+import { CalendarRightSidebar } from '../calendar/CalendarRightSidebar';
+import { ProjectsRightSidebar } from '../projects/ProjectsRightSidebar';
+import { VideoRightSidebar } from '@/components/video-call';
+import { Button } from '../ui/button';
+import { Progress } from '../ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useIntl } from 'react-intl';
+import { useNotesStore } from '../../stores/notesStore';
+import { useWorkspaceMembers } from '@/lib/api/workspace-api';
+import { useAuth } from '@/contexts/AuthContext';
+import { notesApi } from '@/lib/api/notes-api';
 
-import { toast } from 'sonner'
-import html2pdf from 'html2pdf.js'
+import { toast } from 'sonner';
+import html2pdf from 'html2pdf.js';
 import {
   Users,
   FileText,
@@ -29,57 +29,57 @@ import {
   Star,
   Video,
   Upload,
-  Loader2
-} from 'lucide-react'
+  Loader2,
+} from 'lucide-react';
 
 interface RightSidebarProps {
-  currentView: ViewType
-  isCollapsed: boolean
+  currentView: ViewType;
+  isCollapsed: boolean;
 }
 
 export function NotesRightSidebar() {
-    const intl = useIntl()
-  const { workspaceId } = useParams<{ workspaceId: string }>()
-  const { user } = useAuth()
-  const storeState = useNotesStore()
-  const { ui, notes } = storeState
-  const [enrichedNote, setEnrichedNote] = React.useState<any>(null)
-  const [isLoadingNote, setIsLoadingNote] = React.useState(false)
+  const intl = useIntl();
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { user } = useAuth();
+  const storeState = useNotesStore();
+  const { ui, notes } = storeState;
+  const [enrichedNote, setEnrichedNote] = React.useState<any>(null);
+  const [isLoadingNote, setIsLoadingNote] = React.useState(false);
 
   // Fetch workspace members to get user details
-  const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
+  const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '');
 
   // Fetch the note from API only when selected note changes (initial load)
   React.useEffect(() => {
     const fetchNoteData = async () => {
       if (ui.selectedNoteId && workspaceId) {
         // Set loading state immediately when note selection changes
-        setIsLoadingNote(true)
-        setEnrichedNote(null) // Clear previous note data immediately
+        setIsLoadingNote(true);
+        setEnrichedNote(null); // Clear previous note data immediately
 
         try {
           const note = await notesApi.getNoteByWorkspace(workspaceId, ui.selectedNoteId, {
             includeDeleted: true,
-          })
-          console.log('🎯 [RightSidebar] Fetched note from API:', note)
-          setEnrichedNote(note)
+          });
+          console.log('🎯 [RightSidebar] Fetched note from API:', note);
+          setEnrichedNote(note);
         } catch (error) {
-          console.error('Failed to fetch note for sidebar:', error)
-          setEnrichedNote(null)
+          console.error('Failed to fetch note for sidebar:', error);
+          setEnrichedNote(null);
         } finally {
-          setIsLoadingNote(false)
+          setIsLoadingNote(false);
         }
       } else {
-        setEnrichedNote(null)
-        setIsLoadingNote(false)
+        setEnrichedNote(null);
+        setIsLoadingNote(false);
       }
-    }
+    };
 
-    fetchNoteData()
-  }, [ui.selectedNoteId, workspaceId])
+    fetchNoteData();
+  }, [ui.selectedNoteId, workspaceId]);
 
   // Get the latest note from store - this has the updated content from the editor
-  const storeNote = notes.find(n => n.id === ui.selectedNoteId)
+  const storeNote = notes.find((n) => n.id === ui.selectedNoteId);
 
   // Merge store note (for content) with enriched note (for author/collaborators)
   // Prioritize enrichedNote's author and collaborators since they come from fresh API call
@@ -90,10 +90,11 @@ export function NotesRightSidebar() {
         author: enrichedNote?.author || (storeNote as any).author,
         collaborators: enrichedNote?.collaborators || (storeNote as any).collaborators,
         author_id: enrichedNote?.author_id || (storeNote as any).author_id,
-        collaborative_data: enrichedNote?.collaborative_data || (storeNote as any).collaborative_data
+        collaborative_data:
+          enrichedNote?.collaborative_data || (storeNote as any).collaborative_data,
       }
-    : enrichedNote
-  console.log("🎯 [RightSidebar] Using enriched note:", selectedNote);
+    : enrichedNote;
+  console.log('🎯 [RightSidebar] Using enriched note:', selectedNote);
   // Immediate log after retrieval
   if (selectedNote && ui.selectedNoteId) {
     console.log('🔥 IMMEDIATE - Note just retrieved:', {
@@ -102,32 +103,37 @@ export function NotesRightSidebar() {
       created_by: (selectedNote as any).created_by,
       collaborative_data: (selectedNote as any).collaborative_data,
       hasAuthorId: 'author_id' in selectedNote,
-      hasCollaborativeData: 'collaborative_data' in selectedNote
-    })
-    console.log('🔥 Raw note from array:', notes.find(n => n.id === ui.selectedNoteId))
-    console.log('🔥 All notes in store:', notes.map(n => ({ id: n.id, author_id: (n as any).author_id })))
+      hasCollaborativeData: 'collaborative_data' in selectedNote,
+    });
+    console.log(
+      '🔥 Raw note from array:',
+      notes.find((n) => n.id === ui.selectedNoteId),
+    );
+    console.log(
+      '🔥 All notes in store:',
+      notes.map((n) => ({ id: n.id, author_id: (n as any).author_id })),
+    );
   }
 
-  const currentUserId = user?.id
+  const currentUserId = user?.id;
 
   // Debug: Log selected note and workspace members
   React.useEffect(() => {
     if (selectedNote) {
-      console.log('🎯 [RightSidebar] Selected Note from Store:', selectedNote)
+      console.log('🎯 [RightSidebar] Selected Note from Store:', selectedNote);
       console.log('🎯 [RightSidebar] Note Fields Check:', {
         author_id: (selectedNote as any).author_id,
         created_by: (selectedNote as any).created_by,
         createdBy: selectedNote.createdBy,
         collaborative_data: (selectedNote as any).collaborative_data,
         collaborativeData: selectedNote.collaborativeData,
-        allKeys: Object.keys(selectedNote)
-      })
-      console.log('👥 [RightSidebar] Workspace Members:', workspaceMembers)
-      console.log('👥 [RightSidebar] Workspace Members Count:', workspaceMembers.length)
-      console.log('👤 [RightSidebar] Current User:', user)
+        allKeys: Object.keys(selectedNote),
+      });
+      console.log('👥 [RightSidebar] Workspace Members:', workspaceMembers);
+      console.log('👥 [RightSidebar] Workspace Members Count:', workspaceMembers.length);
+      console.log('👤 [RightSidebar] Current User:', user);
     }
-  }, [selectedNote, workspaceMembers, user])
-
+  }, [selectedNote, workspaceMembers, user]);
 
   if (!selectedNote) {
     return (
@@ -135,244 +141,260 @@ export function NotesRightSidebar() {
         <div className="bg-muted/20 rounded-full p-4 mb-4">
           <FileText className="h-8 w-8" />
         </div>
-        <h3 className="font-medium mb-2">{intl.formatMessage({ id: 'modules.notes.rightSidebar.noNoteSelected' })}</h3>
+        <h3 className="font-medium mb-2">
+          {intl.formatMessage({ id: 'modules.notes.rightSidebar.noNoteSelected' })}
+        </h3>
         <p className="text-sm">
           {intl.formatMessage({ id: 'modules.notes.rightSidebar.selectNotePrompt' })}
         </p>
       </div>
-    )
+    );
   }
 
   // Helper function to extract text from content
   const extractTextFromContent = (content: any): string => {
-    if (!content || !Array.isArray(content)) return ''
+    if (!content || !Array.isArray(content)) return '';
 
-    return content.map((block: any) => {
-      if (block.content && Array.isArray(block.content)) {
-        // Check for HTML content first
-        const htmlItem = block.content.find((item: any) => item.html)
-        if (htmlItem && htmlItem.html) {
-          // Strip HTML tags and decode entities
-          const tempDiv = document.createElement('div')
-          tempDiv.innerHTML = htmlItem.html
-          return tempDiv.textContent || tempDiv.innerText || ''
+    return content
+      .map((block: any) => {
+        if (block.content && Array.isArray(block.content)) {
+          // Check for HTML content first
+          const htmlItem = block.content.find((item: any) => item.html);
+          if (htmlItem && htmlItem.html) {
+            // Strip HTML tags and decode entities
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlItem.html;
+            return tempDiv.textContent || tempDiv.innerText || '';
+          }
+
+          // Fallback to text content
+          return block.content.map((item: any) => item.text || '').join('');
         }
-
-        // Fallback to text content
-        return block.content.map((item: any) => item.text || '').join('')
-      }
-      return ''
-    }).join('\n')
-  }
+        return '';
+      })
+      .join('\n');
+  };
 
   // Simulate formatDistanceToNow function
   const formatDistanceToNow = (date: Date, options?: { addSuffix?: boolean }) => {
-    const now = new Date()
-    const diffInMs = now.getTime() - date.getTime()
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
-    const diffInDays = Math.floor(diffInHours / 24)
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
 
     if (diffInDays > 0) {
-      return options?.addSuffix ? `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago` : `${diffInDays} day${diffInDays > 1 ? 's' : ''}`
+      return options?.addSuffix
+        ? `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`
+        : `${diffInDays} day${diffInDays > 1 ? 's' : ''}`;
     }
     if (diffInHours > 0) {
-      return options?.addSuffix ? `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago` : `${diffInHours} hour${diffInHours > 1 ? 's' : ''}`
+      return options?.addSuffix
+        ? `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`
+        : `${diffInHours} hour${diffInHours > 1 ? 's' : ''}`;
     }
-    return options?.addSuffix ? 'just now' : '0 minutes'
-  }
+    return options?.addSuffix ? 'just now' : '0 minutes';
+  };
 
   // Helper function to extract HTML from content
   const extractHtmlFromContent = (content: any): string => {
-    if (!content) return '<p>No content available</p>'
+    if (!content) return '<p>No content available</p>';
 
     // If content is already a string, return it
     if (typeof content === 'string') {
-      return content
+      return content;
     }
 
     // If it's not an array, try to convert it
     if (!Array.isArray(content)) {
-      return '<p>Unable to parse content</p>'
+      return '<p>Unable to parse content</p>';
     }
 
     // Process TipTap JSON structure
     const processNode = (node: any): string => {
-      if (!node) return ''
+      if (!node) return '';
 
-      const { type, content, text, marks, attrs } = node
+      const { type, content, text, marks, attrs } = node;
 
       // Handle text nodes
       if (type === 'text' || text) {
-        let textContent = text || ''
+        let textContent = text || '';
 
         // Apply marks (bold, italic, etc.)
         if (marks && Array.isArray(marks)) {
           marks.forEach((mark: any) => {
             switch (mark.type) {
               case 'bold':
-                textContent = `<strong>${textContent}</strong>`
-                break
+                textContent = `<strong>${textContent}</strong>`;
+                break;
               case 'italic':
-                textContent = `<em>${textContent}</em>`
-                break
+                textContent = `<em>${textContent}</em>`;
+                break;
               case 'underline':
-                textContent = `<u>${textContent}</u>`
-                break
+                textContent = `<u>${textContent}</u>`;
+                break;
               case 'strike':
-                textContent = `<s>${textContent}</s>`
-                break
+                textContent = `<s>${textContent}</s>`;
+                break;
               case 'code':
-                textContent = `<code>${textContent}</code>`
-                break
+                textContent = `<code>${textContent}</code>`;
+                break;
               case 'link':
-                const href = mark.attrs?.href || '#'
-                textContent = `<a href="${href}" target="_blank">${textContent}</a>`
-                break
+                const href = mark.attrs?.href || '#';
+                textContent = `<a href="${href}" target="_blank">${textContent}</a>`;
+                break;
             }
-          })
+          });
         }
 
-        return textContent
+        return textContent;
       }
 
       // Handle block nodes
       switch (type) {
         case 'paragraph':
-          return `<p>${content ? content.map(processNode).join('') : '<br>'}</p>`
+          return `<p>${content ? content.map(processNode).join('') : '<br>'}</p>`;
 
         case 'heading':
-          const level = attrs?.level || 1
-          return `<h${level}>${content ? content.map(processNode).join('') : ''}</h${level}>`
+          const level = attrs?.level || 1;
+          return `<h${level}>${content ? content.map(processNode).join('') : ''}</h${level}>`;
 
         case 'bulletList':
-          return `<ul>${content ? content.map(processNode).join('') : ''}</ul>`
+          return `<ul>${content ? content.map(processNode).join('') : ''}</ul>`;
 
         case 'orderedList':
-          return `<ol>${content ? content.map(processNode).join('') : ''}</ol>`
+          return `<ol>${content ? content.map(processNode).join('') : ''}</ol>`;
 
         case 'listItem':
-          return `<li>${content ? content.map(processNode).join('') : ''}</li>`
+          return `<li>${content ? content.map(processNode).join('') : ''}</li>`;
 
         case 'blockquote':
-          return `<blockquote>${content ? content.map(processNode).join('') : ''}</blockquote>`
+          return `<blockquote>${content ? content.map(processNode).join('') : ''}</blockquote>`;
 
         case 'codeBlock':
-          const code = content ? content.map(processNode).join('') : ''
-          return `<pre><code>${code}</code></pre>`
+          const code = content ? content.map(processNode).join('') : '';
+          return `<pre><code>${code}</code></pre>`;
 
         case 'hardBreak':
-          return '<br>'
+          return '<br>';
 
         case 'horizontalRule':
-          return '<hr>'
+          return '<hr>';
 
         case 'image':
-          const src = attrs?.src || ''
-          const alt = attrs?.alt || ''
-          return `<img src="${src}" alt="${alt}" />`
+          const src = attrs?.src || '';
+          const alt = attrs?.alt || '';
+          return `<img src="${src}" alt="${alt}" />`;
 
         case 'table':
-          return `<table>${content ? content.map(processNode).join('') : ''}</table>`
+          return `<table>${content ? content.map(processNode).join('') : ''}</table>`;
 
         case 'tableRow':
-          return `<tr>${content ? content.map(processNode).join('') : ''}</tr>`
+          return `<tr>${content ? content.map(processNode).join('') : ''}</tr>`;
 
         case 'tableCell':
         case 'tableHeader':
-          const tag = type === 'tableHeader' ? 'th' : 'td'
-          return `<${tag}>${content ? content.map(processNode).join('') : ''}</${tag}>`
+          const tag = type === 'tableHeader' ? 'th' : 'td';
+          return `<${tag}>${content ? content.map(processNode).join('') : ''}</${tag}>`;
 
         case 'doc':
           // Root document node
-          return content ? content.map(processNode).join('') : ''
+          return content ? content.map(processNode).join('') : '';
 
         default:
           // For unknown types, try to process content
           if (content && Array.isArray(content)) {
-            return content.map(processNode).join('')
+            return content.map(processNode).join('');
           }
-          return ''
+          return '';
       }
-    }
+    };
 
     try {
       // If it's an array of nodes, check for different formats
       if (Array.isArray(content)) {
         // Check if it's the blockContent format from editor: [{type: 'html', content: [{html: '...'}]}]
         if (content.length > 0 && content[0].type === 'html' && content[0].content) {
-          const htmlBlocks = content.map((block: any) => {
-            if (block.content && Array.isArray(block.content)) {
-              const htmlItem = block.content.find((item: any) => item.html)
-              if (htmlItem && htmlItem.html) {
-                return htmlItem.html
+          const htmlBlocks = content
+            .map((block: any) => {
+              if (block.content && Array.isArray(block.content)) {
+                const htmlItem = block.content.find((item: any) => item.html);
+                if (htmlItem && htmlItem.html) {
+                  return htmlItem.html;
+                }
               }
-            }
-            return ''
-          }).filter(Boolean)
+              return '';
+            })
+            .filter(Boolean);
 
           if (htmlBlocks.length > 0) {
-            return htmlBlocks.join('')
+            return htmlBlocks.join('');
           }
         }
 
         // Otherwise, process as TipTap JSON
-        const html = content.map(processNode).join('')
-        return html || '<p>No content to display</p>'
+        const html = content.map(processNode).join('');
+        return html || '<p>No content to display</p>';
       }
 
       // Check if content is already in TipTap JSON format (single doc object)
       if (typeof content === 'object' && content !== null) {
-        const docContent = content as { type?: string; content?: any }
+        const docContent = content as { type?: string; content?: any };
         if (docContent.type === 'doc' && docContent.content) {
-          return processNode(docContent)
+          return processNode(docContent);
         }
       }
 
-      return '<p>No content to display</p>'
+      return '<p>No content to display</p>';
     } catch (error) {
-      console.error('Error processing content:', error)
-      return '<p>Error processing content for export</p>'
+      console.error('Error processing content:', error);
+      return '<p>Error processing content for export</p>';
     }
-  }
+  };
 
   // Export PDF handler
   const handleExportPDF = async () => {
     if (!selectedNote) {
-      console.warn('No note selected for PDF export')
-      return
+      console.warn('No note selected for PDF export');
+      return;
     }
 
     try {
-      console.log('🎯 Starting PDF export for note:', selectedNote.id)
-      console.log('📄 Note content structure:', selectedNote.content)
+      console.log('🎯 Starting PDF export for note:', selectedNote.id);
+      console.log('📄 Note content structure:', selectedNote.content);
 
       // Get note title and content
       const noteTitle = Array.isArray(selectedNote.title)
         ? selectedNote.title.map((rt: any) => rt.text || rt).join('')
-        : String(selectedNote.title || intl.formatMessage({ id: 'modules.notes.rightSidebar.untitled' }))
+        : String(
+            selectedNote.title || intl.formatMessage({ id: 'modules.notes.rightSidebar.untitled' }),
+          );
 
-      console.log('📝 Note title:', noteTitle)
+      console.log('📝 Note title:', noteTitle);
 
-      const htmlContent = extractHtmlFromContent(selectedNote.content)
-      console.log('🎨 Generated HTML length:', htmlContent.length)
-      console.log('🎨 HTML preview:', htmlContent.substring(0, 200))
+      const htmlContent = extractHtmlFromContent(selectedNote.content);
+      console.log('🎨 Generated HTML length:', htmlContent.length);
+      console.log('🎨 HTML preview:', htmlContent.substring(0, 200));
 
       // Create a new window for printing
-      const printWindow = window.open('', '_blank', 'width=800,height=600')
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
       if (!printWindow) {
-        console.error('Failed to open print window - popup blocked')
-        alert('Please allow popups to export as PDF.\n\nClick the popup blocker icon in your browser address bar and allow popups from this site.')
-        return
+        console.error('Failed to open print window - popup blocked');
+        alert(
+          'Please allow popups to export as PDF.\n\nClick the popup blocker icon in your browser address bar and allow popups from this site.',
+        );
+        return;
       }
 
-      console.log('✅ Print window opened successfully')
+      console.log('✅ Print window opened successfully');
 
       // Escape special characters in title and content
-      const escapedTitle = noteTitle.replace(/[<>]/g, '')
-      const safeHtmlContent = htmlContent || '<p><em>This note has no content</em></p>'
+      const escapedTitle = noteTitle.replace(/[<>]/g, '');
+      const safeHtmlContent = htmlContent || '<p><em>This note has no content</em></p>';
 
       // Detect if content contains RTL characters (Arabic, Hebrew, etc.)
-      const hasRTL = /[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(safeHtmlContent + noteTitle)
+      const hasRTL = /[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/.test(
+        safeHtmlContent + noteTitle,
+      );
 
       // Write HTML content with improved styles
       const htmlDocument = `
@@ -571,7 +593,7 @@ export function NotesRightSidebar() {
               Exported from Nexus • ${new Date().toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
               })}
             </div>
             <div class="content">
@@ -579,47 +601,46 @@ export function NotesRightSidebar() {
             </div>
           </body>
         </html>
-      `
+      `;
 
       // Open document with UTF-8 charset
-      printWindow.document.open('text/html', 'replace')
-      printWindow.document.write(htmlDocument)
-      printWindow.document.close()
+      printWindow.document.open('text/html', 'replace');
+      printWindow.document.write(htmlDocument);
+      printWindow.document.close();
 
-      console.log('📄 HTML document written to print window')
+      console.log('📄 HTML document written to print window');
 
       // Wait for content to load, then trigger print
       printWindow.onload = () => {
-        console.log('🎯 Print window loaded, triggering print dialog...')
+        console.log('🎯 Print window loaded, triggering print dialog...');
         setTimeout(() => {
           try {
-            printWindow.focus()
-            printWindow.print()
-            console.log('✅ Print dialog opened successfully')
+            printWindow.focus();
+            printWindow.print();
+            console.log('✅ Print dialog opened successfully');
           } catch (printError) {
-            console.error('❌ Print failed:', printError)
+            console.error('❌ Print failed:', printError);
           }
-        }, 500)
-      }
+        }, 500);
+      };
 
       // Fallback if onload doesn't fire
       setTimeout(() => {
         if (printWindow && !printWindow.closed) {
           try {
-            printWindow.focus()
-            printWindow.print()
-            console.log('✅ Print dialog opened (fallback)')
+            printWindow.focus();
+            printWindow.print();
+            console.log('✅ Print dialog opened (fallback)');
           } catch (printError) {
-            console.error('❌ Fallback print failed:', printError)
+            console.error('❌ Fallback print failed:', printError);
           }
         }
-      }, 1000)
-
+      }, 1000);
     } catch (error) {
-      console.error('❌ Failed to export PDF:', error)
-      alert('Failed to export PDF. Please check the console for details and try again.')
+      console.error('❌ Failed to export PDF:', error);
+      alert('Failed to export PDF. Please check the console for details and try again.');
     }
-  }
+  };
 
   return (
     <div className="flex-1 overflow-y-auto space-y-6 p-4">
@@ -649,11 +670,21 @@ export function NotesRightSidebar() {
               <div className="text-sm font-medium mb-2">
                 {Array.isArray(selectedNote.title)
                   ? selectedNote.title.map((rt: any) => rt.text || rt).join('')
-                  : String(selectedNote.title || intl.formatMessage({ id: 'modules.notes.rightSidebar.untitled' }))}
+                  : String(
+                      selectedNote.title ||
+                        intl.formatMessage({ id: 'modules.notes.rightSidebar.untitled' }),
+                    )}
               </div>
               <div className="text-xs text-muted-foreground mb-3">
-                {intl.formatMessage({ id: 'modules.notes.rightSidebar.createdAgo' }, { time: formatDistanceToNow(new Date(selectedNote.createdAt)) })} •
-                {intl.formatMessage({ id: 'modules.notes.rightSidebar.lastEdited' }, { time: formatDistanceToNow(new Date(selectedNote.updatedAt)) })}
+                {intl.formatMessage(
+                  { id: 'modules.notes.rightSidebar.createdAgo' },
+                  { time: formatDistanceToNow(new Date(selectedNote.createdAt)) },
+                )}{' '}
+                •
+                {intl.formatMessage(
+                  { id: 'modules.notes.rightSidebar.lastEdited' },
+                  { time: formatDistanceToNow(new Date(selectedNote.updatedAt)) },
+                )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 {selectedNote.tags?.map((tag: string, index: number) => (
@@ -676,8 +707,12 @@ export function NotesRightSidebar() {
               {selectedNote.content && selectedNote.content.length > 0 && (
                 <div className="mt-3 pt-3 border-t">
                   <div className="text-xs text-muted-foreground">
-                    {selectedNote.content.length} {selectedNote.content.length !== 1 ? intl.formatMessage({ id: "modules.notes.rightSidebar.blocks" }) : intl.formatMessage({ id: "modules.notes.rightSidebar.block" })} •
-                    {extractTextFromContent(selectedNote.content).length} {intl.formatMessage({ id: "modules.notes.rightSidebar.characters" })}
+                    {selectedNote.content.length}{' '}
+                    {selectedNote.content.length !== 1
+                      ? intl.formatMessage({ id: 'modules.notes.rightSidebar.blocks' })
+                      : intl.formatMessage({ id: 'modules.notes.rightSidebar.block' })}{' '}
+                    •{extractTextFromContent(selectedNote.content).length}{' '}
+                    {intl.formatMessage({ id: 'modules.notes.rightSidebar.characters' })}
                   </div>
                 </div>
               )}
@@ -729,18 +764,18 @@ export function NotesRightSidebar() {
             <>
               {/* Owner - from backend author field */}
               {(() => {
-                const author = (selectedNote as any).author
+                const author = (selectedNote as any).author;
 
                 if (!author) {
-                  console.log('⚠️ No author info found in note')
+                  console.log('⚠️ No author info found in note');
                   return (
                     <div className="text-center py-2 text-xs text-muted-foreground">
                       {intl.formatMessage({ id: 'modules.notes.rightSidebar.authorNotAvailable' })}
                     </div>
-                  )
+                  );
                 }
 
-                console.log('👤 Author from API:', author)
+                console.log('👤 Author from API:', author);
 
                 return (
                   <div className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-lg">
@@ -752,43 +787,58 @@ export function NotesRightSidebar() {
                     </Avatar>
                     <div className="flex-1">
                       <div className="text-sm font-medium">
-                        {author.id === currentUserId ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' }) : (author.name || author.email || 'Unknown User')}
+                        {author.id === currentUserId
+                          ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' })
+                          : author.name || author.email || 'Unknown User'}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {intl.formatMessage({ id: 'modules.notes.rightSidebar.owner' })} • {intl.formatMessage({ id: 'modules.notes.rightSidebar.createdAgo' }, { time: formatDistanceToNow(new Date(selectedNote.createdAt)) })}
+                        {intl.formatMessage({ id: 'modules.notes.rightSidebar.owner' })} •{' '}
+                        {intl.formatMessage(
+                          { id: 'modules.notes.rightSidebar.createdAgo' },
+                          { time: formatDistanceToNow(new Date(selectedNote.createdAt)) },
+                        )}
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">{intl.formatMessage({ id: 'modules.notes.rightSidebar.owner' })}</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {intl.formatMessage({ id: 'modules.notes.rightSidebar.owner' })}
+                    </Badge>
                   </div>
-                )
+                );
               })()}
 
               {/* Collaborators - from backend collaborators field */}
               {(() => {
-                const collaborators = (selectedNote as any).collaborators
+                const collaborators = (selectedNote as any).collaborators;
 
-                console.log('🤝 Collaborators from API:', collaborators)
+                console.log('🤝 Collaborators from API:', collaborators);
 
                 if (!collaborators || !Array.isArray(collaborators) || collaborators.length === 0) {
                   return (
                     <div className="text-center py-2 text-xs text-muted-foreground">
                       {intl.formatMessage({ id: 'modules.notes.rightSidebar.noCollaborators' })}
                     </div>
-                  )
+                  );
                 }
 
                 return collaborators.map((collaborator: any) => {
                   return (
-                    <div key={collaborator.id} className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-lg">
+                    <div
+                      key={collaborator.id}
+                      className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-lg"
+                    >
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={collaborator.avatarUrl || undefined} />
                         <AvatarFallback>
-                          {(collaborator.name || collaborator.email || 'U').substring(0, 2).toUpperCase()}
+                          {(collaborator.name || collaborator.email || 'U')
+                            .substring(0, 2)
+                            .toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="text-sm font-medium">
-                          {collaborator.id === currentUserId ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' }) : (collaborator.name || collaborator.email || 'Unknown User')}
+                          {collaborator.id === currentUserId
+                            ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' })
+                            : collaborator.name || collaborator.email || 'Unknown User'}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {intl.formatMessage({ id: 'modules.notes.rightSidebar.collaborators' })}
@@ -798,8 +848,8 @@ export function NotesRightSidebar() {
                         {intl.formatMessage({ id: 'modules.notes.rightSidebar.member' })}
                       </Badge>
                     </div>
-                  )
-                })
+                  );
+                });
               })()}
             </>
           ) : (
@@ -880,7 +930,9 @@ export function NotesRightSidebar() {
 
       {/* Quick Actions */}
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">{intl.formatMessage({ id: 'modules.notes.rightSidebar.quickActions' })}</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          {intl.formatMessage({ id: 'modules.notes.rightSidebar.quickActions' })}
+        </h3>
 
         <div className="space-y-2">
           <Button
@@ -902,7 +954,7 @@ export function NotesRightSidebar() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
@@ -923,9 +975,7 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
                 <CardContent>
                   <div className="text-2xl font-bold">0%</div>
                   <Progress value={0} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    No data
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">No data</p>
                 </CardContent>
               </Card>
 
@@ -976,7 +1026,7 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
               </Button>
             </div>
           </>
-        )
+        );
 
       case 'chat':
         // TODO: Fetch real chat channel info from API
@@ -984,9 +1034,7 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
           <>
             <div className="space-y-4">
               <h3 className="font-semibold text-sm">Thread</h3>
-              <p className="text-sm text-muted-foreground">
-                Select a message to view thread
-              </p>
+              <p className="text-sm text-muted-foreground">Select a message to view thread</p>
             </div>
 
             <div className="mt-6 space-y-4">
@@ -1015,26 +1063,24 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
               <h3 className="font-semibold text-sm">Pinned Messages</h3>
               <Card>
                 <CardContent className="pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    No pinned messages yet
-                  </p>
+                  <p className="text-sm text-muted-foreground">No pinned messages yet</p>
                 </CardContent>
               </Card>
             </div>
           </>
-        )
+        );
 
       case 'calendar':
-        return <CalendarRightSidebar />
+        return <CalendarRightSidebar />;
 
       case 'projects':
-        return <ProjectsRightSidebar projects={[]} allTasks={[]} />
+        return <ProjectsRightSidebar projects={[]} allTasks={[]} />;
 
       case 'notes':
-        return <NotesRightSidebar />
+        return <NotesRightSidebar />;
 
       case 'video':
-        return <VideoRightSidebar />
+        return <VideoRightSidebar />;
 
       case 'files':
         // TODO: Fetch real file storage info from API
@@ -1042,9 +1088,7 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
           <>
             <div className="space-y-4">
               <h3 className="font-semibold text-sm">File Details</h3>
-              <p className="text-sm text-muted-foreground">
-                Select a file to view details
-              </p>
+              <p className="text-sm text-muted-foreground">Select a file to view details</p>
             </div>
 
             <div className="mt-6 space-y-4">
@@ -1057,9 +1101,7 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
                       <span>0 GB / 15 GB</span>
                     </div>
                     <Progress value={0} />
-                    <p className="text-xs text-muted-foreground">
-                      15 GB available
-                    </p>
+                    <p className="text-xs text-muted-foreground">15 GB available</p>
                   </div>
                 </CardContent>
               </Card>
@@ -1072,7 +1114,7 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
               </div>
             </div>
           </>
-        )
+        );
 
       default:
         return (
@@ -1080,20 +1122,18 @@ export function RightSidebar({ currentView, isCollapsed }: RightSidebarProps) {
             <p className="text-sm">{currentView} sidebar</p>
             <p className="text-xs mt-2">Coming soon...</p>
           </div>
-        )
+        );
     }
-  }
+  };
 
   return (
     <aside
       className={cn(
-        "bg-card/80 backdrop-blur-xl border-l border-border transition-all duration-300 overflow-hidden z-30",
-        isCollapsed ? "w-0" : "w-80"
+        'bg-card/80 backdrop-blur-xl border-l border-border transition-all duration-300 overflow-hidden z-30',
+        isCollapsed ? 'w-0' : 'w-80',
       )}
     >
-      <div className="p-6 h-full overflow-y-auto sidebar-scroll">
-        {getRightSidebarContent()}
-      </div>
+      <div className="p-6 h-full overflow-y-auto sidebar-scroll">{getRightSidebarContent()}</div>
     </aside>
-  )
+  );
 }
