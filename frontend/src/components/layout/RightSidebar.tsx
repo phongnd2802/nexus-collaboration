@@ -45,7 +45,7 @@ export function RightSidebar({
   workspaceId,
   projectsData,
   chatData,
-  dashboardData
+  dashboardData,
 }: RightSidebarProps) {
   const intl = useIntl();
   // Get projectId from URL params
@@ -54,29 +54,33 @@ export function RightSidebar({
   const renderSidebarContent = () => {
     switch (currentView) {
       case 'chat':
-        return <ChatRightSidebar
-          isCollapsed={isMinimized}
-          messages={chatData?.messages || []}
-          hasSelectedChat={chatData?.hasSelectedChat || false}
-          channelName={chatData?.channelName}
-          channelDescription={chatData?.channelDescription}
-          isPrivate={chatData?.isPrivate}
-          memberCount={chatData?.memberCount}
-          chatType={chatData?.chatType}
-          channelId={chatData?.channelId}
-          workspaceId={workspaceId}
-        />;
+        return (
+          <ChatRightSidebar
+            isCollapsed={isMinimized}
+            messages={chatData?.messages || []}
+            hasSelectedChat={chatData?.hasSelectedChat || false}
+            channelName={chatData?.channelName}
+            channelDescription={chatData?.channelDescription}
+            isPrivate={chatData?.isPrivate}
+            memberCount={chatData?.memberCount}
+            chatType={chatData?.chatType}
+            channelId={chatData?.channelId}
+            workspaceId={workspaceId}
+          />
+        );
       case 'video':
         return <VideoRightSidebar />;
       case 'notes':
         return <NotesRightSidebar />;
       case 'projects':
-        return <ProjectsRightSidebar
-          projects={projectsData?.projects || []}
-          allTasks={projectsData?.allTasks || []}
-          workspaceId={workspaceId}
-          selectedProjectId={projectId}
-        />;
+        return (
+          <ProjectsRightSidebar
+            projects={projectsData?.projects || []}
+            allTasks={projectsData?.allTasks || []}
+            workspaceId={workspaceId}
+            selectedProjectId={projectId}
+          />
+        );
       case 'calendar':
         return <CalendarRightSidebar />;
       case 'files':
@@ -109,15 +113,13 @@ export function RightSidebar({
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-blue-500" />
           <h3 className="font-semibold text-foreground">
-            {intl.formatMessage({ id: 'layout.rightSidebar.aiSummaries', defaultMessage: 'AI Summaries' })}
+            {intl.formatMessage({
+              id: 'layout.rightSidebar.aiSummaries',
+              defaultMessage: 'AI Summaries',
+            })}
           </h3>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleMinimized}
-          className="h-8 w-8"
-        >
+        <Button variant="ghost" size="icon" onClick={onToggleMinimized} className="h-8 w-8">
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -125,14 +127,19 @@ export function RightSidebar({
   };
 
   // Force collapse for views that don't need a right sidebar
-  const shouldForceCollapse = currentView === 'email' || currentView === 'apps' || currentView === 'more' || currentView === 'dashboard' || currentView === 'settings';
+  const shouldForceCollapse =
+    currentView === 'email' ||
+    currentView === 'apps' ||
+    currentView === 'more' ||
+    currentView === 'dashboard' ||
+    currentView === 'settings';
   const effectiveCollapsed = isCollapsed || shouldForceCollapse;
 
   return (
     <aside
       className={cn(
-        "bg-card/80 backdrop-blur-xl border-l border-border flex flex-col transition-all duration-300",
-        effectiveCollapsed ? "w-0 overflow-hidden" : "w-80"
+        'bg-card/80 backdrop-blur-xl border-l border-border flex flex-col transition-all duration-300',
+        effectiveCollapsed ? 'w-0 overflow-hidden' : 'w-80',
       )}
     >
       {renderHeader()}
@@ -160,10 +167,12 @@ function DefaultRightSidebar({ currentView }: { currentView: ViewType }) {
       integrations: { id: 'navigation.integrations', defaultMessage: 'Integrations' },
       analytics: { id: 'navigation.analytics', defaultMessage: 'Analytics' },
       apps: { id: 'navigation.apps', defaultMessage: 'Apps' },
-      more: { id: 'navigation.more', defaultMessage: 'More' }
+      more: { id: 'navigation.more', defaultMessage: 'More' },
     };
     const translation = viewTranslationKeys[view];
-    return translation ? intl.formatMessage(translation) : intl.formatMessage({ id: 'common.info', defaultMessage: 'Info' });
+    return translation
+      ? intl.formatMessage(translation)
+      : intl.formatMessage({ id: 'common.info', defaultMessage: 'Info' });
   };
 
   return (
@@ -171,11 +180,14 @@ function DefaultRightSidebar({ currentView }: { currentView: ViewType }) {
       <h3 className="text-lg font-semibold text-foreground mb-5">
         {intl.formatMessage(
           { id: 'layout.rightSidebar.info', defaultMessage: '{view} Info' },
-          { view: getViewLabel(currentView) }
+          { view: getViewLabel(currentView) },
         )}
       </h3>
       <p className="text-sm text-muted-foreground">
-        {intl.formatMessage({ id: 'layout.rightSidebar.selectItem', defaultMessage: 'Select an item to view details' })}
+        {intl.formatMessage({
+          id: 'layout.rightSidebar.selectItem',
+          defaultMessage: 'Select an item to view details',
+        })}
       </p>
     </div>
   );

@@ -23,13 +23,22 @@ export default function TemplatesPage() {
     try {
       await seedTemplates.mutateAsync({ workspaceId });
       toast({
-        title: intl.formatMessage({ id: 'templates.seedSuccess.title', defaultMessage: 'Templates seeded' }),
-        description: intl.formatMessage({ id: 'templates.seedSuccess.description', defaultMessage: 'System templates have been added successfully.' }),
+        title: intl.formatMessage({
+          id: 'templates.seedSuccess.title',
+          defaultMessage: 'Templates seeded',
+        }),
+        description: intl.formatMessage({
+          id: 'templates.seedSuccess.description',
+          defaultMessage: 'System templates have been added successfully.',
+        }),
       });
     } catch (error) {
       toast({
         title: intl.formatMessage({ id: 'templates.seedError.title', defaultMessage: 'Error' }),
-        description: intl.formatMessage({ id: 'templates.seedError.description', defaultMessage: 'Failed to seed templates.' }),
+        description: intl.formatMessage({
+          id: 'templates.seedError.description',
+          defaultMessage: 'Failed to seed templates.',
+        }),
         variant: 'destructive',
       });
     }
@@ -46,7 +55,12 @@ export default function TemplatesPage() {
   if (!workspaceId) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">{intl.formatMessage({ id: 'templates.workspaceNotFound', defaultMessage: 'Workspace not found' })}</p>
+        <p className="text-muted-foreground">
+          {intl.formatMessage({
+            id: 'templates.workspaceNotFound',
+            defaultMessage: 'Workspace not found',
+          })}
+        </p>
       </div>
     );
   }
@@ -57,18 +71,22 @@ export default function TemplatesPage() {
       <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBack}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={handleBack} className="h-8 w-8">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold">{intl.formatMessage({ id: 'templates.pageTitle', defaultMessage: 'Project Templates' })}</h1>
+              <h1 className="text-xl font-semibold">
+                {intl.formatMessage({
+                  id: 'templates.pageTitle',
+                  defaultMessage: 'Project Templates',
+                })}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                {intl.formatMessage({ id: 'templates.pageDescription', defaultMessage: 'Choose a template to quickly create a new project with predefined tasks and structure.' })}
+                {intl.formatMessage({
+                  id: 'templates.pageDescription',
+                  defaultMessage:
+                    'Choose a template to quickly create a new project with predefined tasks and structure.',
+                })}
               </p>
             </div>
           </div>
@@ -83,7 +101,10 @@ export default function TemplatesPage() {
             ) : (
               <RefreshCw className="h-4 w-4 mr-2" />
             )}
-            {intl.formatMessage({ id: 'templates.refreshButton', defaultMessage: 'Refresh Templates' })}
+            {intl.formatMessage({
+              id: 'templates.refreshButton',
+              defaultMessage: 'Refresh Templates',
+            })}
           </Button>
         </div>
       </div>
