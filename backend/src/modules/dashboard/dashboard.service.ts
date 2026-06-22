@@ -1614,7 +1614,6 @@ export class DashboardService {
       const notes = (notesResult.data || []).filter((n: any) => !n.is_deleted && !n.is_archived);
 
       const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
       // Get user's notes
@@ -1681,35 +1680,6 @@ export class DashboardService {
         });
       }
 
-      // 3. Note templates suggestion - if user has created many similar notes
-      const recentNotes = userNotes.filter((note: any) => {
-        const createdAt = new Date(note.created_at);
-        return createdAt >= thirtyDaysAgo;
-      });
-
-      // Get templates
-      const templatesResult = await this.db.findMany('note_templates', {
-        workspace_id: workspaceId,
-      });
-      const templates = templatesResult.data || [];
-
-      if (recentNotes.length >= 5 && templates.length === 0) {
-        suggestions.push({
-          id: `note-template-${workspaceId}`,
-          type: 'note_template',
-          priority: 'low',
-          title: 'Create Note Templates',
-          description: `You've created ${recentNotes.length} notes recently. Templates can save time.`,
-          actionLabel: 'Create Template',
-          actionUrl: '/notes/templates',
-          metadata: {
-            note: {
-              noteCount: recentNotes.length,
-            },
-          },
-          createdAt: new Date().toISOString(),
-        });
-      }
     } catch (error) {
       console.error('Error getting note suggestions:', error);
     }

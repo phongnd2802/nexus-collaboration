@@ -95,7 +95,6 @@ export const noteBodyShape = {
   title: z.string().min(1),
   content: z.string().min(1),
   parent_id: z.string().optional(),
-  template_id: z.string().optional(),
   tags: z.array(z.string()).optional(),
   cover_image: z.string().optional(),
   icon: z.string().optional(),

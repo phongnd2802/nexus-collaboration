@@ -332,12 +332,6 @@ export class NotesController {
     return this.notesService.mergeNotes(workspaceId, mergeNotesDto, userId);
   }
 
-  @Get('templates')
-  @ApiOperation({ summary: 'Get note templates' })
-  async getTemplates(@Param('workspaceId') workspaceId: string) {
-    return this.notesService.getTemplates(workspaceId);
-  }
-
   @Get(':noteId')
   @ApiOperation({ summary: 'Get note details' })
   async getNote(
@@ -688,16 +682,6 @@ export class NotesController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.notesService.shareNote(noteId, workspaceId, shareNoteDto, userId);
-  }
-
-  @Post('templates')
-  @ApiOperation({ summary: 'Create note template' })
-  async createTemplate(
-    @Param('workspaceId') workspaceId: string,
-    @Body() templateData: any,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.notesService.createTemplate(workspaceId, templateData, userId);
   }
 
   // ==================== NOTE ACCESS REQUEST ENDPOINTS ====================

@@ -1170,26 +1170,9 @@ export class CalendarService {
     createMeetingRoomDto: CreateMeetingRoomDto,
     userId: string,
   ) {
-    // Check if room code already exists
-    if (createMeetingRoomDto.room_code) {
-      const existingRoomResult = await this.db.find('meeting_rooms', {
-        workspace_id: workspaceId,
-        room_code: createMeetingRoomDto.room_code,
-        is_active: true,
-      });
-
-      const existingRoomData = Array.isArray(existingRoomResult.data)
-        ? existingRoomResult.data
-        : [];
-      if (existingRoomData.length > 0) {
-        throw new ConflictException('Room code already exists');
-      }
-    }
-
     const roomData = {
       workspace_id: workspaceId,
       ...createMeetingRoomDto,
-      room_code: createMeetingRoomDto.room_code || `ROOM-${Date.now()}`,
       status: 'available',
       is_active: true,
       created_at: new Date().toISOString(),

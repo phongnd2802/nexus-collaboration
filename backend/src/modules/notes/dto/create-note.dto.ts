@@ -62,11 +62,6 @@ export class CreateNoteDto {
   @IsUUID()
   parent_id?: string;
 
-  @ApiProperty({ description: 'Template ID to use', required: false })
-  @IsOptional()
-  @IsUUID()
-  template_id?: string;
-
   @ApiProperty({ description: 'Note tags', example: ['meeting', 'important'], required: false })
   @IsOptional()
   @IsArray()

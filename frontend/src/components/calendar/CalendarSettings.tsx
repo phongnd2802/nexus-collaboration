@@ -41,21 +41,9 @@ interface RoomForm {
   capacity: number;
   location: string;
   facilities: string[];
-  color: string;
   description?: string;
   room_type: 'conference' | 'meeting' | 'huddle' | 'training' | 'presentation' | 'phone_booth';
 }
-
-const ROOM_COLORS = [
-  '#3b82f6', // blue
-  '#10b981', // green
-  '#f59e0b', // yellow
-  '#ef4444', // red
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-];
 
 const FACILITY_OPTIONS_CONFIG = [
   { value: 'projector', icon: Monitor },
@@ -101,7 +89,6 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
     capacity: 10,
     location: '',
     facilities: [],
-    color: '#3b82f6',
     description: '',
     room_type: 'meeting'
   });
@@ -121,7 +108,7 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
 
   // Handlers
   const handleSaveRoom = () => {
-    if (!roomForm.name.trim() || !roomForm.roomNumber.trim() || !roomForm.room_type) {
+    if (!roomForm.name.trim() || !roomForm.room_type) {
       toast.error(intl.formatMessage({ id: 'modules.calendar.calendarSettings.errors.requiredFields' }));
       return;
     }
@@ -130,6 +117,7 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
 
     const roomData = {
       name: roomForm.name,
+      room_code: roomForm.roomNumber || undefined,
       description: roomForm.description,
       capacity: roomForm.capacity,
       location: roomForm.location,
@@ -204,7 +192,6 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
       capacity: 10,
       location: '',
       facilities: [],
-      color: '#3b82f6',
       description: '',
       room_type: 'meeting'
     });
@@ -218,7 +205,6 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
       capacity: room.capacity,
       location: room.location,
       facilities: room.equipment || [],
-      color: room.color || '#3b82f6',
       description: room.description || '',
       room_type: room.room_type || 'meeting'
     });
@@ -286,10 +272,6 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
                 className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div
-                    className="w-4 h-4 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: room.color || '#3b82f6' }}
-                  />
                   <div>
                     <p className="font-medium">{room.name}</p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -455,23 +437,6 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
                     </button>
                   );
                 })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{intl.formatMessage({ id: 'modules.calendar.calendarSettings.form.roomColor' })}</Label>
-              <div className="flex gap-2">
-                {ROOM_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full border-2 transition-colors ${
-                      roomForm.color === color ? 'border-gray-900' : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setRoomForm({ ...roomForm, color })}
-                  />
-                ))}
               </div>
             </div>
 
