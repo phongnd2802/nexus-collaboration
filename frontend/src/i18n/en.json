@@ -2132,7 +2132,7 @@
         "searchingFor": "Searching for \"{query}\"",
         "loadingCalendarEvents": "Loading calendar events...",
         "failedUpdateEvent": "Failed to update event",
-        "roomValidationError": "Room name, room number, and room type are required",
+        "roomValidationError": "Meeting room name is required",
         "roomCreatedSuccess": "Meeting room created successfully",
         "roomCreatedError": "Failed to create meeting room",
         "eventScheduledSuccess": "Event scheduled successfully!",
@@ -2140,7 +2140,7 @@
         "createMeetingRoomDesc": "Configure meeting room details and available facilities",
         "roomNameLabel": "Room Name *",
         "roomNamePlaceholder": "e.g., Conference Room A",
-        "roomNumberLabel": "Room Number *",
+        "roomNumberLabel": "Room Number",
         "roomNumberPlaceholder": "e.g., A101, CR-001",
         "capacityLabel": "Capacity",
         "locationLabel": "Location",
@@ -2433,7 +2433,7 @@
         "form": {
           "roomName": "Room Name *",
           "roomNamePlaceholder": "e.g., Conference Room A",
-          "roomNumber": "Room Number *",
+          "roomNumber": "Room Number",
           "roomNumberPlaceholder": "e.g., A101, CR-001",
           "capacity": "Capacity",
           "location": "Location",
@@ -2488,7 +2488,7 @@
           "roomDeleted": "Meeting room deleted successfully"
         },
         "errors": {
-          "requiredFields": "Room name, room number, and room type are required",
+          "requiredFields": "Meeting room name is required",
           "createFailed": "Failed to create meeting room",
           "updateFailed": "Failed to update meeting room",
           "deleteFailed": "Failed to delete meeting room"

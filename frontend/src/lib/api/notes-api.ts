@@ -99,15 +99,6 @@ export interface CreateFolderRequest {
   icon?: string;
 }
 
-export interface NoteTemplate {
-  id: string;
-  name: string;
-  description?: string;
-  content: any;
-  category: string;
-  thumbnail?: string;
-}
-
 // Query Keys
 export const notesKeys = {
   all: ['notes'] as const,
@@ -116,7 +107,6 @@ export const notesKeys = {
   details: () => [...notesKeys.all, 'detail'] as const,
   detail: (id: string) => [...notesKeys.details(), id] as const,
   folders: (workspaceId: string) => [...notesKeys.all, 'folders', workspaceId] as const,
-  templates: () => [...notesKeys.all, 'templates'] as const,
   starred: (workspaceId: string) => [...notesKeys.all, 'starred', workspaceId] as const,
   recent: (workspaceId: string) => [...notesKeys.all, 'recent', workspaceId] as const,
   search: (query: string) => [...notesKeys.all, 'search', query] as const,
@@ -266,21 +256,6 @@ export const notesApi = {
     if (options?.limit) params.append('limit', String(options.limit));
     if (options?.offset) params.append('offset', String(options.offset));
     return api.get<Note[]>(`/workspaces/${workspaceId}/notes/search?${params.toString()}`);
-  },
-
-  // Templates
-  async getTemplates(): Promise<NoteTemplate[]> {
-    return api.get<NoteTemplate[]>('/notes/templates');
-  },
-
-  async createFromTemplate(workspaceId: string, templateId: string, data: {
-    title: string;
-    folderId?: string;
-  }): Promise<Note> {
-    return api.post<Note>(`/workspaces/${workspaceId}/notes/from-template`, {
-      templateId,
-      ...data,
-    });
   },
 
   // Sharing
@@ -539,28 +514,6 @@ export const useSearchNotes = (workspaceId: string, query: string, options?: {
     queryKey: [...notesKeys.search(query), options?.mode || 'hybrid'],
     queryFn: () => notesApi.searchNotes(workspaceId, query, options),
     enabled: !!workspaceId && query.length > 2,
-  });
-};
-
-export const useTemplates = () => {
-  return useQuery({
-    queryKey: notesKeys.templates(),
-    queryFn: notesApi.getTemplates,
-  });
-};
-
-export const useCreateFromTemplate = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ workspaceId, templateId, data }: {
-      workspaceId: string;
-      templateId: string;
-      data: { title: string; folderId?: string };
-    }) => notesApi.createFromTemplate(workspaceId, templateId, data),
-    onSuccess: (_, { workspaceId }) => {
-      queryClient.invalidateQueries({ queryKey: notesKeys.list(workspaceId) });
-    },
   });
 };
 

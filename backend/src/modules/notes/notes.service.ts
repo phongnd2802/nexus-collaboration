@@ -86,7 +86,6 @@ export class NotesService {
       content: createNoteDto.content,
       content_text: null,
       parent_id: createNoteDto.parent_id,
-      template_id: createNoteDto.template_id,
       created_by: userId,
       author_id: userId,
       tags: createNoteDto.tags || [],
@@ -1268,27 +1267,6 @@ export class NotesService {
         sort_by_date,
       },
     };
-  }
-
-  // Template operations
-  async createTemplate(workspaceId: string, templateData: any, userId: string) {
-    const template = {
-      workspace_id: workspaceId,
-      ...templateData,
-      created_by: userId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    return await this.db.insert('note_templates', template);
-  }
-
-  async getTemplates(workspaceId: string) {
-    return await this.db
-      .table('note_templates')
-      .select('*')
-      .where('workspace_id', '=', workspaceId)
-      .execute();
   }
 
   // Helper methods

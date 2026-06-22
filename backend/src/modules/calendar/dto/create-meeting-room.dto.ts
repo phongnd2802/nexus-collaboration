@@ -169,4 +169,5 @@ export class CreateMeetingRoomDto {
   @IsArray()
   @IsString({ each: true })
   images?: string[];
+
 }

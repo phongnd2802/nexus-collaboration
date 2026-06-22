@@ -188,7 +188,6 @@ export interface Note {
   isArchived: boolean
   archivedAt?: Date | string
   isFavorite: boolean
-  isTemplate?: boolean
 
   // Permissions
   permissions: {
@@ -224,22 +223,6 @@ export interface Note {
   // Version control
   version: number
   lastSavedAt: Date | string
-}
-
-export interface NoteTemplate {
-  id: string
-  name: string
-  description?: string
-  icon?: IconData
-  content: BlockContent[]
-  properties?: Record<string, PropertyDefinition>
-  category: 'task' | 'general' | 'brainstorming' | 'meeting' | 'project' | 'custom'
-  subcategory?: string
-  isPublic: boolean
-  createdBy: string
-  createdAt: Date | string
-  tags: string[]
-  color?: 'gray' | 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink' | 'blank'
 }
 
 export interface NoteVersion {
@@ -310,7 +293,6 @@ export interface CreateNoteRequest {
   title?: string
   description?: string
   parentId?: string
-  templateId?: string
   content?: BlockContent[]
   icon?: string | IconData
   properties?: Record<string, any>

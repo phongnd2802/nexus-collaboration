@@ -60,13 +60,11 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
     capacity: 10,
     location: '',
     facilities: [] as string[],
-    color: '#3b82f6',
     description: '',
     room_type: 'meeting' as 'conference' | 'meeting' | 'huddle' | 'training' | 'presentation' | 'phone_booth'
   })
 
   // Room constants
-  const ROOM_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
   const FACILITY_OPTIONS = [
     { value: 'projector', label: intl.formatMessage({ id: 'modules.calendar.main.facilityProjector' }), icon: Monitor },
     { value: 'whiteboard', label: intl.formatMessage({ id: 'modules.calendar.main.facilityWhiteboard' }), icon: Edit2 },
@@ -209,7 +207,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
         capacity: room.capacity || 10,
         location: room.location || '',
         facilities: room.equipment || [],
-        color: room.color || '#3b82f6',
         description: room.description || '',
         room_type: room.room_type || 'meeting',
       })
@@ -359,7 +356,7 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
 
   // Room dialog handlers
   const handleSaveRoom = () => {
-    if (!roomForm.name.trim() || !roomForm.roomNumber.trim() || !roomForm.room_type) {
+    if (!roomForm.name.trim() || !roomForm.room_type) {
       toast.error(intl.formatMessage({ id: 'modules.calendar.main.roomValidationError' }))
       return
     }
@@ -368,11 +365,10 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
 
     const roomData = {
       name: roomForm.name,
-      room_code: roomForm.roomNumber,
+      room_code: roomForm.roomNumber || undefined,
       description: roomForm.description,
       capacity: roomForm.capacity,
       location: roomForm.location,
-      color: roomForm.color,
       equipment: roomForm.facilities,
       room_type: roomForm.room_type
     }

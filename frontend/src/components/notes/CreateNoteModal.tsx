@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Plus } from 'lucide-react'
 import { useToast } from '../ui/use-toast'
-import type { NoteTemplate } from '../../types/notes'
-
 // Lazy load the Quill editor
 const ReactQuill = lazy(() => import('react-quill-new'))
 import 'react-quill-new/dist/quill.snow.css'

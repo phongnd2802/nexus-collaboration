@@ -171,10 +171,6 @@ function MeetingRoomItem({ room, workspaceId, events, onRoomClick }: MeetingRoom
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <div 
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: room.color || '#6b7280' }}
-          />
           <div className="text-sm font-medium truncate">{room.name}</div>
         </div>
         <div className="text-xs text-muted-foreground">

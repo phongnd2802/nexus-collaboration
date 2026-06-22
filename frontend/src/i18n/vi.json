@@ -2128,7 +2128,7 @@
         "searchingFor": "Đang tìm kiếm  \"{query} \"",
         "loadingCalendarEvents": "Đang tải sự kiện lịch...",
         "failedUpdateEvent": "Không thể cập nhật sự kiện",
-        "roomValidationError": "Yêu cầu tên phòng, số phòng và loại phòng",
+        "roomValidationError": "Tên phòng họp không được để trống",
         "roomCreatedSuccess": "Đã tạo phòng họp thành công",
         "roomCreatedError": "Không thể tạo phòng họp",
         "eventScheduledSuccess": "Đã lên lịch sự kiện thành công!",
@@ -2136,7 +2136,7 @@
         "createMeetingRoomDesc": "Cấu hình chi tiết phòng họp và tiện ích có sẵn",
         "roomNameLabel": "Tên phòng *",
         "roomNamePlaceholder": "vd: Phòng họp A",
-        "roomNumberLabel": "Số phòng *",
+        "roomNumberLabel": "Số phòng",
         "roomNumberPlaceholder": "vd: A101, CR-001",
         "capacityLabel": "Sức chứa",
         "locationLabel": "Vị trí",
@@ -2429,7 +2429,7 @@
         "form": {
           "roomName": "Tên phòng *",
           "roomNamePlaceholder": "vd: Phòng họp A",
-          "roomNumber": "Số phòng *",
+          "roomNumber": "Số phòng",
           "roomNumberPlaceholder": "vd: A101, CR-001",
           "capacity": "Sức chứa",
           "location": "Vị trí",
@@ -2484,7 +2484,7 @@
           "roomDeleted": "Đã xóa phòng họp thành công"
         },
         "errors": {
-          "requiredFields": "Yêu cầu tên phòng, số phòng và loại phòng",
+          "requiredFields": "Tên phòng họp không được để trống",
           "createFailed": "Không thể tạo phòng họp",
           "updateFailed": "Không thể cập nhật phòng họp",
           "deleteFailed": "Không thể xóa phòng họp"
