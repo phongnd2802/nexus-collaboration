@@ -1,6 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { dataObjectSchema, idSchema, workspaceIdSchema } from '../schemas/common.js';
+import { idSchema, workspaceIdSchema } from '../schemas/common.js';
 import { workspaceMembersGetOutputSchema } from '../schemas/workspace-members.js';
 import { workspaceGetOutputShape } from '../schemas/workspace.js';
 import type { NexusApiClient } from '../services/nexus-api.js';
@@ -67,11 +67,28 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
     name: 'nexus_invite_workspace_member',
     title: 'Invite Nexus Workspace Member',
     description:
-      'Invite a member to a workspace. Requires admin or owner permission. The data object should match InviteMemberDto.',
-    inputSchema: { workspace_id: workspaceIdSchema, data: dataObjectSchema },
+      'Invite a member to a workspace. Requires admin or owner permission. Accepts email, optional role, and optional message.',
+    inputSchema: {
+      workspace_id: workspaceIdSchema,
+      email: z.string().email().describe('Email address to invite.'),
+      role: z.enum(['owner', 'admin', 'member']).default('member').describe('Workspace role for the invited member.'),
+      message: z.string().max(2000).optional().describe('Optional invitation message.'),
+    },
     method: 'POST',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/members/invite`,
-    body: ({ data }) => data,
+    body: ({ email, role, message }) => ({
+      email,
+      role,
+      ...(message !== undefined ? { message } : {}),
+    }),
+    outputSchema: z.object({
+      success: z.literal(true),
+      invitationId: z.string().min(1),
+      email: z.string().email(),
+      status: z.literal('pending'),
+      expiresAt: z.string().datetime(),
+      message: z.string().min(1),
+    }),
     annotations: write,
   });
 

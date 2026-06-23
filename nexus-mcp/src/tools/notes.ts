@@ -1,6 +1,18 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { dataObjectSchema, idSchema, limitSchema, offsetSchema, workspaceIdSchema } from '../schemas/common.js';
+import { idSchema, limitSchema, offsetSchema, workspaceIdSchema } from '../schemas/common.js';
+import {
+  createNoteInputShape,
+  createNoteOutputSchema,
+  noteArchiveOutputSchema,
+  noteDeleteOutputSchema,
+  noteOutputSchema,
+  noteRestoreOutputSchema,
+  notesListOutputSchema,
+  searchNotesListOutputSchema,
+  updateNoteInputShape,
+  noteUnarchiveOutputSchema,
+} from '../schemas/notes.js';
 import type { NexusApiClient } from '../services/nexus-api.js';
 import { registerApiTool } from './register-api-tool.js';
 
@@ -31,6 +43,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     },
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes`,
     query: ({ parent_id, is_deleted, is_archived }) => ({ parent_id, is_deleted, is_archived }),
+    outputSchema: notesListOutputSchema,
+    outputTransform: (data) => ({ notes: data }),
     annotations: readOnly,
   });
 
@@ -47,6 +61,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     },
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes/search`,
     query: ({ q, mode, limit, offset }) => ({ q, mode, limit, offset }),
+    outputSchema: searchNotesListOutputSchema,
+    outputTransform: (data) => ({ notes: data }),
     annotations: readOnly,
   });
 
@@ -62,6 +78,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     path: ({ workspace_id, note_id }) =>
       `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}`,
     query: ({ include_deleted }) => ({ include_deleted }),
+    outputSchema: noteOutputSchema,
     annotations: readOnly,
   });
 
@@ -69,34 +86,42 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_create_note',
     title: 'Create Nexus Note',
     description:
-      'Create a Nexus note. The data object should match CreateNoteDto, for example title, content, parent_id, tags.',
-    inputSchema: { workspace_id: workspaceIdSchema, data: dataObjectSchema },
+      'Create a Nexus note with title and content, and optional parent note, tags, cover image, icon, public flag, and attachments.',
+    inputSchema: { workspace_id: workspaceIdSchema, ...createNoteInputShape },
     method: 'POST',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes`,
-    body: ({ data }) => data,
+    body: ({ title, content, parent_id, tags, cover_image, icon, is_public, attachments }) => ({
+      title,
+      content,
+      ...(parent_id !== undefined ? { parent_id } : {}),
+      ...(tags !== undefined ? { tags } : {}),
+      ...(cover_image !== undefined ? { cover_image } : {}),
+      ...(icon !== undefined ? { icon } : {}),
+      ...(is_public !== undefined ? { is_public } : {}),
+      ...(attachments !== undefined ? { attachments } : {}),
+    }),
+    outputSchema: createNoteOutputSchema,
     annotations: write,
   });
 
   registerApiTool(server, client, {
     name: 'nexus_update_note',
     title: 'Update Nexus Note',
-    description: 'Update a Nexus note. The data object should match UpdateNoteDto.',
-    inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), data: dataObjectSchema },
+    description:
+      'Update a Nexus note with optional title, content, tags, public flag, favorite flag, and attachments.',
+    inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...updateNoteInputShape },
     method: 'PATCH',
     path: ({ workspace_id, note_id }) =>
       `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}`,
-    body: ({ data }) => data,
-    annotations: write,
-  });
-
-  registerApiTool(server, client, {
-    name: 'nexus_import_url_note',
-    title: 'Import URL As Nexus Note',
-    description: 'Import readable content from a URL and create a Nexus note.',
-    inputSchema: { workspace_id: workspaceIdSchema, data: dataObjectSchema },
-    method: 'POST',
-    path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes/import/url`,
-    body: ({ data }) => data,
+    body: ({ title, content, tags, is_public, is_favorite, attachments }) => ({
+      ...(title !== undefined ? { title } : {}),
+      ...(content !== undefined ? { content } : {}),
+      ...(tags !== undefined ? { tags } : {}),
+      ...(is_public !== undefined ? { is_public } : {}),
+      ...(is_favorite !== undefined ? { is_favorite } : {}),
+      ...(attachments !== undefined ? { attachments } : {}),
+    }),
+    outputSchema: createNoteOutputSchema,
     annotations: write,
   });
 
@@ -108,6 +133,58 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     method: 'POST',
     path: ({ workspace_id, note_id }) =>
       `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}/archive`,
+    outputSchema: noteArchiveOutputSchema,
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_delete_note',
+    title: 'Delete Nexus Note',
+    description: 'Soft delete a note and all its sub-notes.',
+    inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
+    method: 'DELETE',
+    path: ({ workspace_id, note_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}`,
+    outputSchema: noteDeleteOutputSchema,
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_restore_note',
+    title: 'Restore Nexus Note',
+    description: 'Restore a soft-deleted note and all its sub-notes.',
+    inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
+    method: 'POST',
+    path: ({ workspace_id, note_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}/restore`,
+    outputSchema: noteRestoreOutputSchema,
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_unarchive_note',
+    title: 'Unarchive Nexus Note',
+    description: 'Unarchive a note and all its sub-notes.',
+    inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
+    method: 'POST',
+    path: ({ workspace_id, note_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}/unarchive`,
+    outputSchema: noteUnarchiveOutputSchema,
     annotations: {
       readOnlyHint: false,
       destructiveHint: false,

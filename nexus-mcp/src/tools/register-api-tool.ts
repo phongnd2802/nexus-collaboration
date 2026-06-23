@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ZodRawShape, ZodTypeAny } from 'zod';
 import { z } from 'zod';
+import { normalizeBySchema } from '../services/normalize.js';
 import { NexusApiClient } from '../services/nexus-api.js';
 import { errorResult, okResult } from '../services/format.js';
 import { responseFormatSchema } from '../schemas/common.js';
@@ -61,9 +62,7 @@ export function registerApiTool(server: McpServer, client: NexusApiClient, confi
         });
 
         const outputData = config.outputTransform ? config.outputTransform(data) : data;
-        const structuredData = config.outputSchema
-          ? config.outputSchema.parse(outputData)
-          : data;
+        const structuredData = config.outputSchema ? normalizeBySchema(config.outputSchema, outputData) : data;
 
         return okResult(structuredData, responseFormat, config.title);
       } catch (error) {
