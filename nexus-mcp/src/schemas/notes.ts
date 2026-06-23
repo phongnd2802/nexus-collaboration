@@ -93,6 +93,11 @@ export const updateNoteInputShape = {
   attachments: noteAttachmentsInputSchema.optional(),
 };
 
+export const shareNoteInputShape = {
+  user_ids: z.array(z.string().uuid()).min(1),
+  permission: z.enum(['read', 'write', 'admin']).optional(),
+};
+
 export const createNoteOutputSchema = z
   .object({
     id: z.string().min(1),
@@ -150,5 +155,14 @@ export const noteUnarchiveOutputSchema = z
     success: z.literal(true),
     message: z.string().min(1),
     unarchivedCount: z.number().int().nonnegative(),
+  })
+  .strip();
+
+export const shareNoteOutputSchema = z
+  .object({
+    success: z.literal(true),
+    message: z.string().min(1),
+    shared_count: z.number().int().nonnegative(),
+    total_shared_users: z.number().int().nonnegative(),
   })
   .strip();
