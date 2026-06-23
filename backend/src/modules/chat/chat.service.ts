@@ -1297,6 +1297,10 @@ export class ChatService {
       throw new BadRequestException('Either channel_id or conversation_id must be provided');
     }
 
+    const normalizedThreadContext = await this.normalizeThreadContext(messageData);
+    messageData.parent_id = normalizedThreadContext.parentId;
+    messageData.thread_id = normalizedThreadContext.threadId;
+
     // Check access
     if (messageData.channel_id) {
       await this.checkChannelAccess(messageData.channel_id, userId);
@@ -1905,6 +1909,43 @@ export class ChatService {
     }
 
     return parsedMessage;
+  }
+
+  private async normalizeThreadContext(
+    messageData: Pick<SendMessageDto, 'parent_id' | 'thread_id'> & {
+      channel_id?: string;
+      conversation_id?: string;
+    },
+  ): Promise<{ parentId?: string; threadId?: string }> {
+    if (!messageData.parent_id) {
+      return {
+        parentId: undefined,
+        threadId: messageData.thread_id || undefined,
+      };
+    }
+
+    const parentMessage = await this.db.findOne('messages', {
+      id: messageData.parent_id,
+    });
+
+    if (!parentMessage) {
+      throw new NotFoundException('Parent message not found');
+    }
+
+    if (messageData.channel_id && parentMessage.channel_id !== messageData.channel_id) {
+      throw new BadRequestException('Parent message does not belong to the requested channel');
+    }
+
+    if (messageData.conversation_id && parentMessage.conversation_id !== messageData.conversation_id) {
+      throw new BadRequestException('Parent message does not belong to the requested conversation');
+    }
+
+    const threadId = parentMessage.thread_id || parentMessage.id;
+
+    return {
+      parentId: messageData.parent_id,
+      threadId,
+    };
   }
 
   async updateMessage(messageId: string, updateMessageDto: UpdateMessageDto, userId: string) {

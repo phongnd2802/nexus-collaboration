@@ -125,6 +125,7 @@ const createMessageConverter = (workspaceMembers: any[], currentUser: any) => {
     const userId = msg.userId || msg.user_id;
     const createdAt = msg.createdAt || msg.created_at;
     const updatedAt = msg.updatedAt || msg.updated_at;
+    const threadId = msg.threadId || msg.thread_id;
     const parentId = msg.parentId || msg.parent_id;
     const isEdited = msg.isEdited || msg.is_edited;
 
@@ -182,7 +183,9 @@ const createMessageConverter = (workspaceMembers: any[], currentUser: any) => {
             memberIds: r.memberIds || (r.userId ? [r.userId] : [])
           }))
         : [],
+      threadRootMessageId: threadId,
       parentMessageId: parentId,
+      threadCount: typeof msg.reply_count === 'number' ? msg.reply_count : undefined,
       isEdited: !!isEdited,
       updatedAt: updatedAt ? new Date(updatedAt) : undefined,
       read_by_count: msg.read_by_count
@@ -835,6 +838,7 @@ const ChatPage: React.FC = () => {
         poll: item.poll
       })) || [],
       reactions: [],
+      threadRootMessageId: replyingTo ? replyingTo.threadRootMessageId || replyingTo.id : undefined,
       parentMessageId: replyingTo?.id, // Include parent for reply indicator
       isOptimistic: true // Custom flag to reduce opacity
     };
@@ -909,6 +913,7 @@ const ChatPage: React.FC = () => {
         content_html: content.trim(), // Full HTML content with images/formatting
         type: files.length > 0 ? 'file' : 'text',
         attachments: attachments.length > 0 ? attachments : undefined,
+        threadId: replyingTo ? replyingTo.threadRootMessageId || replyingTo.id : undefined,
         parentId: replyingTo?.id, // Include parentId if replying (camelCase for frontend)
         mentions: mentionedUserIds.length > 0 ? mentionedUserIds : undefined, // Include mentioned user IDs
         linked_content: linkedContent
@@ -1344,6 +1349,7 @@ const ChatPage: React.FC = () => {
         content: plainTextContent.trim() || '[GIF]',
         content_html: content.trim(),
         type: files.length > 0 ? 'file' : 'text',
+        threadId: threadParentMessage.threadRootMessageId || threadParentMessage.id,
         parentId: threadParentMessage.id,
         attachments: attachments.length > 0 ? attachments : undefined
       };
@@ -2713,12 +2719,14 @@ const ChatPage: React.FC = () => {
   }, [channelMembers, workspaceMembers, conversationMembers, selectedChatType, selectedChatId, isPrivateChannel, user?.id]);
 
   const mainMessages = useMemo(() => {
-    return messages.filter((m) => !m.parentMessageId);
+    return messages.filter((m) => !m.threadRootMessageId && !m.parentMessageId);
   }, [messages]);
 
   const threadMessages = useMemo(() => {
     if (!threadParentMessage) return [];
-    return messages.filter((m) => m.parentMessageId === threadParentMessage.id);
+    return messages.filter(
+      (m) => m.threadRootMessageId === threadParentMessage.id || (!m.threadRootMessageId && m.parentMessageId === threadParentMessage.id)
+    );
   }, [messages, threadParentMessage]);
 
   return (

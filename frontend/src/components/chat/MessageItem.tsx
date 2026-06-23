@@ -71,9 +71,10 @@ export interface Poll {
   options: PollOption[]
   isOpen: boolean
   showResultsBeforeVoting: boolean
+  allowMultipleChoice?: boolean
   createdBy: string
   totalVotes: number
-  userVotedOptionId?: string
+  userVotedOptionIds?: string[]
 }
 
 export interface LinkedContent {
@@ -101,6 +102,7 @@ export interface Message {
   attachments?: Attachment[]
   linked_content?: LinkedContent[]
   reactions?: Reaction[]
+  threadRootMessageId?: string
   parentMessageId?: string
   threadCount?: number
   updatedAt?: Date
@@ -189,7 +191,9 @@ export function MessageItem({
     : null
 
   // Count thread replies
-  const threadReplies = messages.filter(m => m.parentMessageId === message.id)
+  const threadReplies = messages.filter(
+    (m) => m.threadRootMessageId === message.id || (!m.threadRootMessageId && m.parentMessageId === message.id)
+  )
   const threadCount = message.threadCount || threadReplies.length
 
   // Format timestamp
@@ -712,7 +716,10 @@ export function MessageItem({
                     return (
                       <div key={`poll-${item.id}-${index}`}>
                         <PollMessage
-                          poll={item.poll}
+                          poll={{
+                            ...item.poll,
+                            allowMultipleChoice: item.poll.allowMultipleChoice ?? false,
+                          }}
                           messageId={message.id}
                           currentUserId={currentUserId || ''}
                           userVotedOptionIds={item.poll.userVotedOptionIds}
