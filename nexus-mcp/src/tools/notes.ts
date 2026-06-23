@@ -9,6 +9,8 @@ import {
   noteOutputSchema,
   noteRestoreOutputSchema,
   notesListOutputSchema,
+  shareNoteInputShape,
+  shareNoteOutputSchema,
   searchNotesListOutputSchema,
   updateNoteInputShape,
   noteUnarchiveOutputSchema,
@@ -191,5 +193,21 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
       idempotentHint: false,
       openWorldHint: true,
     },
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_share_note',
+    title: 'Share Nexus Note',
+    description: 'Share a note with workspace members by user IDs.',
+    inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...shareNoteInputShape },
+    method: 'POST',
+    path: ({ workspace_id, note_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}/share`,
+    body: ({ user_ids, permission }) => ({
+      user_ids,
+      ...(permission !== undefined ? { permission } : {}),
+    }),
+    outputSchema: shareNoteOutputSchema,
+    annotations: write,
   });
 }
