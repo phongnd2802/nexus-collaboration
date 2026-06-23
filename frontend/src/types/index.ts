@@ -9,7 +9,6 @@ export interface User {
   avatarUrl?: string
   role?: string
   phone?: string
-  timezone?: string
   language?: string
   metadata?: {
     bio?: string

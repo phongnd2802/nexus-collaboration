@@ -256,11 +256,6 @@
   },
   "profile": {
     "settings": {
-      "timezone": {
-        "label": "Múi giờ",
-        "placeholder": "Chọn múi giờ của bạn",
-        "description": "Dùng để hiển thị thời gian theo múi giờ địa phương của bạn"
-      },
       "language": {
         "label": "Ngôn ngữ",
         "placeholder": "Chọn ngôn ngữ của bạn",
@@ -1817,11 +1812,39 @@
         "fileCountPlural": "{count} tệp"
       },
       "share": {
-        "title": "Chia sẻ  \"{fileName} \"",
-        "description": "Chia sẻ tệp này với thành viên không gian làm việc",
+        "title": "Chia sẻ \"{fileName}\"",
+        "description": "Chia sẻ với thành viên hoặc tạo liên kết công khai",
+        "tabLink": "Lấy liên kết",
+        "tabMembers": "Thành viên",
+        "accessLevel": "Cấp độ truy cập",
+        "viewOnly": "Chỉ xem",
+        "canDownload": "Tải xuống",
+        "canEdit": "Chỉnh sửa",
+        "password": "Mật khẩu",
+        "passwordPlaceholder": "Nhập mật khẩu",
+        "expiration": "Hết hạn",
+        "downloadLimit": "Giới hạn tải xuống",
+        "createCopyLink": "Tạo & Sao chép liên kết",
+        "creating": "Đang tạo...",
+        "activeLinks": "Liên kết đang hoạt động ({count})",
+        "views": "{count} lượt xem",
         "searchPlaceholder": "Tìm kiếm thành viên...",
+        "noMembersFound": "Không tìm thấy thành viên",
         "memberSelected": "Đã chọn {count} thành viên",
-        "sharing": "Đang chia sẻ..."
+        "shareWithMembers": "Chia sẻ với thành viên",
+        "sharing": "Đang chia sẻ...",
+        "toastSelectMember": "Vui lòng chọn ít nhất một thành viên để chia sẻ",
+        "toastWorkspaceNotFound": "Không tìm thấy không gian làm việc",
+        "toastSharedSuccess": "Đã chia sẻ \"{fileName}\" thành công với {count} thành viên",
+        "toastShareFailed": "Chia sẻ tệp thất bại",
+        "toastLinkCreated": "Đã tạo liên kết chia sẻ!",
+        "toastLinkCopied": "Đã sao chép liên kết vào clipboard!",
+        "toastCopyFailed": "Sao chép liên kết thất bại",
+        "toastLinkDeleted": "Đã xóa liên kết chia sẻ",
+        "toastDeleteLinkFailed": "Xóa liên kết chia sẻ thất bại",
+        "accessLevelView": "Chỉ xem",
+        "accessLevelDownload": "Có thể tải xuống",
+        "accessLevelEdit": "Có thể chỉnh sửa"
       },
       "dialogs": {
         "rename": {
@@ -1831,10 +1854,16 @@
         },
         "delete": {
           "title": "Chuyển vào thùng rác?",
-          "confirmSingle": "Bạn có chắc chắn muốn chuyển  \"{itemName} \" vào thùng rác không?",
+          "confirmSingle": "Bạn có chắc chắn muốn chuyển \"{itemName}\" vào thùng rác không?",
           "confirmMultiple": "Bạn có chắc chắn muốn chuyển {count} mục vào thùng rác không?",
           "canRestore": "Bạn có thể khôi phục mục từ thùng rác sau.",
-          "moveToTrash": "Chuyển vào thùng rác"
+          "moveToTrash": "Chuyển vào thùng rác",
+          "permanentTitle": "Xóa vĩnh viễn?",
+          "permanentConfirmSingle": "Bạn có chắc chắn muốn xóa vĩnh viễn \"{itemName}\" không?",
+          "permanentConfirmMultiple": "Bạn có chắc chắn muốn xóa vĩnh viễn {count} mục không?",
+          "permanentWarning": "Hành động này không thể hoàn tác.",
+          "deletePermanently": "Xóa vĩnh viễn",
+          "cancel": "Hủy"
         },
         "createFolder": {
           "title": "Tạo thư mục mới",
@@ -2132,7 +2161,7 @@
         "roomCreatedSuccess": "Đã tạo phòng họp thành công",
         "roomCreatedError": "Không thể tạo phòng họp",
         "eventScheduledSuccess": "Đã lên lịch sự kiện thành công!",
-        "createMeetingRoom": "Tạo phòng họp",
+        "createMeetingRoom": "Lên lịch họp",
         "createMeetingRoomDesc": "Cấu hình chi tiết phòng họp và tiện ích có sẵn",
         "roomNameLabel": "Tên phòng *",
         "roomNamePlaceholder": "vd: Phòng họp A",
@@ -2410,6 +2439,71 @@
         "reset": "Đặt lại",
         "cancel": "Hủy",
         "applyFilters": "Áp dụng bộ lọc"
+      },
+      "settingsDialog": {
+        "title": "Cài đặt lịch",
+        "tabs": {
+          "display": "Hiển thị",
+          "time": "Thời gian",
+          "notifications": "Thông báo",
+          "rooms": "Phòng họp",
+          "advanced": "Nâng cao"
+        },
+        "display": {
+          "defaultView": "Chế độ xem mặc định",
+          "weekStartsOn": "Tuần bắt đầu từ",
+          "showWeekNumbers": "Hiện số tuần",
+          "showTentativeEvents": "Hiện sự kiện tạm thời",
+          "showDeclinedEvents": "Hiện sự kiện đã từ chối",
+          "views": {
+            "day": "Ngày",
+            "week": "Tuần",
+            "month": "Tháng",
+            "year": "Năm",
+            "agenda": "Lịch trình"
+          },
+          "weekDays": {
+            "sunday": "Chủ nhật",
+            "monday": "Thứ hai",
+            "tuesday": "Thứ ba",
+            "wednesday": "Thứ tư",
+            "thursday": "Thứ năm",
+            "friday": "Thứ sáu",
+            "saturday": "Thứ bảy"
+          }
+        },
+        "time": {
+          "timeFormat": "Định dạng giờ",
+          "format12h": "12 giờ (SA/CH)",
+          "format24h": "24 giờ",
+          "defaultEventDuration": "Thời lượng sự kiện mặc định (phút)",
+          "workingHours": "Giờ làm việc",
+          "startTime": "Giờ bắt đầu",
+          "endTime": "Giờ kết thúc",
+          "workingDays": "Ngày làm việc"
+        },
+        "notifications": {
+          "defaultReminders": "Nhắc nhở sự kiện mặc định",
+          "defaultRemindersDesc": "Đặt nhắc nhở mặc định sẽ tự động thêm vào sự kiện mới",
+          "addReminder": "Thêm nhắc nhở mặc định",
+          "notificationPreferences": "Tùy chọn thông báo",
+          "emailNotifications": "Thông báo qua email",
+          "pushNotifications": "Thông báo đẩy",
+          "soundNotifications": "Thông báo âm thanh"
+        },
+        "advanced": {
+          "smartScheduling": "Lên lịch thông minh",
+          "smartSchedulingDesc": "Đề xuất lịch hẹn hỗ trợ bởi AI",
+          "weatherIntegration": "Tích hợp thời tiết",
+          "weatherIntegrationDesc": "Hiển thị dự báo thời tiết cho sự kiện ngoài trời",
+          "focusTime": "Tùy chọn thời gian tập trung",
+          "focusTimeDesc": "Cấu hình khung thời gian tập trung ưa thích",
+          "addFocusTime": "Thêm khung thời gian tập trung"
+        },
+        "actions": {
+          "cancel": "Hủy",
+          "saveSettings": "Lưu cài đặt"
+        }
       },
       "calendarSettings": {
         "title": "Phòng họp",
@@ -7331,7 +7425,6 @@
       "phone": "Điện thoại",
       "location": "Vị trí",
       "website": "Website",
-      "timezone": "Múi giờ",
       "roleLabel": "Vai trò",
       "statusLabel": "Trạng thái",
       "status": {

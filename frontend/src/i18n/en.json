@@ -256,11 +256,6 @@
   },
   "profile": {
     "settings": {
-      "timezone": {
-        "label": "Timezone",
-        "placeholder": "Select your timezone",
-        "description": "Used for displaying times in your local timezone"
-      },
       "language": {
         "label": "Language",
         "placeholder": "Select your language",
@@ -1822,10 +1817,38 @@
       },
       "share": {
         "title": "Share \"{fileName}\"",
-        "description": "Share this file with workspace members",
+        "description": "Share with workspace members or create a public link",
+        "tabLink": "Get Link",
+        "tabMembers": "Members",
+        "accessLevel": "Access Level",
+        "viewOnly": "View only",
+        "canDownload": "Download",
+        "canEdit": "Edit",
+        "password": "Password",
+        "passwordPlaceholder": "Enter password",
+        "expiration": "Expiration",
+        "downloadLimit": "Download limit",
+        "createCopyLink": "Create & Copy Link",
+        "creating": "Creating...",
+        "activeLinks": "Active Links ({count})",
+        "views": "{count} views",
         "searchPlaceholder": "Search members...",
+        "noMembersFound": "No members found",
         "memberSelected": "{count} member{plural} selected",
-        "sharing": "Sharing..."
+        "shareWithMembers": "Share with Members",
+        "sharing": "Sharing...",
+        "toastSelectMember": "Please select at least one member to share with",
+        "toastWorkspaceNotFound": "Workspace not found",
+        "toastSharedSuccess": "Successfully shared \"{fileName}\" with {count} member{plural}",
+        "toastShareFailed": "Failed to share file",
+        "toastLinkCreated": "Share link created!",
+        "toastLinkCopied": "Link copied to clipboard!",
+        "toastCopyFailed": "Failed to copy link",
+        "toastLinkDeleted": "Share link deleted",
+        "toastDeleteLinkFailed": "Failed to delete share link",
+        "accessLevelView": "View only",
+        "accessLevelDownload": "Can download",
+        "accessLevelEdit": "Can edit"
       },
       "dialogs": {
         "rename": {
@@ -1838,7 +1861,13 @@
           "confirmSingle": "Are you sure you want to move \"{itemName}\" to trash?",
           "confirmMultiple": "Are you sure you want to move {count} items to trash?",
           "canRestore": "You can restore items from the trash later.",
-          "moveToTrash": "Move to trash"
+          "moveToTrash": "Move to trash",
+          "permanentTitle": "Delete permanently?",
+          "permanentConfirmSingle": "Are you sure you want to permanently delete \"{itemName}\"?",
+          "permanentConfirmMultiple": "Are you sure you want to permanently delete {count} items?",
+          "permanentWarning": "This action cannot be undone.",
+          "deletePermanently": "Delete permanently",
+          "cancel": "Cancel"
         },
         "createFolder": {
           "title": "Create new folder",
@@ -2136,7 +2165,7 @@
         "roomCreatedSuccess": "Meeting room created successfully",
         "roomCreatedError": "Failed to create meeting room",
         "eventScheduledSuccess": "Event scheduled successfully!",
-        "createMeetingRoom": "Create Meeting Room",
+        "createMeetingRoom": "Schedule Meeting",
         "createMeetingRoomDesc": "Configure meeting room details and available facilities",
         "roomNameLabel": "Room Name *",
         "roomNamePlaceholder": "e.g., Conference Room A",
@@ -2414,6 +2443,71 @@
         "reset": "Reset",
         "cancel": "Cancel",
         "applyFilters": "Apply Filters"
+      },
+      "settingsDialog": {
+        "title": "Calendar Settings",
+        "tabs": {
+          "display": "Display",
+          "time": "Time",
+          "notifications": "Notifications",
+          "rooms": "Rooms",
+          "advanced": "Advanced"
+        },
+        "display": {
+          "defaultView": "Default Calendar View",
+          "weekStartsOn": "Week Starts On",
+          "showWeekNumbers": "Show Week Numbers",
+          "showTentativeEvents": "Show Tentative Events",
+          "showDeclinedEvents": "Show Declined Events",
+          "views": {
+            "day": "Day",
+            "week": "Week",
+            "month": "Month",
+            "year": "Year",
+            "agenda": "Agenda"
+          },
+          "weekDays": {
+            "sunday": "Sunday",
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday"
+          }
+        },
+        "time": {
+          "timeFormat": "Time Format",
+          "format12h": "12-hour (AM/PM)",
+          "format24h": "24-hour",
+          "defaultEventDuration": "Default Event Duration (minutes)",
+          "workingHours": "Working Hours",
+          "startTime": "Start Time",
+          "endTime": "End Time",
+          "workingDays": "Working Days"
+        },
+        "notifications": {
+          "defaultReminders": "Default Event Reminders",
+          "defaultRemindersDesc": "Set default reminders that will be automatically added to new events",
+          "addReminder": "Add Default Reminder",
+          "notificationPreferences": "Notification Preferences",
+          "emailNotifications": "Email Notifications",
+          "pushNotifications": "Push Notifications",
+          "soundNotifications": "Sound Notifications"
+        },
+        "advanced": {
+          "smartScheduling": "Smart Scheduling",
+          "smartSchedulingDesc": "AI-powered scheduling suggestions",
+          "weatherIntegration": "Weather Integration",
+          "weatherIntegrationDesc": "Show weather forecasts for outdoor events",
+          "focusTime": "Focus Time Preferences",
+          "focusTimeDesc": "Configure your preferred focus time blocks",
+          "addFocusTime": "Add Focus Time Block"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "saveSettings": "Save Settings"
+        }
       },
       "calendarSettings": {
         "title": "Meeting Rooms",
@@ -7268,7 +7362,6 @@
       "phone": "Phone",
       "location": "Location",
       "website": "Website",
-      "timezone": "Timezone",
       "roleLabel": "Role",
       "statusLabel": "Status",
       "status": {

@@ -30,7 +30,6 @@ export interface UpdateProfileRequest {
   email?: string;
   avatar?: string;
   phone?: string;
-  timezone?: string;
   language?: string;
   metadata?: any;
 }

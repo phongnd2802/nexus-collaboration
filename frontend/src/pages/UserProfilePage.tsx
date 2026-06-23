@@ -357,15 +357,7 @@ const UserProfilePage: React.FC = () => {
                   </div>
                 )}
 
-                {currentUser?.timezone && (
-                  <div>
-                    <Label className="text-gray-600 dark:text-gray-400 text-sm flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      {intl.formatMessage({ id: 'legal.userProfile.timezone', defaultMessage: 'Timezone' })}
-                    </Label>
-                    <p className="text-gray-900 dark:text-gray-100 font-semibold">{currentUser.timezone}</p>
-                  </div>
-                )}
+
               </CardContent>
             </Card>
           </motion.div>

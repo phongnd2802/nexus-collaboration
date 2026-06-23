@@ -121,6 +121,7 @@ interface DeleteConfirmDialogProps {
   onConfirm: () => void;
   itemCount: number;
   itemName?: string;
+  isTrashView?: boolean;
 }
 
 export function DeleteConfirmDialog({
@@ -129,25 +130,45 @@ export function DeleteConfirmDialog({
   onConfirm,
   itemCount,
   itemName,
+  isTrashView = false,
 }: DeleteConfirmDialogProps) {
+  const intl = useIntl();
+
+  const title = isTrashView
+    ? intl.formatMessage({ id: 'modules.files.dialogs.delete.permanentTitle' })
+    : intl.formatMessage({ id: 'modules.files.dialogs.delete.title' });
+
+  const description = isTrashView
+    ? (itemCount === 1
+        ? intl.formatMessage({ id: 'modules.files.dialogs.delete.permanentConfirmSingle' }, { itemName })
+        : intl.formatMessage({ id: 'modules.files.dialogs.delete.permanentConfirmMultiple' }, { count: itemCount }))
+    : (itemCount === 1
+        ? intl.formatMessage({ id: 'modules.files.dialogs.delete.confirmSingle' }, { itemName })
+        : intl.formatMessage({ id: 'modules.files.dialogs.delete.confirmMultiple' }, { count: itemCount }));
+
+  const subDescription = isTrashView
+    ? intl.formatMessage({ id: 'modules.files.dialogs.delete.permanentWarning' })
+    : intl.formatMessage({ id: 'modules.files.dialogs.delete.canRestore' });
+
+  const confirmLabel = isTrashView
+    ? intl.formatMessage({ id: 'modules.files.dialogs.delete.deletePermanently' })
+    : intl.formatMessage({ id: 'modules.files.dialogs.delete.moveToTrash' });
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Move to trash?</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            {itemCount === 1 ? (
-              <>Are you sure you want to move "{itemName}" to trash?</>
-            ) : (
-              <>Are you sure you want to move {itemCount} items to trash?</>
-            )}
-            {' '}You can restore items from the trash later.
+            {description}{' '}{subDescription}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>
+            {intl.formatMessage({ id: 'modules.files.dialogs.delete.cancel', defaultMessage: 'Cancel' })}
+          </AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm}>
-            Move to trash
+            {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1614,14 +1614,14 @@ export class CalendarService {
     );
 
     // Format event time for display
-    const eventTimeFormatted = eventStartTime.toLocaleTimeString('en-US', {
-      hour: 'numeric',
+    const eventTimeFormatted = eventStartTime.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true,
+      hour12: false,
     });
-    const eventDateFormatted = eventStartTime.toLocaleDateString('en-US', {
-      month: 'short',
+    const eventDateFormatted = eventStartTime.toLocaleDateString('vi-VN', {
       day: 'numeric',
+      month: 'numeric',
       year: 'numeric',
     });
 
@@ -1651,8 +1651,8 @@ export class CalendarService {
             user_id: userId,
             workspace_id: workspaceId,
             type: NotificationType.REMINDER,
-            title: `Reminder: ${eventTitle}`,
-            message: `Your event "${eventTitle}" starts ${reminderText} (${eventDateFormatted} at ${eventTimeFormatted})`,
+            title: `Nhắc nhở: ${eventTitle}`,
+            message: `Sự kiện "${eventTitle}" bắt đầu ${reminderText} (${eventDateFormatted} lúc ${eventTimeFormatted})`,
             action_url: `/workspaces/${workspaceId}/calendar?date=${startTime}&eventId=${eventId}`,
             priority: 'normal',
             category: 'calendar',
@@ -1661,7 +1661,7 @@ export class CalendarService {
             actor_id: organizerId,
             scheduled_at: scheduledAt.toISOString(),
             send_push: true,
-            send_email: false,
+            send_email: true,
             data: {
               event_id: eventId,
               event_title: eventTitle,
@@ -1693,21 +1693,21 @@ export class CalendarService {
    */
   private formatReminderText(minutes: number): string {
     if (minutes < 60) {
-      return `in ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+      return `sau ${minutes} phút`;
     } else if (minutes < 1440) {
       const hours = Math.floor(minutes / 60);
       const remainingMinutes = minutes % 60;
       if (remainingMinutes === 0) {
-        return `in ${hours} hour${hours !== 1 ? 's' : ''}`;
+        return `sau ${hours} giờ`;
       }
-      return `in ${hours} hour${hours !== 1 ? 's' : ''} and ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+      return `sau ${hours} giờ ${remainingMinutes} phút`;
     } else {
       const days = Math.floor(minutes / 1440);
       const remainingHours = Math.floor((minutes % 1440) / 60);
       if (remainingHours === 0) {
-        return `in ${days} day${days !== 1 ? 's' : ''}`;
+        return `sau ${days} ngày`;
       }
-      return `in ${days} day${days !== 1 ? 's' : ''} and ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
+      return `sau ${days} ngày ${remainingHours} giờ`;
     }
   }
 

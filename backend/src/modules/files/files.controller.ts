@@ -287,6 +287,21 @@ export class FilesController {
     return this.filesService.deleteFolder(folderId, workspaceId, userId);
   }
 
+  @Delete('folders/:folderId/permanent')
+  @ApiOperation({ summary: 'Permanently delete a folder from trash' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  @ApiParam({ name: 'folderId', description: 'Deleted folder ID' })
+  @ApiResponse({ status: 200, description: 'Folder and all contents permanently deleted' })
+  @ApiResponse({ status: 403, description: 'Permission denied' })
+  @ApiResponse({ status: 404, description: 'Deleted folder not found' })
+  async permanentDeleteFolder(
+    @Param('workspaceId') workspaceId: string,
+    @Param('folderId') folderId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.filesService.permanentDeleteFolderRecursive(folderId, workspaceId, userId);
+  }
+
   @Delete('folders/:folderId/recursive')
   @ApiOperation({
     summary: 'Delete a folder recursively',
@@ -764,6 +779,21 @@ export class FilesController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.filesService.updateFile(fileId, workspaceId, updateFileDto, userId);
+  }
+
+  @Delete(':fileId/permanent')
+  @ApiOperation({ summary: 'Permanently delete a file from trash' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  @ApiParam({ name: 'fileId', description: 'Deleted file ID' })
+  @ApiResponse({ status: 200, description: 'File permanently deleted' })
+  @ApiResponse({ status: 403, description: 'Permission denied' })
+  @ApiResponse({ status: 404, description: 'Deleted file not found' })
+  async permanentDeleteFile(
+    @Param('workspaceId') workspaceId: string,
+    @Param('fileId') fileId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.filesService.permanentDeleteFile(fileId, workspaceId, userId);
   }
 
   @Delete(':fileId')

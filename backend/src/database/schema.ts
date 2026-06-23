@@ -986,7 +986,6 @@ export const schema = {
       { name: 'user_id', type: 'string', unique: true, nullable: false },
       { name: 'theme', type: 'string', default: 'light' },
       { name: 'language', type: 'string', default: 'en' },
-      { name: 'timezone', type: 'string', default: 'UTC' },
       { name: 'date_format', type: 'string', default: 'MM/dd/yyyy' },
       { name: 'time_format', type: 'string', default: '12h' },
       { name: 'notifications', type: 'jsonb', default: '{}' },

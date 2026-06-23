@@ -627,7 +627,7 @@ const { events, categories, conflicts } = useCalendarStore()
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={handleOpenSettings}
+                onClick={handleOpenCreateRoom}
               >
                 <Plus className="h-3 w-3 mr-1" />
                 {intl.formatMessage({ id: 'modules.calendar.rightSidebar.addRoom' })}

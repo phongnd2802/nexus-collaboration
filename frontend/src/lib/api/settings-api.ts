@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export interface UserSettings {
   theme: 'light' | 'dark' | 'system';
   language: string;
-  timezone: string;
   dateFormat: string;
   timeFormat: '12h' | '24h';
   notifications: NotificationSettings;
@@ -178,7 +177,6 @@ export const settingsApi = {
     phone?: string;
     countryCode?: string;
     location?: string;
-    timezone?: string;
     language?: string;
     avatarUrl?: string;
   }): Promise<{ message: string; user: unknown }> {

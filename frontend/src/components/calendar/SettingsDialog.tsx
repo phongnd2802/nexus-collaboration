@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { CalendarView, UserPreferences } from '../../types/calendar'
 import { Settings, Clock, Bell, MapPin } from 'lucide-react'
 import { CalendarSettings } from './CalendarSettings'
+import { useIntl } from 'react-intl'
 
 interface SettingsDialogProps {
   open: boolean
@@ -23,6 +24,10 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onClose, openRoomDialog = false }: SettingsDialogProps) {
+  const intl = useIntl()
+  const t = (id: string, values?: Record<string, string | number>) =>
+    intl.formatMessage({ id: `modules.calendar.settingsDialog.${id}` }, values)
+
   const [preferences, setPreferences] = useState<UserPreferences>({
     defaultView: 'month',
     weekStartsOn: 0,
@@ -45,21 +50,21 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
   })
 
   const weekDays = [
-    { value: 0, label: 'Sunday' },
-    { value: 1, label: 'Monday' },
-    { value: 2, label: 'Tuesday' },
-    { value: 3, label: 'Wednesday' },
-    { value: 4, label: 'Thursday' },
-    { value: 5, label: 'Friday' },
-    { value: 6, label: 'Saturday' },
+    { value: 0, label: t('display.weekDays.sunday') },
+    { value: 1, label: t('display.weekDays.monday') },
+    { value: 2, label: t('display.weekDays.tuesday') },
+    { value: 3, label: t('display.weekDays.wednesday') },
+    { value: 4, label: t('display.weekDays.thursday') },
+    { value: 5, label: t('display.weekDays.friday') },
+    { value: 6, label: t('display.weekDays.saturday') },
   ]
 
   const calendarViews: { value: CalendarView; label: string }[] = [
-    { value: 'day', label: 'Day' },
-    { value: 'week', label: 'Week' },
-    { value: 'month', label: 'Month' },
-    { value: 'year', label: 'Year' },
-    { value: 'agenda', label: 'Agenda' },
+    { value: 'day', label: t('display.views.day') },
+    { value: 'week', label: t('display.views.week') },
+    { value: 'month', label: t('display.views.month') },
+    { value: 'year', label: t('display.views.year') },
+    { value: 'agenda', label: t('display.views.agenda') },
   ]
 
   const handleSave = () => {
@@ -81,22 +86,22 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Calendar Settings
+            {t('title')}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue={openRoomDialog ? "rooms" : "display"} className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="display">Display</TabsTrigger>
-            <TabsTrigger value="time">Time</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="rooms">Rooms</TabsTrigger>
-            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="display">{t('tabs.display')}</TabsTrigger>
+            <TabsTrigger value="time">{t('tabs.time')}</TabsTrigger>
+            <TabsTrigger value="notifications">{t('tabs.notifications')}</TabsTrigger>
+            <TabsTrigger value="rooms">{t('tabs.rooms')}</TabsTrigger>
+            <TabsTrigger value="advanced">{t('tabs.advanced')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="display" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label>Default Calendar View</Label>
+              <Label>{t('display.defaultView')}</Label>
               <Select
                 value={preferences.defaultView}
                 onValueChange={(value) =>
@@ -117,7 +122,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             </div>
 
             <div className="space-y-2">
-              <Label>Week Starts On</Label>
+              <Label>{t('display.weekStartsOn')}</Label>
               <Select
                 value={preferences.weekStartsOn.toString()}
                 onValueChange={(value) =>
@@ -138,7 +143,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="weekNumbers">Show Week Numbers</Label>
+              <Label htmlFor="weekNumbers">{t('display.showWeekNumbers')}</Label>
               <Switch
                 id="weekNumbers"
                 checked={preferences.showWeekNumbers}
@@ -149,7 +154,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="tentativeEvents">Show Tentative Events</Label>
+              <Label htmlFor="tentativeEvents">{t('display.showTentativeEvents')}</Label>
               <Switch
                 id="tentativeEvents"
                 checked={preferences.showTentativeEvents}
@@ -160,7 +165,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="declinedEvents">Show Declined Events</Label>
+              <Label htmlFor="declinedEvents">{t('display.showDeclinedEvents')}</Label>
               <Switch
                 id="declinedEvents"
                 checked={preferences.showDeclinedEvents}
@@ -173,7 +178,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
 
           <TabsContent value="time" className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label>Time Format</Label>
+              <Label>{t('time.timeFormat')}</Label>
               <Select
                 value={preferences.timeFormat}
                 onValueChange={(value) =>
@@ -184,14 +189,14 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
-                  <SelectItem value="24h">24-hour</SelectItem>
+                  <SelectItem value="12h">{t('time.format12h')}</SelectItem>
+                  <SelectItem value="24h">{t('time.format24h')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Default Event Duration (minutes)</Label>
+              <Label>{t('time.defaultEventDuration')}</Label>
               <Input
                 type="number"
                 value={preferences.defaultEventDuration}
@@ -208,10 +213,10 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             </div>
 
             <div className="space-y-2">
-              <Label>Working Hours</Label>
+              <Label>{t('time.workingHours')}</Label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm">Start Time</Label>
+                  <Label className="text-sm">{t('time.startTime')}</Label>
                   <Input
                     type="time"
                     value={preferences.workingHours.start}
@@ -224,7 +229,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
                   />
                 </div>
                 <div>
-                  <Label className="text-sm">End Time</Label>
+                  <Label className="text-sm">{t('time.endTime')}</Label>
                   <Input
                     type="time"
                     value={preferences.workingHours.end}
@@ -240,7 +245,7 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             </div>
 
             <div className="space-y-2">
-              <Label>Working Days</Label>
+              <Label>{t('time.workingDays')}</Label>
               <div className="flex flex-wrap gap-2">
                 {weekDays.map(({ value, label }) => (
                   <Button
@@ -259,29 +264,29 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
           <TabsContent value="notifications" className="space-y-4 mt-4">
             <div className="space-y-4">
               <div className="rounded-lg border p-4">
-                <h4 className="font-medium mb-2">Default Event Reminders</h4>
+                <h4 className="font-medium mb-2">{t('notifications.defaultReminders')}</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Set default reminders that will be automatically added to new events
+                  {t('notifications.defaultRemindersDesc')}
                 </p>
                 <Button variant="outline" size="sm">
                   <Bell className="h-4 w-4 mr-2" />
-                  Add Default Reminder
+                  {t('notifications.addReminder')}
                 </Button>
               </div>
 
               <div className="rounded-lg border p-4">
-                <h4 className="font-medium mb-2">Notification Preferences</h4>
+                <h4 className="font-medium mb-2">{t('notifications.notificationPreferences')}</h4>
                 <div className="space-y-3 mt-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="emailNotif">Email Notifications</Label>
+                    <Label htmlFor="emailNotif">{t('notifications.emailNotifications')}</Label>
                     <Switch id="emailNotif" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="pushNotif">Push Notifications</Label>
+                    <Label htmlFor="pushNotif">{t('notifications.pushNotifications')}</Label>
                     <Switch id="pushNotif" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="soundNotif">Sound Notifications</Label>
+                    <Label htmlFor="soundNotif">{t('notifications.soundNotifications')}</Label>
                     <Switch id="soundNotif" />
                   </div>
                 </div>
@@ -297,9 +302,9 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="smartScheduling">Smart Scheduling</Label>
+                  <Label htmlFor="smartScheduling">{t('advanced.smartScheduling')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    AI-powered scheduling suggestions
+                    {t('advanced.smartSchedulingDesc')}
                   </p>
                 </div>
                 <Switch
@@ -313,9 +318,9 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="weatherIntegration">Weather Integration</Label>
+                  <Label htmlFor="weatherIntegration">{t('advanced.weatherIntegration')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Show weather forecasts for outdoor events
+                    {t('advanced.weatherIntegrationDesc')}
                   </p>
                 </div>
                 <Switch
@@ -328,13 +333,13 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
               </div>
 
               <div className="rounded-lg border p-4">
-                <h4 className="font-medium mb-2">Focus Time Preferences</h4>
+                <h4 className="font-medium mb-2">{t('advanced.focusTime')}</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Configure your preferred focus time blocks
+                  {t('advanced.focusTimeDesc')}
                 </p>
                 <Button variant="outline" size="sm">
                   <Clock className="h-4 w-4 mr-2" />
-                  Add Focus Time Block
+                  {t('advanced.addFocusTime')}
                 </Button>
               </div>
             </div>
@@ -343,10 +348,10 @@ export function SettingsDialog({ open, onClose, openRoomDialog = false }: Settin
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button onClick={handleSave}>
-            Save Settings
+            {t('actions.saveSettings')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useIntl } from 'react-intl';
 import {
   Dialog,
   DialogContent,
@@ -45,11 +46,9 @@ import {
   Calendar,
   Hash,
   Trash2,
-  ExternalLink,
   Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -66,6 +65,10 @@ export function ShareModal({
 }: ShareModalProps) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { user } = useAuth();
+  const intl = useIntl();
+
+  const t = (id: string, values?: Record<string, any>) =>
+    intl.formatMessage({ id: `modules.files.share.${id}` }, values);
 
   // Members sharing state
   const [searchQuery, setSearchQuery] = useState('');
@@ -133,12 +136,12 @@ export function ShareModal({
 
   const handleShareWithMembers = async () => {
     if (sharedWith.size === 0) {
-      toast.error('Please select at least one member to share with');
+      toast.error(t('toastSelectMember'));
       return;
     }
 
     if (!workspaceId) {
-      toast.error('Workspace not found');
+      toast.error(t('toastWorkspaceNotFound'));
       return;
     }
 
@@ -151,12 +154,13 @@ export function ShareModal({
         permissions: { read: true, download: true, edit: false },
       });
 
-      toast.success(`Successfully shared "${fileName}" with ${result.shared_count} member${result.shared_count > 1 ? 's' : ''}`);
+      const count = result.shared_count;
+      toast.success(t('toastSharedSuccess', { fileName, count, plural: count > 1 ? 's' : '' }));
       setSharedWith(new Set());
       setSearchQuery('');
     } catch (error: any) {
       console.error('Failed to share file:', error);
-      toast.error(error?.response?.data?.message || 'Failed to share file');
+      toast.error(error?.response?.data?.message || t('toastShareFailed'));
     } finally {
       setIsSharing(false);
     }
@@ -164,7 +168,7 @@ export function ShareModal({
 
   const handleCreateLink = async () => {
     if (!workspaceId) {
-      toast.error('Workspace not found');
+      toast.error(t('toastWorkspaceNotFound'));
       return;
     }
 
@@ -178,12 +182,11 @@ export function ShareModal({
       });
 
       setShareLinks([newLink, ...shareLinks]);
-      toast.success('Share link created!');
+      toast.success(t('toastLinkCreated'));
 
-      // Copy link to clipboard automatically
       await navigator.clipboard.writeText(newLink.shareUrl);
       setCopiedId(newLink.id);
-      toast.success('Link copied to clipboard!');
+      toast.success(t('toastLinkCopied'));
       setTimeout(() => setCopiedId(null), 2000);
 
       // Reset form
@@ -196,7 +199,7 @@ export function ShareModal({
       setMaxDownloads(10);
     } catch (error: any) {
       console.error('Failed to create share link:', error);
-      toast.error(error?.response?.data?.message || 'Failed to create share link');
+      toast.error(error?.response?.data?.message || t('toastShareFailed'));
     } finally {
       setIsCreatingLink(false);
     }
@@ -206,10 +209,10 @@ export function ShareModal({
     try {
       await navigator.clipboard.writeText(link.shareUrl);
       setCopiedId(link.id);
-      toast.success('Link copied to clipboard!');
+      toast.success(t('toastLinkCopied'));
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
-      toast.error('Failed to copy link');
+      toast.error(t('toastCopyFailed'));
     }
   };
 
@@ -219,9 +222,9 @@ export function ShareModal({
     try {
       await fileApi.deleteShareLink(workspaceId, shareId);
       setShareLinks(shareLinks.filter(link => link.id !== shareId));
-      toast.success('Share link deleted');
+      toast.success(t('toastLinkDeleted'));
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to delete share link');
+      toast.error(error?.response?.data?.message || t('toastDeleteLinkFailed'));
     }
   };
 
@@ -236,9 +239,9 @@ export function ShareModal({
 
   const getAccessLevelLabel = (level: string) => {
     switch (level) {
-      case 'view': return 'View only';
-      case 'download': return 'Can download';
-      case 'edit': return 'Can edit';
+      case 'view': return t('accessLevelView');
+      case 'download': return t('accessLevelDownload');
+      case 'edit': return t('accessLevelEdit');
       default: return level;
     }
   };
@@ -247,30 +250,27 @@ export function ShareModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Share "{fileName}"</DialogTitle>
-          <DialogDescription>
-            Share with workspace members or create a public link
-          </DialogDescription>
+          <DialogTitle>{t('title', { fileName })}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="link" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="link" className="flex items-center gap-2">
               <Link2 className="h-4 w-4" />
-              Get Link
+              {t('tabLink')}
             </TabsTrigger>
             <TabsTrigger value="members" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Members
+              {t('tabMembers')}
             </TabsTrigger>
           </TabsList>
 
           {/* Get Link Tab */}
           <TabsContent value="link" className="space-y-4 mt-4">
-            {/* Quick Create Section */}
             <div className="space-y-3 p-3 rounded-lg border bg-muted/50">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Access Level</Label>
+                <Label className="text-sm font-medium">{t('accessLevel')}</Label>
                 <Select value={accessLevel} onValueChange={(v) => setAccessLevel(v as any)}>
                   <SelectTrigger className="w-[160px]">
                     <SelectValue />
@@ -278,34 +278,33 @@ export function ShareModal({
                   <SelectContent>
                     <SelectItem value="view">
                       <div className="flex items-center gap-2">
-                        <Eye className="h-4 w-4" /> View only
+                        <Eye className="h-4 w-4" /> {t('viewOnly')}
                       </div>
                     </SelectItem>
                     <SelectItem value="download">
                       <div className="flex items-center gap-2">
-                        <Download className="h-4 w-4" /> Download
+                        <Download className="h-4 w-4" /> {t('canDownload')}
                       </div>
                     </SelectItem>
                     <SelectItem value="edit">
                       <div className="flex items-center gap-2">
-                        <Edit3 className="h-4 w-4" /> Edit
+                        <Edit3 className="h-4 w-4" /> {t('canEdit')}
                       </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Optional settings */}
               <div className="flex items-center justify-between">
                 <span className="text-sm flex items-center gap-2">
-                  <Lock className="h-4 w-4" /> Password
+                  <Lock className="h-4 w-4" /> {t('password')}
                 </span>
                 <Switch checked={usePassword} onCheckedChange={setUsePassword} />
               </div>
               {usePassword && (
                 <Input
                   type="password"
-                  placeholder="Enter password"
+                  placeholder={t('passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-8"
@@ -314,7 +313,7 @@ export function ShareModal({
 
               <div className="flex items-center justify-between">
                 <span className="text-sm flex items-center gap-2">
-                  <Calendar className="h-4 w-4" /> Expiration
+                  <Calendar className="h-4 w-4" /> {t('expiration')}
                 </span>
                 <Switch checked={useExpiration} onCheckedChange={setUseExpiration} />
               </div>
@@ -330,7 +329,7 @@ export function ShareModal({
 
               <div className="flex items-center justify-between">
                 <span className="text-sm flex items-center gap-2">
-                  <Hash className="h-4 w-4" /> Download limit
+                  <Hash className="h-4 w-4" /> {t('downloadLimit')}
                 </span>
                 <Switch checked={useDownloadLimit} onCheckedChange={setUseDownloadLimit} />
               </div>
@@ -353,21 +352,22 @@ export function ShareModal({
                 {isCreatingLink ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    {t('creating')}
                   </>
                 ) : (
                   <>
                     <Link2 className="mr-2 h-4 w-4" />
-                    Create & Copy Link
+                    {t('createCopyLink')}
                   </>
                 )}
               </Button>
             </div>
 
-            {/* Existing Links */}
             {shareLinks.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Active Links ({shareLinks.length})</Label>
+                <Label className="text-sm font-medium">
+                  {t('activeLinks', { count: shareLinks.length })}
+                </Label>
                 <ScrollArea className="h-[150px]">
                   <div className="space-y-2">
                     {shareLinks.map((link) => (
@@ -384,7 +384,7 @@ export function ShareModal({
                             <Lock className="h-3 w-3 text-muted-foreground" />
                           )}
                           <span className="text-xs text-muted-foreground">
-                            {link.viewCount} views
+                            {t('views', { count: link.viewCount })}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -423,7 +423,7 @@ export function ShareModal({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search members..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -437,7 +437,7 @@ export function ShareModal({
                 </div>
               ) : filteredMembers.length === 0 ? (
                 <div className="flex items-center justify-center py-8">
-                  <p className="text-sm text-muted-foreground">No members found</p>
+                  <p className="text-sm text-muted-foreground">{t('noMembersFound')}</p>
                 </div>
               ) : (
                 <div className="p-2 space-y-1">
@@ -484,7 +484,7 @@ export function ShareModal({
 
             {sharedWith.size > 0 && (
               <p className="text-sm text-muted-foreground">
-                {sharedWith.size} member{sharedWith.size > 1 ? 's' : ''} selected
+                {t('memberSelected', { count: sharedWith.size, plural: sharedWith.size > 1 ? 's' : '' })}
               </p>
             )}
 
@@ -496,12 +496,12 @@ export function ShareModal({
               {isSharing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sharing...
+                  {t('sharing')}
                 </>
               ) : (
                 <>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Share with Members
+                  {t('shareWithMembers')}
                 </>
               )}
             </Button>
