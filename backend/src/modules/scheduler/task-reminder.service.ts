@@ -6,8 +6,8 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto';
 
 interface ReminderWindow {
-  minMsExclusive: number;
-  maxMsInclusive: number;
+  targetMs: number;   // exact ms-before-deadline to fire
+  toleranceMs: number; // ±tolerance — window = [targetMs - tolerance, targetMs + tolerance]
   label: string;
 }
 
@@ -17,16 +17,32 @@ interface ReminderCopy {
   inAppMessage: string;
 }
 
+// Cron runs every 5 minutes → tolerance = 5 min so no cron tick is missed.
+// Each window fires when: targetMs - toleranceMs < remainingMs <= targetMs + toleranceMs
+const CRON_INTERVAL_MS = 5 * 60 * 1000;
 const REMINDER_WINDOWS: ReminderWindow[] = [
-  { minMsExclusive: 1 * 24 * 60 * 60 * 1000, maxMsInclusive: 3 * 24 * 60 * 60 * 1000, label: '3 ngày' },
-  { minMsExclusive: 12 * 60 * 60 * 1000, maxMsInclusive: 1 * 24 * 60 * 60 * 1000, label: '1 ngày' },
-  { minMsExclusive: 3 * 60 * 60 * 1000, maxMsInclusive: 12 * 60 * 60 * 1000, label: '12 giờ' },
-  { minMsExclusive: 1 * 60 * 60 * 1000, maxMsInclusive: 3 * 60 * 60 * 1000, label: '3 giờ' },
-  { minMsExclusive: 0, maxMsInclusive: 1 * 60 * 60 * 1000, label: '1 giờ' },
+  { targetMs: 3 * 24 * 60 * 60 * 1000, toleranceMs: CRON_INTERVAL_MS, label: '3 ngày'  },
+  { targetMs:     24 * 60 * 60 * 1000, toleranceMs: CRON_INTERVAL_MS, label: '1 ngày'  },
+  { targetMs:  12 * 60 * 60 * 1000,    toleranceMs: CRON_INTERVAL_MS, label: '12 giờ'  },
+  { targetMs:   3 * 60 * 60 * 1000,    toleranceMs: CRON_INTERVAL_MS, label: '3 giờ'   },
+  { targetMs:       60 * 60 * 1000,    toleranceMs: CRON_INTERVAL_MS, label: '1 giờ'   },
 ];
 
 const COMPLETED_STATUSES = ['done', 'completed', 'cancelled'];
-const MAX_LOOKAHEAD_MS = 3 * 24 * 60 * 60 * 1000;
+// Query window: fetch tasks due within [now + 1h - tolerance, now + 3d + tolerance]
+// so every reminder target is covered.
+const MAX_LOOKAHEAD_MS = 3 * 24 * 60 * 60 * 1000 + CRON_INTERVAL_MS;
+const MIN_LOOKAHEAD_MS = 60 * 60 * 1000 - CRON_INTERVAL_MS;
+
+// Maps interval keys (stored in reminder_settings.intervals) to Vietnamese labels
+// used as dedup keys in the notifications table.
+const INTERVAL_KEY_TO_LABEL: Record<string, string> = {
+  '3d': '3 ngày',
+  '1d': '1 ngày',
+  '12h': '12 giờ',
+  '3h': '3 giờ',
+  '1h': '1 giờ',
+};
 const EMAIL_DEDUP_KEY = 'task_reminder_email';
 const IN_APP_CHANNEL_KEY = 'in_app';
 const IN_MAIL_CHANNEL_KEY = 'in_mail';
@@ -89,18 +105,62 @@ export class TaskReminderService implements OnModuleInit {
     }
 
     for (const task of tasks) {
+      // Parse per-task reminder_settings; default to not sending if missing or malformed.
+      let reminderSettings: { enabled?: boolean; intervals?: string[] } | null = null;
+      try {
+        reminderSettings = task.reminder_settings
+          ? (typeof task.reminder_settings === 'string'
+            ? JSON.parse(task.reminder_settings)
+            : task.reminder_settings)
+          : null;
+      } catch {
+        this.logger.warn(
+          `[TaskReminder] Malformed reminder_settings for task "${task.title}" (id=${task.id}), skipping`,
+        );
+        continue;
+      }
+
+      // Reminders are opt-in: skip unless user explicitly enabled them.
+      if (!reminderSettings?.enabled) {
+        this.logger.debug(
+          `[TaskReminder] Task "${task.title}" (id=${task.id}) — reminders not enabled, skipping`,
+        );
+        continue;
+      }
+
+      const intervals = reminderSettings.intervals ?? [];
+      if (intervals.length === 0) {
+        this.logger.debug(
+          `[TaskReminder] Task "${task.title}" (id=${task.id}) — enabled but no intervals selected, skipping`,
+        );
+        continue;
+      }
+
+      const allowedLabels = new Set(
+        intervals.map((k) => INTERVAL_KEY_TO_LABEL[k]).filter(Boolean),
+      );
+
       const dueAt = new Date(task.due_date).getTime();
       const remainingMs = dueAt - now.getTime();
+      // Match if |remainingMs - targetMs| <= toleranceMs (i.e. cron fired within ±5min of the target)
       const window = REMINDER_WINDOWS.find(
-        (w) => remainingMs > w.minMsExclusive && remainingMs <= w.maxMsInclusive,
+        (w) => Math.abs(remainingMs - w.targetMs) <= w.toleranceMs,
       );
 
       if (!window) {
         this.logger.debug(
-          `[TaskReminder] Task "${task.title}" (id=${task.id}) due=${task.due_date} remainingMs=${remainingMs} — no matching window, skipping`,
+          `[TaskReminder] Task "${task.title}" (id=${task.id}) due=${task.due_date} remainingMs=${Math.round(remainingMs / 60000)}min — not at any reminder target, skipping`,
         );
         continue;
       }
+
+      if (!allowedLabels.has(window.label)) {
+        this.logger.debug(
+          `[TaskReminder] Task "${task.title}" (id=${task.id}) window="${window.label}" not in user's selected intervals, skipping`,
+        );
+        continue;
+      }
+
       await this.processTaskReminder(task, window);
     }
   }
@@ -108,13 +168,14 @@ export class TaskReminderService implements OnModuleInit {
   private async logUnmatchedTasks(now: Date): Promise<void> {
     try {
       const end = new Date(now.getTime() + MAX_LOOKAHEAD_MS);
+      const start = new Date(now.getTime() + MIN_LOOKAHEAD_MS);
       const result = await this.db.query(
         `SELECT t.id, t.title, t.due_date, t.status, t.assigned_to, t.project_id
          FROM tasks t
          WHERE t.due_date IS NOT NULL
            AND t.due_date >= $1
            AND t.due_date <= $2`,
-        [now.toISOString(), end.toISOString()],
+        [start.toISOString(), end.toISOString()],
       );
       const allTasks = result.rows || [];
       if (allTasks.length === 0) {
@@ -138,6 +199,9 @@ export class TaskReminderService implements OnModuleInit {
 
   private async findUpcomingTasks(now: Date): Promise<any[]> {
     try {
+      // Fetch all tasks whose due_date falls within any possible reminder window.
+      // Lower bound = soonest window (1h) minus tolerance; upper bound = farthest window (3d) plus tolerance.
+      const start = new Date(now.getTime() + MIN_LOOKAHEAD_MS);
       const end = new Date(now.getTime() + MAX_LOOKAHEAD_MS);
       const result = await this.db.query(
         `SELECT t.*, p.name AS project_name, p.workspace_id
@@ -148,7 +212,7 @@ export class TaskReminderService implements OnModuleInit {
            AND t.due_date <= $2
            AND t.status NOT IN ($3, $4, $5)
            AND t.assigned_to IS NOT NULL`,
-        [now.toISOString(), end.toISOString(), ...COMPLETED_STATUSES],
+        [start.toISOString(), end.toISOString(), ...COMPLETED_STATUSES],
       );
       return result.rows || [];
     } catch (error: any) {

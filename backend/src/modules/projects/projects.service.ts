@@ -812,6 +812,10 @@ export class ProjectsService {
   async createTask(projectId: string, createTaskDto: CreateTaskDto, userId: string) {
     const project = await this.getProjectWithAccess(projectId, userId);
 
+    if (createTaskDto.due_time && !createTaskDto.due_date) {
+      throw new BadRequestException('due_time requires due_date to be set');
+    }
+
     const taskData = {
       ...createTaskDto,
       project_id: projectId,
@@ -830,6 +834,9 @@ export class ProjectsService {
         }),
       // Per-task custom fields (array of { id, name, fieldType, value, options? })
       custom_fields: JSON.stringify(createTaskDto.custom_fields || []),
+      reminder_settings: createTaskDto.reminder_settings
+        ? JSON.stringify(createTaskDto.reminder_settings)
+        : null,
       collaborative_data: JSON.stringify({}),
       created_by: userId,
       created_at: new Date().toISOString(),
@@ -1067,6 +1074,11 @@ export class ProjectsService {
             typeof task.custom_fields === 'string'
               ? JSON.parse(task.custom_fields)
               : task.custom_fields || [],
+          reminder_settings: task.reminder_settings
+            ? (typeof task.reminder_settings === 'string'
+              ? JSON.parse(task.reminder_settings)
+              : task.reminder_settings)
+            : null,
           assigned_to: parsedAssignedTo,
           assignees: assigneesWithDetails || [], // Return assignee details instead of just IDs
           updated_by_user: updatedByUser,
@@ -1223,6 +1235,11 @@ export class ProjectsService {
         typeof task.custom_fields === 'string'
           ? JSON.parse(task.custom_fields)
           : task.custom_fields || [],
+      reminder_settings: task.reminder_settings
+        ? (typeof task.reminder_settings === 'string'
+          ? JSON.parse(task.reminder_settings)
+          : task.reminder_settings)
+        : null,
       assigned_to: parsedAssignedTo,
       assignees: parsedAssignedTo || [], // Alias for frontend compatibility
       updated_by_user: updatedByUser,
@@ -1296,6 +1313,18 @@ export class ProjectsService {
     // Handle per-task custom fields (array of { id, name, fieldType, value, options? })
     if ('custom_fields' in updateTaskDto) {
       (updateData as any).custom_fields = JSON.stringify(updateTaskDto.custom_fields || []);
+    }
+
+    // Handle reminder_settings
+    if ('reminder_settings' in updateTaskDto) {
+      (updateData as any).reminder_settings = updateTaskDto.reminder_settings
+        ? JSON.stringify(updateTaskDto.reminder_settings)
+        : null;
+    }
+
+    // When due_date is cleared, also clear due_time
+    if ('due_date' in updateTaskDto && !updateTaskDto.due_date) {
+      (updateData as any).due_time = null;
     }
 
     const updatedTask = await this.db.update('tasks', taskId, updateData);

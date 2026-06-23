@@ -1646,7 +1646,16 @@
         "labels": {
           "unknown": "Unknown",
           "unknownUser": "Unknown User"
-        }
+        },
+        "dueTime": "Due Time",
+        "reminders": "Reminders",
+        "reminderIntervalsLabel": "Send reminders before deadline:",
+        "reminderNoValidIntervals": "No valid intervals for this deadline",
+        "reminder3d": "3 days before",
+        "reminder1d": "1 day before",
+        "reminder12h": "12 hours before",
+        "reminder3h": "3 hours before",
+        "reminder1h": "1 hour before"
       }
     },
     "files": {
@@ -7723,6 +7732,11 @@
     "tasksCount": "{count} tasks",
     "upcomingTasks": "Upcoming Tasks",
     "unassigned": "Unassigned",
+    "dueDate": "Due Date",
+    "noDueDate": "No due date",
+    "at": "at",
+    "reminders": "Reminders",
+    "reminderNotSet": "No reminder set",
     "gantt": {
       "title": "Gantt Chart",
       "today": "Today",

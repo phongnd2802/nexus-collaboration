@@ -369,6 +369,8 @@ export const schema = {
       { name: 'assignee_team_member_id', type: 'uuid', nullable: true },
       { name: 'reporter_team_member_id', type: 'uuid', nullable: true },
       { name: 'due_date', type: 'timestamptz', nullable: true },
+      { name: 'due_time', type: 'string', nullable: true }, // HH:MM 24h; NULL = use 07:00 default
+      { name: 'reminder_settings', type: 'jsonb', nullable: true }, // { enabled, intervals }
       { name: 'completed_at', type: 'timestamptz', nullable: true },
       { name: 'completed_by', type: 'string', nullable: true },
       { name: 'estimated_hours', type: 'numeric', nullable: true },

@@ -32,7 +32,8 @@ import {
   Mail,
   Phone,
   List,
-  CalendarDays
+  CalendarDays,
+  Bell,
 } from 'lucide-react'
 import { format, formatDistanceToNow, isAfter, isPast } from 'date-fns'
 import { vi as viLocale } from 'date-fns/locale'
@@ -374,6 +375,11 @@ export function TaskDetailModal({
                     {isOverdue && <AlertCircle className="w-4 h-4" />}
                     <span className="text-sm font-medium">
                       {format(new Date(task.dueDate), 'dd MMM, yyyy', { locale: viLocale })}
+                      {(task as any).dueTime && (
+                        <span className="ml-1 text-muted-foreground font-normal">
+                          {intl.formatMessage({ id: 'tasks.at', defaultMessage: 'lúc' })} {(task as any).dueTime}
+                        </span>
+                      )}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       ({formatDistanceToNow(new Date(task.dueDate), { addSuffix: true, locale: viLocale })})
@@ -384,7 +390,37 @@ export function TaskDetailModal({
                 )}
               </div>
 
-
+              {/* Reminders */}
+              {task.dueDate && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Bell className="w-4 h-4" />
+                    {intl.formatMessage({ id: 'tasks.reminders', defaultMessage: 'Nhắc nhở' })}
+                  </h3>
+                  {!(task as any).reminder_settings?.enabled ? (
+                    <span className="text-sm text-muted-foreground">
+                      {intl.formatMessage({ id: 'tasks.reminderNotSet', defaultMessage: 'Chưa bật nhắc nhở' })}
+                    </span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1">
+                      {((task as any).reminder_settings?.intervals ?? []).map((key: string) => {
+                        const labels: Record<string, string> = {
+                          '3d': intl.formatMessage({ id: 'modules.projects.createTask.reminder3d' }),
+                          '1d': intl.formatMessage({ id: 'modules.projects.createTask.reminder1d' }),
+                          '12h': intl.formatMessage({ id: 'modules.projects.createTask.reminder12h' }),
+                          '3h': intl.formatMessage({ id: 'modules.projects.createTask.reminder3h' }),
+                          '1h': intl.formatMessage({ id: 'modules.projects.createTask.reminder1h' }),
+                        }
+                        return (
+                          <Badge key={key} variant="secondary" className="text-xs">
+                            {labels[key] ?? key}
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Created */}
               <div className="space-y-2">

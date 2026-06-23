@@ -1642,7 +1642,16 @@
         "labels": {
           "unknown": "Không xác định",
           "unknownUser": "Người dùng không xác định"
-        }
+        },
+        "dueTime": "Giờ hết hạn",
+        "reminders": "Nhắc nhở",
+        "reminderIntervalsLabel": "Gửi nhắc nhở trước hạn chót:",
+        "reminderNoValidIntervals": "Không có mốc nào phù hợp với deadline này",
+        "reminder3d": "Trước 3 ngày",
+        "reminder1d": "Trước 1 ngày",
+        "reminder12h": "Trước 12 giờ",
+        "reminder3h": "Trước 3 giờ",
+        "reminder1h": "Trước 1 giờ"
       }
     },
     "files": {
@@ -7790,6 +7799,11 @@
     "tasksCount": "{count} nhiệm vụ",
     "upcomingTasks": "Nhiệm vụ sắp tới",
     "unassigned": "Chưa giao",
+    "dueDate": "Ngày hết hạn",
+    "noDueDate": "Chưa có ngày hết hạn",
+    "at": "lúc",
+    "reminders": "Nhắc nhở",
+    "reminderNotSet": "Chưa bật nhắc nhở",
     "gantt": {
       "title": "Biểu đồ Gantt",
       "today": "Hôm nay",
