@@ -1,5 +1,5 @@
 import { DEFAULT_API_BASE_URL, DEFAULT_TIMEOUT_MS } from '../constants.js';
-import type { ApiRequestOptions } from '../types.js';
+import type { ApiRequestOptions, NexusMcpRequestContext } from '../types.js';
 
 export class NexusApiError extends Error {
   constructor(
@@ -15,20 +15,35 @@ export class NexusApiError extends Error {
 export class NexusApiClient {
   private readonly baseUrl: string;
   private readonly token?: string;
+  private readonly internalApiKey?: string;
   private readonly timeoutMs: number;
+  private readonly context?: NexusMcpRequestContext;
 
-  constructor(env: NodeJS.ProcessEnv = process.env) {
+  constructor(
+    env: NodeJS.ProcessEnv = process.env,
+    context?: NexusMcpRequestContext,
+  ) {
     this.baseUrl = normalizeBaseUrl(env.NEXUS_API_BASE_URL || DEFAULT_API_BASE_URL);
-    this.token = env.NEXUS_API_TOKEN;
+    this.token = extractBearerToken(context?.authorizationHeader) || env.NEXUS_API_TOKEN;
+    this.internalApiKey = env.NEXUS_API_KEY;
     this.timeoutMs = Number(env.NEXUS_API_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
+    this.context = context;
   }
 
   async request<T = unknown>(options: ApiRequestOptions): Promise<T> {
     if (!this.token) {
       throw new NexusApiError(
-        'Missing NEXUS_API_TOKEN. Set it to a valid Nexus bearer token before using authenticated tools.',
+        'Missing Authorization bearer token. For HTTP MCP, pass Authorization to /mcp. For stdio, set NEXUS_API_TOKEN.',
       );
     }
+
+    if (!this.internalApiKey) {
+      throw new NexusApiError(
+        'Missing NEXUS_API_KEY. Set it to the internal Nexus API key used for MCP-to-backend calls.',
+      );
+    }
+
+    this.assertWorkspaceScope(options);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -95,14 +110,24 @@ export class NexusApiClient {
     const headers: Record<string, string> = {
       Accept: 'application/json',
       Authorization: `Bearer ${this.token}`,
+      'X-API-Key': this.internalApiKey || '',
+      'X-Nexus-Source': this.context?.source || 'mcp',
+      'X-Nexus-Actor-Type': 'agent',
     };
 
     if (body !== undefined) {
       headers['Content-Type'] = 'application/json';
     }
 
+    if (this.context?.workspaceId) {
+      headers['X-Nexus-Workspace-ID'] = this.context.workspaceId;
+    }
+
+    if (this.context?.requestId) {
+      headers['X-Nexus-Request-ID'] = this.context.requestId;
+    }
+
     const optionalHeaders: Array<[string, string]> = [
-      ['NEXUS_API_KEY', 'X-API-Key'],
       ['NEXUS_PROJECT_ID', 'X-Project-ID'],
       ['NEXUS_APP_ID', 'X-App-ID'],
       ['NEXUS_ORGANIZATION_ID', 'X-Organization-ID'],
@@ -117,10 +142,45 @@ export class NexusApiClient {
 
     return headers;
   }
+
+  assertWorkspaceId(workspaceId: unknown): void {
+    if (!this.context?.workspaceId || workspaceId === undefined || workspaceId === null) {
+      return;
+    }
+
+    if (String(workspaceId) !== this.context.workspaceId) {
+      throw new NexusApiError(
+        `Workspace mismatch: tool requested workspace '${String(workspaceId)}' but MCP request is scoped to '${this.context.workspaceId}'.`,
+      );
+    }
+  }
+
+  private assertWorkspaceScope(options: ApiRequestOptions): void {
+    if (!this.context?.workspaceId) {
+      return;
+    }
+
+    const pathWorkspaceId = extractWorkspaceIdFromPath(options.path);
+    if (pathWorkspaceId && pathWorkspaceId !== this.context.workspaceId) {
+      throw new NexusApiError(
+        `Workspace mismatch: backend path uses workspace '${pathWorkspaceId}' but MCP request is scoped to '${this.context.workspaceId}'.`,
+      );
+    }
+  }
 }
 
 function normalizeBaseUrl(value: string): string {
   return value.replace(/\/+$/, '');
+}
+
+function extractBearerToken(authorizationHeader?: string): string | undefined {
+  const [type, token] = authorizationHeader?.split(' ') ?? [];
+  return type?.toLowerCase() === 'bearer' && token ? token : undefined;
+}
+
+function extractWorkspaceIdFromPath(path: string): string | undefined {
+  const match = path.match(/^\/?workspaces\/([^/?#]+)/);
+  return match?.[1] ? decodeURIComponent(match[1]) : undefined;
 }
 
 function parseJson(text: string): unknown {

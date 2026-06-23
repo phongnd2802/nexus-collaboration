@@ -1,14 +1,20 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+
+    this.validateInternalMcpRequest(request);
 
     if (!token) {
       throw new UnauthorizedException('No token provided');
@@ -54,5 +60,36 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private validateInternalMcpRequest(request: Request): void {
+    const source = this.getHeader(request, 'x-nexus-source');
+
+    if (source !== 'mcp') {
+      return;
+    }
+
+    const expectedKey =
+      this.configService.get<string>('NEXUS_INTERNAL_API_KEY') ||
+      this.configService.get<string>('NEXUS_API_KEY');
+
+    if (!expectedKey) {
+      throw new UnauthorizedException('Nexus internal API key is not configured');
+    }
+
+    const providedKey = this.getHeader(request, 'x-api-key');
+    if (!providedKey || providedKey !== expectedKey) {
+      throw new UnauthorizedException('Invalid Nexus internal API key');
+    }
+  }
+
+  private getHeader(request: Request, name: string): string | undefined {
+    const value = request.headers[name.toLowerCase()];
+
+    if (Array.isArray(value)) {
+      return value[0];
+    }
+
+    return value;
   }
 }
