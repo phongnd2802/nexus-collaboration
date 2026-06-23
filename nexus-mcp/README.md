@@ -31,18 +31,27 @@ Set these environment variables before starting the MCP server:
 
 ```bash
 export NEXUS_API_BASE_URL="http://localhost:3002/api/v1"
-export NEXUS_API_TOKEN="<your bearer token>"
+export NEXUS_API_KEY="<internal Nexus API key>"
 ```
 
-Optional headers supported by the backend:
+For stdio only, also set a user bearer token because there is no HTTP request header to read:
 
 ```bash
-export NEXUS_API_KEY="<optional api key>"
+export NEXUS_API_TOKEN="<user bearer token for local stdio usage>"
+```
+
+Optional backend context headers:
+
+```bash
 export NEXUS_PROJECT_ID="<optional project id>"
 export NEXUS_APP_ID="<optional app id>"
 export NEXUS_ORGANIZATION_ID="<optional organization id>"
 export NEXUS_API_TIMEOUT_MS="30000"
 ```
+
+The Nexus backend should be configured with the same internal key using `NEXUS_INTERNAL_API_KEY` or `NEXUS_API_KEY`.
+
+The MCP server automatically loads `.env.local` and `.env` from `nexus-mcp/` on startup.
 
 ## Install And Build
 
@@ -83,6 +92,23 @@ export NEXUS_MCP_ALLOWED_HOSTS="localhost,127.0.0.1"
 
 `NEXUS_MCP_ALLOWED_HOSTS` is useful when binding to `0.0.0.0` and you still want host header validation.
 
+Clients must send these headers to `POST /mcp`:
+
+```http
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Authorization: Bearer <current_user_access_token>
+X-Nexus-Workspace-ID: <workspace_id>
+```
+
+Optional client header:
+
+```http
+X-Nexus-Request-ID: <request_id>
+```
+
+For backend calls, the MCP server forwards user context with `Authorization` and authenticates service-to-service traffic with `X-API-Key`.
+
 ## Inspect
 
 ### stdio
@@ -117,7 +143,8 @@ http://127.0.0.1:3333/mcp
       "args": ["/absolute/path/to/nexus-mcp/dist/index.js"],
       "env": {
         "NEXUS_API_BASE_URL": "http://localhost:3002/api/v1",
-        "NEXUS_API_TOKEN": "<your bearer token>"
+        "NEXUS_API_KEY": "<internal Nexus API key>",
+        "NEXUS_API_TOKEN": "<user bearer token>"
       }
     }
   }

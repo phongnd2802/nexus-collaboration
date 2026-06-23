@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import './load-env.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createNexusMcpServer } from './server.js';
 

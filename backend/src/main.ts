@@ -59,7 +59,7 @@ async function bootstrap() {
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
     res.header(
       'Access-Control-Allow-Headers',
-      'Origin,X-Requested-With,Content-Type,Accept,Authorization,x-api-key,X-Api-Key,x-project-id,X-Project-ID,x-app-id,X-App-ID,x-organization-id,X-Organization-ID',
+      'Origin,X-Requested-With,Content-Type,Accept,Authorization,x-api-key,X-Api-Key,x-project-id,X-Project-ID,x-app-id,X-App-ID,x-organization-id,X-Organization-ID,x-nexus-workspace-id,X-Nexus-Workspace-ID,x-nexus-request-id,X-Nexus-Request-ID,x-nexus-source,X-Nexus-Source',
     );
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400');

@@ -9,6 +9,13 @@ export interface ApiRequestOptions {
   body?: unknown;
 }
 
+export interface NexusMcpRequestContext {
+  authorizationHeader?: string;
+  workspaceId?: string;
+  requestId?: string;
+  source?: 'mcp';
+}
+
 export interface ToolResult {
   [key: string]: unknown;
   content: Array<{ type: 'text'; text: string }>;

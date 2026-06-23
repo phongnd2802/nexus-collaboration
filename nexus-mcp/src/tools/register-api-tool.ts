@@ -44,6 +44,8 @@ export function registerApiTool(server: McpServer, client: NexusApiClient, confi
       const responseFormat = requestParams.response_format as ResponseFormat;
 
       try {
+        client.assertWorkspaceId(requestParams.workspace_id);
+
         const data = await client.request({
           method: config.method,
           path: config.path(requestParams),
