@@ -22,7 +22,6 @@ import { Toaster } from './components/ui/toast';
 import { ThemeProvider } from './contexts/ThemeProvider';
 import { nexusAnalytics as NexusAnalytics } from './components/analytics/nexusAnalytics';
 import { nexusChatbot as NexusChatbot } from './components/chat/nexusChatbot';
-import { FeatureAnnouncementProvider } from './providers/FeatureAnnouncementProvider';
 import { PageLoader, InlinePageLoader } from './components/common/PageLoader';
 
 // ============================================================================
@@ -218,8 +217,7 @@ function App() {
               greeting="Hi! How can I help you with Nexus today?"
               placeholder="Type your message..."
             />
-            <FeatureAnnouncementProvider>
-              <ErrorBoundary>
+            <ErrorBoundary>
                 <AuthProvider>
                   <WorkspaceProvider>
                     <WebSocketProvider>
@@ -332,7 +330,6 @@ function App() {
                   </WorkspaceProvider>
                 </AuthProvider>
               </ErrorBoundary>
-            </FeatureAnnouncementProvider>
           </Router>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>

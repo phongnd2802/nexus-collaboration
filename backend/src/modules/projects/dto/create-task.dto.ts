@@ -8,6 +8,9 @@ import {
   IsArray,
   ValidateNested,
   IsObject,
+  IsBoolean,
+  IsIn,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -129,6 +132,26 @@ export class TaskAttachmentsDto {
   event_attachment?: string[];
 }
 
+export const VALID_REMINDER_INTERVALS = ['3d', '1d', '12h', '3h', '1h'] as const;
+export type ReminderInterval = (typeof VALID_REMINDER_INTERVALS)[number];
+
+export class ReminderSettingsDto {
+  @ApiPropertyOptional({ description: 'Enable reminders for this task', example: true })
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Which reminder windows to send (subset of 3d,1d,12h,3h,1h)',
+    type: [String],
+    example: ['1d', '1h'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsIn(VALID_REMINDER_INTERVALS, { each: true })
+  intervals?: ReminderInterval[];
+}
+
 export class CreateTaskDto {
   @ApiProperty({ description: 'Task title', example: 'Implement user authentication' })
   @IsString()
@@ -198,6 +221,18 @@ export class CreateTaskDto {
   @IsOptional()
   @IsString()
   due_date?: string;
+
+  @ApiPropertyOptional({ description: 'Due time in HH:MM 24h format (e.g. "14:30"). Omit to use system default of 07:00.', example: '14:30' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'due_time must be HH:MM in 24h format' })
+  due_time?: string;
+
+  @ApiPropertyOptional({ description: 'Per-task reminder settings', type: ReminderSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ReminderSettingsDto)
+  reminder_settings?: ReminderSettingsDto;
 
   @ApiProperty({ description: 'Story points', required: false })
   @IsOptional()

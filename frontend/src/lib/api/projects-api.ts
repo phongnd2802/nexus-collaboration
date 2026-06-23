@@ -60,6 +60,13 @@ export interface TaskComment {
   updatedAt?: string;
 }
 
+export type ReminderInterval = '3d' | '1d' | '12h' | '3h' | '1h';
+
+export interface ReminderSettings {
+  enabled: boolean;
+  intervals: ReminderInterval[];
+}
+
 export interface Task {
   id: string;
   projectId: string;
@@ -71,6 +78,8 @@ export interface Task {
   assignee?: User; // Populated user object
   assigneeId?: string; // User ID string
   dueDate?: string;
+  dueTime?: string; // HH:MM 24h, e.g. "14:30"
+  reminderSettings?: ReminderSettings;
   startDate?: string;
   actualHours?: number;
   tags: string[];
@@ -141,6 +150,8 @@ export interface CreateTaskRequest {
   assignee_team_member_id?: string;        // Optional - Team member UUID
   reporter_team_member_id?: string;        // Optional - Reporter team member UUID
   due_date?: string;                       // Optional - ISO date string
+  due_time?: string;                       // Optional - HH:MM 24h format; omit to use 07:00 default
+  reminder_settings?: ReminderSettings;   // Optional - per-task reminder config
   story_points?: number;                   // Optional - Story points (for agile)
   labels?: string[];                       // Optional - Array of tag strings
   attachments?: {

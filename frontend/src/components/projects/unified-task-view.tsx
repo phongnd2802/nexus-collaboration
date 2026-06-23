@@ -160,6 +160,9 @@ export function UnifiedTaskView({
       created_by_user: apiTask.created_by_user,
       // Per-task custom fields (array of TaskCustomField)
       custom_fields: apiTask.custom_fields || [],
+      // Due time (HH:MM) and per-task reminder settings
+      due_time: apiTask.due_time ?? null,
+      reminder_settings: apiTask.reminder_settings ?? null,
     } as any)),
     [apiTasks, optimisticStatusChanges]
   )

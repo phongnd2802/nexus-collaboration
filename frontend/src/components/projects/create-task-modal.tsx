@@ -29,6 +29,8 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 // import { EnhancedDatePicker } from '@/components/shared/enhanced-date-picker' // Replaced with native date input
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -62,7 +64,8 @@ import {
   List,
   Trash2,
   Settings2,
-  Upload
+  Upload,
+  Bell,
 } from 'lucide-react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { projectService, projectKeys, type CustomFieldType } from '@/lib/api/projects-api'
@@ -110,6 +113,9 @@ export function CreateTaskModal({
     reporterId: '1',
     parentTaskId: parentTaskId || '',
     dueDate: null as Date | null,
+    dueTime: '' as string,
+    reminderEnabled: false as boolean,
+    reminderIntervals: [] as string[],
     tags: [] as string[],
     links: [] as string[],
     severity: '',
@@ -210,6 +216,27 @@ export function CreateTaskModal({
     }
   }, [projectId, formData.projectId])
 
+  // When dueDate or dueTime changes, remove any reminder intervals that are no longer valid
+  React.useEffect(() => {
+    if (!formData.reminderEnabled || !formData.dueDate) return
+    const d = formData.dueDate
+    const DEFAULT_TIME = '07:00'
+    const [h, m] = (formData.dueTime || DEFAULT_TIME).split(':').map(Number)
+    const deadlineMs = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m).getTime()
+    const remainingMs = deadlineMs - Date.now()
+    const MINS: Record<string, number> = {
+      '3d': 3 * 24 * 60 * 60 * 1000,
+      '1d': 1 * 24 * 60 * 60 * 1000,
+      '12h': 12 * 60 * 60 * 1000,
+      '3h': 3 * 60 * 60 * 1000,
+      '1h': 1 * 60 * 60 * 1000,
+    }
+    setFormData(prev => ({
+      ...prev,
+      reminderIntervals: prev.reminderIntervals.filter(k => remainingMs > (MINS[k] ?? 0)),
+    }))
+  }, [formData.dueDate, formData.dueTime])
+
   // Update status when modal opens and defaultStatus is provided (from column + button)
   React.useEffect(() => {
     if (open && defaultStatus && !isEditMode) {
@@ -248,7 +275,10 @@ export function CreateTaskModal({
         assigneeIds: assigneeIds,
         reporterId: '1',
         parentTaskId: (task as any).parentTaskId || '',
-        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+        dueDate: (task.dueDate || (task as any).due_date) ? new Date(task.dueDate || (task as any).due_date) : null,
+        dueTime: (task as any).dueTime || (task as any).due_time || '',
+        reminderEnabled: (task as any).reminder_settings?.enabled ?? (task as any).reminderSettings?.enabled ?? false,
+        reminderIntervals: (task as any).reminder_settings?.intervals ?? (task as any).reminderSettings?.intervals ?? [],
         tags: task.tags || [],
         links: [],
         severity: '',
@@ -525,7 +555,18 @@ export function CreateTaskModal({
         priority: data.priority,
         parent_task_id: data.parentTaskId || undefined,
         assigned_to: data.assigneeIds.length > 0 ? data.assigneeIds : undefined,
-        due_date: data.dueDate?.toISOString() || undefined,
+        due_date: data.dueDate
+          ? (() => {
+              const d = data.dueDate!
+              const DEFAULT_TIME = '07:00'
+              const [h, m] = (data.dueTime || DEFAULT_TIME).split(':').map(Number)
+              return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m, 0).toISOString()
+            })()
+          : undefined,
+        due_time: data.dueTime || undefined,
+        reminder_settings: data.dueDate
+          ? { enabled: data.reminderEnabled, intervals: data.reminderIntervals as any }
+          : undefined,
         labels: data.tags.length > 0 ? data.tags : undefined,
         attachments: buildTaskAttachmentsPayload(attachments),
         custom_fields:
@@ -591,6 +632,9 @@ export function CreateTaskModal({
       reporterId: '1',
       parentTaskId: parentTaskId || '',
       dueDate: null,
+      dueTime: '',
+      reminderEnabled: false,
+      reminderIntervals: [],
       tags: [],
       links: [],
       severity: '',
@@ -878,12 +922,12 @@ export function CreateTaskModal({
 
   const getTaskTypeLabel = (type: TaskType) => {
     switch (type) {
-      case TaskType.BUG: return intl.formatMessage({ id: 'modules.projects.createTask.taskTypes.bug', defaultMessage: 'Bug' })
-      case TaskType.STORY: return intl.formatMessage({ id: 'modules.projects.createTask.taskTypes.story', defaultMessage: 'Story' })
-      case TaskType.EPIC: return intl.formatMessage({ id: 'modules.projects.createTask.taskTypes.epic', defaultMessage: 'Epic' })
-      case TaskType.TASK: return intl.formatMessage({ id: 'modules.projects.createTask.taskTypes.task', defaultMessage: 'Task' })
-      case TaskType.SUBTASK: return intl.formatMessage({ id: 'modules.projects.createTask.taskTypes.subtask', defaultMessage: 'Subtask' })
-      case TaskType.FEATURE_REQUEST: return intl.formatMessage({ id: 'modules.projects.createTask.taskTypes.featureRequest', defaultMessage: 'Feature Request' })
+      case TaskType.BUG: return 'Bug'
+      case TaskType.STORY: return 'Story'
+      case TaskType.EPIC: return 'Epic'
+      case TaskType.TASK: return 'Task'
+      case TaskType.SUBTASK: return 'Subtask'
+      case TaskType.FEATURE_REQUEST: return 'Feature Request'
       default: return type
     }
   }
@@ -1119,6 +1163,37 @@ export function CreateTaskModal({
   const isFormValid = () => {
     return formData.name.trim() && formData.projectId && formData.status
   }
+
+  const DEFAULT_DUE_TIME = '07:00'
+  const ALL_REMINDER_INTERVALS = [
+    { key: '3d', minMs: 3 * 24 * 60 * 60 * 1000 },
+    { key: '1d', minMs: 1 * 24 * 60 * 60 * 1000 },
+    { key: '12h', minMs: 12 * 60 * 60 * 1000 },
+    { key: '3h', minMs: 3 * 60 * 60 * 1000 },
+    { key: '1h', minMs: 1 * 60 * 60 * 1000 },
+  ] as const
+
+  const getReminderIntervalLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      '3d': intl.formatMessage({ id: 'modules.projects.createTask.reminder3d' }),
+      '1d': intl.formatMessage({ id: 'modules.projects.createTask.reminder1d' }),
+      '12h': intl.formatMessage({ id: 'modules.projects.createTask.reminder12h' }),
+      '3h': intl.formatMessage({ id: 'modules.projects.createTask.reminder3h' }),
+      '1h': intl.formatMessage({ id: 'modules.projects.createTask.reminder1h' }),
+    }
+    return labels[key] ?? key
+  }
+
+  const getValidReminderIntervals = () => {
+    if (!formData.dueDate) return []
+    const d = formData.dueDate
+    const [h, m] = (formData.dueTime || DEFAULT_DUE_TIME).split(':').map(Number)
+    const deadlineMs = new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m).getTime()
+    const remainingMs = deadlineMs - Date.now()
+    return ALL_REMINDER_INTERVALS.filter(i => remainingMs > i.minMs)
+  }
+
+  const validReminderIntervals = getValidReminderIntervals()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1539,18 +1614,81 @@ export function CreateTaskModal({
 
                 <div className="space-y-2">
                   <Label htmlFor="dueDate">{intl.formatMessage({ id: 'modules.projects.createTask.dueDate' })}</Label>
-                  <Input
-                    id="dueDate"
-                    type="date"
-                    value={formData.dueDate ? formData.dueDate.toISOString().split('T')[0] : ''}
-                    onChange={(e) => {
-                      const dateValue = e.target.value ? new Date(e.target.value) : null;
-                      setFormData(prev => ({ ...prev, dueDate: dateValue }));
-                    }}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full dark:[color-scheme:dark]"
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      id="dueDate"
+                      type="date"
+                      value={formData.dueDate ? formData.dueDate.toISOString().split('T')[0] : ''}
+                      onChange={(e) => {
+                        const dateValue = e.target.value ? new Date(e.target.value) : null;
+                        setFormData(prev => ({ ...prev, dueDate: dateValue }));
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full dark:[color-scheme:dark]"
+                    />
+                    <Input
+                      id="dueTime"
+                      type="time"
+                      value={formData.dueTime}
+                      disabled={!formData.dueDate}
+                      placeholder="07:00"
+                      onChange={(e) => setFormData(prev => ({ ...prev, dueTime: e.target.value }))}
+                      className="w-full dark:[color-scheme:dark]"
+                    />
+                  </div>
                 </div>
+
+                {formData.dueDate && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="flex items-center gap-2 cursor-pointer">
+                        <Bell className="w-4 h-4" />
+                        {intl.formatMessage({ id: 'modules.projects.createTask.reminders' })}
+                      </Label>
+                      <Switch
+                        checked={formData.reminderEnabled}
+                        onCheckedChange={(checked) => setFormData(prev => ({
+                          ...prev,
+                          reminderEnabled: checked,
+                          reminderIntervals: checked && prev.reminderIntervals.length === 0
+                            ? ['1h']
+                            : checked ? prev.reminderIntervals : [],
+                        }))}
+                      />
+                    </div>
+
+                    {formData.reminderEnabled && (
+                      <div className="pl-6 space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          {intl.formatMessage({ id: 'modules.projects.createTask.reminderIntervalsLabel' })}
+                        </p>
+                        {validReminderIntervals.length === 0 ? (
+                          <p className="text-xs text-muted-foreground italic">
+                            {intl.formatMessage({ id: 'modules.projects.createTask.reminderNoValidIntervals' })}
+                          </p>
+                        ) : (
+                          validReminderIntervals.map(({ key }) => (
+                            <div key={key} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`reminder-${key}`}
+                                checked={formData.reminderIntervals.includes(key)}
+                                onCheckedChange={(checked) => setFormData(prev => ({
+                                  ...prev,
+                                  reminderIntervals: checked
+                                    ? [...prev.reminderIntervals, key]
+                                    : prev.reminderIntervals.filter(i => i !== key),
+                                }))}
+                              />
+                              <label htmlFor={`reminder-${key}`} className="text-sm cursor-pointer">
+                                {getReminderIntervalLabel(key)}
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {projectType === 'scrum' && (
