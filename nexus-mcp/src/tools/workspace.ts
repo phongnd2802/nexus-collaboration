@@ -1,6 +1,8 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { dataObjectSchema, idSchema, workspaceIdSchema } from '../schemas/common.js';
+import { workspaceMembersGetOutputSchema } from '../schemas/workspace-members.js';
+import { workspaceGetOutputShape } from '../schemas/workspace.js';
 import type { NexusApiClient } from '../services/nexus-api.js';
 import { registerApiTool } from './register-api-tool.js';
 
@@ -20,43 +22,33 @@ const write = {
 
 export function registerWorkspaceTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
-    name: 'nexus_list_workspaces',
-    title: 'List Nexus Workspaces',
-    description: 'List all Nexus workspaces available to the authenticated user.',
-    inputSchema: {},
-    path: () => 'workspaces',
-    annotations: readOnly,
-  });
-
-  registerApiTool(server, client, {
     name: 'nexus_get_workspace',
     title: 'Get Nexus Workspace',
     description: 'Get details for a Nexus workspace by ID.',
     inputSchema: { workspace_id: workspaceIdSchema },
+    outputSchema: z.object(workspaceGetOutputShape),
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}`,
     annotations: readOnly,
-  });
-
-  registerApiTool(server, client, {
-    name: 'nexus_create_workspace',
-    title: 'Create Nexus Workspace',
-    description:
-      'Create a new Nexus workspace. The data object should match CreateWorkspaceDto, for example name and optional description/settings fields.',
-    inputSchema: { data: dataObjectSchema },
-    method: 'POST',
-    path: () => 'workspaces',
-    body: ({ data }) => data,
-    annotations: write,
   });
 
   registerApiTool(server, client, {
     name: 'nexus_update_workspace',
     title: 'Update Nexus Workspace',
-    description: 'Update workspace details. Requires admin or owner permission in the workspace.',
-    inputSchema: { workspace_id: workspaceIdSchema, data: dataObjectSchema },
+    description:
+      'Update workspace details. Accepts any subset of name, description, logo, and website. Requires admin or owner permission in the workspace.',
+    inputSchema: {
+      workspace_id: workspaceIdSchema,
+      name: z.string().max(100).optional().describe('Workspace name.'),
+      description: z.string().max(500).optional().describe('Workspace description.'),
+    },
     method: 'PATCH',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}`,
-    body: ({ data }) => data,
+    body: ({ name, description, logo, website }) => ({
+      ...(name !== undefined ? { name } : {}),
+      ...(description !== undefined ? { description } : {}),
+      ...(logo !== undefined ? { logo } : {}),
+      ...(website !== undefined ? { website } : {}),
+    }),
     annotations: write,
   });
 
@@ -65,16 +57,9 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
     title: 'Get Nexus Workspace Members',
     description: 'List members of a Nexus workspace.',
     inputSchema: { workspace_id: workspaceIdSchema },
+    outputSchema: workspaceMembersGetOutputSchema,
+    outputTransform: (data) => ({ members: data }),
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/members`,
-    annotations: readOnly,
-  });
-
-  registerApiTool(server, client, {
-    name: 'nexus_get_workspace_stats',
-    title: 'Get Nexus Workspace Stats',
-    description: 'Get member and invitation statistics for a Nexus workspace.',
-    inputSchema: { workspace_id: workspaceIdSchema },
-    path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/stats`,
     annotations: readOnly,
   });
 
