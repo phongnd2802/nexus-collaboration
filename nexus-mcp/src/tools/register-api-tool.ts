@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { ZodRawShape } from 'zod';
+import type { ZodRawShape, ZodTypeAny } from 'zod';
 import { z } from 'zod';
 import { NexusApiClient } from '../services/nexus-api.js';
 import { errorResult, okResult } from '../services/format.js';
@@ -11,6 +11,8 @@ interface ApiToolConfig {
   title: string;
   description: string;
   inputSchema: ZodRawShape;
+  outputSchema?: ZodTypeAny;
+  outputTransform?: (data: unknown) => unknown;
   method?: HttpMethod;
   path: (params: Record<string, unknown>) => string;
   query?: (params: Record<string, unknown>) => Record<string, unknown> | undefined;
@@ -33,6 +35,11 @@ export function registerApiTool(server: McpServer, client: NexusApiClient, confi
         ...config.inputSchema,
         response_format: responseFormatSchema,
       },
+      ...(config.outputSchema
+        ? {
+            outputSchema: config.outputSchema,
+          }
+        : {}),
       annotations: config.annotations,
     },
     async (params) => {
@@ -53,7 +60,12 @@ export function registerApiTool(server: McpServer, client: NexusApiClient, confi
           body: config.body?.(requestParams),
         });
 
-        return okResult(data, responseFormat, config.title);
+        const outputData = config.outputTransform ? config.outputTransform(data) : data;
+        const structuredData = config.outputSchema
+          ? config.outputSchema.parse(outputData)
+          : data;
+
+        return okResult(structuredData, responseFormat, config.title);
       } catch (error) {
         return errorResult(error);
       }
