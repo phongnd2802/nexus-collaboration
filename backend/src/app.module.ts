@@ -37,8 +37,6 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { GitHubModule } from './modules/integration-framework/github/github.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
-import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
-import { InternalAgentModule } from './modules/internal-agent/internal-agent.module';
 
 @Module({
   imports: [
@@ -80,8 +78,6 @@ import { InternalAgentModule } from './modules/internal-agent/internal-agent.mod
     GitHubModule,
     IntegrationFrameworkModule,
     WorkflowsModule,
-    AgentChatModule,
-    InternalAgentModule,
   ],
   providers: [
     {
