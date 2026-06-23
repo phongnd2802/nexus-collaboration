@@ -277,7 +277,6 @@ export class AuthService {
         date_of_birth: userProfile.date_of_birth,
         gender: userProfile.gender,
         email_verified: userProfile.email_verified,
-        timezone: metadata.timezone || 'UTC',
         language: metadata.language || 'en',
         preferences: metadata.preferences || {},
         social_links: metadata.social_links || {},
@@ -404,7 +403,6 @@ export class AuthService {
             location: metadata.location || userProfile.location || null,
             website: metadata.website || userProfile.website || null,
             phone: metadata.phone || userProfile.phone || null,
-            timezone: metadata.timezone || 'UTC',
             language: metadata.language || 'en',
             date_of_birth: userProfile.date_of_birth || null,
             gender: userProfile.gender || null,
@@ -435,7 +433,6 @@ export class AuthService {
           location: metadata.location || userProfile.location || null,
           website: metadata.website || userProfile.website || null,
           phone: metadata.phone || userProfile.phone || null,
-          timezone: metadata.timezone || 'UTC',
           language: metadata.language || 'en',
           date_of_birth: userProfile.date_of_birth || null,
           gender: userProfile.gender || null,
@@ -511,7 +508,6 @@ export class AuthService {
       if (data.countryCode !== undefined) metadataUpdates.countryCode = data.countryCode;
       if (data.location !== undefined) metadataUpdates.location = data.location;
       if (data.avatarUrl !== undefined) metadataUpdates.avatarUrl = data.avatarUrl; // Save avatar URL to metadata
-      if (data.timezone !== undefined) metadataUpdates.timezone = data.timezone;
       if (data.language !== undefined) metadataUpdates.language = data.language;
 
       updateData.metadata = metadataUpdates;
@@ -537,7 +533,7 @@ export class AuthService {
       // Extract profile data from both root level and metadata
       const metadata = updatedProfile?.metadata || {};
 
-      if (data.timezone !== undefined || data.language !== undefined) {
+      if (data.language !== undefined) {
         const settingsResult = await this.db
           .table('user_settings')
           .select('id')
@@ -546,10 +542,8 @@ export class AuthService {
 
         const settingsUpdateData: Record<string, any> = {
           updated_at: new Date().toISOString(),
+          language: data.language,
         };
-
-        if (data.timezone !== undefined) settingsUpdateData.timezone = data.timezone;
-        if (data.language !== undefined) settingsUpdateData.language = data.language;
 
         if (settingsResult.data?.[0]?.id) {
           await this.db
@@ -579,7 +573,6 @@ export class AuthService {
           countryCode: metadata.countryCode,
           location: metadata.location,
           avatarUrl: metadata.avatarUrl || updatedProfile.avatar_url, // Avatar from metadata
-          timezone: metadata.timezone || 'UTC',
           language: metadata.language || 'en',
           metadata,
         },
@@ -859,18 +852,6 @@ export class AuthService {
         return;
       }
 
-      // Get user's timezone (try to detect from browser or default to UTC)
-      let userTimezone = 'UTC';
-      try {
-        const user = await this.db.getUserById(userId);
-        // Check if user has timezone in metadata
-        if (user?.metadata?.timezone) {
-          userTimezone = user.metadata.timezone;
-        }
-      } catch (err) {
-        this.logger.warn(`Could not fetch user timezone, using UTC as default`);
-      }
-
       // Default notification preferences matching the correct format
       const defaultNotifications = {
         push: true,
@@ -941,7 +922,6 @@ export class AuthService {
         user_id: userId,
         theme: 'light',
         language: 'en',
-        timezone: userTimezone,
         date_format: 'MM/dd/yyyy',
         time_format: '12h',
         notifications: defaultNotifications,
@@ -952,9 +932,7 @@ export class AuthService {
       };
 
       await this.db.insert('user_settings', userSettings);
-      this.logger.log(
-        `Created default user settings for user ${userId} with timezone ${userTimezone}`,
-      );
+      this.logger.log(`Created default user settings for user ${userId}`);
     } catch (error) {
       this.logger.error(`Failed to create default user settings for user ${userId}:`, error);
       // Don't throw - user creation should succeed even if settings creation fails

@@ -1789,7 +1789,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                     disabled={deleteEventMutation.isPending}
                   >
                     <Trash2 className="h-4 w-4" />
-                    Delete
+                    {intl.formatMessage({ id: 'common.delete' })}
                   </Button>
                 )}
                 {isEdit && !isOrganizer && (
@@ -1801,7 +1801,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
 
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
+                  {intl.formatMessage({ id: 'common.cancel' })}
                 </Button>
                 <Button
                   type="submit"

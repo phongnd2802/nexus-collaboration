@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Edit2,
@@ -81,6 +81,10 @@ export function CalendarSettings({ onClose, openRoomDialog = false }: CalendarSe
   // State
   const [showRoomDialog, setShowRoomDialog] = useState(openRoomDialog);
   const [editingRoom, setEditingRoom] = useState<any>(null);
+
+  useEffect(() => {
+    if (openRoomDialog) setShowRoomDialog(true);
+  }, [openRoomDialog]);
 
   // Form state
   const [roomForm, setRoomForm] = useState<RoomForm>({

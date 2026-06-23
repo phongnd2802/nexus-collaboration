@@ -1222,7 +1222,7 @@ export class NotificationsService {
     config?: Record<string, any>,
   ): { html: string; text: string } {
     return buildBrandedEmail({
-      eyebrow: 'Nexus Notification',
+      eyebrow: 'Thông báo Nexus',
       title: notificationData.title,
       intro: notificationData.message || 'Bạn có một cập nhật mới trên Nexus.',
       action: notificationData.action_url

@@ -598,9 +598,17 @@ export const fileApi = {
     await api.delete(`/workspaces/${workspaceId}/files/${fileId}`);
   },
 
+  async permanentDeleteFile(workspaceId: string, fileId: string): Promise<void> {
+    await api.delete(`/workspaces/${workspaceId}/files/${fileId}/permanent`);
+  },
+
   async deleteFolder(workspaceId: string, folderId: string): Promise<void> {
     console.log(`🗑️ Deleting folder recursively: ${folderId} from workspace: ${workspaceId}`);
     await api.delete(`/workspaces/${workspaceId}/files/folders/${folderId}/recursive`);
+  },
+
+  async permanentDeleteFolder(workspaceId: string, folderId: string): Promise<void> {
+    await api.delete(`/workspaces/${workspaceId}/files/folders/${folderId}/permanent`);
   },
 
   // New: Batch delete multiple folders with a single API call
@@ -1287,7 +1295,8 @@ export const fileApi = {
             result.push(...flattenTrashItems(folder.children));
           }
         } else if (item.type === 'file') {
-          // It's a standalone file (not in a folder)
+          // Standalone deleted file (its folder was not deleted, or it's at root)
+          // parentId must be undefined so it appears at top level in trash view
           const file = item as TrashFileItem;
           result.push({
             id: file.id,
@@ -1300,7 +1309,7 @@ export const fileApi = {
             mime_type: file.mime_type,
             folderId: file.folder_id || undefined,
             folder_id: file.folder_id,
-            parentId: file.folder_id || undefined,
+            parentId: undefined,
             url: file.url,
             storage_path: file.storage_path,
             deleted_at: file.deleted_at,
@@ -1613,6 +1622,32 @@ export const useDeleteFolder = () => {
         }
       });
       console.log('✅ Cache invalidated after folder deletion (all views)');
+    },
+  });
+};
+
+export const usePermanentDeleteFile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, fileId }: { workspaceId: string; fileId: string }) =>
+      fileApi.permanentDeleteFile(workspaceId, fileId),
+    onSuccess: (_, { workspaceId }) => {
+      queryClient.invalidateQueries({ queryKey: fileKeys.trash(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: fileKeys.storage(workspaceId) });
+    },
+  });
+};
+
+export const usePermanentDeleteFolder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, folderId }: { workspaceId: string; folderId: string }) =>
+      fileApi.permanentDeleteFolder(workspaceId, folderId),
+    onSuccess: (_, { workspaceId }) => {
+      queryClient.invalidateQueries({ queryKey: fileKeys.trash(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: fileKeys.storage(workspaceId) });
     },
   });
 };

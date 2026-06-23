@@ -151,4 +151,5 @@ export class EmailTemplatesService {
     );
     return true;
   }
+
 }

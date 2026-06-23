@@ -429,6 +429,96 @@ export class FilesService {
     };
   }
 
+  async permanentDeleteFile(fileId: string, workspaceId: string, userId: string) {
+    const fileQuery = await this.db.find('files', {
+      id: fileId,
+      workspace_id: workspaceId,
+      is_deleted: true,
+    });
+
+    const fileData = Array.isArray(fileQuery.data) ? fileQuery.data : [];
+    if (fileData.length === 0) {
+      throw new NotFoundException('Deleted file not found');
+    }
+
+    const file = fileData[0];
+
+    if (file.uploaded_by !== userId) {
+      const membership = await this.db.findOne('workspace_members', {
+        workspace_id: workspaceId,
+        user_id: userId,
+        is_active: true,
+      });
+
+      if (!membership || (membership.role !== 'admin' && membership.role !== 'owner')) {
+        throw new ForbiddenException('You do not have permission to permanently delete this file');
+      }
+    }
+
+    await this.db.delete('files', fileId);
+
+    return {
+      message: 'File permanently deleted',
+      file_id: fileId,
+      file_name: file.name,
+    };
+  }
+
+  async permanentDeleteFolderRecursive(folderId: string, workspaceId: string, userId: string) {
+    const folderQuery = await this.db.find('folders', {
+      id: folderId,
+      workspace_id: workspaceId,
+      is_deleted: true,
+    });
+
+    const folderData = Array.isArray(folderQuery.data) ? folderQuery.data : [];
+    if (folderData.length === 0) {
+      throw new NotFoundException('Deleted folder not found');
+    }
+
+    const folder = folderData[0];
+
+    if (folder.created_by !== userId) {
+      const membership = await this.db.findOne('workspace_members', {
+        workspace_id: workspaceId,
+        user_id: userId,
+        is_active: true,
+      });
+
+      if (!membership || (membership.role !== 'admin' && membership.role !== 'owner')) {
+        throw new ForbiddenException('You do not have permission to permanently delete this folder');
+      }
+    }
+
+    const allSubfolderIds = await this.collectAllDeletedSubfolderIds(folderId);
+    const allFolderIds = [folderId, ...allSubfolderIds];
+
+    const allFilesResult = await this.db.find('files', {});
+    const allFilesData = Array.isArray(allFilesResult.data) ? allFilesResult.data : [];
+
+    const filesToDelete = allFilesData.filter(
+      (file) =>
+        file.workspace_id === workspaceId &&
+        file.is_deleted === true &&
+        file.folder_id &&
+        allFolderIds.includes(file.folder_id),
+    );
+
+    for (const file of filesToDelete) {
+      await this.db.delete('files', file.id);
+    }
+
+    for (const folderIdToDelete of allFolderIds) {
+      await this.db.delete('folders', folderIdToDelete);
+    }
+
+    return {
+      message: 'Folder and all contents permanently deleted',
+      deleted_folders_count: allFolderIds.length,
+      deleted_files_count: filesToDelete.length,
+    };
+  }
+
   async updateFolder(
     folderId: string,
     workspaceId: string,

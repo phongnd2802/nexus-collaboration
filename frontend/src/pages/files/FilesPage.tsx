@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { StorageStats } from '../../components/files/StorageStats';
 import { FileExplorer } from '../../components/files/FileExplorer';
 import { AssetDashboard } from '../../components/files/AssetDashboard';
-import { useFilesAndFolders, useRecentFiles, useStarredFiles, useSharedWithMeFiles, useFilesByType, useDashboardStats, useTrashItems, useSearchFiles, useCreateFolder, useDeleteFile, useDeleteFolder, useRestoreFile, useRestoreFolder, useRenameFile, useRenameFolder, useToggleStarFile, useCopyFile, useCopyFolder, useMoveFile, useMoveFolder, filesService, fileApi } from '@/lib/api/files-api';
+import { useFilesAndFolders, useRecentFiles, useStarredFiles, useSharedWithMeFiles, useFilesByType, useDashboardStats, useTrashItems, useSearchFiles, useCreateFolder, useDeleteFile, useDeleteFolder, usePermanentDeleteFile, usePermanentDeleteFolder, useRestoreFile, useRestoreFolder, useRenameFile, useRenameFolder, useToggleStarFile, useCopyFile, useCopyFolder, useMoveFile, useMoveFolder, filesService, fileApi } from '@/lib/api/files-api';
 import type { FileItem } from '@/lib/api/files-api';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
 
@@ -336,22 +336,8 @@ const FilesPage: React.FC = () => {
         result = audioFiles;
         break;
       case 'trash':
-        // Filter trash items based on current folder
-        if (trashData?.items) {
-          // If we're at root level (currentFolderId is null), show only top-level items
-          // Otherwise, show items in the current folder
-          result = trashData.items.filter(item => {
-            if (currentFolderId === null) {
-              // Root level: show items with no parent or parent_id is null
-              return !item.parentId && !item.parent_id;
-            } else {
-              // In a folder: show items with matching parent
-              return item.parentId === currentFolderId || item.parent_id === currentFolderId;
-            }
-          });
-        } else {
-          result = [];
-        }
+        // Show only top-level trash items (no parentId means deleted directly, not as part of a deleted folder)
+        result = (trashData?.items ?? []).filter(item => !item.parentId);
         break;
       case 'all-files':
       default:
@@ -428,6 +414,8 @@ const FilesPage: React.FC = () => {
   const createFolderMutation = useCreateFolder();
   const deleteFileMutation = useDeleteFile();
   const deleteFolderMutation = useDeleteFolder();
+  const permanentDeleteFileMutation = usePermanentDeleteFile();
+  const permanentDeleteFolderMutation = usePermanentDeleteFolder();
   const restoreFileMutation = useRestoreFile();
   const restoreFolderMutation = useRestoreFolder();
   const renameFileMutation = useRenameFile();
@@ -588,6 +576,35 @@ const FilesPage: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : intl.formatMessage({ id: 'modules.files.errors.restoreFailed', defaultMessage: 'Failed to restore item' });
       toast.error(errorMessage);
       console.error('Error restoring item:', err);
+    }
+  };
+
+  // Permanently delete file or folder from trash
+  const handlePermanentDelete = async (fileId: string) => {
+    if (!workspaceId) {
+      toast.error(intl.formatMessage({ id: 'common.errors.workspaceRequired', defaultMessage: 'Workspace ID is required' }));
+      return;
+    }
+
+    try {
+      const item = files.find(f => f.id === fileId);
+
+      if (!item) {
+        toast.error(intl.formatMessage({ id: 'modules.files.errors.itemNotFound', defaultMessage: 'Item not found' }));
+        return;
+      }
+
+      if (item.type === 'folder') {
+        await permanentDeleteFolderMutation.mutateAsync({ workspaceId, folderId: fileId });
+        toast.success(intl.formatMessage({ id: 'modules.files.success.folderPermanentlyDeleted', defaultMessage: 'Folder permanently deleted' }));
+      } else {
+        await permanentDeleteFileMutation.mutateAsync({ workspaceId, fileId });
+        toast.success(intl.formatMessage({ id: 'modules.files.success.filePermanentlyDeleted', defaultMessage: 'File permanently deleted' }));
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : intl.formatMessage({ id: 'modules.files.errors.permanentDeleteFailed', defaultMessage: 'Failed to permanently delete item' });
+      toast.error(errorMessage);
+      console.error('Error permanently deleting item:', err);
     }
   };
 
@@ -902,6 +919,7 @@ const FilesPage: React.FC = () => {
               searchQuery={searchQuery}
               onFileClick={handleFileClick}
               onFileDelete={deleteFile}
+              onPermanentDelete={handlePermanentDelete}
               onFileDownload={downloadFile}
               onFileRename={handleRename}
               onToggleStar={handleToggleStar}

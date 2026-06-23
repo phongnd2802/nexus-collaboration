@@ -91,11 +91,6 @@ export class UpdateProfileDto {
   @IsString()
   avatarUrl?: string;
 
-  @ApiProperty({ example: 'America/New_York', required: false })
-  @IsOptional()
-  @IsString()
-  timezone?: string;
-
   @ApiProperty({ example: 'en', required: false })
   @IsOptional()
   @IsString()

@@ -18,7 +18,6 @@ import {
   Upload,
   Phone,
   Globe,
-  Clock,
   Search
 } from 'lucide-react';
 import { countryCodes } from '../../data/countryCodes';
@@ -74,56 +73,6 @@ const COUNTRY_CODES = [
   { code: '+64', country: 'New Zealand', flag: '🇳🇿' },
 ];
 
-// Timezone data
-const TIMEZONES = [
-  { value: 'UTC', label: 'UTC (Coordinated Universal Time)', offset: '+00:00' },
-  { value: 'America/New_York', label: 'Eastern Time (US & Canada)', offset: '-05:00' },
-  { value: 'America/Chicago', label: 'Central Time (US & Canada)', offset: '-06:00' },
-  { value: 'America/Denver', label: 'Mountain Time (US & Canada)', offset: '-07:00' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (US & Canada)', offset: '-08:00' },
-  { value: 'America/Anchorage', label: 'Alaska', offset: '-09:00' },
-  { value: 'Pacific/Honolulu', label: 'Hawaii', offset: '-10:00' },
-  { value: 'America/Toronto', label: 'Toronto', offset: '-05:00' },
-  { value: 'America/Vancouver', label: 'Vancouver', offset: '-08:00' },
-  { value: 'America/Mexico_City', label: 'Mexico City', offset: '-06:00' },
-  { value: 'America/Sao_Paulo', label: 'São Paulo', offset: '-03:00' },
-  { value: 'America/Buenos_Aires', label: 'Buenos Aires', offset: '-03:00' },
-  { value: 'Europe/London', label: 'London', offset: '+00:00' },
-  { value: 'Europe/Paris', label: 'Paris', offset: '+01:00' },
-  { value: 'Europe/Berlin', label: 'Berlin', offset: '+01:00' },
-  { value: 'Europe/Rome', label: 'Rome', offset: '+01:00' },
-  { value: 'Europe/Madrid', label: 'Madrid', offset: '+01:00' },
-  { value: 'Europe/Amsterdam', label: 'Amsterdam', offset: '+01:00' },
-  { value: 'Europe/Stockholm', label: 'Stockholm', offset: '+01:00' },
-  { value: 'Europe/Copenhagen', label: 'Copenhagen', offset: '+01:00' },
-  { value: 'Europe/Oslo', label: 'Oslo', offset: '+01:00' },
-  { value: 'Europe/Helsinki', label: 'Helsinki', offset: '+02:00' },
-  { value: 'Europe/Athens', label: 'Athens', offset: '+02:00' },
-  { value: 'Europe/Istanbul', label: 'Istanbul', offset: '+03:00' },
-  { value: 'Europe/Moscow', label: 'Moscow', offset: '+03:00' },
-  { value: 'Africa/Cairo', label: 'Cairo', offset: '+02:00' },
-  { value: 'Africa/Johannesburg', label: 'Johannesburg', offset: '+02:00' },
-  { value: 'Africa/Lagos', label: 'Lagos', offset: '+01:00' },
-  { value: 'Africa/Nairobi', label: 'Nairobi', offset: '+03:00' },
-  { value: 'Asia/Dubai', label: 'Dubai', offset: '+04:00' },
-  { value: 'Asia/Karachi', label: 'Karachi', offset: '+05:00' },
-  { value: 'Asia/Kolkata', label: 'India (IST)', offset: '+05:30' },
-  { value: 'Asia/Dhaka', label: 'Dhaka', offset: '+06:00' },
-  { value: 'Asia/Bangkok', label: 'Bangkok', offset: '+07:00' },
-  { value: 'Asia/Ho_Chi_Minh', label: 'Vietnam (Ho Chi Minh City)', offset: '+07:00' },
-  { value: 'Asia/Singapore', label: 'Singapore', offset: '+08:00' },
-  { value: 'Asia/Hong_Kong', label: 'Hong Kong', offset: '+08:00' },
-  { value: 'Asia/Shanghai', label: 'Beijing', offset: '+08:00' },
-  { value: 'Asia/Tokyo', label: 'Tokyo', offset: '+09:00' },
-  { value: 'Asia/Seoul', label: 'Seoul', offset: '+09:00' },
-  { value: 'Australia/Sydney', label: 'Sydney', offset: '+11:00' },
-  { value: 'Australia/Melbourne', label: 'Melbourne', offset: '+11:00' },
-  { value: 'Australia/Brisbane', label: 'Brisbane', offset: '+10:00' },
-  { value: 'Australia/Perth', label: 'Perth', offset: '+08:00' },
-  { value: 'Pacific/Auckland', label: 'Auckland', offset: '+13:00' },
-  { value: 'Pacific/Fiji', label: 'Fiji', offset: '+12:00' },
-];
-
 // Types
 interface ProfileFormData {
   name: string;
@@ -133,7 +82,6 @@ interface ProfileFormData {
   countryCode?: string;
   location?: string;
   website?: string;
-  timezone?: string;
   language?: SupportedLocale;
 }
 
@@ -142,15 +90,6 @@ const ProfileSettings: React.FC = () => {
   const { user, updateProfile: updateUserProfile, refreshProfile } = useAuth();
   const { locale, setLocale } = useLanguage();
   const intl = useIntl();
-
-  // Get browser timezone as default
-  const getBrowserTimezone = () => {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-    } catch {
-      return 'UTC';
-    }
-  };
 
   // Form state
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -161,7 +100,6 @@ const ProfileSettings: React.FC = () => {
     countryCode: '+1', // Default to US/Canada
     location: '',
     website: '',
-    timezone: getBrowserTimezone(),
     language: locale
   });
 
@@ -218,10 +156,6 @@ const ProfileSettings: React.FC = () => {
         countryCode: countryCode || '+1', // Default to US/Canada if not set
         location: (user.metadata?.location as string) || '',
         website: (user.metadata?.website as string) || '',
-        timezone:
-          (user.metadata?.timezone as string) ||
-          user.timezone ||
-          getBrowserTimezone(),
         language:
           (user.metadata?.language as SupportedLocale) ||
           (user.language as SupportedLocale) ||
@@ -376,7 +310,6 @@ const ProfileSettings: React.FC = () => {
         phone: formData.phone || '',
         countryCode: formData.countryCode || '',
         location: formData.location || '',
-        timezone: formData.timezone || 'UTC',
         language: formData.language || 'en',
         // Include the uploaded avatar URL if available
         ...(uploadedAvatarUrl && { avatarUrl: uploadedAvatarUrl })
@@ -642,36 +575,6 @@ const ProfileSettings: React.FC = () => {
 
             {/* Preferences */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2 relative">
-                <Label htmlFor="timezone">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {intl.formatMessage({ id: 'profile.settings.timezone.label' })}
-                  </div>
-                </Label>
-                <Select
-                  value={formData.timezone || 'UTC'}
-                  onValueChange={(value) => {
-                    setFormData(prev => ({ ...prev, timezone: value }));
-                    if (success) setSuccess(null);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={intl.formatMessage({ id: 'profile.settings.timezone.placeholder' })} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {TIMEZONES.map((tz) => (
-                      <SelectItem key={tz.value} value={tz.value}>
-                        {tz.label} <span className="text-xs text-gray-500">({tz.offset})</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500">
-                  {intl.formatMessage({ id: 'profile.settings.timezone.description' })}
-                </p>
-              </div>
-
               <div className="space-y-2 relative">
                 <Label htmlFor="language">
                   <div className="flex items-center gap-2">

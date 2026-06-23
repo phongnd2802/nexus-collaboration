@@ -71,6 +71,7 @@ interface FileExplorerProps {
   searchQuery?: string;
   onFileClick?: (file: FileItem) => void;
   onFileDelete?: (fileId: string) => void;
+  onPermanentDelete?: (fileId: string) => void;
   onFileDownload?: (fileId: string, fileName: string) => void;
   onFileRename?: (fileId: string, newName: string, itemType: 'file' | 'folder') => void;
   onToggleStar?: (fileId: string, currentStarred: boolean) => void;
@@ -116,6 +117,7 @@ export function FileExplorer({
   searchQuery = '',
   onFileClick,
   onFileDelete,
+  onPermanentDelete,
   onFileDownload,
   onFileRename,
   onToggleStar,
@@ -484,8 +486,11 @@ export function FileExplorer({
 
     try {
       if (deleteDialog.ids.length === 1) {
-        // Single item deletion - use the prop function
-        await onFileDelete?.(deleteDialog.ids[0]);
+        if (isTrashView) {
+          await onPermanentDelete?.(deleteDialog.ids[0]);
+        } else {
+          await onFileDelete?.(deleteDialog.ids[0]);
+        }
         toast.success('Deleted 1 item');
       } else {
         // Multiple items deletion - separate files and folders
@@ -494,64 +499,72 @@ export function FileExplorer({
         const folderIds = selectedItems.filter(item => item?.type === 'folder').map(item => item!.id);
 
         const { fileApi } = await import('../../lib/api/files-api');
-
         let totalDeleted = 0;
         let totalFailed = 0;
         const allFailedMessages: string[] = [];
 
-        // Batch delete folders if any
-        if (folderIds.length > 0) {
-          const folderResult = await fileApi.deleteMultipleFolders(workspaceId, folderIds);
-          totalDeleted += folderResult.success.length;
-          totalFailed += folderResult.failed.length;
-
-          if (folderResult.failed.length > 0) {
-            allFailedMessages.push(...folderResult.failed.map(f => f.reason));
-          }
-
-          console.log(`🗑️ Deleted ${folderResult.success.length} folders (${folderResult.deleted_folders_count} total folders, ${folderResult.deleted_files_count} files)`);
-        }
-
-        // Batch delete files if any
-        if (fileIds.length > 0) {
-          const fileResult = await fileApi.deleteMultipleFiles(workspaceId, fileIds);
-          totalDeleted += fileResult.deleted_count;
-          totalFailed += fileResult.failed_count;
-
-          if (fileResult.failed_count > 0) {
-            allFailedMessages.push(...fileResult.failed.map(f => f.reason));
-          }
-
-          console.log(`🗑️ Deleted ${fileResult.deleted_count} files`);
-        }
-
-        // Show combined results
-        if (totalDeleted > 0) {
-          toast.success(`Successfully deleted ${totalDeleted} item${totalDeleted > 1 ? 's' : ''}`);
-        }
-
-        if (totalFailed > 0) {
-          const failedMessages = allFailedMessages.join(', ');
-          toast.error(`Failed to delete ${totalFailed} item${totalFailed > 1 ? 's' : ''}: ${failedMessages}`);
-        }
-
-        // Manually invalidate cache after batch delete
-        if (totalDeleted > 0) {
-          // Invalidate all file-related queries for this workspace
-          queryClient.invalidateQueries({
-            predicate: (query) => {
-              const queryKey = query.queryKey as string[];
-              return queryKey[0] === 'files' &&
-                     queryKey[1] === 'list' &&
-                     queryKey[2] === workspaceId;
+        if (isTrashView) {
+          // Permanent delete from trash - item by item
+          for (const folderId of folderIds) {
+            try {
+              await fileApi.permanentDeleteFolder(workspaceId, folderId);
+              totalDeleted++;
+            } catch (e: any) {
+              totalFailed++;
+              allFailedMessages.push(e?.message || 'Unknown error');
             }
-          });
-          // Also invalidate trash, starred, recent, and other related views
-          queryClient.invalidateQueries({ queryKey: ['files', 'trash', workspaceId] });
-          queryClient.invalidateQueries({ queryKey: ['files', 'starred', workspaceId] });
-          queryClient.invalidateQueries({ queryKey: ['files', 'recent', workspaceId] });
-          queryClient.invalidateQueries({ queryKey: ['files', 'storage', workspaceId] });
-          console.log('✅ Cache invalidated after batch delete');
+          }
+          for (const fileId of fileIds) {
+            try {
+              await fileApi.permanentDeleteFile(workspaceId, fileId);
+              totalDeleted++;
+            } catch (e: any) {
+              totalFailed++;
+              allFailedMessages.push(e?.message || 'Unknown error');
+            }
+          }
+          if (totalDeleted > 0) {
+            queryClient.invalidateQueries({ queryKey: ['files', 'trash', workspaceId] });
+            queryClient.invalidateQueries({ queryKey: ['files', 'storage', workspaceId] });
+            toast.success(`Permanently deleted ${totalDeleted} item${totalDeleted > 1 ? 's' : ''}`);
+          }
+          if (totalFailed > 0) {
+            toast.error(`Failed to permanently delete ${totalFailed} item${totalFailed > 1 ? 's' : ''}`);
+          }
+        } else {
+          // Soft delete - batch API
+          if (folderIds.length > 0) {
+            const folderResult = await fileApi.deleteMultipleFolders(workspaceId, folderIds);
+            totalDeleted += folderResult.success.length;
+            totalFailed += folderResult.failed.length;
+            if (folderResult.failed.length > 0) {
+              allFailedMessages.push(...folderResult.failed.map(f => f.reason));
+            }
+          }
+          if (fileIds.length > 0) {
+            const fileResult = await fileApi.deleteMultipleFiles(workspaceId, fileIds);
+            totalDeleted += fileResult.deleted_count;
+            totalFailed += fileResult.failed_count;
+            if (fileResult.failed_count > 0) {
+              allFailedMessages.push(...fileResult.failed.map(f => f.reason));
+            }
+          }
+          if (totalDeleted > 0) {
+            queryClient.invalidateQueries({
+              predicate: (query) => {
+                const queryKey = query.queryKey as string[];
+                return queryKey[0] === 'files' && queryKey[1] === 'list' && queryKey[2] === workspaceId;
+              }
+            });
+            queryClient.invalidateQueries({ queryKey: ['files', 'trash', workspaceId] });
+            queryClient.invalidateQueries({ queryKey: ['files', 'starred', workspaceId] });
+            queryClient.invalidateQueries({ queryKey: ['files', 'recent', workspaceId] });
+            queryClient.invalidateQueries({ queryKey: ['files', 'storage', workspaceId] });
+            toast.success(`Successfully deleted ${totalDeleted} item${totalDeleted > 1 ? 's' : ''}`);
+          }
+          if (totalFailed > 0) {
+            toast.error(`Failed to delete ${totalFailed} item${totalFailed > 1 ? 's' : ''}: ${allFailedMessages.join(', ')}`);
+          }
         }
       }
 
@@ -1328,6 +1341,7 @@ export function FileExplorer({
           ? `${deleteDialog?.ids.length} items`
           : deleteDialog?.names?.[0]
         }
+        isTrashView={isTrashView}
       />
 
       <FilePreviewDialog
