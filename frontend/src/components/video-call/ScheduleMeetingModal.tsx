@@ -349,7 +349,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
 
                 {/* Date and Time - Hidden when Start Immediately is checked */}
                 {!startImmediately && (
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="meeting-date">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.date' })}</Label>
                       <Input
