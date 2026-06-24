@@ -1,0 +1,99 @@
+from typing import Any, Optional
+
+try:
+    from .server import call_tool, close
+except ImportError:
+    from server import call_tool, close
+
+
+async def nexus_update_scheduled_message(
+    workspace_id: str,
+    scheduled_message_id: str,
+    content: Optional[str] = None,
+    contentHtml: Optional[str] = None,
+    attachments: Optional[list[Any]] = None,
+    mentions: Optional[list[Any]] = None,
+    linkedContent: Optional[list[Any]] = None,
+    scheduledAt: Optional[str] = None,
+    response_format: Optional[str] = None,
+) -> str:
+    """
+    Update a pending scheduled message.
+
+    Args:
+        workspace_id: required; string; Nexus workspace ID.
+        scheduled_message_id: required; string; Scheduled message ID.
+        content: optional; string; Updated message content.
+        contentHtml: optional; string; Updated HTML formatted content.
+        attachments: optional; array; Updated attachments.
+        mentions: optional; array; Updated mentioned user IDs.
+        linkedContent: optional; array; Updated linked notes, events, files, drive items, or polls.
+        scheduledAt: optional; string; Updated scheduled send time in ISO 8601 format.
+        response_format: optional; string; Output format. Use 'json' for structured processing or 'markdown' for readable summaries.
+
+
+    Returns:
+        Tool result as string.
+    """
+    arguments = {
+        'workspace_id': workspace_id,
+        'scheduled_message_id': scheduled_message_id,
+    }
+    if content is not None:
+        arguments['content'] = content
+    if contentHtml is not None:
+        arguments['contentHtml'] = contentHtml
+    if attachments is not None:
+        arguments['attachments'] = attachments
+    if mentions is not None:
+        arguments['mentions'] = mentions
+    if linkedContent is not None:
+        arguments['linkedContent'] = linkedContent
+    if scheduledAt is not None:
+        arguments['scheduledAt'] = scheduledAt
+    if response_format is not None:
+        arguments['response_format'] = response_format
+    return await call_tool('nexus_update_scheduled_message', arguments)
+
+
+if __name__ == "__main__":
+    import asyncio
+    import json
+    import os
+
+    def _get_env(names: list[str]) -> str:
+        for name in names:
+            value = os.environ.get(name)
+            if value:
+                return value
+        raise RuntimeError("Missing required test env var. Tried: " + ", ".join(names))
+
+    def _get_int(names: list[str]) -> int:
+        return int(_get_env(names))
+
+    def _get_float(names: list[str]) -> float:
+        return float(_get_env(names))
+
+    def _get_bool(names: list[str]) -> bool:
+        return _get_env(names).lower() in ("1", "true", "yes", "on")
+
+    def _get_json(names: list[str]) -> Any:
+        return json.loads(_get_env(names))
+
+    async def test() -> None:
+        print("Testing nexus_update_scheduled_message...")
+        if os.environ.get("NEXUS_ALLOW_WRITE_TOOL_TEST") != "1":
+            raise RuntimeError(
+                "This tool can modify Nexus data. Set NEXUS_ALLOW_WRITE_TOOL_TEST=1 "
+                "and provide explicit NEXUS_TEST_* env vars before testing it."
+            )
+        try:
+            result = await nexus_update_scheduled_message(
+                workspace_id=_get_env(['NEXUS_TEST_WORKSPACE_ID', 'NEXUS_WORKSPACE_ID']),
+                scheduled_message_id=_get_env(['NEXUS_TEST_SCHEDULED_MESSAGE_ID']),
+            )
+            print(str(result)[:1000])
+        finally:
+            await close()
+
+    asyncio.run(test())
