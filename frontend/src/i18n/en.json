@@ -3281,7 +3281,22 @@
         "workspaceNotFound": "Workspace not found",
         "sharedSuccess": "Successfully shared \"{title}\" with {count} member",
         "sharedSuccessPlural": "Successfully shared \"{title}\" with {count} members",
-        "shareFailed": "Failed to share note. Please try again."
+        "shareFailed": "Failed to share note. Please try again.",
+        "shareAs": "Share as:",
+        "sharedWith": "Shared with",
+        "permissionUpdated": "Permission updated",
+        "permissionUpdateFailed": "Failed to update permission",
+        "userRemoved": "User removed from note",
+        "userRemoveFailed": "Failed to remove user"
+      },
+      "permissionBanner": {
+        "viewOnly": "You can view this note but cannot make edits.",
+        "requestEditAccess": "Request edit access",
+        "requestSent": "Request sent",
+        "requestSuccess": "Edit permission request sent to the note owner",
+        "requestFailed": "Failed to send request",
+        "permissionChangedTitle": "Permission changed",
+        "permissionChangedDesc": "You can no longer edit this note."
       },
       "mergeDialog": {
         "mergeNotes": "Merge Notes",
@@ -3443,7 +3458,10 @@
         "requestFailed": "Failed to send access request. Please try again.",
         "approvedHint": "Your request has been approved. You can view the note now.",
         "deniedHint": "Your request was denied by the owner.",
-        "goBack": "Go Back"
+        "goBack": "Go Back",
+        "requestAs": "Request as",
+        "viewer": "Viewer",
+        "editor": "Editor"
       },
       "accessRequest": {
         "notifTitle": "Access Request for your note",
@@ -3452,6 +3470,18 @@
         "deny": "Deny",
         "approvedMessage": "You approved access for {requester}",
         "deniedMessage": "You denied access for {requester}",
+        "alreadyApproved": "Approved",
+        "alreadyDenied": "Denied",
+        "respondFailed": "Failed to respond. Please try again.",
+        "invalid": "Request is no longer valid"
+      },
+      "permissionChangeRequest": {
+        "notifTitle": "Permission change request",
+        "notifMessage": "{requester} requested {permission} access on \"{title}\"",
+        "approve": "Approve",
+        "deny": "Deny",
+        "approvedMessage": "You approved {permission} access for {requester}",
+        "deniedMessage": "You denied the request from {requester}",
         "alreadyApproved": "Approved",
         "alreadyDenied": "Denied",
         "respondFailed": "Failed to respond. Please try again.",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNotesStore } from '../../stores/notesStore'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Note } from '../../types/notes'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
@@ -58,24 +59,26 @@ interface NotesTreeProps {
   showAllNotes?: boolean
   selectedNoteId?: string
   onSelectNote: (noteId: string) => void
+  currentUserId?: string
 }
 
-function NotesTree({ 
-  notes, 
-  allNotes, 
-  level = 0, 
-  parentId, 
-  onCreateNote, 
-  onDeleteNote, 
-  onRestoreNote, 
-  onDuplicateNote, 
+function NotesTree({
+  notes,
+  allNotes,
+  level = 0,
+  parentId,
+  onCreateNote,
+  onDeleteNote,
+  onRestoreNote,
+  onDuplicateNote,
   onToggleFavorite,
   onShare,
-  selectedNotes, 
-  onNoteSelectionChange, 
+  selectedNotes,
+  onNoteSelectionChange,
   showAllNotes = false,
   selectedNoteId,
-  onSelectNote
+  onSelectNote,
+  currentUserId
 }: NotesTreeProps) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['root']))
 
@@ -220,59 +223,73 @@ function NotesTree({
               </Button>
             )}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <MoreHorizontal className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {!note.isDeleted && (
-                  <>
-                    <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'favorite')}>
-                      <Star className="h-4 w-4 mr-2" />
-                      {note.isFavorite ? 'Unfavorite' : 'Favorite'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'duplicate')}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Duplicate
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'share')}>
-                      <Share className="h-4 w-4 mr-2" />
-                      Share
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'archive')}>
-                      <Archive className="h-4 w-4 mr-2" />
-                      {note.isArchived ? 'Unarchive' : 'Archive'}
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {note.isDeleted ? (
-                  <>
-                    <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'restore')}>
-                      <Undo2 className="h-4 w-4 mr-2" />
-                      Restore
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleNoteAction(note.id, 'delete')}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Permanently
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem 
-                    onClick={() => handleNoteAction(note.id, 'delete')}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Move to Trash
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {(() => {
+              const noteOwnerId = (note as any).author_id || (note as any).created_by
+              const isOwner = !currentUserId || !noteOwnerId || currentUserId === noteOwnerId
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {!note.isDeleted && (
+                      <>
+                        <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'favorite')}>
+                          <Star className="h-4 w-4 mr-2" />
+                          {note.isFavorite ? 'Unfavorite' : 'Favorite'}
+                        </DropdownMenuItem>
+                        {isOwner && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'duplicate')}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'share')}>
+                              <Share className="h-4 w-4 mr-2" />
+                              Share
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'archive')}>
+                          <Archive className="h-4 w-4 mr-2" />
+                          {note.isArchived ? 'Unarchive' : 'Archive'}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {note.isDeleted ? (
+                      isOwner && (
+                        <>
+                          <DropdownMenuItem onClick={() => handleNoteAction(note.id, 'restore')}>
+                            <Undo2 className="h-4 w-4 mr-2" />
+                            Restore
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleNoteAction(note.id, 'delete')}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Permanently
+                          </DropdownMenuItem>
+                        </>
+                      )
+                    ) : (
+                      isOwner && (
+                        <DropdownMenuItem
+                          onClick={() => handleNoteAction(note.id, 'delete')}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Move to Trash
+                        </DropdownMenuItem>
+                      )
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )
+            })()}
           </div>
         </div>
 
@@ -292,6 +309,7 @@ function NotesTree({
             onNoteSelectionChange={onNoteSelectionChange}
             selectedNoteId={selectedNoteId}
             onSelectNote={onSelectNote}
+            currentUserId={currentUserId}
           />
         )}
       </div>
@@ -316,6 +334,7 @@ export function NotesSidebar({
   onViewModeChange
 }: NotesSidebarProps) {
   const { filter, setFilter } = useNotesStore()
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
 
@@ -410,6 +429,7 @@ export function NotesSidebar({
               }}
               selectedNoteId={selectedNoteId}
               onSelectNote={onSelectNote}
+              currentUserId={user?.id}
             />
           </div>
         )}
@@ -429,6 +449,7 @@ export function NotesSidebar({
               showAllNotes
               selectedNoteId={selectedNoteId}
               onSelectNote={onSelectNote}
+              currentUserId={user?.id}
             />
           </div>
         )}
@@ -448,6 +469,7 @@ export function NotesSidebar({
               showAllNotes
               selectedNoteId={selectedNoteId}
               onSelectNote={onSelectNote}
+              currentUserId={user?.id}
             />
           </div>
         )}

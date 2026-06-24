@@ -3277,7 +3277,22 @@
         "workspaceNotFound": "Không tìm thấy không gian làm việc",
         "sharedSuccess": "Đã chia sẻ thành công  \"{title} \" với {count} thành viên",
         "sharedSuccessPlural": "Đã chia sẻ thành công  \"{title} \" với {count} thành viên",
-        "shareFailed": "Không thể chia sẻ ghi chú. Vui lòng thử lại."
+        "shareFailed": "Không thể chia sẻ ghi chú. Vui lòng thử lại.",
+        "shareAs": "Chia sẻ với quyền:",
+        "sharedWith": "Đã chia sẻ với",
+        "permissionUpdated": "Đã cập nhật quyền",
+        "permissionUpdateFailed": "Cập nhật quyền thất bại",
+        "userRemoved": "Đã xóa thành viên khỏi ghi chú",
+        "userRemoveFailed": "Xóa thành viên thất bại"
+      },
+      "permissionBanner": {
+        "viewOnly": "Bạn chỉ có thể xem ghi chú này, không thể chỉnh sửa.",
+        "requestEditAccess": "Yêu cầu quyền chỉnh sửa",
+        "requestSent": "Đã gửi yêu cầu",
+        "requestSuccess": "Đã gửi yêu cầu chỉnh sửa đến chủ ghi chú",
+        "requestFailed": "Gửi yêu cầu thất bại",
+        "permissionChangedTitle": "Quyền đã thay đổi",
+        "permissionChangedDesc": "Bạn không còn quyền chỉnh sửa ghi chú này."
       },
       "mergeDialog": {
         "mergeNotes": "Hợp nhất ghi chú",
@@ -3438,7 +3453,10 @@
         "requestFailed": "Gửi yêu cầu truy cập thất bại. Vui lòng thử lại.",
         "approvedHint": "Yêu cầu của bạn đã được phê duyệt. Bạn có thể xem ghi chú.",
         "deniedHint": "Yêu cầu của bạn đã bị từ chối bởi chủ sở hữu.",
-        "goBack": "Quay lại"
+        "goBack": "Quay lại",
+        "requestAs": "Yêu cầu với quyền",
+        "viewer": "Viewer",
+        "editor": "Editor"
       },
       "accessRequest": {
         "notifTitle": "Yêu cầu truy cập ghi chú",
@@ -3447,6 +3465,18 @@
         "deny": "Từ chối",
         "approvedMessage": "Bạn đã chấp nhận quyền truy cập cho {requester}",
         "deniedMessage": "Bạn đã từ chối quyền truy cập cho {requester}",
+        "alreadyApproved": "Đã chấp nhận",
+        "alreadyDenied": "Đã từ chối",
+        "respondFailed": "Không thể xử lý phản hồi. Vui lòng thử lại.",
+        "invalid": "Yêu cầu không còn hiệu lực"
+      },
+      "permissionChangeRequest": {
+        "notifTitle": "Yêu cầu thay đổi quyền",
+        "notifMessage": "{requester} yêu cầu quyền {permission} trên \"{title}\"",
+        "approve": "Chấp nhận",
+        "deny": "Từ chối",
+        "approvedMessage": "Bạn đã cấp quyền {permission} cho {requester}",
+        "deniedMessage": "Bạn đã từ chối yêu cầu của {requester}",
         "alreadyApproved": "Đã chấp nhận",
         "alreadyDenied": "Đã từ chối",
         "respondFailed": "Không thể xử lý phản hồi. Vui lòng thử lại.",

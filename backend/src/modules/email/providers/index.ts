@@ -74,3 +74,4 @@ export { SesProvider } from './ses.provider';
 export { NoneEmailProvider } from './none.provider';
 export { buildTaskReminderEmail, TaskReminderEmailData } from './task-reminder-email.provider';
 export { buildNoteAccessRequestEmail, NoteAccessRequestEmailData } from './note-access-request-email.provider';
+export { buildNotePermissionChangeEmail, NotePermissionChangeEmailData } from './note-permission-change-email.provider';

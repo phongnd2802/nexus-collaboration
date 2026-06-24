@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { ContentMentionMenu } from '../ui/content-mention-menu'
+import { RequestEditPermissionBanner } from './RequestEditPermissionBanner'
 
 // Lazy load the Quill editor to improve initial load time
 const ReactQuill = lazy(() => import('react-quill-new'))
@@ -49,6 +50,13 @@ interface NotionStyleNoteEditorProps {
   onImport?: () => void
   onAttachmentClick?: (attachment: { id: string; title: string; type: 'notes' | 'events' | 'files' }) => void
   onRefresh?: () => void
+  isReadOnly?: boolean
+}
+
+const getTitleText = (title: any): string => {
+  if (Array.isArray(title)) return title.map((rt: RichText) => rt.text).join('')
+  if (typeof title === 'string') return title
+  return ''
 }
 
 export function NotionStyleNoteEditor({
@@ -63,13 +71,15 @@ export function NotionStyleNoteEditor({
   onShare,
   onImport,
   onAttachmentClick,
-  onRefresh
+  onRefresh,
+  isReadOnly = false,
 }: NotionStyleNoteEditorProps) {
   // const updateNoteMutation = useUpdateNote(note.id) // Disabled for now
   const { toast } = useToast()
   const { user } = useAuth()
   const intl = useIntl()
   const isReadOnlyDeletedNote = note.isDeleted
+  const effectiveReadOnly = isReadOnlyDeletedNote || isReadOnly
 
   // Editor container ref for RemoteCursors
   const editorContainerRef = useRef<HTMLDivElement>(null)
@@ -184,9 +194,7 @@ export function NotionStyleNoteEditor({
     },
   })
 
-  const [title, setTitle] = useState(() => 
-    note.title?.map((rt: RichText) => rt.text).join('') || ''
-  )
+  const [title, setTitle] = useState(() => getTitleText(note.title))
   
   // Extract HTML content from note blocks for initial display
   const extractHtmlFromBlocks = useCallback((content: any): string => {
@@ -505,7 +513,7 @@ export function NotionStyleNoteEditor({
 
       // Extract content from the new note FIRST
       const initialContent = extractHtmlFromBlocks(note.content) || ''
-      const newTitle = note.title?.map((rt: RichText) => rt.text).join('') || ''
+      const newTitle = getTitleText(note.title)
       const newIcon = note.icon?.value || '📄'
 
       console.log('[Editor] New note content:', {
@@ -565,7 +573,7 @@ export function NotionStyleNoteEditor({
       }, 1000)
     } else {
       // Same note - check if content/title was updated externally (e.g., by AI agent)
-      const newTitle = note.title?.map((rt: RichText) => rt.text).join('') || ''
+      const newTitle = getTitleText(note.title)
       const newContent = extractHtmlFromBlocks(note.content) || ''
       const newIcon = note.icon?.value || '📄'
 
@@ -872,11 +880,16 @@ export function NotionStyleNoteEditor({
     // Update local content state (needed for things like character count display)
     setContent(value)
 
+    // Skip auto-save for read-only users — content changes are driven by remote Yjs sync,
+    // not by the user, so saving here would be incorrect and cause an infinite save loop.
+    if (effectiveReadOnly) return
+
     // Always schedule auto-save - frontend handles all saves
+
     // Note: Backend Yjs save was disabled because yText.toString() returns plain text, not HTML
     // Frontend has access to proper HTML content via Quill, so it should always handle saves
     scheduleAutoSave()
-  }, [scheduleAutoSave])
+  }, [scheduleAutoSave, effectiveReadOnly])
 
   // Handle emoji select
   const handleEmojiSelect = useCallback((emoji: string) => {
@@ -2146,7 +2159,7 @@ export function NotionStyleNoteEditor({
                 <Button
                   variant="ghost"
                   className="w-12 h-12 p-0 hover:bg-muted/50 rounded-md"
-                  disabled={isReadOnlyDeletedNote}
+                  disabled={effectiveReadOnly}
                 >
                   <span className="text-2xl">{selectedIcon}</span>
                 </Button>
@@ -2163,7 +2176,7 @@ export function NotionStyleNoteEditor({
                 value={title}
                 onChange={handleTitleChange}
                 onKeyDown={handleTitleKeyDown}
-                readOnly={isReadOnlyDeletedNote}
+                readOnly={effectiveReadOnly}
                 placeholder="Untitled"
                 className="text-4xl font-bold border-none shadow-none px-0 py-2 h-auto bg-transparent focus-visible:ring-0 placeholder:text-muted-foreground/50"
                 style={{ fontSize: '2.25rem', lineHeight: '2.5rem' }}
@@ -2288,7 +2301,7 @@ export function NotionStyleNoteEditor({
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="max-w-4xl mx-auto relative">
           <div className="sticky top-0 z-[5] bg-background">
-            {!isReadOnlyDeletedNote && (
+            {!effectiveReadOnly && (
               <>
             {/* Simple AI Toolbar */}
             <div className="border-b px-8">
@@ -2408,6 +2421,11 @@ export function NotionStyleNoteEditor({
                   />
                 )}
 
+                {/* Read-only banner for Viewer permission */}
+                {isReadOnly && !isReadOnlyDeletedNote && (
+                  <RequestEditPermissionBanner noteId={note.id} />
+                )}
+
                 {/* Use defaultValue to avoid cursor issues with Yjs binding.
                     Key includes editorKey to force remount when switching notes, ensuring correct content is loaded */}
                 <ReactQuill
@@ -2416,11 +2434,11 @@ export function NotionStyleNoteEditor({
                   theme="snow"
                   defaultValue={content}
                   onChange={handleContentChange}
-                  readOnly={isReadOnlyDeletedNote}
-                  placeholder={isReadOnlyDeletedNote ? '' : 'Start writing...'}
+                  readOnly={effectiveReadOnly}
+                  placeholder={effectiveReadOnly ? '' : 'Start writing...'}
                   modules={quillModules}
                   formats={quillFormats}
-                  className={cn('notion-editor', isReadOnlyDeletedNote && 'trash-note-readonly')}
+                  className={cn('notion-editor', effectiveReadOnly && 'trash-note-readonly')}
                 />
               </div>
             </Suspense>

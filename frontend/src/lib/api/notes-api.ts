@@ -276,10 +276,36 @@ export const notesApi = {
   },
 
   async unshareNote(noteId: string, userId?: string): Promise<void> {
-    const endpoint = userId 
+    const endpoint = userId
       ? `/notes/${noteId}/share/${userId}`
       : `/notes/${noteId}/share`;
     await api.delete(endpoint);
+  },
+
+  async updateNotePermission(
+    workspaceId: string,
+    noteId: string,
+    userId: string,
+    permission: 'read' | 'write',
+  ): Promise<{ success: boolean; userId: string; permission: string }> {
+    return api.patch(`/workspaces/${workspaceId}/notes/${noteId}/share/${userId}`, { permission });
+  },
+
+  async requestPermissionChange(
+    workspaceId: string,
+    noteId: string,
+    data: { permission: 'read' | 'write'; message?: string },
+  ): Promise<{ success: boolean }> {
+    return api.post(`/workspaces/${workspaceId}/notes/${noteId}/permission-request`, data);
+  },
+
+  async respondPermissionChangeRequest(
+    workspaceId: string,
+    noteId: string,
+    requesterId: string,
+    action: 'approve' | 'deny',
+  ): Promise<{ success: boolean; action: string }> {
+    return api.post(`/workspaces/${workspaceId}/notes/${noteId}/respond-permission-request`, { requesterId, action });
   },
 
   // Export
@@ -361,7 +387,7 @@ export const notesApi = {
   async requestNoteAccess(
     workspaceId: string,
     noteId: string,
-    data?: { message?: string },
+    data?: { message?: string; requested_permission?: 'read' | 'write' },
   ): Promise<{ success: boolean; message: string; requestId: string }> {
     return api.post(`/workspaces/${workspaceId}/notes/${noteId}/access-request`, data || {});
   },
@@ -399,6 +425,32 @@ export const notesApi = {
     created_at: string;
   }> {
     return api.get(`/workspaces/${workspaceId}/notes/access-requests/${requestId}`);
+  },
+
+  // Permission Change Request
+  async getPermissionChangeRequestById(
+    workspaceId: string,
+    requestId: string,
+  ): Promise<{
+    id: string;
+    note_id: string;
+    requester_id: string;
+    owner_id: string;
+    workspace_id: string;
+    status: 'pending' | 'approved' | 'denied' | 'cancelled' | 'resolved';
+    requested_permission: 'read' | 'write';
+    message: string | null;
+    created_at: string;
+  }> {
+    return api.get(`/workspaces/${workspaceId}/notes/permission-requests/${requestId}`);
+  },
+
+  async respondToPermissionChangeRequest(
+    workspaceId: string,
+    requestId: string,
+    action: 'approve' | 'deny',
+  ): Promise<{ success: boolean; message: string; status: string }> {
+    return api.patch(`/workspaces/${workspaceId}/notes/permission-requests/${requestId}`, { action });
   },
 
 };

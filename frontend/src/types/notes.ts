@@ -156,6 +156,7 @@ export interface Note {
     name: string
     email: string
     avatarUrl: string | null
+    permission: 'read' | 'write'
   }>
 
   // Attachments (linked items)

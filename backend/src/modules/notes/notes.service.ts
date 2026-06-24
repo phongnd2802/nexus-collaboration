@@ -16,6 +16,9 @@ import {
   CreateNoteDto,
   UpdateNoteDto,
   ShareNoteDto,
+  SharePermission,
+  UpdateSharePermissionDto,
+  NotePermissionRequestDto,
   MergeNotesDto,
   BulkDeleteDto,
   DuplicateNoteDto,
@@ -77,6 +80,19 @@ export class NotesService {
     }
 
     return note.created_by === userId || this.isSharedWithUser(note, userId);
+  }
+
+  private getUserPermission(note: any, userId: string): 'owner' | 'write' | 'read' | null {
+    if (note.created_by === userId) return 'owner';
+    if (!this.isSharedWithUser(note, userId)) return null;
+    const data = this.parseCollaborativeData(note.collaborative_data);
+    const permissions = data?.permissions || {};
+    return permissions[userId] || 'read';
+  }
+
+  private canEditNote(note: any, userId: string): boolean {
+    const perm = this.getUserPermission(note, userId);
+    return perm === 'owner' || perm === 'write';
   }
 
   async createNote(workspaceId: string, createNoteDto: CreateNoteDto, userId: string) {
@@ -375,6 +391,7 @@ export class NotesService {
     if (note.collaborative_data) {
       const collaborativeData = this.parseCollaborativeData(note.collaborative_data);
       const sharedWith = collaborativeData?.shared_with || [];
+      const permissions = collaborativeData?.permissions || {};
       if (Array.isArray(sharedWith)) {
         for (const collaboratorId of sharedWith) {
           try {
@@ -391,6 +408,7 @@ export class NotesService {
                   'User',
                 email: collaboratorUser.email,
                 avatarUrl: collaboratorUser.avatar_url || collaboratorUser.avatarUrl || null,
+                permission: permissions[collaboratorId] || 'read',
               });
             }
           } catch (error) {
@@ -1009,10 +1027,16 @@ export class NotesService {
     // Create new shared_with array with unique user IDs
     const newSharedWith = Array.from(new Set([...existingSharedWith, ...userIdsToShare]));
 
-    // Update collaborative_data with new shared_with array
+    // Update collaborative_data with new shared_with array and permissions map
+    const existingPermissions = existingCollaborativeData.permissions || {};
+    const newPermissions = { ...existingPermissions };
+    for (const id of userIdsToShare) {
+      newPermissions[id] = shareNoteDto.permission ?? SharePermission.WRITE;
+    }
     const updatedCollaborativeData = {
       ...existingCollaborativeData,
       shared_with: newSharedWith,
+      permissions: newPermissions,
     };
 
     // Update the note - store collaborative_data as object (JSONB column handles serialization)
@@ -1337,7 +1361,7 @@ export class NotesService {
     const note = noteData[0];
 
     if (!this.canAccessNote(note, userId)) {
-      throw new BadRequestException('You do not have permission to edit this note');
+      throw new ForbiddenException('You do not have permission to access this note');
     }
 
     return note;
@@ -1659,6 +1683,7 @@ export class NotesService {
       request = await this.db.update('note_access_requests', existing.id, {
         status: 'pending',
         message: dto.message || null,
+        requested_permission: dto.requested_permission || 'read',
         updated_at: now,
         responded_at: null,
       });
@@ -1670,6 +1695,7 @@ export class NotesService {
         workspace_id: workspaceId,
         status: 'pending',
         message: dto.message || null,
+        requested_permission: dto.requested_permission || 'read',
         created_at: now,
         updated_at: now,
       });
@@ -1793,13 +1819,15 @@ export class NotesService {
       responded_at: now,
     });
 
-    // If approved: grant access to the note
+    // If approved: grant access with the permission the requester asked for
     if (dto.action === 'approve') {
-      const { SharePermission } = await import('./dto/share-note.dto');
+      const grantPermission = (accessRequest.requested_permission === 'write')
+        ? SharePermission.WRITE
+        : SharePermission.READ;
       await this.shareNote(
         accessRequest.note_id,
         workspaceId,
-        { user_ids: [accessRequest.requester_id], permission: SharePermission.READ },
+        { user_ids: [accessRequest.requester_id], permission: grantPermission },
         ownerId,
       );
     }
@@ -1915,5 +1943,211 @@ export class NotesService {
       return null;
     }
     return data[0];
+  }
+
+  // ==================== SHARE PERMISSION MANAGEMENT ====================
+
+  async updateSharePermission(
+    noteId: string,
+    workspaceId: string,
+    targetUserId: string,
+    dto: UpdateSharePermissionDto,
+    requesterId: string,
+  ) {
+    const note = await this.getNoteById(noteId);
+    if (!note || note.workspace_id !== workspaceId) {
+      throw new NotFoundException('Note not found');
+    }
+    if (note.created_by !== requesterId) {
+      throw new ForbiddenException('Only the note owner can change permissions');
+    }
+    if (!this.isSharedWithUser(note, targetUserId)) {
+      throw new NotFoundException('User not found in shared list');
+    }
+
+    const data = this.parseCollaborativeData(note.collaborative_data);
+    await this.db.update('notes', noteId, {
+      collaborative_data: {
+        ...data,
+        permissions: { ...(data.permissions || {}), [targetUserId]: dto.permission },
+      },
+      updated_at: new Date().toISOString(),
+    });
+
+    return { success: true, userId: targetUserId, permission: dto.permission };
+  }
+
+  // ==================== PERMISSION CHANGE REQUESTS ====================
+
+  async requestPermissionChange(
+    noteId: string,
+    workspaceId: string,
+    dto: NotePermissionRequestDto,
+    requesterId: string,
+  ) {
+    const noteQuery = await this.db
+      .table('notes')
+      .select('*')
+      .where('id', '=', noteId)
+      .where('workspace_id', '=', workspaceId)
+      .limit(1)
+      .execute();
+
+    const noteData = Array.isArray(noteQuery.data) ? noteQuery.data : [];
+    if (!noteData.length || noteData[0]?.deleted_at) {
+      throw new NotFoundException('Note not found');
+    }
+
+    const note = noteData[0];
+
+    if (!this.isSharedWithUser(note, requesterId)) {
+      throw new ForbiddenException('You do not have access to this note');
+    }
+
+    const currentPerm = this.getUserPermission(note, requesterId);
+    const currentPermValue = currentPerm === 'owner' ? 'write' : currentPerm;
+
+    if (currentPermValue !== 'read') {
+      throw new BadRequestException('Only viewers can request edit permission');
+    }
+
+    let requesterName = 'Someone';
+    try {
+      const requesterUser: any = await this.db.getUserById(requesterId);
+      if (requesterUser) {
+        requesterName =
+          requesterUser.metadata?.name ||
+          requesterUser.name ||
+          requesterUser.email?.split('@')[0] ||
+          'Someone';
+      }
+    } catch { /* non-fatal */ }
+
+    // Xoá notification cũ cùng loại từ cùng requester trên cùng note (nếu user gửi lại)
+    try {
+      await this.db.query(
+        `DELETE FROM notifications WHERE user_id = $1 AND type = $2 AND data->>'note_id' = $3 AND data->>'requester_id' = $4`,
+        [note.created_by, NotificationType.NOTE_PERMISSION_CHANGE_REQUEST, noteId, requesterId],
+      );
+    } catch { /* non-fatal */ }
+
+    try {
+      await this.notificationsService.sendNotification({
+        user_id: note.created_by,
+        type: NotificationType.NOTE_PERMISSION_CHANGE_REQUEST,
+        title: 'Permission Change Request',
+        message: `${requesterName} requested Editor access on "${note.title}"`,
+        action_url: `/workspaces/${workspaceId}/notes/${noteId}`,
+        priority: 'high' as any,
+        send_email: false,
+        data: {
+          entity_type: 'note_permission_change_request',
+          workspace_id: workspaceId,
+          note_id: noteId,
+          note_title: note.title,
+          requester_id: requesterId,
+          requester_name: requesterName,
+          requested_permission: 'write',
+          action: 'permission_change_requested',
+        },
+      });
+    } catch (err) {
+      console.error('[NotesService] Failed to notify owner about permission change request:', err);
+    }
+
+    // Send email to owner with approve/deny links
+    try {
+      const owner: any = await this.db.getUserById(note.created_by);
+      if (owner?.email) {
+        const appUrl = process.env.API_URL || 'http://localhost:3002';
+        const approveUrl = `${appUrl}/api/v1/notes-public/permission-change/${noteId}/respond-email?requesterId=${requesterId}&workspaceId=${workspaceId}&action=approve`;
+        const denyUrl    = `${appUrl}/api/v1/notes-public/permission-change/${noteId}/respond-email?requesterId=${requesterId}&workspaceId=${workspaceId}&action=deny`;
+        await this.emailTemplatesService.sendNotePermissionChangeRequestEmail({
+          to: owner.email,
+          requesterName,
+          noteTitle: note.title,
+          requestedPermission: 'write',
+          approveUrl,
+          denyUrl,
+        });
+      }
+    } catch (emailErr) {
+      console.error('[NotesService] Failed to send permission change email:', emailErr);
+    }
+
+    return { success: true };
+  }
+
+  async respondPermissionChangeRequest(
+    noteId: string,
+    workspaceId: string,
+    requesterId: string,
+    action: 'approve' | 'deny',
+    ownerId: string,
+  ) {
+    const noteQuery = await this.db
+      .table('notes')
+      .select('*')
+      .where('id', '=', noteId)
+      .where('workspace_id', '=', workspaceId)
+      .limit(1)
+      .execute();
+
+    const noteData = Array.isArray(noteQuery.data) ? noteQuery.data : [];
+    if (!noteData.length || noteData[0]?.deleted_at) {
+      throw new NotFoundException('Note not found');
+    }
+    const note = noteData[0];
+
+    if (note.created_by !== ownerId) {
+      throw new ForbiddenException('Only the note owner can respond to permission requests');
+    }
+
+    if (action === 'approve') {
+      await this.updateSharePermission(
+        noteId,
+        workspaceId,
+        requesterId,
+        { permission: 'write' as SharePermission },
+        ownerId,
+      );
+    }
+
+    // Cập nhật trạng thái responded vào notification của owner
+    try {
+      await this.db.query(
+        `UPDATE notifications SET data = data || jsonb_build_object('responded', $1::text) WHERE user_id = $2 AND type = $3 AND data->>'note_id' = $4 AND data->>'requester_id' = $5`,
+        [action === 'approve' ? 'approved' : 'denied', ownerId, NotificationType.NOTE_PERMISSION_CHANGE_REQUEST, noteId, requesterId],
+      );
+    } catch { /* non-fatal */ }
+
+    let noteTitle = note.title || 'a note';
+    try {
+      await this.notificationsService.sendNotification({
+        user_id: requesterId,
+        type: NotificationType.WORKSPACE,
+        title: action === 'approve' ? 'Permission Granted' : 'Permission Request Denied',
+        message: action === 'approve'
+          ? `Your request for Editor access on "${noteTitle}" has been approved`
+          : `Your permission change request on "${noteTitle}" was denied`,
+        action_url: action === 'approve' ? `/workspaces/${workspaceId}/notes/${noteId}` : undefined,
+        priority: 'high' as any,
+        send_email: false,
+        data: {
+          category: 'workspace',
+          entity_type: 'note_permission_change_response',
+          entity_id: noteId,
+          actor_id: ownerId,
+          workspace_id: workspaceId,
+          note_id: noteId,
+          note_title: noteTitle,
+          action: action === 'approve' ? 'permission_change_approved' : 'permission_change_denied',
+        },
+      });
+    } catch (err) {
+      console.error('[NotesService] Failed to notify requester about permission change response:', err);
+    }
+
+    return { success: true, action };
   }
 }
