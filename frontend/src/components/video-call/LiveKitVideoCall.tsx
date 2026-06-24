@@ -1168,53 +1168,6 @@ export const LiveKitVideoCall: React.FC<LiveKitVideoCallProps> = ({
               )}
             </Button>
 
-            {/* Recording Button */}
-            <Button
-              size="lg"
-              onClick={handleToggleRecording}
-              disabled={isTogglingRecording}
-              className={cn(
-                'rounded-full h-12 w-12 p-0 shadow-lg hover:scale-105 transition-transform cursor-pointer',
-                isRecording
-                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
-                  : 'bg-white hover:bg-gray-100 text-red-500',
-                isTogglingRecording && 'opacity-50 cursor-not-allowed'
-              )}
-              title={isRecording ? 'Stop Recording' : 'Start Recording'}
-            >
-              {isRecording ? (
-                <Square className="h-5 w-5" />
-              ) : (
-                <Circle className="h-5 w-5 fill-current" />
-              )}
-            </Button>
-
-            {/* AI Meeting Assistant Button - Opens panel AND starts transcription */}
-            <Button
-              size="lg"
-              onClick={async () => {
-                const newShowAIPanel = !showAIPanel;
-                setShowAIPanel(newShowAIPanel);
-                // Auto-enable captions when opening AI panel
-                if (newShowAIPanel && !isCaptionsEnabled) {
-                  await handleToggleCaptions();
-                }
-              }}
-              className={cn(
-                'rounded-full h-12 w-12 p-0 shadow-lg hover:scale-105 transition-transform cursor-pointer',
-                showAIPanel
-                  ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                  : 'bg-white hover:bg-gray-100 text-purple-600',
-                isTranscribing && !showAIPanel && 'ring-2 ring-green-400'
-              )}
-              title={showAIPanel ? 'Close AI Assistant' : 'AI Meeting Assistant'}
-            >
-              {showAIPanel ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Sparkles className="h-5 w-5" />
-              )}
-            </Button>
           </div>
         </div>
 

@@ -3683,7 +3683,7 @@
     "videoCallsApp": {
       "page": {
         "title": "Video Calls",
-        "subtitle": "Start AI-powered video calls with your team",
+        "subtitle": "Start video calls with your team",
         "newMeeting": "New Meeting",
         "scheduleMeeting": "Schedule Meeting"
       },
@@ -3807,7 +3807,24 @@
           "title": "Meeting Summary",
           "dateTime": "Date & Time:",
           "duration": "Duration:",
-          "location": "Location:"
+          "location": "Location:",
+          "attendees": "Attendees:",
+          "minutes": "minutes",
+          "selected": "selected",
+          "at": "at",
+          "recurrence": "Recurrence:",
+          "every": "every",
+          "day": "day",
+          "days": "days",
+          "week": "week",
+          "weeks": "weeks",
+          "month": "month",
+          "months": "months",
+          "frequencies": {
+            "daily": "Daily",
+            "weekly": "Weekly",
+            "monthly": "Monthly"
+          }
         },
         "actions": {
           "startingCall": "Starting Call...",
@@ -5203,7 +5220,7 @@
       },
       "page": {
         "title": "Video Calls",
-        "subtitle": "Start AI-powered video calls with your team",
+        "subtitle": "Start video calls with your team",
         "newMeeting": "New Meeting",
         "scheduleMeeting": "Schedule Meeting",
         "loading": "Loading..."

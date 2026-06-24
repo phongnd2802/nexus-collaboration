@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Video,
@@ -18,10 +17,7 @@ import {
   Calendar,
   Loader2,
   CalendarPlus,
-  Settings,
-  MapPin,
   X,
-  Mic,
   Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -39,14 +35,6 @@ interface ScheduleMeetingModalProps {
   onOpenChange: (open: boolean) => void
   defaultDate?: Date
   defaultHour?: number
-}
-
-interface MeetingPlatform {
-  id: string
-  name: string
-  icon: React.ReactNode
-  color: string
-  description: string
 }
 
 interface RecurrencePattern {
@@ -67,7 +55,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
   const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
 
   // Basic meeting details
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('nexus-video')
   const [meetingTitle, setMeetingTitle] = useState('')
   const [meetingDescription, setMeetingDescription] = useState('')
   const [isCreating, setIsCreating] = useState(false)
@@ -81,11 +68,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
       : format(new Date(), 'HH:mm')
   )
   const [meetingDuration, setMeetingDuration] = useState('60')
-  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
-
-  // Location and logistics
-  const [locationType, setLocationType] = useState<'virtual' | 'physical' | 'hybrid'>('virtual')
-  const [physicalLocation, setPhysicalLocation] = useState('')
 
   // Recurrence
   const [recurrence, setRecurrence] = useState<RecurrencePattern>({
@@ -105,25 +87,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
   const [descriptionSuggestions, setDescriptionSuggestions] = useState<string[]>([])
   const [showDescriptionSuggestions, setShowDescriptionSuggestions] = useState(false)
   const descriptionMutation = useGenerateDescriptionSuggestions()
-
-  const platforms: MeetingPlatform[] = [
-    {
-      id: 'nexus-video',
-      name: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.video' }),
-      icon: <Video className="h-5 w-5" />,
-      color: 'gradient-primary',
-      description: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.videoDescription' })
-    },
-    {
-      id: 'nexus-webinar',
-      name: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.webinar' }),
-      icon: <Users className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      description: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.webinarDescription' })
-    }
-  ]
-
-  const selectedPlatformData = platforms.find(p => p.id === selectedPlatform)
 
   useEffect(() => {
     if (defaultDate) {
@@ -155,8 +118,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
     setIsCreating(true)
 
     try {
-      // Determine call type from selected platform
-      const callType = selectedPlatform.includes('audio') ? 'audio' : 'video'
+      const callType = 'video'
       const isGroupCall = selectedAttendees.length > 1
 
       if (startImmediately) {
@@ -176,8 +138,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
             // No scheduled_start_time = instant call
             metadata: {
               started_from: 'schedule_meeting_modal',
-              location_type: locationType,
-              physical_location: physicalLocation,
             }
           }
         })
@@ -221,8 +181,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
             recording_enabled: false,
             participant_ids: selectedAttendees,
             metadata: {
-              location_type: locationType,
-              physical_location: physicalLocation,
               recurrence,
               send_email_invites: sendEmailInvites,
               send_messenger_invites: sendMessengerInvites,
@@ -252,8 +210,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
     setMeetingDuration('60')
     setMeetingTime(format(new Date(), 'HH:mm'))
     setMeetingDate(new Date())
-    setLocationType('virtual')
-    setPhysicalLocation('')
     setRecurrence({ frequency: 'none', interval: 1 })
     setSendEmailInvites(true)
     setSendMessengerInvites(true)
@@ -284,26 +240,9 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
     try {
       const title = meetingTitle.trim()
       const duration = meetingDuration
-      const platform = selectedPlatformData?.name || 'Video Call'
 
       // Build context based on meeting details
-      const contextParts: string[] = []
-      if (selectedPlatform === 'nexus-video') {
-        contextParts.push('Video conference meeting')
-      } else if (selectedPlatform === 'nexus-audio') {
-        contextParts.push('Audio-only conference call')
-      } else if (selectedPlatform === 'nexus-webinar') {
-        contextParts.push('Webinar presentation')
-      }
-
-      if (locationType === 'virtual') {
-        contextParts.push('virtual meeting')
-      } else if (locationType === 'physical') {
-        contextParts.push('in-person meeting')
-      } else if (locationType === 'hybrid') {
-        contextParts.push('hybrid meeting')
-      }
-
+      const contextParts: string[] = ['Video conference meeting']
       contextParts.push(`Duration: ${duration} minutes`)
 
       // Call the unified description suggestions endpoint
@@ -322,7 +261,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
       // Fallback if no suggestions returned
       if (suggestions.length === 0) {
         const fallbackDescriptions = [
-          `Join us for ${title}. This ${duration}-minute ${platform.toLowerCase()} will cover key topics and provide an opportunity for discussion and collaboration.`,
+          `Join us for ${title}. This ${duration}-minute video meeting will cover key topics and provide an opportunity for discussion and collaboration.`,
           `${title} - A ${duration}-minute session to discuss important matters and align on next steps. All participants are encouraged to come prepared with questions.`,
           `This meeting focuses on ${title.toLowerCase()}. We will review progress, address any concerns, and plan the way forward. Duration: ${duration} minutes.`
         ]
@@ -358,38 +297,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
         </DialogHeader>
 
         <div className="space-y-6 mt-6">
-              {/* Meeting Platform Selection */}
-              <div className="space-y-3">
-                <Label>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.meetingPlatform' })}</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {platforms.map((platform) => (
-                    <Card
-                      key={platform.id}
-                      className={cn(
-                        "cursor-pointer transition-all hover:shadow-md",
-                        selectedPlatform === platform.id && "ring-2 ring-primary",
-                        locationType === 'physical' && "opacity-50"
-                      )}
-                      onClick={() => !locationType.includes('physical') && setSelectedPlatform(platform.id)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className={cn("p-2 rounded-lg text-white", platform.color)}>
-                            {platform.icon}
-                          </div>
-                          <div>
-                            <div className="font-medium">{platform.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {platform.description}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
               {/* Meeting Details */}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -497,55 +404,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="timezone">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.timezone' })}</Label>
-                      <Input
-                        id="timezone"
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        placeholder="Timezone"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Location Type */}
-                <div className="space-y-3">
-                  <Label>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.meetingLocation' })}</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { key: 'virtual', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.virtual' }), icon: Video, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.virtualDescription' }) },
-                      { key: 'physical', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.inPerson' }), icon: MapPin, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.inPersonDescription' }) },
-                      { key: 'hybrid', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.hybrid' }), icon: Users, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.hybridDescription' }) }
-                    ].map(({ key, label, icon: Icon, desc }) => (
-                      <Card
-                        key={key}
-                        className={cn(
-                          "cursor-pointer transition-all hover:shadow-md",
-                          locationType === key && "ring-2 ring-primary"
-                        )}
-                        onClick={() => setLocationType(key as typeof locationType)}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Icon className="h-6 w-6 mx-auto mb-2" />
-                          <div className="font-medium">{label}</div>
-                          <div className="text-xs text-muted-foreground">{desc}</div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Physical Location Input */}
-                {locationType !== 'virtual' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="physical-location">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.physicalLocation' })}</Label>
-                    <Input
-                      id="physical-location"
-                      value={physicalLocation}
-                      onChange={(e) => setPhysicalLocation(e.target.value)}
-                      placeholder={intl.formatMessage({ id: 'modules.videoCallsApp.modal.physicalLocationPlaceholder' })}
-                    />
                   </div>
                 )}
 
@@ -674,33 +532,30 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
               <div className="flex justify-between">
                 <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.dateTime' })}</span>
                 <span className="font-medium">
-                  {format(meetingDate, 'PPP')} at {meetingTime}
+                  {new Intl.DateTimeFormat(intl.locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(meetingDate)} {intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.at' })} {meetingTime}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.duration' })}</span>
-                <span className="font-medium">{meetingDuration} minutes</span>
+                <span className="font-medium">{meetingDuration} {intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.minutes' })}</span>
               </div>
               <div className="flex justify-between">
                 <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.location' })}</span>
-                <span className="font-medium">
-                  {locationType === 'virtual' ? selectedPlatformData?.name :
-                   locationType === 'physical' ? physicalLocation || 'Physical location' :
-                   `${selectedPlatformData?.name} + ${physicalLocation || 'Physical location'}`}
-                </span>
+                <span className="font-medium">Trực tuyến</span>
               </div>
               {recurrence.frequency !== 'none' && (
                 <div className="flex justify-between">
-                  <span>Recurrence:</span>
-                  <span className="font-medium capitalize">
-                    {recurrence.frequency} (every {recurrence.interval} {recurrence.frequency === 'daily' ? 'day' : recurrence.frequency === 'weekly' ? 'week' : 'month'}{recurrence.interval > 1 ? 's' : ''})
+                  <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.recurrence' })}</span>
+                  <span className="font-medium">
+                    {intl.formatMessage({ id: `modules.videoCallsApp.modal.summary.frequencies.${recurrence.frequency}` })}
+                    {' '}({intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.every' })} {recurrence.interval} {intl.formatMessage({ id: `modules.videoCallsApp.modal.summary.${recurrence.interval > 1 ? (recurrence.frequency === 'daily' ? 'days' : recurrence.frequency === 'weekly' ? 'weeks' : 'months') : (recurrence.frequency === 'daily' ? 'day' : recurrence.frequency === 'weekly' ? 'week' : 'month')}` })})
                   </span>
                 </div>
               )}
               {selectedAttendees.length > 0 && (
                 <div className="flex justify-between">
-                  <span>Attendees:</span>
-                  <span className="font-medium">{selectedAttendees.length} selected</span>
+                  <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.attendees' })}</span>
+                  <span className="font-medium">{selectedAttendees.length} {intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.selected' })}</span>
                 </div>
               )}
             </div>

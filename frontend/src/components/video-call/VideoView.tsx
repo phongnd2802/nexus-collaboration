@@ -567,15 +567,7 @@ export function VideoView() {
                       )}
 
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-950"
-                          onClick={() => setSelectedCallForSummary(call)}
-                        >
-                          <Brain className="h-4 w-4 mr-2" />
-                          {intl.formatMessage({ id: 'modules.videoCallsApp.history.viewSummary', defaultMessage: 'View Summary' })}
-                        </Button>
+
                         <Button
                           size="sm"
                           variant="outline"

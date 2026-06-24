@@ -26,7 +26,6 @@ import {
   Settings,
   BarChart3,
   Captions,
-  FileText
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -43,15 +42,9 @@ import { cn } from '@/lib/utils'
 import useVideoCallStore from '@/stores/videoCallStore'
 import type { CallParticipant } from '@/lib/api/video-call-api'
 import { VideoCallChat } from './VideoCallChat'
-import { AIMeetingPanel } from './AIMeetingPanel'
 import { InvitePeopleModal } from './InvitePeopleModal'
-import { RecordingManagerModal } from './RecordingManagerModal'
 import { VideoRightSidebar } from './VideoRightSidebar'
-import { RecordingManager } from './RecordingManager'
 import { EmojiPicker } from './EmojiPicker'
-import { LiveAIOverlay } from './LiveAIOverlay'
-import { CaptionOverlay, TranscriptPanel } from './CaptionOverlay'
-import { useTranscription } from '@/hooks/useTranscription'
 
 interface VideoCallInterfaceProps {
   className?: string
@@ -63,8 +56,6 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
   const [mediaPermissionDenied, setMediaPermissionDenied] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [showAnalyticsSidebar, setShowAnalyticsSidebar] = useState(false)
-  const [showRecordingManager, setShowRecordingManager] = useState(false)
-  const [showLiveAI, setShowLiveAI] = useState(false)
 
   // Video call store
   const {
@@ -79,12 +70,7 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
     isVideoMuted,
     isScreenSharing,
     isHandRaised,
-    isRecording,
-    recordingDuration: _recordingDuration,
     showChat,
-    showAIPanel,
-    isCaptionsEnabled,
-    showTranscriptPanel,
     gridLayout,
     isFullscreen,
 
@@ -93,38 +79,11 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
     startScreenShare,
     stopScreenShare,
     toggleHandRaise,
-    startRecording,
-    stopRecording,
     toggleChat,
-    toggleAIPanel,
-    toggleCaptions,
-    toggleTranscriptPanel,
     setGridLayout,
     toggleFullscreen,
     leaveCall
   } = useVideoCallStore()
-
-  // Transcription hook
-  const {
-    isTranscribing,
-    transcripts,
-    currentCaption,
-    currentSpeaker,
-    startTranscription,
-    stopTranscription,
-  } = useTranscription({
-    callId,
-    enabled: isCaptionsEnabled,
-  })
-
-  // Start/stop transcription when captions are toggled
-  useEffect(() => {
-    if (isCaptionsEnabled && callId && !isTranscribing) {
-      startTranscription()
-    } else if (!isCaptionsEnabled && isTranscribing) {
-      stopTranscription()
-    }
-  }, [isCaptionsEnabled, callId, isTranscribing, startTranscription, stopTranscription])
 
   // Format duration helper
   const formatDuration = useCallback((ms: number) => {
@@ -617,41 +576,12 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
           </div>
         )}
 
-        {/* AI Meeting Panel */}
-        {showAIPanel && callId && (
-          <div className="w-96 flex-shrink-0 h-full border-l border-gray-700">
-            <AIMeetingPanel
-              callId={callId}
-              participants={participants}
-              onClose={toggleAIPanel}
-            />
-          </div>
-        )}
-
         {/* Analytics Sidebar */}
         {showAnalyticsSidebar && (
           <div className="w-80 flex-shrink-0 h-full border-l border-gray-700">
             <VideoRightSidebar />
           </div>
         )}
-
-        {/* Transcript Panel */}
-        {showTranscriptPanel && (
-          <div className="w-80 flex-shrink-0 h-full border-l border-gray-700 max-w-[320px] overflow-hidden">
-            <TranscriptPanel
-              transcripts={transcripts}
-              isOpen={showTranscriptPanel}
-              onClose={toggleTranscriptPanel}
-            />
-          </div>
-        )}
-
-        {/* Caption Overlay */}
-        <CaptionOverlay
-          caption={currentCaption}
-          speakerName={currentSpeaker}
-          isEnabled={isCaptionsEnabled}
-        />
 
         {/* Floating Reactions */}
         <div className="absolute top-4 right-4 pointer-events-none">
@@ -867,23 +797,6 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="mb-2 w-48">
-              <DropdownMenuItem onClick={() => setShowRecordingManager(true)}>
-                <Circle className="mr-2 h-4 w-4" />
-                Recording Manager
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => setShowLiveAI(!showLiveAI)}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                {showLiveAI ? 'Hide' : 'Show'} Live AI
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={toggleTranscriptPanel}>
-                <FileText className="mr-2 h-4 w-4" />
-                {showTranscriptPanel ? 'Hide' : 'Show'} Transcript
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
               <DropdownMenuItem onClick={() => setGridLayout('gallery')}>
                 Gallery View
               </DropdownMenuItem>
@@ -910,22 +823,6 @@ export function VideoCallInterface({ className }: VideoCallInterfaceProps) {
         onClose={() => setShowInviteModal(false)}
       />
 
-      {/* Recording Manager Modal - Using the new RecordingManager */}
-      <RecordingManager
-        isOpen={showRecordingManager}
-        onClose={() => setShowRecordingManager(false)}
-        onStartRecording={startRecording}
-        onStopRecording={stopRecording}
-        isRecording={isRecording}
-        recordingDuration={_recordingDuration}
-      />
-
-      {/* Live AI Overlay */}
-      <LiveAIOverlay
-        sessionId="current-call"
-        isVisible={showLiveAI}
-        onToggle={() => setShowLiveAI(false)}
-      />
     </div>
   )
 }

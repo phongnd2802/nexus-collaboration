@@ -16,12 +16,8 @@ import {
   MessageSquare,
   Users,
   MoreVertical,
-  Circle,
-  StopCircle,
   Settings,
-  Sparkles,
   Captions,
-  FileText
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -49,11 +45,8 @@ export function VideoControls({
     isVideoMuted,
     isScreenSharing,
     isHandRaised,
-    isRecording,
     showChat,
-    showAIPanel,
     isCaptionsEnabled,
-    showTranscriptPanel,
     unreadChatCount,
 
     toggleAudio,
@@ -61,12 +54,8 @@ export function VideoControls({
     startScreenShare,
     stopScreenShare,
     toggleHandRaise,
-    startRecording,
-    stopRecording,
     toggleChat,
-    toggleAIPanel,
     toggleCaptions,
-    toggleTranscriptPanel,
     setGridLayout,
     leaveCall
   } = useVideoCallStore()
@@ -80,18 +69,6 @@ export function VideoControls({
       }
     } catch (error) {
       console.error('Screen sharing failed:', error)
-    }
-  }
-
-  const handleToggleRecording = () => {
-    try {
-      if (isRecording) {
-        stopRecording()
-      } else {
-        startRecording()
-      }
-    } catch (error) {
-      console.error('Recording failed:', error)
     }
   }
 
@@ -226,20 +203,6 @@ export function VideoControls({
         <Users className="h-6 w-6" />
       </Button>
 
-      {/* AI Features Toggle */}
-      <Button
-        variant={showAIPanel ? "default" : "secondary"}
-        size="lg"
-        onClick={toggleAIPanel}
-        className={cn(
-          "rounded-full h-14 w-14 shadow-lg hover:scale-105 transition-transform",
-          showAIPanel && "gradient-primary-active"
-        )}
-        title={showAIPanel ? "Hide AI features" : "Show AI features"}
-      >
-        <Sparkles className="h-6 w-6" />
-      </Button>
-
       {/* End Call */}
       <Button
         variant="destructive"
@@ -264,22 +227,6 @@ export function VideoControls({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="mb-2 w-48">
-          <DropdownMenuItem onClick={handleToggleRecording}>
-            {isRecording ? (
-              <>
-                <StopCircle className="mr-2 h-4 w-4" />
-                Stop Recording
-              </>
-            ) : (
-              <>
-                <Circle className="mr-2 h-4 w-4" />
-                Start Recording
-              </>
-            )}
-          </DropdownMenuItem>
-          
-          <DropdownMenuSeparator />
-          
           <DropdownMenuItem onClick={() => setGridLayout('gallery')}>
             Gallery View
           </DropdownMenuItem>
@@ -289,22 +236,11 @@ export function VideoControls({
           <DropdownMenuItem onClick={() => setGridLayout('sidebar')}>
             Sidebar View
           </DropdownMenuItem>
-          
+
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <Settings className="mr-2 h-4 w-4" />
             Settings
-          </DropdownMenuItem>
-          
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={toggleAIPanel}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            {showAIPanel ? "Hide AI Panel" : "Show AI Panel"}
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={toggleTranscriptPanel}>
-            <FileText className="mr-2 h-4 w-4" />
-            {showTranscriptPanel ? "Hide Transcript" : "Show Transcript"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

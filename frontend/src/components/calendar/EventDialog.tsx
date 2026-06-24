@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { format, addMinutes } from 'date-fns'
+import { format, addMinutes, addDays } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -304,7 +304,12 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
         isPrivate: event.isPrivate ?? false,
       })
 
-      setReminders(event.reminders || [])
+      setReminders((event.reminders || []).map((r: any) => ({
+        id: r.id || `reminder-${Date.now()}-${Math.random()}`,
+        type: (r.notification_type || r.type || 'email') as NotificationType,
+        minutes: r.minutes ?? r.reminder_time ?? 15,
+        isActive: r.isActive ?? true,
+      })))
       setRecurrence(event.recurrence || undefined)
       // Handle attendees - check for both email and user_id fields
       setAttendees(event.attendees?.map(a => {
@@ -362,26 +367,9 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       }
 
       // Load description attachments from enriched attachments data
+      // Files are already tracked in attachedFiles state, so only load notes and events here
+      // to avoid duplicating file IDs when saving (attachedFiles + descriptionAttachments.files)
       const loadedDescriptionAttachments: Array<{ id: string; title: string; type: 'notes' | 'events' | 'files' }> = [];
-
-      // Add file attachments
-      if (eventAttachments.file_attachment && Array.isArray(eventAttachments.file_attachment)) {
-        eventAttachments.file_attachment.forEach((item: any) => {
-          if (typeof item === 'object' && item.id) {
-            loadedDescriptionAttachments.push({
-              id: item.id,
-              title: item.name || 'Unknown file',
-              type: 'files'
-            });
-          } else if (typeof item === 'string') {
-            loadedDescriptionAttachments.push({
-              id: item,
-              title: `File ${item.slice(0, 8)}`,
-              type: 'files'
-            });
-          }
-        });
-      }
 
       // Add note attachments
       if (eventAttachments.note_attachment && Array.isArray(eventAttachments.note_attachment)) {
@@ -473,18 +461,19 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       const descriptionEventIds = descriptionAttachments.filter(att => att.type === 'events').map(att => att.id);
 
       // Build unified attachments object - combine manual attachments with description mentions
+      // Deduplicate to prevent doubling on each update
       const unifiedAttachments = {
-        file_attachment: [
-          ...attachedFiles.map(file => file.url || file.id).filter(Boolean) as string[],
+        file_attachment: [...new Set([
+          ...attachedFiles.map(file => file.id).filter(Boolean) as string[],
           ...descriptionFileIds
-        ],
-        note_attachment: [
+        ])],
+        note_attachment: [...new Set([
           ...attachedNotes.map(note => note.id),
           ...descriptionNoteIds
-        ],
-        event_attachment: [
+        ])],
+        event_attachment: [...new Set([
           ...descriptionEventIds
-        ],
+        ])],
       };
 
       if (isEdit && event) {
@@ -1311,8 +1300,6 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                         const startDate = form.watch('startDate')
                         const endDate = form.watch('endDate')
                         const startTime = form.watch('startTime')
-                        // Only set min time constraint when start and end dates are the same
-                        const minTime = startDate === endDate ? startTime : undefined
 
                         return (
                           <FormItem>
@@ -1321,16 +1308,13 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
                               <Input
                                 type="time"
                                 {...field}
-                                min={minTime}
                                 onChange={(e) => {
                                   const newEndTime = e.target.value
-                                  // If same date and end time is before start time, don't allow it
+                                  field.onChange(e)
+                                  // If same date and end time is before start time, advance end date by 1 day
                                   if (startDate === endDate && newEndTime < startTime) {
-                                    // Set end time to start time instead
-                                    field.onChange({ ...e, target: { ...e.target, value: startTime } })
-                                    form.setValue('endTime', startTime)
-                                  } else {
-                                    field.onChange(e)
+                                    const nextDay = format(addDays(new Date(startDate), 1), 'yyyy-MM-dd')
+                                    form.setValue('endDate', nextDay)
                                   }
                                 }}
                               />

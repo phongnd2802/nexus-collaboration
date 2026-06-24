@@ -2170,7 +2170,7 @@
         "roomCreatedSuccess": "Đã tạo phòng họp thành công",
         "roomCreatedError": "Không thể tạo phòng họp",
         "eventScheduledSuccess": "Đã lên lịch sự kiện thành công!",
-        "createMeetingRoom": "Lên lịch họp",
+        "createMeetingRoom": "Tạo phòng họp",
         "createMeetingRoomDesc": "Cấu hình chi tiết phòng họp và tiện ích có sẵn",
         "roomNameLabel": "Tên phòng *",
         "roomNamePlaceholder": "vd: Phòng họp A",
@@ -3678,7 +3678,7 @@
     "videoCallsApp": {
       "page": {
         "title": "Cuộc gọi video",
-        "subtitle": "Bắt đầu cuộc gọi video hỗ trợ AI với nhóm của bạn",
+        "subtitle": "Bắt đầu cuộc gọi video với nhóm của bạn",
         "newMeeting": "Cuộc họp mới",
         "scheduleMeeting": "Lên lịch họp"
       },
@@ -3865,7 +3865,24 @@
           "title": "Tóm tắt cuộc họp",
           "dateTime": "Ngày & Giờ:",
           "duration": "Thời lượng:",
-          "location": "Địa điểm:"
+          "location": "Địa điểm:",
+          "attendees": "Người tham dự:",
+          "minutes": "phút",
+          "selected": "đã chọn",
+          "at": "lúc",
+          "recurrence": "Lặp lại:",
+          "every": "mỗi",
+          "day": "ngày",
+          "days": "ngày",
+          "week": "tuần",
+          "weeks": "tuần",
+          "month": "tháng",
+          "months": "tháng",
+          "frequencies": {
+            "daily": "Hàng ngày",
+            "weekly": "Hàng tuần",
+            "monthly": "Hàng tháng"
+          }
         },
         "actions": {
           "startingCall": "Đang bắt đầu cuộc gọi...",
@@ -5261,7 +5278,7 @@
       },
       "page": {
         "title": "Cuộc gọi video",
-        "subtitle": "Bắt đầu cuộc gọi video hỗ trợ AI với nhóm của bạn",
+        "subtitle": "Bắt đầu cuộc gọi video với nhóm của bạn",
         "newMeeting": "Cuộc họp mới",
         "scheduleMeeting": "Lên lịch họp",
         "loading": "Đang tải..."
