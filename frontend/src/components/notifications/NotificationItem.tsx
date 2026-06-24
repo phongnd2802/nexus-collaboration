@@ -5,6 +5,7 @@ import { enUS, vi as viLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { type Notification } from '@/lib/api/notifications-api';
 import { NoteAccessRequestNotification } from '../notes/NoteAccessRequestNotification';
+import { NotePermissionChangeNotification } from '../notes/NotePermissionChangeNotification';
 import {
   FolderIcon,
   CalendarIcon,
@@ -59,6 +60,10 @@ export const getLocalizedNotificationTitle = (notification: Notification, intl: 
     return intl.formatMessage({ id: 'modules.notes.accessRequest.notifTitle' });
   }
 
+  if (notification.type === 'note_permission_change_request') {
+    return intl.formatMessage({ id: 'modules.notes.permissionChangeRequest.notifTitle' });
+  }
+
   if (notification.type === 'note_access_response') {
     const isApproved = notification.data?.action === 'note_access_approved';
     return isApproved
@@ -111,6 +116,16 @@ export const getLocalizedNotificationMessage = (
     return intl.formatMessage(
       { id: 'modules.notes.accessRequest.notifMessage' },
       { requester, title }
+    );
+  }
+
+  if (notification.type === 'note_permission_change_request') {
+    const requester = notification.data?.requester_name || 'Someone';
+    const title = notification.data?.note_title || 'a note';
+    const perm = notification.data?.requested_permission === 'write' ? 'Editor' : 'Viewer';
+    return intl.formatMessage(
+      { id: 'modules.notes.permissionChangeRequest.notifMessage' },
+      { requester, title, permission: perm }
     );
   }
 
@@ -235,6 +250,19 @@ export function NotificationItem({ notification, onClick, onResponded }: Notific
               workspaceId={notification.data?.workspace_id}
               requesterName={notification.data?.requester_name || 'Someone'}
               noteTitle={notification.data?.note_title || 'a note'}
+              onResponded={onResponded}
+            />
+          </div>
+        )}
+        {notification.type === 'note_permission_change_request' && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <NotePermissionChangeNotification
+              noteId={notification.data?.note_id}
+              workspaceId={notification.data?.workspace_id}
+              requesterId={notification.data?.requester_id}
+              requesterName={notification.data?.requester_name || 'Someone'}
+              noteTitle={notification.data?.note_title || 'a note'}
+              initialResponse={notification.data?.responded}
               onResponded={onResponded}
             />
           </div>

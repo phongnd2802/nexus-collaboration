@@ -8,6 +8,7 @@ import { useNotesStore } from '../../stores/notesStore'
 import type { Note } from '../../types/notes'
 import { cn } from '../../lib/utils'
 import { useWorkspace } from '../../contexts/WorkspaceContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { notesApi, notesKeys } from '../../lib/api/notes-api'
 import { useToast } from '../ui/use-toast'
 import { useQueryClient } from '@tanstack/react-query'
@@ -63,6 +64,7 @@ interface NotesTreeProps {
   filterFavorites?: boolean
   filterArchived?: boolean
   filterDeleted?: boolean
+  currentUserId?: string
 }
 
 function NotesTree({
@@ -84,7 +86,8 @@ function NotesTree({
   showAllNotes = false,
   filterFavorites,
   filterArchived,
-  filterDeleted
+  filterDeleted,
+  currentUserId
 }: NotesTreeProps) {
     const intl = useIntl()
   const { selectNote } = useNotesStore()
@@ -262,94 +265,101 @@ function NotesTree({
               )}
 
               {/* Actions Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation()
-                    handleAction('favorite', note.id)
-                  }}>
-                    <Star className="h-4 w-4 mr-2" />
-                    {note.isFavorite ? intl.formatMessage({ id: 'modules.notes.leftSidebar.removeFavorites' }) : intl.formatMessage({ id: 'modules.notes.leftSidebar.addFavorites' })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation()
-                    onCreateNote?.(note.id)
-                  }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {intl.formatMessage({ id: 'modules.notes.leftSidebar.addSubNote' })}
-                  </DropdownMenuItem>
-                  {/* <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation()
-                    handleAction('duplicate', note.id)
-                  }}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Duplicate
-                  </DropdownMenuItem> */}
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation()
-                    handleAction('share', note.id)
-                  }}>
-                    <Share className="h-4 w-4 mr-2" />
-                    {intl.formatMessage({ id: 'modules.notes.leftSidebar.share' })}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {note.isDeleted ? (
-                    <>
+              {(() => {
+                const noteOwnerId = (note as any).author_id || (note as any).created_by
+                const isOwner = !currentUserId || !noteOwnerId || currentUserId === noteOwnerId
+                return (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={(e) => {
                         e.stopPropagation()
-                        handleAction('restore', note.id)
+                        handleAction('favorite', note.id)
                       }}>
-                        <Undo2 className="h-4 w-4 mr-2" />
-                        {intl.formatMessage({ id: 'modules.notes.leftSidebar.restore' })}
+                        <Star className="h-4 w-4 mr-2" />
+                        {note.isFavorite ? intl.formatMessage({ id: 'modules.notes.leftSidebar.removeFavorites' }) : intl.formatMessage({ id: 'modules.notes.leftSidebar.addFavorites' })}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation()
-                        handleAction('permanent-delete', note.id)
-                      }} className="text-red-600">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {intl.formatMessage({ id: 'modules.notes.leftSidebar.deletePermanently' })}
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <>
-                      {note.isArchived ? (
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          handleAction('unarchive', note.id)
-                        }}>
-                          <Archive className="h-4 w-4 mr-2" />
-                          {intl.formatMessage({ id: 'modules.notes.leftSidebar.unarchive' })}
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation()
-                          handleAction('archive', note.id)
-                        }}>
-                          <Archive className="h-4 w-4 mr-2" />
-                          {intl.formatMessage({ id: 'modules.notes.leftSidebar.archive' })}
-                        </DropdownMenuItem>
+                      {isOwner && (
+                        <>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation()
+                            onCreateNote?.(note.id)
+                          }}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            {intl.formatMessage({ id: 'modules.notes.leftSidebar.addSubNote' })}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation()
+                            handleAction('share', note.id)
+                          }}>
+                            <Share className="h-4 w-4 mr-2" />
+                            {intl.formatMessage({ id: 'modules.notes.leftSidebar.share' })}
+                          </DropdownMenuItem>
+                        </>
                       )}
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation()
-                        handleAction('delete', note.id)
-                      }} className="text-red-600">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {intl.formatMessage({ id: 'modules.notes.leftSidebar.delete' })}
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <DropdownMenuSeparator />
+                      {note.isDeleted ? (
+                        isOwner && (
+                          <>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation()
+                              handleAction('restore', note.id)
+                            }}>
+                              <Undo2 className="h-4 w-4 mr-2" />
+                              {intl.formatMessage({ id: 'modules.notes.leftSidebar.restore' })}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation()
+                              handleAction('permanent-delete', note.id)
+                            }} className="text-red-600">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {intl.formatMessage({ id: 'modules.notes.leftSidebar.deletePermanently' })}
+                            </DropdownMenuItem>
+                          </>
+                        )
+                      ) : (
+                        <>
+                          {note.isArchived ? (
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation()
+                              handleAction('unarchive', note.id)
+                            }}>
+                              <Archive className="h-4 w-4 mr-2" />
+                              {intl.formatMessage({ id: 'modules.notes.leftSidebar.unarchive' })}
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation()
+                              handleAction('archive', note.id)
+                            }}>
+                              <Archive className="h-4 w-4 mr-2" />
+                              {intl.formatMessage({ id: 'modules.notes.leftSidebar.archive' })}
+                            </DropdownMenuItem>
+                          )}
+                          {isOwner && (
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation()
+                              handleAction('delete', note.id)
+                            }} className="text-red-600">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {intl.formatMessage({ id: 'modules.notes.leftSidebar.delete' })}
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )
+              })()}
             </div>
 
             {/* Render children if expanded */}
@@ -374,6 +384,7 @@ function NotesTree({
                 filterFavorites={filterFavorites}
                 filterArchived={filterArchived}
                 filterDeleted={filterDeleted}
+                currentUserId={currentUserId}
               />
             )}
           </div>
@@ -388,6 +399,7 @@ export function NotesLeftSidebar({
   onImport
 }: NotesLeftSidebarProps) {
     const intl = useIntl()
+  const { user } = useAuth()
   const { currentWorkspace } = useWorkspace()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -1121,6 +1133,7 @@ export function NotesLeftSidebar({
                 onUnarchiveNote={handleUnarchiveNote}
                 selectedNotes={selectedNotes}
                 onNoteSelectionChange={toggleNoteSelection}
+                currentUserId={user?.id}
               />
             )}
           </div>
@@ -1169,6 +1182,7 @@ export function NotesLeftSidebar({
                       filterFavorites={true}
                       filterArchived={false}
                       filterDeleted={false}
+                      currentUserId={user?.id}
                     />
                   </div>
                 )}
@@ -1249,6 +1263,7 @@ export function NotesLeftSidebar({
                     onNoteSelectionChange={toggleNoteSelection}
                     filterArchived={false}
                     filterDeleted={false}
+                    currentUserId={user?.id}
                   />
                 </div>
               )}
@@ -1296,6 +1311,7 @@ export function NotesLeftSidebar({
                       selectedNotes={selectedNotes}
                       onNoteSelectionChange={toggleNoteSelection}
                       filterDeleted={false}
+                      currentUserId={user?.id}
                     />
                   </div>
                 )}
@@ -1345,6 +1361,7 @@ export function NotesLeftSidebar({
                       onNoteSelectionChange={toggleNoteSelection}
                       filterArchived={true}
                       filterDeleted={false}
+                      currentUserId={user?.id}
                     />
                   </div>
                 )}
@@ -1392,6 +1409,7 @@ export function NotesLeftSidebar({
                       selectedNotes={selectedNotes}
                       onNoteSelectionChange={toggleNoteSelection}
                       filterDeleted={true}
+                      currentUserId={user?.id}
                     />
                   </div>
                 )}

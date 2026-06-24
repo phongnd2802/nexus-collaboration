@@ -821,12 +821,14 @@ export function NotesRightSidebar() {
                 }
 
                 return collaborators.map((collaborator: any) => {
+                  const isEditor = collaborator.permission === 'write';
+
                   return (
                     <div
                       key={collaborator.id}
                       className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-lg"
                     >
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="w-8 h-8 shrink-0">
                         <AvatarImage src={collaborator.avatarUrl || undefined} />
                         <AvatarFallback>
                           {(collaborator.name || collaborator.email || 'U')
@@ -834,19 +836,24 @@ export function NotesRightSidebar() {
                             .toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {collaborator.id === currentUserId
-                            ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' })
-                            : collaborator.name || collaborator.email || 'Unknown User'}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium truncate">
+                            {collaborator.id === currentUserId
+                              ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' })
+                              : collaborator.name || collaborator.email || 'Unknown User'}
+                          </span>
+                          <Badge
+                            variant={isEditor ? 'default' : 'secondary'}
+                            className="text-xs shrink-0"
+                          >
+                            {isEditor ? 'Editor' : 'Viewer'}
+                          </Badge>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {intl.formatMessage({ id: 'modules.notes.rightSidebar.collaborators' })}
+                        <div className="text-xs text-muted-foreground truncate">
+                          {collaborator.email}
                         </div>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {intl.formatMessage({ id: 'modules.notes.rightSidebar.member' })}
-                      </Badge>
                     </div>
                   );
                 });

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { EmailProviderService } from './email.service';
-import { buildTaskReminderEmail, SendEmailInput, TaskReminderEmailData, buildNoteAccessRequestEmail, NoteAccessRequestEmailData } from './providers';
+import { buildTaskReminderEmail, SendEmailInput, TaskReminderEmailData, buildNoteAccessRequestEmail, NoteAccessRequestEmailData, buildNotePermissionChangeEmail, NotePermissionChangeEmailData } from './providers';
 
 export interface SendTaskReminderOptions {
   to: string;
@@ -149,6 +149,59 @@ export class EmailTemplatesService {
     this.logger.log(
       `[EmailTemplates] Sent note access request email via legacy SMTP to ${opts.to} for "${opts.noteTitle}"`,
     );
+    return true;
+  }
+
+  async sendNotePermissionChangeRequestEmail(opts: {
+    to: string;
+    requesterName: string;
+    noteTitle: string;
+    requestedPermission: 'read' | 'write';
+    message?: string;
+    approveUrl: string;
+    denyUrl: string;
+  }): Promise<boolean> {
+    if (!opts.to) {
+      this.logger.warn('[EmailTemplates] No recipient email for permission change request, skipping');
+      return false;
+    }
+
+    const data: NotePermissionChangeEmailData = {
+      requesterName: opts.requesterName,
+      noteTitle: opts.noteTitle,
+      requestedPermission: opts.requestedPermission,
+      message: opts.message,
+      approveUrl: opts.approveUrl,
+      denyUrl: opts.denyUrl,
+    };
+
+    const { html, text } = buildNotePermissionChangeEmail(data);
+    const permLabel = opts.requestedPermission === 'write' ? 'Editor' : 'Viewer';
+
+    const input: SendEmailInput = {
+      to: opts.to,
+      subject: `[Nexus] Yêu cầu quyền ${permLabel} trên note "${opts.noteTitle}"`,
+      html,
+      text,
+      tags: { type: 'note-permission-change-request' },
+    };
+
+    if (this.emailProvider.isAvailable()) {
+      const result = await this.emailProvider.send(input);
+      if (!result.accepted) {
+        this.logger.warn(`[EmailTemplates] Permission change email not accepted for ${opts.to}`);
+        return false;
+      }
+      this.logger.log(`[EmailTemplates] Sent permission change email to ${opts.to} for "${opts.noteTitle}"`);
+      return true;
+    }
+
+    const legacyResult = await this.db.sendEmail(opts.to, input.subject, html, text);
+    if (!legacyResult?.success) {
+      this.logger.warn(`[EmailTemplates] Legacy SMTP failed for permission change to ${opts.to}`);
+      return false;
+    }
+    this.logger.log(`[EmailTemplates] Sent permission change email via legacy SMTP to ${opts.to}`);
     return true;
   }
 

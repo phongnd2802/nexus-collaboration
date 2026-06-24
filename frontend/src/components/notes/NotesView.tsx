@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
+import { useAuth } from '../../contexts/AuthContext'
 import { useNotesStore } from '../../stores/notesStore'
 import { NotionStyleNoteEditor } from './NotionStyleNoteEditor'
 import { NotionStyleNoteCreator } from './NotionStyleNoteCreator'
@@ -34,6 +35,7 @@ interface NotesViewProps {
 
 export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: NotesViewProps = {}) {
   const intl = useIntl()
+  const { user } = useAuth()
   const { currentWorkspace } = useWorkspace()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -814,6 +816,27 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
     setIsShareModalOpen(true)
   }
 
+  // Refetch note data when owner approves/denies a permission change request
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { noteId: changedNoteId } = (e as CustomEvent).detail || {}
+      if (!changedNoteId || !currentWorkspace?.id) return
+      notesApi.getNoteByWorkspace(currentWorkspace.id, changedNoteId)
+        .then((refreshed: any) => {
+          if (!refreshed) return
+          const existing = notes.find((n: any) => n.id === changedNoteId)
+          const normalizedTitle = existing?.title
+            ?? (Array.isArray(refreshed.title)
+              ? refreshed.title
+              : [{ text: refreshed.title || '' }])
+          updateNote(changedNoteId, { ...refreshed, title: normalizedTitle })
+        })
+        .catch(() => {})
+    }
+    window.addEventListener('note:permission-changed', handler)
+    return () => window.removeEventListener('note:permission-changed', handler)
+  }, [currentWorkspace?.id, updateNote])
+
   // Handle sidebar create request
   useEffect(() => {
     if (sidebarCreateRequest) {
@@ -1177,6 +1200,14 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
       ) : selectedNote ? (
         <NotionStyleNoteEditor
           note={selectedNote}
+          isReadOnly={(() => {
+            const createdBy = (selectedNote as any).created_by || (selectedNote as any).createdBy
+            if (!user || user.id === createdBy) return false
+            const collaborators = (selectedNote as any).collaborators
+            if (!Array.isArray(collaborators)) return false
+            const entry = collaborators.find((c: any) => c.id === user.id)
+            return entry?.permission === 'read'
+          })()}
           onClose={() => {
             clearSelection()
             // URL navigation will happen automatically via useEffect
@@ -1339,11 +1370,22 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
             setShareNoteId(null);
           }}
           noteId={shareNoteId}
+          note={getNoteById(shareNoteId)}
+          onNoteUpdated={() => {
+            if (shareNoteId && currentWorkspace?.id) {
+              notesApi.getNoteByWorkspace(currentWorkspace.id, shareNoteId)
+                .then((refreshed: any) => {
+                  if (refreshed?.collaborators) {
+                    updateNote(shareNoteId, { collaborators: refreshed.collaborators } as any);
+                  }
+                })
+                .catch(() => {});
+            }
+          }}
           noteTitle={
             (() => {
               const note = getNoteById(shareNoteId);
               if (!note) return 'Note';
-              // Convert RichText[] to plain string
               if (Array.isArray(note.title)) {
                 return note.title.map(rt => rt.text).join('') || 'Untitled';
               }

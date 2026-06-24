@@ -1,6 +1,6 @@
 /**
  * Notes Share Modal
- * Share notes with workspace members
+ * Share notes with workspace members (Google Docs-style with Viewer/Editor roles)
  */
 
 import React, { useState } from 'react';
@@ -17,18 +17,28 @@ import { Input } from '../ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { useWorkspaceMembers } from '@/lib/api/workspace-api';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, UserPlus, Check, Loader2 } from 'lucide-react';
+import { Search, UserPlus, Check, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { notesApi } from '@/lib/api/notes-api';
 import { useIntl } from 'react-intl';
+import type { Note } from '@/types/notes';
 
 interface NotesShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   noteId: string;
   noteTitle: string;
+  note?: Note;
+  onNoteUpdated?: () => void;
 }
 
 export function NotesShareModal({
@@ -36,39 +46,42 @@ export function NotesShareModal({
   onClose,
   noteId,
   noteTitle,
+  note,
+  onNoteUpdated,
 }: NotesShareModalProps) {
   const intl = useIntl();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sharedWith, setSharedWith] = useState<Set<string>>(new Set());
+  const [permission, setPermission] = useState<'read' | 'write'>('write');
   const [isSharing, setIsSharing] = useState(false);
+  const [updatingPermission, setUpdatingPermission] = useState<string | null>(null);
+  const [removingUser, setRemovingUser] = useState<string | null>(null);
 
   // Fetch workspace members
   const { data: members = [], isLoading } = useWorkspaceMembers(workspaceId || '');
 
-  // Filter members based on search query and exclude current user
-  const filteredMembers = members.filter(member => {
-    // Exclude logged-in user
-    if (member.user_id === user?.id) {
-      return false;
-    }
+  // Current collaborators (already shared)
+  const collaborators = note?.collaborators || [];
+  const collaboratorIds = new Set(collaborators.map((c) => c.id));
 
-    const userName = member.user?.name || member.user?.email || '';
-    const userEmail = member.user?.email || '';
-    const query = searchQuery.toLowerCase();
-    return userName.toLowerCase().includes(query) || userEmail.toLowerCase().includes(query);
+  // Filter members: exclude self and already-shared users
+  const filteredMembers = members.filter((member) => {
+    if (member.user_id === user?.id) return false;
+    if (collaboratorIds.has(member.user_id)) return false;
+    const name = member.user?.name || member.user?.email || '';
+    const email = member.user?.email || '';
+    const q = searchQuery.toLowerCase();
+    return name.toLowerCase().includes(q) || email.toLowerCase().includes(q);
   });
 
   const handleToggleShare = (userId: string) => {
-    setSharedWith(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(userId)) {
-        newSet.delete(userId);
-      } else {
-        newSet.add(userId);
-      }
-      return newSet;
+    setSharedWith((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
     });
   };
 
@@ -77,24 +90,15 @@ export function NotesShareModal({
       toast.error(intl.formatMessage({ id: 'modules.notes.shareModal.noMemberSelected' }));
       return;
     }
-
-    if (!workspaceId) {
-      toast.error(intl.formatMessage({ id: 'modules.notes.shareModal.workspaceNotFound' }));
-      return;
-    }
+    if (!workspaceId) return;
 
     try {
       setIsSharing(true);
-
-      // Call API to share note with selected users
       const result = await notesApi.shareNote(workspaceId, noteId, {
         user_ids: Array.from(sharedWith),
-        permission: 'read',
+        permission,
       });
 
-      console.log('Share note result:', result);
-
-      // Extract shared_count safely
       const sharedCount =
         typeof result === 'object' && result !== null && 'shared_count' in result
           ? result.shared_count
@@ -108,32 +112,54 @@ export function NotesShareModal({
                 ? 'modules.notes.shareModal.sharedSuccessPlural'
                 : 'modules.notes.shareModal.sharedSuccess',
           },
-          { title: noteTitle, count: sharedCount }
-        )
+          { title: noteTitle, count: sharedCount },
+        ),
       );
 
-      // Reset state
       setSharedWith(new Set());
       setSearchQuery('');
-
-      onClose();
+      onNoteUpdated?.();
     } catch (error: any) {
-      console.error('Failed to share note:', error);
-      const errorMessage =
+      const msg =
         error?.response?.data?.message ||
         error?.message ||
         intl.formatMessage({ id: 'modules.notes.shareModal.shareFailed' });
-      toast.error(String(errorMessage));
+      toast.error(String(msg));
     } finally {
       setIsSharing(false);
     }
   };
 
+  const handleUpdatePermission = async (targetUserId: string, newPermission: 'read' | 'write') => {
+    if (!workspaceId) return;
+    try {
+      setUpdatingPermission(targetUserId);
+      await notesApi.updateNotePermission(workspaceId, noteId, targetUserId, newPermission);
+      toast.success(intl.formatMessage({ id: 'modules.notes.shareModal.permissionUpdated' }));
+      onNoteUpdated?.();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || intl.formatMessage({ id: 'modules.notes.shareModal.permissionUpdateFailed' }));
+    } finally {
+      setUpdatingPermission(null);
+    }
+  };
+
+  const handleRemoveUser = async (targetUserId: string) => {
+    if (!workspaceId) return;
+    try {
+      setRemovingUser(targetUserId);
+      await notesApi.unshareNote(noteId, targetUserId);
+      toast.success(intl.formatMessage({ id: 'modules.notes.shareModal.userRemoved' }));
+      onNoteUpdated?.();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || intl.formatMessage({ id: 'modules.notes.shareModal.userRemoveFailed' }));
+    } finally {
+      setRemovingUser(null);
+    }
+  };
+
   const getRoleLabel = (role: string) =>
-    intl.formatMessage(
-      { id: `projects.roles.${role}`, defaultMessage: role },
-      {}
-    );
+    intl.formatMessage({ id: `projects.roles.${role}`, defaultMessage: role }, {});
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -161,7 +187,7 @@ export function NotesShareModal({
           </div>
 
           {/* Members List */}
-          <ScrollArea className="h-[300px] rounded-md border">
+          <ScrollArea className="h-[200px] rounded-md border">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <p className="text-sm text-muted-foreground">
@@ -178,8 +204,7 @@ export function NotesShareModal({
               <div className="p-2 space-y-1">
                 {filteredMembers.map((member) => {
                   const userId = member.user_id;
-                  const isShared = sharedWith.has(userId);
-
+                  const isSelected = sharedWith.has(userId);
                   return (
                     <button
                       key={userId}
@@ -192,23 +217,19 @@ export function NotesShareModal({
                           {member.user?.name?.charAt(0) || member.user?.email?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
-
                       <div className="flex-1 text-left">
                         <p className="text-sm font-medium">
                           {member.user?.name || member.user?.email}
                         </p>
                         {member.user?.email && member.user?.name && (
-                          <p className="text-xs text-muted-foreground">
-                            {member.user.email}
-                          </p>
+                          <p className="text-xs text-muted-foreground">{member.user.email}</p>
                         )}
                       </div>
-
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
                           {getRoleLabel(member.role)}
                         </Badge>
-                        {isShared && (
+                        {isSelected && (
                           <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground">
                             <Check className="h-3 w-3" />
                           </div>
@@ -221,19 +242,25 @@ export function NotesShareModal({
             )}
           </ScrollArea>
 
-          {/* Selected Count */}
+          {/* Permission Selector for new shares */}
           {sharedWith.size > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {intl.formatMessage(
-                {
-                  id:
-                    sharedWith.size > 1
-                      ? 'modules.notes.shareModal.membersSelectedPlural'
-                      : 'modules.notes.shareModal.membersSelected',
-                },
-                { count: sharedWith.size }
-              )}
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {intl.formatMessage({ id: 'modules.notes.shareModal.shareAs' })}
+              </span>
+              <Select
+                value={permission}
+                onValueChange={(v) => setPermission(v as 'read' | 'write')}
+              >
+                <SelectTrigger className="h-8 text-sm flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="write">Editor</SelectItem>
+                  <SelectItem value="read">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {/* Action Buttons */}
@@ -255,6 +282,61 @@ export function NotesShareModal({
               )}
             </Button>
           </div>
+
+          {/* Current collaborators section */}
+          {collaborators.length > 0 && (
+            <div className="border-t pt-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {intl.formatMessage({ id: 'modules.notes.shareModal.sharedWith' })}
+              </p>
+              {collaborators.map((collab) => (
+                <div key={collab.id} className="flex items-center gap-2">
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={collab.avatarUrl || undefined} />
+                    <AvatarFallback className="text-xs">
+                      {collab.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{collab.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{collab.email}</p>
+                  </div>
+                  <Select
+                    value={collab.permission}
+                    onValueChange={(v) =>
+                      handleUpdatePermission(collab.id, v as 'read' | 'write')
+                    }
+                    disabled={updatingPermission === collab.id}
+                  >
+                    <SelectTrigger className="h-7 w-28 text-xs">
+                      {updatingPermission === collab.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mx-auto" />
+                      ) : (
+                        <SelectValue />
+                      )}
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="write">Editor</SelectItem>
+                      <SelectItem value="read">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    disabled={removingUser === collab.id}
+                    onClick={() => handleRemoveUser(collab.id)}
+                  >
+                    {removingUser === collab.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <X className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

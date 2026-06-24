@@ -33,6 +33,7 @@ export function NoteAccessDenied({
   const [requestState, setRequestState] = useState<RequestState>('idle');
   const [message, setMessage] = useState('');
   const [showMessageInput, setShowMessageInput] = useState(false);
+  const [requestedPermission, setRequestedPermission] = useState<'read' | 'write'>('read');
 
   // Check if there's already a pending/approved/denied request
   useEffect(() => {
@@ -56,7 +57,10 @@ export function NoteAccessDenied({
     );
 
     // Call API in the background
-    notesApi.requestNoteAccess(workspaceId, noteId, { message: message.trim() || undefined })
+    notesApi.requestNoteAccess(workspaceId, noteId, {
+      message: message.trim() || undefined,
+      requested_permission: requestedPermission,
+    })
       .catch((err: any) => {
         console.error('Failed to send access request in background:', err);
         const msg = err?.response?.data?.message || err?.message || '';
@@ -112,9 +116,30 @@ export function NoteAccessDenied({
       {/* Ask to request? */}
       {(requestState === 'idle' || requestState === 'error' || requestState === 'sending') && (
         <>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground mb-4">
             {intl.formatMessage({ id: 'modules.notes.accessDenied.askRequest' })}
           </p>
+
+          {/* Permission selector */}
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-sm text-muted-foreground">
+              {intl.formatMessage({ id: 'modules.notes.accessDenied.requestAs' })}:
+            </span>
+            <div className="flex gap-1 p-1 bg-muted rounded-md">
+              <button
+                className={`px-3 py-1 text-sm rounded transition-colors ${requestedPermission === 'read' ? 'bg-primary text-primary-foreground shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setRequestedPermission('read')}
+              >
+                {intl.formatMessage({ id: 'modules.notes.accessDenied.viewer' })}
+              </button>
+              <button
+                className={`px-3 py-1 text-sm rounded transition-colors ${requestedPermission === 'write' ? 'bg-primary text-primary-foreground shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setRequestedPermission('write')}
+              >
+                {intl.formatMessage({ id: 'modules.notes.accessDenied.editor' })}
+              </button>
+            </div>
+          </div>
 
           {/* Optional message input */}
           {showMessageInput ? (

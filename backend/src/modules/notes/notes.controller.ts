@@ -40,6 +40,8 @@ import {
   ImportUrlResponseDto,
   RequestNoteAccessDto,
   RespondNoteAccessDto,
+  UpdateSharePermissionDto,
+  NotePermissionRequestDto,
 } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
@@ -742,4 +744,51 @@ export class NotesController {
   ) {
     return this.notesService.getAccessRequestById(requestId, workspaceId, userId);
   }
+
+  // ==================== SHARE PERMISSION MANAGEMENT ====================
+
+  @Patch(':noteId/share/:userId')
+  @ApiOperation({ summary: 'Update permission for a shared user' })
+  @ApiParam({ name: 'userId', description: 'Target user ID to update permission for' })
+  @ApiResponse({ status: 200, description: 'Permission updated' })
+  @ApiResponse({ status: 403, description: 'Not the note owner' })
+  @ApiResponse({ status: 404, description: 'Note or user not found in shared list' })
+  async updateSharePermission(
+    @Param('workspaceId') workspaceId: string,
+    @Param('noteId') noteId: string,
+    @Param('userId') targetUserId: string,
+    @Body() dto: UpdateSharePermissionDto,
+    @CurrentUser('sub') requesterId: string,
+  ) {
+    return this.notesService.updateSharePermission(noteId, workspaceId, targetUserId, dto, requesterId);
+  }
+
+  // ==================== PERMISSION CHANGE REQUEST ENDPOINTS ====================
+
+  @Post(':noteId/permission-request')
+  @ApiOperation({ summary: 'Request a permission change (Viewer → Editor)' })
+  @ApiResponse({ status: 201, description: 'Permission change request sent to owner' })
+  async requestPermissionChange(
+    @Param('workspaceId') workspaceId: string,
+    @Param('noteId') noteId: string,
+    @Body() dto: NotePermissionRequestDto,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.notesService.requestPermissionChange(noteId, workspaceId, dto, userId);
+  }
+
+  @Post(':noteId/respond-permission-request')
+  @ApiOperation({ summary: 'Owner approves or denies a viewer permission change request' })
+  @ApiBody({ schema: { properties: { requesterId: { type: 'string' }, action: { type: 'string', enum: ['approve', 'deny'] } }, required: ['requesterId', 'action'] } })
+  @ApiResponse({ status: 200, description: 'Response recorded' })
+  async respondPermissionChangeRequest(
+    @Param('workspaceId') workspaceId: string,
+    @Param('noteId') noteId: string,
+    @Body() body: { requesterId: string; action: 'approve' | 'deny' },
+    @CurrentUser('sub') ownerId: string,
+  ) {
+    return this.notesService.respondPermissionChangeRequest(noteId, workspaceId, body.requesterId, body.action, ownerId);
+  }
+
 }
+

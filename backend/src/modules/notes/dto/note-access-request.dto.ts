@@ -12,6 +12,15 @@ export class RequestNoteAccessDto {
   @IsOptional()
   @IsString()
   message?: string;
+
+  @ApiPropertyOptional({
+    description: 'Permission level being requested',
+    enum: ['read', 'write'],
+    default: 'read',
+  })
+  @IsOptional()
+  @IsEnum(['read', 'write'])
+  requested_permission?: 'read' | 'write';
 }
 
 /**

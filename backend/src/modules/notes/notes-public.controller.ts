@@ -8,6 +8,42 @@ import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 export class NotesPublicController {
   constructor(private readonly notesService: NotesService) {}
 
+  @Get('permission-change/:noteId/respond-email')
+  @ApiOperation({ summary: 'Owner responds to permission change request from email link' })
+  @ApiParam({ name: 'noteId', description: 'Note ID' })
+  @ApiQuery({ name: 'requesterId', description: 'Requester user ID' })
+  @ApiQuery({ name: 'action', enum: ['approve', 'deny'] })
+  async respondToPermissionChangeFromEmail(
+    @Param('noteId') noteId: string,
+    @Query('requesterId') requesterId: string,
+    @Query('action') action: 'approve' | 'deny',
+    @Query('workspaceId') workspaceId: string,
+    @Res() res: Response,
+  ) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    try {
+      if (!requesterId || !workspaceId) {
+        throw new NotFoundException('Missing required parameters');
+      }
+      const note = await this.notesService.getNoteById(noteId);
+      if (!note) throw new NotFoundException('Note not found');
+
+      await this.notesService.respondPermissionChangeRequest(
+        noteId,
+        workspaceId || note.workspace_id,
+        requesterId,
+        action,
+        note.created_by,
+      );
+
+      const resultStatus = action === 'approve' ? 'approved' : 'denied';
+      return res.redirect(`${frontendUrl}/workspaces/${note.workspace_id}/notes/${noteId}?permission_request_status=${resultStatus}`);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Internal Server Error';
+      return res.redirect(`${frontendUrl}/workspaces?permission_request_status=error&message=${encodeURIComponent(errorMessage)}`);
+    }
+  }
+
   @Get('access-requests/:requestId/respond-email')
   @ApiOperation({ summary: 'Respond to note access request directly from email links' })
   @ApiParam({ name: 'requestId', description: 'The UUID of the note access request' })
@@ -48,9 +84,9 @@ export class NotesPublicController {
     } catch (error: any) {
       console.error('[NotesPublicController] Error handling email response:', error);
       const errorMessage = error?.message || 'Internal Server Error';
-      // If we don't have request workspace_id, redirect to fallback
       const fallbackUrl = `${frontendUrl}/workspaces?access_request_status=error&message=${encodeURIComponent(errorMessage)}`;
       return res.redirect(fallbackUrl);
     }
   }
+
 }
