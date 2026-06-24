@@ -22,6 +22,7 @@ export class WorkspaceGuard implements CanActivate {
       request.params?.workspaceId ||
       request.query?.workspaceId ||
       request.body?.workspaceId ||
+      request.headers['x-nexus-workspace-id'] ||
       request.headers['x-workspace-id'];
 
     if (!workspaceId) {
