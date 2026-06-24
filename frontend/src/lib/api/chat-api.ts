@@ -28,6 +28,7 @@ export interface Message {
   userId: string;
   content: string;
   attachments?: MessageAttachment[];
+  threadId?: string;
   parentId?: string;
   edited?: boolean;
   editedAt?: string;
@@ -170,6 +171,7 @@ export interface CreateChannelRequest {
 export interface SendMessageRequest {
   content: string;
   attachments?: File[];
+  threadId?: string;
   parentId?: string;
 }
 
@@ -397,6 +399,7 @@ export const chatApi = {
   async sendMessage(channelId: string, data: SendMessageRequest): Promise<Message> {
     const formData = new FormData();
     formData.append('content', data.content);
+    if (data.threadId) formData.append('threadId', data.threadId);
     if (data.parentId) formData.append('parentId', data.parentId);
 
     // Handle file attachments

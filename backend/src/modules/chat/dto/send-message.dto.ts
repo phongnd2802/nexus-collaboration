@@ -188,12 +188,12 @@ export class SendMessageDto {
   @IsBoolean()
   is_encrypted?: boolean;
 
-  @ApiProperty({ description: 'Thread ID if replying to a thread', required: false })
+  @ApiProperty({ description: 'Root message ID of the thread.', required: false })
   @IsOptional()
   @IsUUID()
   thread_id?: string;
 
-  @ApiProperty({ description: 'Parent message ID if replying', required: false })
+  @ApiProperty({ description: 'Direct parent message ID being replied to.', required: false })
   @IsOptional()
   @IsUUID()
   parent_id?: string;
