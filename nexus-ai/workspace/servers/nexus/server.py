@@ -1,5 +1,4 @@
 """Nexus MCP Server configuration."""
-
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Optional
@@ -103,18 +102,25 @@ async def close() -> None:
 
 
 async def call_tool(tool_name: str, arguments: dict) -> str:
-    """Call a Nexus MCP tool and return its text content."""
-    session = await ensure_connected()
-    result = await session.call_tool(name=tool_name, arguments=arguments)
+    """Call a Nexus MCP tool and return its text content.
 
-    if getattr(result, "isError", False):
-        raise RuntimeError(f"Tool '{tool_name}' returned an error: {result.content}")
+    Each wrapper call owns its MCP session lifecycle so simple one-off calls can just
+    `await nexus_...(...)` without having to remember `close()`.
+    """
+    try:
+        session = await ensure_connected()
+        result = await session.call_tool(name=tool_name, arguments=arguments)
 
-    content = getattr(result, "content", None)
-    if isinstance(content, list) and content:
-        parts = [block.text if hasattr(block, "text") else str(block) for block in content]
-        return "\n".join(parts)
-    return str(content) if content is not None else ""
+        if getattr(result, "isError", False):
+            raise RuntimeError(f"Tool '{tool_name}' returned an error: {result.content}")
+
+        content = getattr(result, "content", None)
+        if isinstance(content, list) and content:
+            parts = [block.text if hasattr(block, "text") else str(block) for block in content]
+            return "\n".join(parts)
+        return str(content) if content is not None else ""
+    finally:
+        await close()
 
 
 if __name__ == "__main__":
