@@ -11,10 +11,13 @@ def instrument_pydantic_ai(settings: Settings) -> None:
     if not settings.enable_langfuse:
         return
     try:
+        from langfuse import get_client
         from pydantic_ai.agent import Agent
     except ImportError as exc:
         raise RuntimeError("Pydantic AI is required for Langfuse instrumentation.") from exc
 
+    # Explicitly initialize the Langfuse client before enabling agent instrumentation.
+    get_client()
     Agent.instrument_all()
 
 
@@ -53,4 +56,3 @@ def flush_langfuse(settings: Settings) -> None:
         return
     client: Any = get_client()
     client.flush()
-

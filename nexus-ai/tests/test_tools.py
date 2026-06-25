@@ -1,7 +1,7 @@
 from nexus_ai.agent import build_runtime
 from nexus_ai.settings import load_settings
-from nexus_ai.policies import PathPolicy, ShellPolicy
-from nexus_ai.tools import LocalFilesystemTools, LocalShellTools
+from nexus_ai.policies import PathPolicy
+from nexus_ai.tools import LocalFilesystemTools
 
 
 def test_filesystem_tools_are_sandboxed(tmp_path):
@@ -13,15 +13,7 @@ def test_filesystem_tools_are_sandboxed(tmp_path):
     assert tools.search_files("hello")[0]["path"] == "drafts/report.md"
 
 
-def test_shell_tools_run_in_sandbox(tmp_path):
-    tools = LocalShellTools(PathPolicy(tmp_path), ShellPolicy(), timeout_seconds=5)
-    result = tools.run_shell("pwd")
-
-    assert result["returncode"] == 0
-    assert str(tmp_path) in result["stdout"]
-
-
-def test_runtime_exposes_console_backend(tmp_path):
+def test_runtime_uses_minimal_deps(tmp_path):
     settings = load_settings(
         {
             "NEXUS_AI_MODEL": "test",
@@ -35,6 +27,6 @@ def test_runtime_exposes_console_backend(tmp_path):
 
     runtime = build_runtime(settings)
 
-    assert type(runtime.deps.backend).__name__ == "AsyncSandboxAdapter"
-    assert runtime.deps.backend.unwrap().root_dir == settings.filesystem_root
-    assert runtime.deps.backend.unwrap().execute_enabled is True
+    assert runtime.deps.settings is settings
+    assert runtime.deps.memory is not None
+    assert runtime.agent.output_type is str

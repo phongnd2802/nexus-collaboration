@@ -8,15 +8,9 @@ dependencies = [
   "pydantic-ai-harness[code-mode]>=0.1.0",
   "langfuse>=3.0.0",
   "httpx>=0.27.0",
-  "pyyaml>=6.0.2",
   "uvicorn>=0.30.0",
-  "pydantic-ai-backend>=0.1.0",
   "pydantic-ai-shields>=0.1.0",
-  "pydantic-ai-skills>=0.1.0",
   "summarization-pydantic-ai>=0.1.0",
-  "pydantic-ai-todo>=0.1.0",
-  "pydantic-deep>=0.1.0",
-  "subagents-pydantic-ai>=0.1.0",
 ]
 
 [project.optional-dependencies]
