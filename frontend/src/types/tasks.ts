@@ -1,10 +1,10 @@
 export enum TaskType {
-  TASK = 'TASK',
-  BUG = 'BUG',
-  STORY = 'STORY',
-  EPIC = 'EPIC',
-  SUBTASK = 'SUBTASK',
-  FEATURE_REQUEST = 'FEATURE_REQUEST'
+  TASK = 'task',
+  BUG = 'bug',
+  STORY = 'story',
+  EPIC = 'epic',
+  SUBTASK = 'subtask',
+  FEATURE_REQUEST = 'feature_request'
 }
 
 export enum TaskStatus {

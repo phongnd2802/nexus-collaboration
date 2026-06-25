@@ -14,7 +14,6 @@ export const workspaceGetOutputShape = {
   website: z.string().nullable(),
   is_active: z.boolean(),
   owner_id: z.string().min(1),
-  max_members: z.number().int(),
   max_storage_gb: z.number().int(),
   settings: z.record(z.unknown()),
   metadata: z.record(z.unknown()),

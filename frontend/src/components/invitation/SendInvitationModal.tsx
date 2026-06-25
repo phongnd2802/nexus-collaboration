@@ -33,8 +33,6 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [limitMessage, setLimitMessage] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,21 +63,10 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
           defaultMessage: 'Failed to send invitation',
         });
 
-      // Check if this is a member limit error
-      if (errorMessage.toLowerCase().includes('member limit reached') ||
-          errorMessage.toLowerCase().includes('upgrade your plan')) {
-        setLimitMessage(errorMessage);
-        setShowUpgradeModal(true);
-      } else {
-        setError(errorMessage);
-      }
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCloseUpgradeModal = () => {
-    setShowUpgradeModal(false);
   };
 
   const handleClose = () => {
@@ -117,18 +104,12 @@ const SendInvitationModal: React.FC<SendInvitationModalProps> = ({
     }
   };
 
-  if (!isOpen && !showUpgradeModal) return null;
-
-  // NOTE: an UpgradeLimitModal block previously lived here but its
-  // component was deleted upstream, leaving broken JSX that blocked
-  // the whole frontend tsc build. When a member-limit error fires,
-  // the normal error-alert path below surfaces the message instead.
-  // If a dedicated upgrade modal ships later, re-insert it here.
+  if (!isOpen) return null;
 
   return (
     <>
       {/* Invitation Form Modal */}
-      {isOpen && !showUpgradeModal && (
+      {isOpen && (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}

@@ -14,7 +14,6 @@ export const schema = {
       { name: 'website', type: 'text', nullable: true },
       { name: 'is_active', type: 'boolean', default: true },
       { name: 'owner_id', type: 'string', nullable: false },
-      { name: 'max_members', type: 'integer', default: 10 },
       { name: 'max_storage_gb', type: 'integer', default: 10 },
       { name: 'settings', type: 'jsonb', default: '{}' },
       { name: 'metadata', type: 'jsonb', default: '{}' },
