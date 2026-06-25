@@ -7,7 +7,6 @@ import { NotionStyleNoteEditor } from './NotionStyleNoteEditor'
 import { NotionStyleNoteCreator } from './NotionStyleNoteCreator'
 import { FileImportModal } from './FileImportModal'
 import { BulkActionsToolbar } from './BulkActionsToolbar'
-import { MergeNotesDialog } from './MergeNotesDialog'
 import { NotesShareModal } from './NotesShareModal'
 import { NoteAccessDenied } from './NoteAccessDenied'
 import { FilePreviewDialog } from '../files/FileOperationDialogs'
@@ -27,6 +26,14 @@ import { fileApi } from '../../lib/api/files-api'
 import { calendarApi } from '../../lib/api/calendar-api'
 import { useToast } from '../ui/use-toast'
 import { useQueryClient } from '@tanstack/react-query'
+
+// Returns true only when we can confirm the current user created the note.
+// Fail-closed: missing userId or missing owner info => not the owner.
+function isNoteOwner(note: Note | null | undefined, userId?: string): boolean {
+  if (!note || !userId) return false
+  const ownerId = (note as any).author?.id ?? (note as any).author_id ?? (note as any).created_by
+  return !!ownerId && ownerId === userId
+}
 
 interface NotesViewProps {
   sidebarCreateRequest?: { parentId?: string } | null
@@ -81,7 +88,6 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
   const [showInlineCreator, setShowInlineCreator] = useState(false)
   const [creatorParentId, setCreatorParentId] = useState<string | undefined>(undefined)
   const [isFileImportOpen, setIsFileImportOpen] = useState(false)
-  const [isMergeDialogOpen, setIsMergeDialogOpen] = useState(false)
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null)
   const [isFilePreviewOpen, setIsFilePreviewOpen] = useState(false)
   const [isFilePreviewLoading, setIsFilePreviewLoading] = useState(false)
@@ -100,7 +106,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
   const getNoteById = (noteId: string) => notes.find((note: Note) => note.id === noteId)
   const selectedNote = ui.selectedNoteId ? getNoteById(ui.selectedNoteId) : null
 
-  const handleBulkAction = async (action: 'delete' | 'archive' | 'unarchive' | 'merge' | 'favorite' | 'unfavorite' | 'restore') => {
+  const handleBulkAction = async (action: 'delete' | 'archive' | 'unarchive' | 'favorite' | 'unfavorite' | 'restore') => {
     if (selectedNotes.length === 0 || !currentWorkspace) return
 
     try {
@@ -255,119 +261,12 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
             description: `${selectedNotes.length} notes restored`,
           })
           break
-          
-        case 'merge':
-          if (selectedNotes.length >= 2) {
-            setIsMergeDialogOpen(true)
-          }
-          break
       }
     } catch (error) {
       console.error(`Failed to ${action} notes:`, error)
       toast({
         title: 'Error',
         description: `Failed to ${action} notes. Please try again.`,
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleMergeNotes = async (mergeTitle: string, options: {
-    includeHeaders: boolean
-    includeDividers: boolean
-    sortByDate: boolean
-  }) => {
-    if (!currentWorkspace) {
-      toast({
-        title: 'Error',
-        description: 'No workspace selected',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    try {
-      // Get selected notes
-      const notesToMerge = selectedNotes.map(id => notes.find(n => n.id === id)).filter(Boolean) as Note[]
-
-      if (notesToMerge.length < 2) {
-        toast({
-          title: 'Error',
-          description: 'Need at least 2 notes to merge',
-          variant: 'destructive',
-        })
-        return
-      }
-
-      // Close modal
-      setIsMergeDialogOpen(false)
-
-      // Create the merged note title
-      const finalTitle = mergeTitle.trim() ||
-        (notesToMerge.length > 3
-          ? `Merged Note (${notesToMerge.length} notes)`
-          : notesToMerge.map(n => n.title?.map(rt => rt.text).join('') || 'Untitled').join(' + ')
-        )
-
-      // Call the merge API
-      const mergeResponse = await notesApi.mergeNotes(currentWorkspace.id, {
-        note_ids: selectedNotes,
-        title: finalTitle,
-        include_headers: options.includeHeaders,
-        add_dividers: options.includeDividers,
-        sort_by_date: options.sortByDate,
-      })
-
-      // Convert API response to local Note format
-      const mergedNote: Note = {
-        id: mergeResponse.id,
-        workspaceId: currentWorkspace.id,
-        title: [{ text: mergeResponse.title }],
-        icon: { type: 'emoji', value: '📑' },
-        content: [{
-          id: `block-${Date.now()}`,
-          type: 'html' as const,
-          content: [{
-            html: mergeResponse.content || '<p></p>'
-          }],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }],
-        children: [],
-        properties: {},
-        createdAt: new Date(mergeResponse.created_at),
-        updatedAt: new Date(mergeResponse.created_at),
-        createdBy: 'user-1',
-        lastEditedBy: 'user-1',
-        isDeleted: false,
-        isArchived: false,
-        isFavorite: false,
-        permissions: { canRead: true, canWrite: true, canShare: true, canDelete: true },
-        tags: [],
-        version: 1,
-        lastSavedAt: new Date()
-      }
-
-      // Add the merged note to store
-      addNote(mergedNote)
-
-      // Clear selection
-      clearSelectedNotes()
-
-      // Select the new merged note
-      selectNote(mergedNote.id)
-
-      toast({
-        title: 'Success',
-        description: `Successfully merged ${selectedNotes.length} notes`,
-      })
-
-      // URL navigation will happen automatically via useEffect
-    } catch (error) {
-      console.error('Failed to merge notes:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to merge notes. Please try again.',
         variant: 'destructive',
       })
     }
@@ -1145,6 +1044,7 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
           onAction={handleBulkAction}
           onClear={clearSelectedNotes}
           isTrashView={selectedNotes.map(id => getNoteById(id)).filter((note): note is Note => Boolean(note)).every((note) => note.isDeleted)}
+          canDelete={selectedNotes.map(id => getNoteById(id)).filter((note): note is Note => Boolean(note)).every((note) => isNoteOwner(note, user?.id))}
         />
       )}
 
@@ -1351,14 +1251,6 @@ export function NotesView({ sidebarCreateRequest, onSidebarCreateHandled }: Note
             navigate(`/workspaces/${currentWorkspace.id}/notes/${noteId}`)
           }
         }}
-      />
-
-      {/* Merge Notes Dialog */}
-      <MergeNotesDialog
-        isOpen={isMergeDialogOpen}
-        onClose={() => setIsMergeDialogOpen(false)}
-        notes={selectedNotes.map(id => getNoteById(id)).filter(Boolean) as Note[]}
-        onMerge={handleMergeNotes}
       />
 
       {/* Share Note Modal */}

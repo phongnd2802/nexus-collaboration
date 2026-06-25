@@ -30,7 +30,6 @@ import {
   CreateNoteDto,
   UpdateNoteDto,
   ShareNoteDto,
-  MergeNotesDto,
   BulkDeleteDto,
   DuplicateNoteDto,
   BulkArchiveDto,
@@ -294,44 +293,6 @@ export class NotesController {
       limit: limit ? parseInt(limit, 10) : 50,
       offset: offset ? parseInt(offset, 10) : 0,
     });
-  }
-
-  @Post('merge')
-  @ApiOperation({
-    summary: 'Merge multiple notes into one',
-    description:
-      'Combine multiple notes into a single merged note with optional headers, dividers, and sorting',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Notes merged successfully',
-    schema: {
-      example: {
-        id: 'uuid',
-        workspace_id: 'uuid',
-        title: 'Merged Note',
-        content: '<p>Combined content...</p>',
-        tags: ['tag1', 'tag2'],
-        merged_count: 3,
-        source_note_titles: ['Note 1', 'Note 2', 'Note 3'],
-        merged_from_ids: ['uuid-1', 'uuid-2', 'uuid-3'],
-        merge_options: {
-          include_headers: true,
-          add_dividers: true,
-          sort_by_date: false,
-        },
-        created_at: '2024-01-01T00:00:00.000Z',
-      },
-    },
-  })
-  @ApiResponse({ status: 400, description: 'Invalid request or insufficient notes' })
-  @ApiResponse({ status: 404, description: 'One or more notes not found' })
-  async mergeNotes(
-    @Param('workspaceId') workspaceId: string,
-    @Body() mergeNotesDto: MergeNotesDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.notesService.mergeNotes(workspaceId, mergeNotesDto, userId);
   }
 
   @Get(':noteId')

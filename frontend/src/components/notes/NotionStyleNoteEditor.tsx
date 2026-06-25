@@ -53,6 +53,14 @@ interface NotionStyleNoteEditorProps {
   isReadOnly?: boolean
 }
 
+// Returns true only when we can confirm the current user created the note.
+// Fail-closed: missing userId or missing owner info => not the owner.
+function isNoteOwner(note: Note | null | undefined, userId?: string): boolean {
+  if (!note || !userId) return false
+  const ownerId = (note as any).author?.id ?? (note as any).author_id ?? (note as any).created_by
+  return !!ownerId && ownerId === userId
+}
+
 const getTitleText = (title: any): string => {
   if (Array.isArray(title)) return title.map((rt: RichText) => rt.text).join('')
   if (typeof title === 'string') return title
@@ -80,6 +88,7 @@ export function NotionStyleNoteEditor({
   const intl = useIntl()
   const isReadOnlyDeletedNote = note.isDeleted
   const effectiveReadOnly = isReadOnlyDeletedNote || isReadOnly
+  const isOwner = isNoteOwner(note, user?.id)
 
   // Editor container ref for RemoteCursors
   const editorContainerRef = useRef<HTMLDivElement>(null)
@@ -2219,7 +2228,8 @@ export function NotionStyleNoteEditor({
                 </>
               )}
               
-              {/* Action Menu */}
+              {/* Action Menu — hidden entirely when a non-owner views a deleted note (would be empty) */}
+              {!(note.isDeleted && !isOwner) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -2247,7 +2257,7 @@ export function NotionStyleNoteEditor({
                     <Copy className="h-4 w-4 mr-2" />
                     {intl.formatMessage({ id: 'modules.notes.sidebar.duplicate' })}
                   </DropdownMenuItem>
-                  {onShare && (
+                  {onShare && isOwner && (
                     <DropdownMenuItem onClick={() => onShare(note.id)}>
                       <Share2 className="h-4 w-4 mr-2" />
                       {intl.formatMessage({ id: 'modules.notes.sidebar.share' })}
@@ -2264,8 +2274,8 @@ export function NotionStyleNoteEditor({
                       {intl.formatMessage({ id: 'modules.notes.sidebar.archive' })}
                     </DropdownMenuItem>
                   )}
-                  {onDelete && (
-                    <DropdownMenuItem 
+                  {onDelete && isOwner && (
+                    <DropdownMenuItem
                       onClick={onDelete}
                       className="text-destructive focus:text-destructive"
                     >
@@ -2275,14 +2285,14 @@ export function NotionStyleNoteEditor({
                   )}
                     </>
                   )}
-                  {onRestore && note.isDeleted && (
+                  {onRestore && note.isDeleted && isOwner && (
                     <DropdownMenuItem onClick={onRestore}>
                       <Undo2 className="h-4 w-4 mr-2" />
                       {intl.formatMessage({ id: 'modules.notes.sidebar.restore' })}
                     </DropdownMenuItem>
                   )}
-                  {onPermanentDelete && note.isDeleted && (
-                    <DropdownMenuItem 
+                  {onPermanentDelete && note.isDeleted && isOwner && (
+                    <DropdownMenuItem
                       onClick={onPermanentDelete}
                       className="text-destructive focus:text-destructive"
                     >
@@ -2292,6 +2302,7 @@ export function NotionStyleNoteEditor({
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              )}
             </div>
           </div>
         </div>

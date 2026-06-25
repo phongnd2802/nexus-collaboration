@@ -11,7 +11,6 @@ export { NotionStyleNoteCreator } from './NotionStyleNoteCreator'
 // Dialog components
 export { CreateNoteModal } from './CreateNoteModal'
 export { FileImportModal } from './FileImportModal'
-export { MergeNotesDialog } from './MergeNotesDialog'
 
 // Feature components
 export { AIFeatures } from './AIFeatures'
