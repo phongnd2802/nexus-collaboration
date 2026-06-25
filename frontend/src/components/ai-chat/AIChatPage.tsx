@@ -1,6 +1,5 @@
 import { useParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
-import { Sparkles } from 'lucide-react'
 
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
@@ -18,7 +17,6 @@ export function AIChatPage() {
     activeConversationId,
     timelineItems,
     isStreaming,
-    isThinking,
     isHydratingSession,
     isLoadingSessions,
     deleteConversationDialog,
@@ -45,10 +43,6 @@ export function AIChatPage() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes thinkingPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
         }
       `}</style>
 
@@ -96,23 +90,6 @@ export function AIChatPage() {
               isLoading={isHydratingSession && timelineItems.length === 0}
               onRegenerate={handleRegenerate}
             />
-            {isThinking && (
-              <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 py-4">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#D97757]">
-                  <Sparkles className="h-3.5 w-3.5 text-white" />
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[15px] text-[#73726C]">
-                    {intl.formatMessage({ id: 'modules.aiChat.status.thinking', defaultMessage: 'Thinking' })}
-                  </span>
-                  <span className="flex gap-0.5">
-                    <span className="h-1 w-1 animate-[thinkingPulse_1.4s_ease-in-out_infinite] rounded-full bg-[#D97757]" />
-                    <span className="h-1 w-1 animate-[thinkingPulse_1.4s_ease-in-out_0.2s_infinite] rounded-full bg-[#D97757]" />
-                    <span className="h-1 w-1 animate-[thinkingPulse_1.4s_ease-in-out_0.4s_infinite] rounded-full bg-[#D97757]" />
-                  </span>
-                </div>
-              </div>
-            )}
             <AIChatInput
               onSend={handleSend}
               onStop={handleStop}

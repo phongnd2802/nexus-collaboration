@@ -1,12 +1,12 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
   AlertCircle,
   Bot,
   Check,
   CheckCircle2,
   ChevronRight,
-  Circle,
   Copy,
+  ExternalLink,
   Loader2,
   RefreshCw,
   Sparkles,
@@ -17,81 +17,163 @@ import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 
 import { MarkdownRenderer } from './MarkdownRenderer'
-import type { AIChatTimelineItem } from './types'
+import type { AIChatTimelineItem, ProjectCardPayload, ThinkingStep } from './types'
 
 interface AIChatMessageProps {
   item: AIChatTimelineItem
   onRegenerate?: () => void
 }
 
-function JsonBlock({ value }: { value: unknown }) {
+function JsonBlock({ label, value }: { label?: string; value: unknown }) {
   if (value == null) return null
 
   return (
-    <pre className="mt-2 max-h-56 overflow-auto rounded-xl bg-white/80 p-3 text-xs leading-5 text-[#3D3D3A]">
-      {JSON.stringify(value, null, 2)}
-    </pre>
+    <div className="space-y-1.5">
+      {label ? <div className="text-[11px] font-medium text-[#73726C]">{label}</div> : null}
+      <pre className="overflow-auto rounded-lg bg-[rgba(31,30,29,0.04)] px-3 py-2 text-xs leading-5 text-[#3D3D3A]">
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    </div>
   )
 }
 
-function EventCard({
-  icon,
-  badge,
-  title,
-  description,
-  tone = 'neutral',
-  children,
-  defaultOpen = false,
-}: {
-  icon: React.ReactNode
-  badge?: string
-  title: string
-  description?: string
-  tone?: 'neutral' | 'success' | 'warning' | 'error'
-  children?: React.ReactNode
-  defaultOpen?: boolean
-}) {
-  const [open, setOpen] = useState(defaultOpen)
-  const tones = {
-    neutral: 'border-[rgba(31,30,29,0.1)] bg-[#FAF9F5]',
-    success: 'border-[rgba(16,185,129,0.18)] bg-[#F0FDF4]',
-    warning: 'border-[rgba(217,119,87,0.2)] bg-[#FFF7ED]',
-    error: 'border-[rgba(224,30,90,0.2)] bg-[#FFF1F2]',
+function formatDuration(startedAt?: string, endedAt?: string) {
+  if (!startedAt || !endedAt) return null
+  const duration = new Date(endedAt).getTime() - new Date(startedAt).getTime()
+  if (Number.isNaN(duration) || duration < 0) return null
+  if (duration < 1000) return `${duration}ms`
+  return `${(duration / 1000).toFixed(duration >= 10_000 ? 0 : 1)}s`
+}
+
+function stepIcon(step: ThinkingStep) {
+  if (step.status === 'running') return <Loader2 className="h-3.5 w-3.5 animate-spin text-[#D97757]" />
+  if (step.status === 'error') return <AlertCircle className="h-3.5 w-3.5 text-[#E01E5A]" />
+  if (step.status === 'denied') return <AlertCircle className="h-3.5 w-3.5 text-[#D29922]" />
+  if (step.kind === 'reasoning') return <Sparkles className="h-3.5 w-3.5 text-[#D97757]" />
+  if (step.kind === 'tool_input' || step.kind === 'tool_output') return step.status === 'completed'
+    ? <CheckCircle2 className="h-3.5 w-3.5 text-[#15803D]" />
+    : <Wrench className="h-3.5 w-3.5 text-[#D97757]" />
+  if (step.kind === 'source' || step.kind === 'file') return <ExternalLink className="h-3.5 w-3.5 text-[#73726C]" />
+  return <CheckCircle2 className="h-3.5 w-3.5 text-[#15803D]" />
+}
+
+function statusText(step: ThinkingStep) {
+  switch (step.status) {
+    case 'running':
+      return 'Đang chạy'
+    case 'completed':
+      return 'Thành công'
+    case 'error':
+      return 'Thất bại'
+    case 'denied':
+      return 'Từ chối'
+    case 'skipped':
+      return 'Bỏ qua'
+    default:
+      return 'Đang chờ'
   }
+}
+
+function statusTone(step: ThinkingStep) {
+  if (step.status === 'error') return 'text-[#BE123C] bg-[rgba(224,30,90,0.08)]'
+  if (step.status === 'denied') return 'text-[#B45309] bg-[rgba(210,153,34,0.1)]'
+  if (step.status === 'running') return 'text-[#B45309] bg-[rgba(217,119,87,0.08)]'
+  return 'text-[#15803D] bg-[rgba(34,197,94,0.1)]'
+}
+
+function hasStepDetail(step: ThinkingStep) {
+  return Boolean(
+    step.detail?.text
+      || step.detail?.input
+      || step.detail?.output
+      || step.detail?.error
+      || step.detail?.metadata,
+  )
+}
+
+function ProjectCards({ projects }: { projects: ProjectCardPayload[] }) {
+  const intl = useIntl()
+  const navigate = useNavigate()
 
   return (
-    <div className={`overflow-hidden rounded-2xl border ${tones[tone]}`}>
+    <div className="grid gap-3">
+      {projects.map(project => (
+        <button
+          key={project.id}
+          type="button"
+          onClick={() => navigate(project.href)}
+          className="w-full rounded-xl border border-[rgba(31,30,29,0.12)] bg-white px-4 py-3 text-left shadow-[rgba(0,0,0,0.03)_0px_4px_18px_0px] transition-colors hover:border-[rgba(31,30,29,0.22)] hover:bg-[#FCFBF8]"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[15px] leading-6 text-[#1F1E1D]">{project.name}</div>
+              <div className="mt-0.5 line-clamp-2 text-[13px] leading-5 text-[#73726C]">
+                {project.description || intl.formatMessage({ id: 'modules.aiChat.projects.noDescription', defaultMessage: 'No description provided.' })}
+              </div>
+            </div>
+            <ChevronRight className="mt-1 h-4 w-4 flex-shrink-0 text-[#73726C]" />
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function TimelineStepRow({ step }: { step: ThinkingStep }) {
+  const [open, setOpen] = useState(false)
+  const expandable = hasStepDetail(step)
+  const duration = formatDuration(step.startedAt, step.endedAt)
+
+  return (
+    <div className="py-1">
       <button
         type="button"
-        onClick={() => setOpen(prev => !prev)}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[rgba(31,30,29,0.03)]"
+        onClick={() => expandable && setOpen(current => !current)}
+        className={`flex w-full items-start gap-2 rounded-md px-0 py-1 text-left ${expandable ? 'cursor-pointer hover:bg-[rgba(31,30,29,0.025)]' : 'cursor-default'}`}
       >
-        <div className="mt-0.5 flex-shrink-0">{icon}</div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <div className="text-[13px] font-medium leading-5 text-[#1F1E1D]">{title}</div>
-            {badge ? (
-              <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#73726C]">
-                {badge}
-              </span>
-            ) : null}
-          </div>
-          {description ? (
-            <div className="truncate text-[12px] leading-5 text-[#73726C]">{description}</div>
-          ) : null}
+        <div className="mt-[3px] flex h-4 w-4 flex-shrink-0 items-center justify-center">
+          {expandable ? (
+            <ChevronRight className={`h-3.5 w-3.5 text-[#8A877F] transition-transform ${open ? 'rotate-90' : ''}`} />
+          ) : (
+            <span className="h-3.5 w-3.5" />
+          )}
         </div>
-        <ChevronRight
-          className={`mt-0.5 h-4 w-4 flex-shrink-0 text-[#73726C] transition-transform ${open ? 'rotate-90' : ''}`}
-        />
+        <div className="mt-[3px] flex h-4 w-4 flex-shrink-0 items-center justify-center">
+          {stepIcon(step)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-5">
+            <span className="text-[#1F1E1D]">{step.summary}</span>
+            {step.toolName ? <span className="text-[#73726C]">{step.toolName}</span> : null}
+            <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${statusTone(step)}`}>
+              {statusText(step)}
+            </span>
+            {duration ? <span className="text-[11px] text-[#8A877F]">{duration}</span> : null}
+          </div>
+        </div>
       </button>
-      {open ? <div className="border-t border-[rgba(31,30,29,0.08)] px-4 py-3">{children}</div> : null}
+
+      {expandable && open ? (
+        <div className="ml-10 mt-1.5 space-y-2 rounded-lg bg-[rgba(31,30,29,0.03)] px-3 py-2.5">
+          {step.detail?.text ? (
+            <div className="whitespace-pre-wrap break-words text-[12px] leading-5 text-[#4B4A45]">
+              {step.detail.text}
+            </div>
+          ) : null}
+          <JsonBlock label="Input" value={step.detail?.input} />
+          <JsonBlock label="Output" value={step.detail?.output} />
+          {step.detail?.error ? (
+            <div className="text-[12px] leading-5 text-[#BE123C]">{step.detail.error}</div>
+          ) : null}
+          <JsonBlock label="Metadata" value={step.detail?.metadata} />
+        </div>
+      ) : null}
     </div>
   )
 }
 
 export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
   const intl = useIntl()
-  const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
 
   const handleCopy = useCallback(
@@ -104,6 +186,11 @@ export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
     [],
   )
 
+  const timeLabel = useMemo(
+    () => new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    [item.timestamp],
+  )
+
   if (item.type === 'user_message') {
     return (
       <div className="flex justify-end gap-4 px-6 py-5 animate-[fadeIn_0.3s_ease-out]">
@@ -114,9 +201,7 @@ export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
             </p>
           </div>
           <div className="mt-1.5 flex justify-end">
-            <span className="text-[11px] text-[#73726C]">
-              {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
+            <span className="text-[11px] text-[#73726C]">{timeLabel}</span>
           </div>
         </div>
         <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#3D3D3A]">
@@ -126,150 +211,43 @@ export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
     )
   }
 
-  const renderBody = () => {
-    if (item.type === 'assistant_message') {
-      const isStreaming = item.status === 'streaming'
-      const statusLabel =
-        item.status === 'error' ? 'Response interrupted by error'
-          : item.status === 'stopped' ? 'Response stopped'
-            : null
-
-      return (
-        <div className="text-[15px] leading-[24px] text-[#1F1E1D]">
-          {contentBlock(item.content)}
-          {isStreaming ? (
-            <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-[#D97757] align-middle" />
-          ) : null}
-          {statusLabel ? (
-            <div className="mt-3 text-[12px] leading-5 text-[#8A4B2F]">{statusLabel}</div>
-          ) : null}
-        </div>
-      )
-    }
-
-    if (item.type === 'project_list') {
-      return (
-        <div className="space-y-3">
-          <div className="text-[13px] font-medium uppercase tracking-[0.08em] text-[#73726C]">
-            {item.title}
-          </div>
-          <div className="grid gap-3">
-            {item.projects.map(project => {
-              const statusTone =
-                project.status === 'completed'
-                  ? 'border-[rgba(16,185,129,0.16)] bg-[#F0FDF4] text-[#15803D]'
-                  : project.status === 'on_hold' || project.status === 'on-hold'
-                    ? 'border-[rgba(210,153,34,0.2)] bg-[#FFF7ED] text-[#B45309]'
-                    : 'border-[rgba(217,119,87,0.18)] bg-[#FFF7ED] text-[#C2410C]'
-
-              return (
-                <button
-                  key={project.id}
-                  type="button"
-                  onClick={() => navigate(project.href)}
-                  className="w-full rounded-[18px] border border-[rgba(31,30,29,0.12)] bg-white p-4 text-left shadow-[rgba(0,0,0,0.04)_0px_4px_20px_0px] transition-all hover:border-[rgba(31,30,29,0.22)] hover:shadow-[rgba(0,0,0,0.08)_0px_12px_28px_0px]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[16px] font-medium leading-6 text-[#1F1E1D]">{project.name}</div>
-                      <div className="mt-1 line-clamp-2 text-[14px] leading-6 text-[#73726C]">
-                        {project.description || intl.formatMessage({ id: 'modules.aiChat.projects.noDescription', defaultMessage: 'No description provided.' })}
-                      </div>
-                    </div>
-                    <ChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#73726C]" />
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {project.status ? (
-                      <span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.04em] ${statusTone}`}>
-                        {project.status.replaceAll('_', ' ')}
-                      </span>
-                    ) : null}
-                    {project.type ? (
-                      <span className="rounded-full border border-[rgba(31,30,29,0.12)] bg-[#FAF9F5] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.04em] text-[#3D3D3A]">
-                        {project.type.replaceAll('_', ' ')}
-                      </span>
-                    ) : null}
-                    {typeof project.memberCount === 'number' ? (
-                      <span className="text-[12px] leading-5 text-[#73726C]">
-                        {intl.formatMessage(
-                          { id: 'modules.aiChat.projects.members', defaultMessage: '{count} members' },
-                          { count: project.memberCount },
-                        )}
-                      </span>
-                    ) : null}
-                    {project.updatedAt ? (
-                      <span className="text-[12px] leading-5 text-[#73726C]">
-                        {intl.formatMessage(
-                          { id: 'modules.aiChat.projects.updated', defaultMessage: 'Updated {date}' },
-                          {
-                            date: new Date(project.updatedAt).toLocaleDateString([], {
-                              month: 'short',
-                              day: '2-digit',
-                            }),
-                          },
-                        )}
-                      </span>
-                    ) : null}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )
-    }
-
-    if (item.type === 'tool_call') {
-      return (
-        <EventCard
-          icon={item.status === 'running'
-            ? <Loader2 className="h-4 w-4 animate-spin text-[#D97757]" />
-            : <Wrench className="h-4 w-4 text-[#D97757]" />}
-          badge="Tool Call"
-          title={`Calling ${item.toolName || 'tool'}`}
-          description={item.status === 'running' ? 'Tool execution started' : 'Tool call recorded'}
-          tone="neutral"
-        >
-          <JsonBlock value={item.input} />
-        </EventCard>
-      )
-    }
-
-    if (item.type === 'tool_result') {
-      const tone = item.outcome === 'success' ? 'success' : item.outcome === 'error' ? 'error' : 'neutral'
-      return (
-        <EventCard
-          icon={item.outcome === 'success'
-            ? <CheckCircle2 className="h-4 w-4 text-[#10B981]" />
-            : item.outcome === 'error'
-              ? <AlertCircle className="h-4 w-4 text-[#E01E5A]" />
-              : <Circle className="h-4 w-4 text-[#73726C]" />}
-          badge="Tool Result"
-          title={`${item.toolName || 'Tool'} completed`}
-          description={item.outcome ? `Outcome: ${item.outcome}` : 'Tool result received'}
-          tone={tone}
-        >
-          <JsonBlock value={item.result} />
-        </EventCard>
-      )
-    }
-
+  if (item.type === 'project_list') {
     return (
-      <EventCard
-        icon={item.status === 'error'
-          ? <AlertCircle className="h-4 w-4 text-[#E01E5A]" />
-          : <Sparkles className="h-4 w-4 text-[#73726C]" />}
-        badge={item.status === 'error' ? 'Error' : 'Event'}
-        title={item.title}
-        description={item.description}
-        tone={item.status === 'error' ? 'error' : 'neutral'}
-      />
+      <div className="flex justify-start gap-4 px-6 py-4 animate-[fadeIn_0.3s_ease-out]">
+        <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#D97757]">
+          <Bot className="h-3.5 w-3.5 text-white" />
+        </div>
+        <div className="min-w-0 max-w-[85%] space-y-3">
+          <div className="text-[13px] leading-5 text-[#73726C]">{item.title}</div>
+          <ProjectCards projects={item.projects} />
+          <div className="text-[11px] text-[#73726C]">{timeLabel}</div>
+        </div>
+      </div>
     )
   }
 
-  const contentForCopy = item.type === 'assistant_message' ? item.content : ''
-  const canCopy = item.type === 'assistant_message' && item.content
-  const canRegenerate = item.type === 'assistant_message' && item.status === 'completed' && onRegenerate
+  if (item.type === 'system_event') {
+    return (
+      <div className="flex justify-start gap-4 px-6 py-3 animate-[fadeIn_0.3s_ease-out]">
+        <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#D97757]">
+          <Bot className="h-3.5 w-3.5 text-white" />
+        </div>
+        <div className="min-w-0 max-w-[85%] text-[13px] leading-5 text-[#73726C]">
+          <div className={item.status === 'error' ? 'text-[#BE123C]' : 'text-[#3D3D3A]'}>{item.title}</div>
+          {item.description ? <div>{item.description}</div> : null}
+        </div>
+      </div>
+    )
+  }
+
+  const canCopy = item.content.trim().length > 0
+  const canRegenerate = item.status === 'completed' && onRegenerate
+  const statusLabel =
+    item.status === 'error'
+      ? 'Response interrupted by error'
+      : item.status === 'stopped'
+        ? 'Response stopped'
+        : null
 
   return (
     <div className="flex justify-start gap-4 px-6 py-5 animate-[fadeIn_0.3s_ease-out]">
@@ -278,17 +256,41 @@ export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
       </div>
 
       <div className="min-w-0 max-w-[85%]">
-        {renderBody()}
+        {item.steps.length > 3 ? (
+          <div className="mb-1.5 text-[12px] leading-5 text-[#73726C]">
+            Da thuc hien {item.steps.length} buoc
+          </div>
+        ) : null}
+
+        {item.steps.length > 0 ? (
+          <div className="mb-2">
+            {item.steps.map(step => (
+              <TimelineStepRow key={step.id} step={step} />
+            ))}
+          </div>
+        ) : null}
+
+        {item.content ? (
+          <div className="text-[15px] leading-[24px] text-[#1F1E1D]">
+            <MarkdownRenderer content={item.content} />
+            {item.status === 'streaming' ? (
+              <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-[#D97757] align-middle" />
+            ) : null}
+          </div>
+        ) : item.status === 'streaming' ? (
+          <div className="text-[15px] leading-[24px] text-[#73726C]">...</div>
+        ) : null}
+
+        {statusLabel ? <div className="mt-2 text-[12px] leading-5 text-[#8A4B2F]">{statusLabel}</div> : null}
 
         <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-[11px] text-[#73726C]">
-            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
+          <span className="text-[11px] text-[#73726C]">{timeLabel}</span>
           {canCopy || canRegenerate ? (
-            <div className="flex items-center gap-1 opacity-0 transition-opacity duration-200 hover:opacity-100">
+            <div className="flex items-center gap-1">
               {canCopy ? (
                 <button
-                  onClick={() => handleCopy(contentForCopy)}
+                  type="button"
+                  onClick={() => handleCopy(item.content)}
                   className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-[#73726C] transition-colors hover:bg-[rgba(31,30,29,0.04)] hover:text-[#1F1E1D]"
                   title={intl.formatMessage({ id: 'modules.aiChat.message.copy', defaultMessage: 'Copy' })}
                 >
@@ -297,6 +299,7 @@ export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
               ) : null}
               {canRegenerate ? (
                 <button
+                  type="button"
                   onClick={onRegenerate}
                   className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-[#73726C] transition-colors hover:bg-[rgba(31,30,29,0.04)] hover:text-[#1F1E1D]"
                   title={intl.formatMessage({ id: 'modules.aiChat.message.regenerate', defaultMessage: 'Regenerate' })}
@@ -310,8 +313,4 @@ export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
       </div>
     </div>
   )
-}
-
-function contentBlock(content: string) {
-  return content ? <MarkdownRenderer content={content} /> : null
 }
