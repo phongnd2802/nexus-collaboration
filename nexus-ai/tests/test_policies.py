@@ -1,12 +1,4 @@
-import pytest
-
-from nexus_ai.policies import PathPolicy, is_code_mode_eligible, is_write_tool, redact_secrets
-
-
-def test_path_policy_blocks_escape(tmp_path):
-    policy = PathPolicy(tmp_path)
-    with pytest.raises(PermissionError):
-        policy.resolve("../outside")
+from nexus_ai.policies import is_code_mode_eligible, is_write_tool, redact_secrets
 
 
 def test_tool_classification():

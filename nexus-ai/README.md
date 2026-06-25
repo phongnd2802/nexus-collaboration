@@ -33,6 +33,5 @@ Langfuse is enabled when `NEXUS_AI_ENABLE_LANGFUSE=true` and Langfuse keys are c
 
 ## Safety Defaults
 
-- Filesystem access is restricted to `.runtime/workspaces/<workspace_id>/sessions/<session_id>/files`.
 - Secrets are redacted from tool outputs.
 - MCP domain tools are accessed through `nexus-mcp`; the agent does not call the Nexus backend directly.

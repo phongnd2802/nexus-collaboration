@@ -37,7 +37,6 @@ class Settings:
     runtime_dir: Path
     sqlite_path: Path
     enable_langfuse: bool
-    filesystem_enabled: bool
     max_tool_calls: int
     max_run_seconds: int
     max_cost_usd: float
@@ -51,10 +50,6 @@ class Settings:
     @property
     def workspace_runtime_dir(self) -> Path:
         return self.runtime_dir / "workspaces" / self.workspace_id / "sessions" / self.session_id
-
-    @property
-    def filesystem_root(self) -> Path:
-        return self.workspace_runtime_dir / "files"
 
     @property
     def mcp_headers(self) -> dict[str, str]:
@@ -91,7 +86,6 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         runtime_dir=runtime_dir,
         sqlite_path=sqlite_path,
         enable_langfuse=_bool(source.get("NEXUS_AI_ENABLE_LANGFUSE"), True),
-        filesystem_enabled=_bool(source.get("NEXUS_AI_FILESYSTEM_ENABLED"), True),
         max_tool_calls=_int(source.get("NEXUS_AI_MAX_TOOL_CALLS"), 40),
         max_run_seconds=_int(source.get("NEXUS_AI_MAX_RUN_SECONDS"), 180),
         max_cost_usd=_float(source.get("NEXUS_AI_MAX_COST_USD"), 2.0),
