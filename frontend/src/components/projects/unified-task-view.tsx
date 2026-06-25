@@ -137,6 +137,7 @@ export function UnifiedTaskView({
       id: apiTask.id,
       projectId: apiTask.project_id,
       title: apiTask.title,
+      task_type: apiTask.task_type,
       description: apiTask.description,
       status: optimisticStatusChanges[apiTask.id] || apiTask.status,
       priority: apiTask.priority,

@@ -268,7 +268,7 @@ export function CreateTaskModal({
       setFormData({
         name: task.title || '',
         description: task.description || '',
-        type: task.task_type || TaskType.TASK,
+        type: (task.task_type as TaskType) || TaskType.TASK,
         status: task.status || '',
         priority: task.priority || 'medium',
         projectId: task.projectId || task.project_id || projectId || '',

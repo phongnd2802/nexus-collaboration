@@ -55,9 +55,6 @@ export class WorkspaceInvitationService {
       // Check if inviter has permission
       await this.verifyWorkspaceAdmin(workspaceId, invitedBy);
 
-      // Check workspace member limit based on subscription plan
-      await this.checkMemberLimit(workspaceId, invitedBy);
-
       // If the invited email belongs to an existing account, stop early when that user
       // is already an active workspace member.
       const existingUserResult = await this.db.raw(
@@ -501,54 +498,6 @@ export class WorkspaceInvitationService {
       }
 
       throw new BadRequestException('Failed to resend invitation');
-    }
-  }
-
-  /**
-   * Check if workspace has reached member limit.
-   * Open-source self-hosted: no plan-based limits, all workspaces unlimited.
-   */
-  private async checkMemberLimit(workspaceId: string, userId: string): Promise<void> {
-    return;
-  }
-
-  /**
-   * Validate current member count against limit
-   */
-  private async validateMemberCount(workspaceId: string, maxMembers: number): Promise<void> {
-    // Get current active members count
-    const activeMembersResult = await this.db
-      .table('workspace_members')
-      .select('*')
-      .where('workspace_id', '=', workspaceId)
-      .where('is_active', '=', true)
-      .execute();
-
-    const currentMemberCount = activeMembersResult.data?.length || 0;
-
-    // Get pending invitations count
-    const pendingInvitesResult = await this.db
-      .table('workspace_invites')
-      .select('*')
-      .where('workspace_id', '=', workspaceId)
-      .where('status', '=', 'pending')
-      .execute();
-
-    const pendingInvitesCount = pendingInvitesResult.data?.length || 0;
-
-    // Total members = active members + pending invitations
-    const totalMembers = currentMemberCount + pendingInvitesCount;
-
-    this.logger.log(
-      `Workspace ${workspaceId} member check: ${currentMemberCount} active + ${pendingInvitesCount} pending = ${totalMembers}/${maxMembers} limit`,
-    );
-
-    if (totalMembers >= maxMembers) {
-      throw new BadRequestException(
-        `Workspace member limit reached. Your current plan allows ${maxMembers} member${maxMembers === 1 ? '' : 's'}. ` +
-          `You currently have ${currentMemberCount} active member${currentMemberCount === 1 ? '' : 's'} and ${pendingInvitesCount} pending invitation${pendingInvitesCount === 1 ? '' : 's'}. ` +
-          `Please upgrade your plan to invite more members.`,
-      );
     }
   }
 

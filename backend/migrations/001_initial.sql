@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS "workspaces" (
   "website" TEXT,
   "is_active" BOOLEAN DEFAULT true,
   "owner_id" VARCHAR(255) NOT NULL,
-  "max_members" INTEGER DEFAULT 10,
   "max_storage_gb" INTEGER DEFAULT 10,
   "settings" JSONB DEFAULT '{}',
   "metadata" JSONB DEFAULT '{}',
