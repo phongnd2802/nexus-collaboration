@@ -9,6 +9,7 @@ from .code_mode import create_code_mode_capability
 from .ecosystem import create_ecosystem_capabilities
 from .mcp import create_nexus_mcp_capability
 from .reasoning import create_thinking_capability
+from .tool_search import create_tool_search_capability
 
 
 @dataclass
@@ -29,21 +30,15 @@ class CapabilityRegistry:
 def build_capabilities(settings: Settings) -> CapabilityRegistry:
     registry = CapabilityRegistry()
     registry.add("nexus-mcp", lambda: create_nexus_mcp_capability(settings))
+    registry.add("tool-search", create_tool_search_capability)
     registry.add("code-mode", create_code_mode_capability)
     registry.add("thinking", create_thinking_capability)
-    root = package_root()
     registry.add(
         "ecosystem",
-        lambda: _ecosystem_result(settings, root / "skills", root / "subagents", registry),
+        lambda: _ecosystem_result(settings, registry),
     )
     registry.capabilities = _flatten(registry.capabilities)
     return registry
-
-
-def package_root():
-    from pathlib import Path
-
-    return Path(__file__).resolve().parents[1]
 
 
 def _flatten(values: list[Any]) -> list[Any]:
@@ -56,7 +51,7 @@ def _flatten(values: list[Any]) -> list[Any]:
     return flattened
 
 
-def _ecosystem_result(settings: Settings, skills_dir, subagents_dir, registry: CapabilityRegistry) -> list[Any]:
-    capabilities, warnings = create_ecosystem_capabilities(settings, skills_dir, subagents_dir)
+def _ecosystem_result(settings: Settings, registry: CapabilityRegistry) -> list[Any]:
+    capabilities, warnings = create_ecosystem_capabilities(settings)
     registry.warnings.extend(warnings)
     return capabilities

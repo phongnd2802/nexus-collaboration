@@ -37,14 +37,12 @@ class Settings:
     runtime_dir: Path
     sqlite_path: Path
     enable_langfuse: bool
-    shell_enabled: bool
     filesystem_enabled: bool
     max_tool_calls: int
     max_run_seconds: int
     max_cost_usd: float
     enable_ecosystem_capabilities: bool
     context_max_tokens: int
-    agent_name: str
 
     @property
     def session_id(self) -> str:
@@ -93,12 +91,10 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         runtime_dir=runtime_dir,
         sqlite_path=sqlite_path,
         enable_langfuse=_bool(source.get("NEXUS_AI_ENABLE_LANGFUSE"), True),
-        shell_enabled=_bool(source.get("NEXUS_AI_SHELL_ENABLED"), True),
         filesystem_enabled=_bool(source.get("NEXUS_AI_FILESYSTEM_ENABLED"), True),
         max_tool_calls=_int(source.get("NEXUS_AI_MAX_TOOL_CALLS"), 40),
         max_run_seconds=_int(source.get("NEXUS_AI_MAX_RUN_SECONDS"), 180),
         max_cost_usd=_float(source.get("NEXUS_AI_MAX_COST_USD"), 2.0),
         enable_ecosystem_capabilities=_bool(source.get("NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES"), True),
         context_max_tokens=_int(source.get("NEXUS_AI_CONTEXT_MAX_TOKENS"), 180000),
-        agent_name=source.get("NEXUS_AI_AGENT_NAME", "nexus-ai"),
     )

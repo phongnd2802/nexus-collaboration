@@ -32,18 +32,6 @@ CREATE TABLE IF NOT EXISTS memories (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE TABLE IF NOT EXISTS todos (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  workspace_id TEXT NOT NULL,
-  session_id TEXT NOT NULL,
-  parent_id INTEGER,
-  title TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending',
-  metadata TEXT NOT NULL DEFAULT '{}',
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
 """
 
 
@@ -78,4 +66,3 @@ def decode_json(value: str | None, default: Any) -> Any:
         return json.loads(value)
     except json.JSONDecodeError:
         return default
-
