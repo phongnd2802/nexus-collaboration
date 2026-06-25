@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from dataclasses import replace
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -69,6 +70,20 @@ class Settings:
             missing.append("NEXUS_WORKSPACE_ID")
         if missing:
             raise RuntimeError(f"Missing required Nexus AI env vars: {', '.join(missing)}")
+
+    def for_request(
+        self,
+        *,
+        api_token: str,
+        workspace_id: str,
+        request_id: str | None = None,
+    ) -> "Settings":
+        return replace(
+            self,
+            api_token=api_token,
+            workspace_id=workspace_id,
+            request_id=request_id,
+        )
 
 
 def load_settings(env: dict[str, str] | None = None) -> Settings:

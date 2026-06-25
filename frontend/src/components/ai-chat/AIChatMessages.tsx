@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
 import { useIntl } from 'react-intl'
 
@@ -9,14 +9,12 @@ interface AIChatMessagesProps {
   items: AIChatTimelineItem[]
   isLoading: boolean
   onRegenerate: (messageId: string) => void
-  renderApprovalContent?: (item: AIChatTimelineItem) => React.ReactNode
 }
 
 export function AIChatMessages({
   items,
   isLoading,
   onRegenerate,
-  renderApprovalContent,
 }: AIChatMessagesProps) {
   const intl = useIntl()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -67,7 +65,6 @@ export function AIChatMessages({
           <AIChatMessage
             key={item.id}
             item={item}
-            approvalContent={renderApprovalContent?.(item)}
             onRegenerate={item.type === 'assistant_message' ? () => onRegenerate(item.id) : undefined}
           />
         ))}
