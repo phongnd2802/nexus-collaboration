@@ -1,5 +1,6 @@
 // src/lib/api/files-api.ts
 import { api } from '@/lib/fetch';
+import { ApiRequestError } from '@/lib/fetch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Types
@@ -51,6 +52,9 @@ export interface FileItem {
   open_count?: number;
   parent_ids?: string[] | null;
   parent_folder_ids?: string[];
+  ragStatus?: 'queued' | 'processing' | 'indexed' | 'failed' | 'skipped' | 'deleted' | null;
+  ragErrorMessage?: string | null;
+  ragIndexedAt?: string | null;
   shareSettings?: {
     isPublic?: boolean;
   };
@@ -141,6 +145,16 @@ export interface DashboardStats {
     name: string;
     max_storage_gb: number;
   };
+}
+
+export interface RagFileStatusResponse {
+  id?: string;
+  workspace_id?: string;
+  file_id?: string;
+  status: 'queued' | 'processing' | 'indexed' | 'failed' | 'skipped' | 'deleted';
+  error_message?: string | null;
+  indexed_at?: string | null;
+  updated_at?: string | null;
 }
 
 // Trash API Response Types
@@ -341,6 +355,7 @@ export const fileKeys = {
   recent: (workspaceId: string) => [...fileKeys.all, 'recent', workspaceId] as const,
   trash: (workspaceId: string) => [...fileKeys.all, 'trash', workspaceId] as const,
   comments: (fileId: string) => [...fileKeys.all, 'comments', fileId] as const,
+  ragStatus: (workspaceId: string, fileId: string) => [...fileKeys.all, 'rag-status', workspaceId, fileId] as const,
 };
 
 // API Functions
@@ -528,6 +543,17 @@ export const fileApi = {
 
   async getFile(workspaceId: string, fileId: string): Promise<FileItem> {
     return api.get<FileItem>(`/workspaces/${workspaceId}/files/${fileId}`);
+  },
+
+  async getRagStatus(workspaceId: string, fileId: string): Promise<RagFileStatusResponse | null> {
+    try {
+      return await api.get<RagFileStatusResponse>(`/workspaces/${workspaceId}/rag/files/${fileId}/status`);
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   },
 
   async uploadFile(workspaceId: string, data: UploadFileRequest): Promise<FileItem> {
@@ -1434,6 +1460,25 @@ export const useFile = (workspaceId: string, fileId: string) => {
     queryKey: fileKeys.detail(fileId),
     queryFn: () => fileApi.getFile(workspaceId, fileId),
     enabled: !!workspaceId && !!fileId,
+  });
+};
+
+export const useFileRagStatus = (
+  workspaceId: string,
+  fileId: string,
+  options?: {
+    enabled?: boolean;
+  }
+) => {
+  return useQuery({
+    queryKey: fileKeys.ragStatus(workspaceId, fileId),
+    queryFn: () => fileApi.getRagStatus(workspaceId, fileId),
+    enabled: options?.enabled ?? (!!workspaceId && !!fileId),
+    staleTime: 5000,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === 'queued' || status === 'processing' ? 2000 : false;
+    },
   });
 };
 

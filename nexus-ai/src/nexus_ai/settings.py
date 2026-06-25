@@ -43,6 +43,21 @@ class Settings:
     max_cost_usd: float
     enable_ecosystem_capabilities: bool
     context_max_tokens: int
+    rag_enabled: bool
+    backend_url: str
+    internal_api_key: str
+    rag_extraction_provider: str
+    rag_chunking_strategy: str
+    rag_embedding_provider: str
+    rag_embedding_model: str
+    openrouter_api_key: str
+    qdrant_url: str
+    qdrant_api_key: str
+    qdrant_document_collection: str
+    qdrant_chunk_collection: str
+    rag_parent_chunk_tokens: int
+    rag_child_chunk_tokens: int
+    rag_child_overlap_tokens: int
 
     @property
     def session_id(self) -> str:
@@ -106,4 +121,19 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         max_cost_usd=_float(source.get("NEXUS_AI_MAX_COST_USD"), 2.0),
         enable_ecosystem_capabilities=_bool(source.get("NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES"), True),
         context_max_tokens=_int(source.get("NEXUS_AI_CONTEXT_MAX_TOKENS"), 180000),
+        rag_enabled=_bool(source.get("NEXUS_RAG_ENABLED"), True),
+        backend_url=source.get("NEXUS_BACKEND_URL", source.get("NEXUS_API_BASE_URL", "http://127.0.0.1:3000/api/v1")),
+        internal_api_key=source.get("NEXUS_INTERNAL_API_KEY", source.get("NEXUS_API_KEY", "")),
+        rag_extraction_provider=source.get("NEXUS_RAG_EXTRACTION_PROVIDER", "opendataloader_pdf"),
+        rag_chunking_strategy=source.get("NEXUS_RAG_CHUNKING_STRATEGY", "document_routed_parent_child_v1"),
+        rag_embedding_provider=source.get("NEXUS_RAG_EMBEDDING_PROVIDER", "openrouter"),
+        rag_embedding_model=source.get("NEXUS_RAG_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b"),
+        openrouter_api_key=source.get("OPENROUTER_API_KEY", ""),
+        qdrant_url=source.get("QDRANT_URL", "http://127.0.0.1:6333"),
+        qdrant_api_key=source.get("QDRANT_API_KEY", ""),
+        qdrant_document_collection=source.get("QDRANT_DOCUMENT_COLLECTION", "nexus_rag_documents"),
+        qdrant_chunk_collection=source.get("QDRANT_CHUNK_COLLECTION", "nexus_rag_chunks"),
+        rag_parent_chunk_tokens=_int(source.get("NEXUS_RAG_PARENT_CHUNK_TOKENS"), 1200),
+        rag_child_chunk_tokens=_int(source.get("NEXUS_RAG_CHILD_CHUNK_TOKENS"), 280),
+        rag_child_overlap_tokens=_int(source.get("NEXUS_RAG_CHILD_OVERLAP_TOKENS"), 60),
     )
