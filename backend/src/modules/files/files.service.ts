@@ -36,6 +36,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import axios from 'axios';
+import { RagIndexingService } from '../rag/rag-indexing.service';
 
 @Injectable()
 export class FilesService {
@@ -45,6 +46,7 @@ export class FilesService {
     private notificationsService: NotificationsService,
     @Inject(forwardRef(() => AppGateway))
     private appGateway: AppGateway,
+    private readonly ragIndexingService: RagIndexingService,
   ) {}
 
   // ============================================
@@ -628,6 +630,9 @@ export class FilesService {
       };
 
       const createdFile = await this.db.insert('files', fileData);
+      void this.ragIndexingService.enqueueFileIndexing(createdFile, 'file_uploaded').catch((error) => {
+        console.error('RAG indexing enqueue error:', error);
+      });
 
       return {
         ...createdFile,
@@ -743,6 +748,9 @@ export class FilesService {
       };
 
       const createdFile = await this.db.insert('files', fileData);
+      void this.ragIndexingService.enqueueFileIndexing(createdFile, 'file_uploaded').catch((error) => {
+        console.error('RAG indexing enqueue error:', error);
+      });
 
       return {
         ...createdFile,
@@ -909,6 +917,9 @@ export class FilesService {
     const result = await this.db.update('files', fileId, {
       is_deleted: true,
       deleted_at: new Date().toISOString(),
+    });
+    void this.ragIndexingService.markFileDeleted(workspaceId, fileId).catch((error) => {
+      console.error('RAG document delete marker error:', error);
     });
 
     // TODO: In future if possible - Clean up physical file from storage (could be done asynchronously)

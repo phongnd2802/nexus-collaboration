@@ -5,9 +5,10 @@ import { ContentIndexerService } from './content-indexer.service';
 import { SearchController } from './search.controller';
 import { AuthModule } from '../auth/auth.module';
 import { SearchProviderModule } from '../search-provider/search-provider.module';
+import { RagModule } from '../rag/rag.module';
 
 @Module({
-  imports: [AuthModule, SearchProviderModule],
+  imports: [AuthModule, SearchProviderModule, RagModule],
   controllers: [SearchController],
   providers: [SearchService, SemanticSearchService, ContentIndexerService],
   exports: [SearchService, SemanticSearchService, ContentIndexerService],

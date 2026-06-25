@@ -38,6 +38,7 @@ import { GitHubModule } from './modules/integration-framework/github/github.modu
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
+import { RagModule } from './modules/rag/rag.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
     IntegrationFrameworkModule,
     WorkflowsModule,
     AgentChatModule,
+    RagModule,
   ],
   providers: [
     {
