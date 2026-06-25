@@ -1,0 +1,96 @@
+from __future__ import annotations
+
+import re
+import uuid
+
+from nexus_ai.rag.chunking.base import ChunkingStrategy
+from nexus_ai.rag.schemas import ChildChunk, ExtractedDocument, FileSource, ParentChunk
+from nexus_ai.settings import Settings
+
+
+class DocumentRoutedParentChildStrategy(ChunkingStrategy):
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
+
+    def split(self, source: FileSource, document: ExtractedDocument) -> list[ChildChunk]:
+        parents = self._parents(source, document)
+        children: list[ChildChunk] = []
+        for parent in parents:
+            child_texts = self._window(parent.text, self.settings.rag_child_chunk_tokens, self.settings.rag_child_overlap_tokens)
+            for child_text in child_texts:
+                header = self._context_header(source, parent)
+                child_index = len(children)
+                children.append(
+                    ChildChunk(
+                        child_id=self._id(source.id, parent.parent_id, child_index),
+                        parent_id=parent.parent_id,
+                        text=child_text,
+                        contextual_text=f"{header}\n\n{child_text}",
+                        parent_text=parent.text,
+                        chunk_index=child_index,
+                        heading_path=parent.heading_path,
+                        page_numbers=parent.page_numbers,
+                        metadata=parent.metadata,
+                    )
+                )
+        return children
+
+    def _parents(self, source: FileSource, document: ExtractedDocument) -> list[ParentChunk]:
+        blocks = self._blocks(document)
+        parent_texts: list[str] = []
+        current: list[str] = []
+        current_tokens = 0
+        for block in blocks:
+            tokens = self._token_count(block)
+            if current and current_tokens + tokens > self.settings.rag_parent_chunk_tokens:
+                parent_texts.append("\n\n".join(current))
+                current = []
+                current_tokens = 0
+            current.append(block)
+            current_tokens += tokens
+        if current:
+            parent_texts.append("\n\n".join(current))
+
+        return [
+            ParentChunk(
+                parent_id=self._id(source.id, "parent", index),
+                text=text,
+                page_numbers=self._page_numbers(document),
+                metadata={"strategy": self.settings.rag_chunking_strategy},
+            )
+            for index, text in enumerate(parent_texts)
+            if text.strip()
+        ]
+
+    def _blocks(self, document: ExtractedDocument) -> list[str]:
+        if document.elements:
+            return [element.content.strip() for element in document.elements if element.content.strip()]
+        return [block.strip() for block in re.split(r"\n{2,}", document.markdown or document.text) if block.strip()]
+
+    def _window(self, text: str, size: int, overlap: int) -> list[str]:
+        words = text.split()
+        if len(words) <= size:
+            return [text]
+        chunks: list[str] = []
+        step = max(1, size - overlap)
+        for start in range(0, len(words), step):
+            chunk = " ".join(words[start : start + size]).strip()
+            if chunk:
+                chunks.append(chunk)
+            if start + size >= len(words):
+                break
+        return chunks
+
+    def _context_header(self, source: FileSource, parent: ParentChunk) -> str:
+        pages = ", ".join(str(page) for page in parent.page_numbers[:5]) if parent.page_numbers else "unknown"
+        return f"File: {source.name}\nPages: {pages}\nChunking strategy: {self.settings.rag_chunking_strategy}"
+
+    def _page_numbers(self, document: ExtractedDocument) -> list[int]:
+        pages = sorted({element.page_number for element in document.elements if element.page_number is not None})
+        return pages
+
+    def _token_count(self, text: str) -> int:
+        return max(1, len(text.split()))
+
+    def _id(self, *parts: object) -> str:
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, ":".join(str(part) for part in parts)))

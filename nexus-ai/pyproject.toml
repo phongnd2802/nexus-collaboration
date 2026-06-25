@@ -12,6 +12,8 @@ dependencies = [
   "uvicorn>=0.30.0",
   "pydantic-ai-shields>=0.1.0",
   "summarization-pydantic-ai>=0.1.0",
+  "qdrant-client>=1.12.0",
+  "opendataloader-pdf>=0.1.0",
 ]
 
 [project.optional-dependencies]
