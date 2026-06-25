@@ -9,11 +9,9 @@ import {
   Copy,
   Loader2,
   RefreshCw,
-  ShieldCheck,
   Sparkles,
   User,
   Wrench,
-  XCircle,
 } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
@@ -23,7 +21,6 @@ import type { AIChatTimelineItem } from './types'
 
 interface AIChatMessageProps {
   item: AIChatTimelineItem
-  approvalContent?: React.ReactNode
   onRegenerate?: () => void
 }
 
@@ -92,7 +89,7 @@ function EventCard({
   )
 }
 
-export function AIChatMessage({ item, approvalContent, onRegenerate }: AIChatMessageProps) {
+export function AIChatMessage({ item, onRegenerate }: AIChatMessageProps) {
   const intl = useIntl()
   const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
@@ -253,39 +250,6 @@ export function AIChatMessage({ item, approvalContent, onRegenerate }: AIChatMes
           tone={tone}
         >
           <JsonBlock value={item.result} />
-        </EventCard>
-      )
-    }
-
-    if (item.type === 'approval_required') {
-      const tone = item.status === 'denied' ? 'error' : item.status === 'approved' ? 'success' : 'warning'
-      const description =
-        item.status === 'pending'
-          ? item.approval.summary || `Approve ${item.approval.toolName}?`
-          : item.status === 'approved'
-            ? 'Approval submitted. Nexus AI is applying the action.'
-            : 'Approval denied.'
-
-      return (
-        <EventCard
-          icon={item.status === 'pending'
-            ? <ShieldCheck className="h-4 w-4 text-[#D97757]" />
-            : item.status === 'approved'
-              ? <CheckCircle2 className="h-4 w-4 text-[#10B981]" />
-              : <XCircle className="h-4 w-4 text-[#E01E5A]" />}
-          badge={
-            item.status === 'pending'
-              ? 'Approval Needed'
-              : item.status === 'approved'
-                ? 'Approval Submitted'
-                : 'Approval Denied'
-          }
-          title={`Approval for ${item.approval.toolName}`}
-          description={description}
-          tone={tone}
-          defaultOpen={item.status === 'pending'}
-        >
-          {approvalContent || <JsonBlock value={item.submittedFormData || item.approval.args} />}
         </EventCard>
       )
     }

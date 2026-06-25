@@ -1,30 +1,21 @@
-import React, { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useIntl } from 'react-intl'
 import { Sparkles } from 'lucide-react'
-
-import { useWorkspaceMembers } from '@/lib/api/workspace-api'
-import { useAuth } from '@/contexts/AuthContext'
 
 import { AIChatSidebar } from './AIChatSidebar'
 import { AIChatMessages } from './AIChatMessages'
 import { AIChatInput } from './AIChatInput'
 import { AIChatEmpty } from './AIChatEmpty'
-import { AIChatApprovalContent } from './AIChatApprovalContent'
 import { ConfirmationDialog } from '@/components/shared/ConfirmationDialog'
-import type { AIChatTimelineItem } from './types'
 import { useAIChatPageState } from './useAIChatPageState'
 
 export function AIChatPage() {
   const { workspaceId, sessionId } = useParams<{ workspaceId: string; sessionId?: string }>()
   const intl = useIntl()
-  const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '')
-  const { user } = useAuth()
 
   const {
     conversations,
     activeConversationId,
-    activeApprovalItemId,
     timelineItems,
     isStreaming,
     isThinking,
@@ -37,7 +28,6 @@ export function AIChatPage() {
     hasConversation,
     handleSend,
     handleStop,
-    handleApprovalDecision,
     handleRegenerate,
     handleNewConversation,
     handleSelectConversation,
@@ -46,25 +36,6 @@ export function AIChatPage() {
     confirmDeleteConversation,
     handleRenameConversation,
   } = useAIChatPageState({ workspaceId, routeSessionId: sessionId, intl })
-
-  const renderApprovalContent = useCallback(
-    (item: AIChatTimelineItem) => {
-      if (item.type !== 'approval_required') return null
-
-      return (
-        <AIChatApprovalContent
-          item={item}
-          isActive={item.id === activeApprovalItemId}
-          isSubmitting={isStreaming}
-          members={workspaceMembers}
-          currentUserId={user?.id}
-          onApprove={formData => handleApprovalDecision('approve', formData)}
-          onDeny={() => handleApprovalDecision('deny')}
-        />
-      )
-    },
-    [activeApprovalItemId, isStreaming, workspaceMembers, user?.id, handleApprovalDecision],
-  )
 
   const showSidebar = conversations.length > 0 || isLoadingSessions
 
@@ -124,7 +95,6 @@ export function AIChatPage() {
               items={timelineItems}
               isLoading={isHydratingSession && timelineItems.length === 0}
               onRegenerate={handleRegenerate}
-              renderApprovalContent={renderApprovalContent}
             />
             {isThinking && (
               <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 py-4">

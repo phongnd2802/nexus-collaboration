@@ -1,15 +1,24 @@
-import type { ApprovalRequiredEvent, ProjectCardPayload } from '@/lib/api/ai-chat-api'
-
 export interface ThinkingStep {
   id: string
   title: string
   description?: string
   status: 'pending' | 'running' | 'completed' | 'error'
   tool?: string
-  eventType?: 'tool_call' | 'tool_result' | 'approval_required'
+  eventType?: 'tool_call' | 'tool_result'
   input?: Record<string, any>
   result?: Record<string, any>
   outcome?: string
+}
+
+export interface ProjectCardPayload {
+  id: string
+  name: string
+  description?: string
+  status?: string
+  type?: string
+  updatedAt?: string
+  memberCount?: number
+  href: string
 }
 
 interface TimelineItemBase {
@@ -49,13 +58,6 @@ export interface ToolResultItem extends TimelineItemBase {
   status: 'completed' | 'error'
 }
 
-export interface ApprovalRequiredItem extends TimelineItemBase {
-  type: 'approval_required'
-  approval: ApprovalRequiredEvent
-  status: 'pending' | 'approved' | 'denied'
-  submittedFormData?: Record<string, any>
-}
-
 export interface SystemEventItem extends TimelineItemBase {
   type: 'system_event'
   title: string
@@ -69,5 +71,4 @@ export type AIChatTimelineItem =
   | ProjectListItem
   | ToolCallItem
   | ToolResultItem
-  | ApprovalRequiredItem
   | SystemEventItem

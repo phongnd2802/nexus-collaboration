@@ -11,6 +11,11 @@ npm run migrate
 npm run start:dev
 ```
 
+AI chat proxy:
+
+- Set `NEXUS_AI_BASE_URL` to the Nexus AI Service URL, for example `http://127.0.0.1:8000`.
+- Frontend `/ai-chat` calls `/api/v1/agent-chat/*`; this backend validates auth/workspace and streams the Nexus AI response.
+
 ## Tech Stack
 
 - **NestJS 11** with TypeScript

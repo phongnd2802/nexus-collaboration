@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { Square, Paperclip, X, ArrowUp, Zap, Brain, Sparkles, ChevronDown, Check } from 'lucide-react'
 import { useIntl } from 'react-intl'
-import type { ReactNode } from 'react'
 
 interface AttachedFile {
   id: string
@@ -15,7 +14,6 @@ interface AIChatInputProps {
   isStreaming: boolean
   model: string
   onModelChange: (modelId: string) => void
-  approvalContent?: ReactNode
   disabled?: boolean
   value?: string
   onChange?: (value: string) => void
@@ -97,7 +95,6 @@ export function AIChatInput({
   isStreaming,
   model,
   onModelChange,
-  approvalContent,
   disabled,
   value: externalValue,
   onChange,
@@ -224,11 +221,6 @@ export function AIChatInput({
       )}
 
       <div className="max-w-3xl mx-auto px-4 py-3">
-        {approvalContent && (
-          <div className="mb-2 animate-[fadeIn_0.2s_ease-out]">
-            {approvalContent}
-          </div>
-        )}
         <div className="rounded-2xl border border-[rgba(31,30,29,0.15)] bg-white shadow-[rgba(0,0,0,0.04)_0px_4px_20px_0px] transition-shadow focus-within:border-[#1F1E1D] focus-within:shadow-[0_0_0_3px_rgba(31,30,29,0.1)]">
           <textarea
             ref={textareaRef}

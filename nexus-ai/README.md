@@ -3,6 +3,7 @@
 Standalone Nexus AI agent runtime for local development and capability testing.
 
 It connects to `nexus-mcp` over Streamable HTTP and exposes the Pydantic AI web test interface through `agent.to_web()`.
+For Nexus app integration, the NestJS backend proxies `/api/v1/agent-chat/*` to this service.
 
 ## Run
 
@@ -28,6 +29,14 @@ Required env:
 Default model:
 
 - `openrouter:openai/gpt-4o-mini`
+
+Production routes:
+
+- `/agent-chat/ui/workspaces/{workspace_id}/chat/completions`
+- `/agent-chat/workspaces/{workspace_id}/sessions`
+- `/agent-chat/workspaces/{workspace_id}/sessions/{session_id}`
+
+The local Pydantic AI web test UI is mounted at `/web` when `NEXUS_API_TOKEN` and `NEXUS_WORKSPACE_ID` are configured.
 
 Langfuse is enabled when `NEXUS_AI_ENABLE_LANGFUSE=true` and Langfuse keys are configured.
 
