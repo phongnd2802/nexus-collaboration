@@ -76,22 +76,6 @@ export interface UpdateNoteRequest {
   };
 }
 
-export interface MergeNotesRequest {
-  note_ids: string[];
-  title: string;
-  include_headers?: boolean;
-  add_dividers?: boolean;
-  sort_by_date?: boolean;
-}
-
-export interface MergeNotesResponse {
-  id: string;
-  title: string;
-  content: any;
-  merged_note_ids: string[];
-  created_at: string;
-}
-
 export interface CreateFolderRequest {
   name: string;
   parentId?: string;
@@ -213,10 +197,6 @@ export const notesApi = {
       console.error('❌ Duplicate Note API Error:', error);
       throw error;
     }
-  },
-
-  async mergeNotes(workspaceId: string, data: MergeNotesRequest): Promise<MergeNotesResponse> {
-    return api.post<MergeNotesResponse>(`/workspaces/${workspaceId}/notes/merge`, data);
   },
 
   // Folders

@@ -19,7 +19,6 @@ import {
   SharePermission,
   UpdateSharePermissionDto,
   NotePermissionRequestDto,
-  MergeNotesDto,
   BulkDeleteDto,
   DuplicateNoteDto,
   BulkArchiveDto,
@@ -1178,119 +1177,6 @@ export class NotesService {
           (n.tags && n.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm))),
       );
     }
-  }
-
-  async mergeNotes(workspaceId: string, mergeNotesDto: MergeNotesDto, userId: string) {
-    const { note_ids, title, include_headers, add_dividers, sort_by_date } = mergeNotesDto;
-
-    // Fetch all notes
-    const notesPromises = note_ids.map((noteId) =>
-      this.db
-        .table('notes')
-        .select('*')
-        .where('id', '=', noteId)
-        .where('workspace_id', '=', workspaceId)
-        .limit(1)
-        .execute(),
-    );
-
-    const notesResults = await Promise.all(notesPromises);
-
-    // Extract and validate notes
-    const notes = [];
-    for (let i = 0; i < notesResults.length; i++) {
-      const noteData = Array.isArray(notesResults[i].data) ? notesResults[i].data : [];
-
-      if (noteData.length === 0 || noteData[0]?.deleted_at) {
-        throw new NotFoundException(`Note with ID ${note_ids[i]} not found`);
-      }
-
-      const note = noteData[0];
-
-      // Check access permissions
-      if (!this.canAccessNote(note, userId)) {
-        throw new BadRequestException(`You don't have access to note: ${note.title}`);
-      }
-
-      notes.push(note);
-    }
-
-    // Sort notes by creation date if requested (oldest first)
-    if (sort_by_date) {
-      notes.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    }
-
-    // Build merged content
-    const mergedContentParts: string[] = [];
-    const allTags = new Set<string>();
-
-    for (let i = 0; i < notes.length; i++) {
-      const note = notes[i];
-
-      // Add note header if requested
-      if (include_headers) {
-        const createdDate = new Date(note.created_at).toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
-        const headerHtml = `
-          <div style="margin-bottom: 20px; padding: 10px; background-color: #f5f5f5; border-left: 4px solid #007bff;">
-            <h3 style="margin: 0 0 5px 0;">${note.title}</h3>
-            <p style="margin: 0; font-size: 0.9em; color: #666;">
-              Created: ${createdDate} | Author: ${note.created_by}
-            </p>
-          </div>
-        `;
-        mergedContentParts.push(headerHtml);
-      }
-
-      // Add note content
-      mergedContentParts.push(note.content);
-
-      // Collect tags
-      if (note.tags && Array.isArray(note.tags)) {
-        note.tags.forEach((tag) => allTags.add(tag));
-      }
-
-      // Add divider between notes (except after the last note)
-      if (add_dividers && i < notes.length - 1) {
-        mergedContentParts.push(
-          '<hr style="margin: 30px 0; border: none; border-top: 2px solid #ddd;" />',
-        );
-      }
-    }
-
-    // Create the merged note
-    const mergedNoteData = {
-      workspace_id: workspaceId,
-      title: title || 'Merged Note',
-      content: mergedContentParts.join('\n\n'),
-      content_text: null,
-      created_by: userId,
-      author_id: userId,
-      tags: Array.from(allTags),
-      is_public: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const mergedNote = await this.db.insert('notes', mergedNoteData);
-
-    return {
-      ...mergedNote,
-      merged_count: notes.length,
-      source_note_titles: notes.map((n) => n.title),
-      merged_from_ids: note_ids,
-      merge_options: {
-        include_headers,
-        add_dividers,
-        sort_by_date,
-      },
-    };
   }
 
   // Helper methods

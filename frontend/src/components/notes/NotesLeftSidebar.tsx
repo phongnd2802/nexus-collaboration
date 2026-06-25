@@ -25,7 +25,6 @@ import {
   Copy,
   Share,
   Undo2,
-  GitMerge,
   Loader2,
   Upload
 } from 'lucide-react'
@@ -41,6 +40,14 @@ import { Checkbox } from '../ui/checkbox'
 interface NotesLeftSidebarProps {
   onCreateNote?: (parentId?: string) => void
   onImport?: () => void
+}
+
+// Returns true only when we can confirm the current user created the note.
+// Fail-closed: missing userId or missing owner info => not the owner.
+function isNoteOwner(note: Note | null | undefined, userId?: string): boolean {
+  if (!note || !userId) return false
+  const ownerId = (note as any).author?.id ?? (note as any).author_id ?? (note as any).created_by
+  return !!ownerId && ownerId === userId
 }
 
 // NotesTree component matching original design
@@ -266,8 +273,9 @@ function NotesTree({
 
               {/* Actions Menu */}
               {(() => {
-                const noteOwnerId = (note as any).author_id || (note as any).created_by
-                const isOwner = !currentUserId || !noteOwnerId || currentUserId === noteOwnerId
+                const noteOwnerId = (note as any).author?.id ?? (note as any).author_id ?? (note as any).created_by
+                // Fail-closed: only treat as owner when we can confirm the user created the note.
+                const isOwner = !!currentUserId && !!noteOwnerId && currentUserId === noteOwnerId
                 return (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -281,13 +289,15 @@ function NotesTree({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation()
-                        handleAction('favorite', note.id)
-                      }}>
-                        <Star className="h-4 w-4 mr-2" />
-                        {note.isFavorite ? intl.formatMessage({ id: 'modules.notes.leftSidebar.removeFavorites' }) : intl.formatMessage({ id: 'modules.notes.leftSidebar.addFavorites' })}
-                      </DropdownMenuItem>
+                      {!note.isDeleted && (
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation()
+                          handleAction('favorite', note.id)
+                        }}>
+                          <Star className="h-4 w-4 mr-2" />
+                          {note.isFavorite ? intl.formatMessage({ id: 'modules.notes.leftSidebar.removeFavorites' }) : intl.formatMessage({ id: 'modules.notes.leftSidebar.addFavorites' })}
+                        </DropdownMenuItem>
+                      )}
                       {isOwner && (
                         <>
                           <DropdownMenuItem onClick={(e) => {
@@ -1005,7 +1015,13 @@ export function NotesLeftSidebar({
         </div>
         
         {/* Bulk Actions Section */}
-        {selectedNotes.length > 0 && (
+        {selectedNotes.length > 0 && (() => {
+          const selectedNoteObjs = selectedNotes
+            .map(id => storeNotes.find(n => n.id === id))
+            .filter((n): n is Note => Boolean(n))
+          const allSelectedDeleted = selectedNoteObjs.length > 0 && selectedNoteObjs.every(n => n.isDeleted)
+          const allSelectedOwned = selectedNoteObjs.every(n => isNoteOwner(n, user?.id))
+          return (
           <div className="mt-3 p-2 bg-muted/30 rounded-md">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-muted-foreground">
@@ -1019,67 +1035,58 @@ export function NotesLeftSidebar({
               </button>
             </div>
             <div className="flex flex-wrap gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs"
-                onClick={() => {
-                  // Trigger merge in parent component
-                  const event = new CustomEvent('bulkActionFromSidebar', {
-                    detail: { action: 'merge', selectedNotes }
-                  })
-                  window.dispatchEvent(event)
-                }}
-                disabled={selectedNotes.length < 2}
-              >
-                <GitMerge className="h-3 w-3 mr-1" />
-                {intl.formatMessage({ id: 'modules.notes.leftSidebar.merge' })}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs"
-                onClick={() => {
-                  const event = new CustomEvent('bulkActionFromSidebar', {
-                    detail: { action: 'favorite', selectedNotes }
-                  })
-                  window.dispatchEvent(event)
-                }}
-              >
-                <Star className="h-3 w-3 mr-1" />
-                {intl.formatMessage({ id: 'modules.notes.leftSidebar.favorite' })}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs"
-                onClick={() => {
-                  const event = new CustomEvent('bulkActionFromSidebar', {
-                    detail: { action: 'archive', selectedNotes }
-                  })
-                  window.dispatchEvent(event)
-                }}
-              >
-                <Archive className="h-3 w-3 mr-1" />
-                {intl.formatMessage({ id: 'modules.notes.leftSidebar.archive' })}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs text-red-600"
-                onClick={() => {
-                  const event = new CustomEvent('bulkActionFromSidebar', {
-                    detail: { action: 'delete', selectedNotes }
-                  })
-                  window.dispatchEvent(event)
-                }}
-              >
-                <Trash2 className="h-3 w-3 mr-1" />
-                {intl.formatMessage({ id: 'modules.notes.leftSidebar.delete' })}
-              </Button>
+              {!allSelectedDeleted && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    const event = new CustomEvent('bulkActionFromSidebar', {
+                      detail: { action: 'favorite', selectedNotes }
+                    })
+                    window.dispatchEvent(event)
+                  }}
+                >
+                  <Star className="h-3 w-3 mr-1" />
+                  {intl.formatMessage({ id: 'modules.notes.leftSidebar.favorite' })}
+                </Button>
+              )}
+              {!allSelectedDeleted && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    const event = new CustomEvent('bulkActionFromSidebar', {
+                      detail: { action: 'archive', selectedNotes }
+                    })
+                    window.dispatchEvent(event)
+                  }}
+                >
+                  <Archive className="h-3 w-3 mr-1" />
+                  {intl.formatMessage({ id: 'modules.notes.leftSidebar.archive' })}
+                </Button>
+              )}
+              {allSelectedOwned && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-red-600"
+                  onClick={() => {
+                    const event = new CustomEvent('bulkActionFromSidebar', {
+                      detail: { action: 'delete', selectedNotes }
+                    })
+                    window.dispatchEvent(event)
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  {intl.formatMessage({ id: 'modules.notes.leftSidebar.delete' })}
+                </Button>
+              )}
             </div>
           </div>
-        )}
+          )
+        })()}
       </div>
 
       {/* Main Content */}

@@ -3073,7 +3073,6 @@
         "searchPlaceholder": "Tìm kiếm ghi chú...",
         "selected": "đã chọn",
         "clear": "Xóa",
-        "merge": "Hợp nhất",
         "favorite": "Yêu thích",
         "archive": "Lưu trữ",
         "delete": "Xóa",
@@ -3294,26 +3293,6 @@
         "permissionChangedTitle": "Quyền đã thay đổi",
         "permissionChangedDesc": "Bạn không còn quyền chỉnh sửa ghi chú này."
       },
-      "mergeDialog": {
-        "mergeNotes": "Hợp nhất ghi chú",
-        "description": "Kết hợp {count} ghi chú đã chọn thành một. Chọn cách bạn muốn hợp nhất.",
-        "notesToMerge": "Ghi chú cần hợp nhất",
-        "blocks": "khối",
-        "mergeOptions": "Tùy chọn hợp nhất",
-        "includeHeaders": "Bao gồm tiêu đề và siêu dữ liệu ghi chú",
-        "addDividers": "Thêm đường phân cách giữa các ghi chú",
-        "sortByDate": "Sắp xếp theo ngày tạo (cũ nhất trước)",
-        "customTitle": "Tiêu đề tùy chỉnh (tùy chọn)",
-        "titlePlaceholder": "Ghi chú hợp nhất ({count} ghi chú)",
-        "mergeSummary": "Tóm tắt hợp nhất",
-        "totalBlocks": "Tổng khối nội dung:",
-        "uniqueTags": "Thẻ duy nhất:",
-        "tagsToInclude": "Thẻ cần bao gồm:",
-        "moreCount": "+{count} khác",
-        "cancel": "Hủy",
-        "merge": "Hợp nhất ghi chú",
-        "invalidDate": "Ngày không hợp lệ"
-      },
       "fileImport": {
         "importContent": "Nhập nội dung",
         "chooseImportMethod": "Chọn cách bạn muốn nhập nội dung vào ghi chú mới.",
@@ -3371,7 +3350,6 @@
         "unfavorite": "Bỏ yêu thích",
         "archive": "Lưu trữ",
         "unarchive": "Khôi phục khỏi lưu trữ",
-        "merge": "Hợp nhất",
         "moveToTrash": "Chuyển vào thùng rác"
       },
       "notesView": {

@@ -3077,7 +3077,6 @@
         "searchPlaceholder": "Search notes...",
         "selected": "selected",
         "clear": "Clear",
-        "merge": "Merge",
         "favorite": "Favorite",
         "archive": "Archive",
         "delete": "Delete",
@@ -3298,26 +3297,6 @@
         "permissionChangedTitle": "Permission changed",
         "permissionChangedDesc": "You can no longer edit this note."
       },
-      "mergeDialog": {
-        "mergeNotes": "Merge Notes",
-        "description": "Combine {count} selected notes into a single note. Choose how you want to merge them.",
-        "notesToMerge": "Notes to merge",
-        "blocks": "blocks",
-        "mergeOptions": "Merge options",
-        "includeHeaders": "Include note headers and metadata",
-        "addDividers": "Add dividers between notes",
-        "sortByDate": "Sort by creation date (oldest first)",
-        "customTitle": "Custom title (optional)",
-        "titlePlaceholder": "Merged Note ({count} notes)",
-        "mergeSummary": "Merge Summary",
-        "totalBlocks": "Total content blocks:",
-        "uniqueTags": "Unique tags:",
-        "tagsToInclude": "Tags to include:",
-        "moreCount": "+{count} more",
-        "cancel": "Cancel",
-        "merge": "Merge Notes",
-        "invalidDate": "Invalid date"
-      },
       "fileImport": {
         "importContent": "Import Content",
         "chooseImportMethod": "Choose how you want to import content into a new note.",
@@ -3375,7 +3354,6 @@
         "unfavorite": "Unfavorite",
         "archive": "Archive",
         "unarchive": "Unarchive",
-        "merge": "Merge",
         "moveToTrash": "Move to Trash"
       },
       "notesView": {

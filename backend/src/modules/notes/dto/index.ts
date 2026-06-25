@@ -1,7 +1,6 @@
 export { CreateNoteDto, NoteAttachmentsDto } from './create-note.dto';
 export { UpdateNoteDto } from './update-note.dto';
 export { ShareNoteDto, SharePermission, UpdateSharePermissionDto, NotePermissionRequestDto, RespondPermissionChangeDto } from './share-note.dto';
-export { MergeNotesDto } from './merge-notes.dto';
 export { BulkDeleteDto } from './bulk-delete.dto';
 export { DuplicateNoteDto } from './duplicate-note.dto';
 export { BulkArchiveDto } from './bulk-archive.dto';
