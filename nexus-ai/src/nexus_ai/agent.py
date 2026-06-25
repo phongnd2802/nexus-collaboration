@@ -7,7 +7,6 @@ from pydantic_ai import RunContext
 
 from nexus_ai.capabilities import build_capabilities
 from nexus_ai.capabilities.context import current_time_instruction, memory_instruction
-from nexus_ai.capabilities.filesystem import create_filesystem_tools
 from nexus_ai.capabilities.observability import instrument_pydantic_ai
 from nexus_ai.capabilities.shields import validate_user_input
 from nexus_ai.settings import Settings, load_settings
@@ -19,8 +18,7 @@ You are Nexus AI, an agent for a Nexus Collaboration workspace.
 
 Use Nexus MCP tools for workspace data and actions. Do not claim that a workspace
 change happened unless a tool result confirms it. Prefer read-only exploration
-before taking action. Use the sandbox filesystem only for local drafts,
-calculations, or temporary artifacts. Never expose secrets.
+before taking action. Never expose secrets.
 """
 
 
@@ -40,7 +38,6 @@ class NexusAgentRuntime:
 def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
     settings = settings or load_settings()
     settings.validate_for_runtime()
-    settings.filesystem_root.mkdir(parents=True, exist_ok=True)
 
     store = SQLiteStore(settings.sqlite_path)
     store.initialize()
@@ -120,29 +117,6 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         """Validate user input against local Nexus AI shield rules."""
         validate_user_input(prompt)
         return {"status": "accepted"}
-
-    if settings.filesystem_enabled:
-        filesystem_tools = create_filesystem_tools(settings)
-
-        @agent.tool_plain
-        def list_sandbox_files(path: str = ".") -> list[str]:
-            """List files in the current session filesystem sandbox."""
-            return filesystem_tools.list_files(path)
-
-        @agent.tool_plain
-        def read_sandbox_file(path: str, max_chars: int = 20000) -> str:
-            """Read a UTF-8 text file from the current session filesystem sandbox."""
-            return filesystem_tools.read_file(path, max_chars)
-
-        @agent.tool_plain
-        def write_sandbox_file(path: str, content: str) -> dict[str, str]:
-            """Write a UTF-8 text file inside the current session filesystem sandbox."""
-            return filesystem_tools.write_file(path, content)
-
-        @agent.tool_plain
-        def search_sandbox_files(query: str, path: str = ".") -> list[dict[str, str | int]]:
-            """Search text files in the current session filesystem sandbox."""
-            return filesystem_tools.search_files(query, path)
 
     return NexusAgentRuntime(agent=agent, deps=deps, capability_warnings=capability_registry.warnings)
 

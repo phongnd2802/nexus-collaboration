@@ -1,16 +1,7 @@
 from nexus_ai.agent import build_runtime
+from nexus_ai.capabilities.tool_preparation import prepare_tool_definition
 from nexus_ai.settings import load_settings
-from nexus_ai.policies import PathPolicy
-from nexus_ai.tools import LocalFilesystemTools
-
-
-def test_filesystem_tools_are_sandboxed(tmp_path):
-    tools = LocalFilesystemTools(PathPolicy(tmp_path))
-    tools.write_file("drafts/report.md", "hello")
-
-    assert tools.read_file("drafts/report.md") == "hello"
-    assert "drafts" in tools.list_files(".")
-    assert tools.search_files("hello")[0]["path"] == "drafts/report.md"
+from pydantic_ai.tools import ToolDefinition
 
 
 def test_runtime_uses_minimal_deps(tmp_path):
@@ -30,3 +21,14 @@ def test_runtime_uses_minimal_deps(tmp_path):
     assert runtime.deps.settings is settings
     assert runtime.deps.memory is not None
     assert runtime.agent.output_type is str
+
+
+def test_mcp_tools_are_marked_for_deferred_loading():
+    mcp_tool = ToolDefinition(name="nexus_list_notes")
+    local_tool = ToolDefinition(name="list_memories")
+
+    prepared_mcp_tool = prepare_tool_definition(mcp_tool)
+    prepared_local_tool = prepare_tool_definition(local_tool)
+
+    assert prepared_mcp_tool.defer_loading is True
+    assert prepared_local_tool.defer_loading is False

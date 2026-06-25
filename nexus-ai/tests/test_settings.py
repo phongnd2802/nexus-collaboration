@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from nexus_ai.settings import load_settings
 
 
@@ -20,5 +18,4 @@ def test_load_settings_from_env():
     assert settings.model == "openrouter:test"
     assert settings.workspace_id == "workspace"
     assert settings.session_id == "request"
-    assert settings.filesystem_root == Path(".runtime-test/workspaces/workspace/sessions/request/files")
     assert settings.mcp_headers["X-Nexus-Workspace-ID"] == "workspace"
