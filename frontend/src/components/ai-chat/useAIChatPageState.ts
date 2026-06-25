@@ -33,7 +33,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
   const [conversations, setConversations] = useState<LocalConversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
-  const [isThinking, setIsThinking] = useState(false)
   const [isHydratingSession, setIsHydratingSession] = useState(false)
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
@@ -42,6 +41,8 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
 
   const abortRef = useRef<AbortController | null>(null)
   const currentAssistantItemIdRef = useRef<string | null>(null)
+  const currentConversationIdRef = useRef<string | null>(null)
+  const currentAssistantContentRef = useRef('')
   const hydrateRequestRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -53,17 +54,18 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     setConversations([])
     setActiveConversationId(null)
     setIsStreaming(false)
-    setIsThinking(false)
     setIsHydratingSession(false)
     setDeleteConversationDialog(null)
     currentAssistantItemIdRef.current = null
+    currentConversationIdRef.current = null
+    currentAssistantContentRef.current = ''
     hydrateRequestRef.current = null
     abortRef.current?.abort()
     abortRef.current = null
   }, [workspaceId])
 
   const activeConversation = conversations.find(item => item.id === activeConversationId) || null
-  const timelineItems = activeConversation?.items || []
+  const timelineItems = useMemo(() => activeConversation?.items || [], [activeConversation])
 
   const updateConversation = useCallback(
     (conversationId: string, updater: (conversation: LocalConversation) => LocalConversation) => {
@@ -94,6 +96,17 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
         nextItems[index] = merge ? merge(nextItems[index]) : factory()
         return { ...conversation, items: nextItems, updatedAt: createTimestamp() }
       })
+    },
+    [updateConversation],
+  )
+
+  const replaceConversationItems = useCallback(
+    (conversationId: string, items: AIChatTimelineItem[]) => {
+      updateConversation(conversationId, conversation => ({
+        ...conversation,
+        items,
+        updatedAt: createTimestamp(),
+      }))
     },
     [updateConversation],
   )
@@ -136,16 +149,48 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       if (currentAssistantItemIdRef.current) return currentAssistantItemIdRef.current
       const itemId = `assistant-${Date.now()}-${crypto.randomUUID()}`
       currentAssistantItemIdRef.current = itemId
+      currentConversationIdRef.current = conversationId
       appendItem(conversationId, {
         id: itemId,
         type: 'assistant_message',
         content: '',
         status: 'streaming',
+        steps: [],
         timestamp: createTimestamp(),
       })
       return itemId
     },
     [appendItem],
+  )
+
+  const upsertAssistantStep = useCallback(
+    (conversationId: string, step: ThinkingStep) => {
+      const itemId = ensureAssistantItem(conversationId)
+      upsertItem(
+        conversationId,
+        itemId,
+        () => ({
+          id: itemId,
+          type: 'assistant_message',
+          content: '',
+          status: 'streaming',
+          steps: [step],
+          timestamp: createTimestamp(),
+        }),
+        current => {
+          if (current.type !== 'assistant_message') return current
+          const existingIndex = current.steps.findIndex(existing => existing.id === step.id)
+          const nextSteps = [...current.steps]
+          if (existingIndex === -1) {
+            nextSteps.push(step)
+          } else {
+            nextSteps[existingIndex] = { ...nextSteps[existingIndex], ...step }
+          }
+          return { ...current, steps: nextSteps, status: 'streaming' }
+        },
+      )
+    },
+    [ensureAssistantItem, upsertItem],
   )
 
   const finalizeAssistantItem = useCallback(
@@ -158,6 +203,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           type: 'assistant_message',
           content: finalContent,
           status,
+          steps: [],
           timestamp: createTimestamp(),
         })
         return
@@ -171,6 +217,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           type: 'assistant_message',
           content: finalContent,
           status,
+          steps: [],
           timestamp: createTimestamp(),
         }),
         current => {
@@ -198,10 +245,18 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
 
   const stopStreamState = useCallback(() => {
     setIsStreaming(false)
-    setIsThinking(false)
     abortRef.current = null
     currentAssistantItemIdRef.current = null
+    currentConversationIdRef.current = null
+    currentAssistantContentRef.current = ''
   }, [])
+
+  const finalizeStoppedAssistant = useCallback(() => {
+    const conversationId = currentConversationIdRef.current
+    if (!conversationId) return
+
+    finalizeAssistantItem(conversationId, currentAssistantContentRef.current, 'stopped')
+  }, [finalizeAssistantItem])
 
   useEffect(() => {
     if (!workspaceId) return
@@ -275,12 +330,9 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       })
   }, [conversations, intl, routeSessionId, syncRoute, workspaceId])
 
-  const handleSend = useCallback(
-    async (message: string) => {
+  const sendMessage = useCallback(
+    async (conversation: LocalConversation, message: string, baseItems: AIChatTimelineItem[]) => {
       if (!workspaceId || isStreaming || isHydratingSession) return
-
-      const conversation = activeConversation || createConversation(message)
-      if (!activeConversationId) setActiveConversationId(conversation.id)
 
       const userMessageItem: AIChatTimelineItem = {
         id: `user-${Date.now()}-${crypto.randomUUID()}`,
@@ -297,21 +349,20 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       }))
 
       setIsStreaming(true)
-      setIsThinking(true)
       currentAssistantItemIdRef.current = null
+      currentConversationIdRef.current = conversation.id
+      currentAssistantContentRef.current = ''
+      ensureAssistantItem(conversation.id)
 
       const token = localStorage.getItem('auth_token') || ''
       const controller = new AbortController()
       abortRef.current = controller
 
-      const baseItems = [...conversation.items, userMessageItem]
       const context: Record<string, any> = {
         model,
         currentView: 'ai-chat',
-        messages: toRequestMessages(baseItems),
+        messages: toRequestMessages([...baseItems, userMessageItem]),
       }
-
-      let assistantContent = ''
 
       try {
         await aiChatApi.streamChat(
@@ -323,8 +374,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           },
           {
             onTextDelta: (content: string) => {
-              setIsThinking(false)
-              assistantContent += content
+              currentAssistantContentRef.current += content
               const itemId = ensureAssistantItem(conversation.id)
               upsertItem(
                 conversation.id,
@@ -332,8 +382,9 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
                 () => ({
                   id: itemId,
                   type: 'assistant_message',
-                  content: assistantContent,
+                  content: currentAssistantContentRef.current,
                   status: 'streaming',
+                  steps: [],
                   timestamp: createTimestamp(),
                 }),
                 current => {
@@ -343,65 +394,32 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
               )
             },
             onStep: (step: ThinkingStep) => {
-              if (step.eventType === 'tool_call') {
-                upsertItem(
-                  conversation.id,
-                  `tool-call-${step.id}`,
-                  () => ({
-                    id: `tool-call-${step.id}`,
-                    type: 'tool_call',
-                    toolName: step.tool,
-                    input: step.input,
-                    status: 'running',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_call') return current
-                    return { ...current, toolName: step.tool || current.toolName, input: step.input || current.input, status: 'running' }
-                  },
-                )
-                return
-              }
-
-              if (step.eventType === 'tool_result') {
-                upsertItem(
-                  conversation.id,
-                  `tool-call-${step.id}`,
-                  () => ({
-                    id: `tool-call-${step.id}`,
-                    type: 'tool_call',
-                    toolName: step.tool,
-                    input: step.input,
-                    status: step.status === 'error' ? 'error' : 'completed',
-                    timestamp: createTimestamp(),
-                  }),
-                  current => {
-                    if (current.type !== 'tool_call') return current
-                    return { ...current, status: step.status === 'error' ? 'error' : 'completed' }
-                  },
-                )
-                upsertItem(conversation.id, `tool-result-${step.id}`, () => ({
-                  id: `tool-result-${step.id}`,
-                  type: 'tool_result',
-                  toolName: step.tool,
-                  result: step.result,
-                  outcome: step.outcome,
-                  status: step.status === 'error' ? 'error' : 'completed',
-                  timestamp: createTimestamp(),
-                }))
-              }
+              upsertAssistantStep(conversation.id, step)
+            },
+            onProjectList: payload => {
+              appendItem(conversation.id, {
+                id: `project-list-${Date.now()}-${crypto.randomUUID()}`,
+                type: 'project_list',
+                title: payload.title,
+                projects: payload.projects,
+                timestamp: createTimestamp(),
+              })
             },
             onSession: (sessionId: string) => {
               setConversationSession(conversation.id, sessionId)
               syncRoute(sessionId)
             },
             onComplete: (result: any) => {
-              finalizeAssistantItem(conversation.id, result?.message || assistantContent, 'completed')
+              finalizeAssistantItem(
+                conversation.id,
+                result?.message || currentAssistantContentRef.current,
+                'completed',
+              )
               stopStreamState()
             },
             onError: (error: string) => {
               toast.error(error || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' }))
-              finalizeAssistantItem(conversation.id, assistantContent, 'error')
+              finalizeAssistantItem(conversation.id, currentAssistantContentRef.current, 'error')
               appendSystemEvent(conversation.id, 'Request failed', error, 'error')
               stopStreamState()
             },
@@ -410,22 +428,24 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           controller.signal,
         )
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
+        if (err.name === 'AbortError') {
+          if (currentConversationIdRef.current === conversation.id) {
+            finalizeStoppedAssistant()
+          }
+        } else {
           const messageText = err?.message || intl.formatMessage({ id: 'modules.aiChat.errors.generic', defaultMessage: 'Something went wrong' })
           toast.error(messageText)
-          finalizeAssistantItem(conversation.id, assistantContent, 'error')
+          finalizeAssistantItem(conversation.id, currentAssistantContentRef.current, 'error')
           appendSystemEvent(conversation.id, 'Request failed', messageText, 'error')
         }
         stopStreamState()
       }
     },
     [
-      activeConversation,
-      activeConversationId,
       appendItem,
       appendSystemEvent,
-      createConversation,
       ensureAssistantItem,
+      finalizeStoppedAssistant,
       finalizeAssistantItem,
       intl,
       isHydratingSession,
@@ -434,16 +454,38 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       setConversationSession,
       stopStreamState,
       syncRoute,
+      upsertAssistantStep,
       updateConversation,
       upsertItem,
       workspaceId,
     ],
   )
 
+  const handleSend = useCallback(
+    async (message: string) => {
+      if (!workspaceId || isStreaming || isHydratingSession) return
+
+      const conversation = activeConversation || createConversation(message)
+      if (!activeConversationId) setActiveConversationId(conversation.id)
+
+      await sendMessage(conversation, message, conversation.items)
+    },
+    [
+      activeConversation,
+      activeConversationId,
+      createConversation,
+      isHydratingSession,
+      isStreaming,
+      sendMessage,
+      workspaceId,
+    ],
+  )
+
   const handleStop = useCallback(() => {
     abortRef.current?.abort()
+    finalizeStoppedAssistant()
     stopStreamState()
-  }, [stopStreamState])
+  }, [finalizeStoppedAssistant, stopStreamState])
 
   const handleNewConversation = useCallback(() => {
     setActiveConversationId(null)
@@ -500,12 +542,39 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     [updateConversation],
   )
 
-  const handleRegenerate = useCallback(() => {
-    const lastUserMessage = [...timelineItems].reverse().find(item => item.type === 'user_message')
-    if (lastUserMessage?.type === 'user_message') {
-      void handleSend(lastUserMessage.content)
-    }
-  }, [handleSend, timelineItems])
+  const handleRegenerate = useCallback(
+    (assistantItemId: string) => {
+      if (!activeConversation || isStreaming || isHydratingSession) return
+
+      const assistantIndex = activeConversation.items.findIndex(
+        item => item.type === 'assistant_message' && item.id === assistantItemId,
+      )
+      if (assistantIndex === -1) return
+
+      const userIndex = [...activeConversation.items]
+        .slice(0, assistantIndex)
+        .reverse()
+        .findIndex(item => item.type === 'user_message')
+      if (userIndex === -1) return
+
+      const absoluteUserIndex = assistantIndex - 1 - userIndex
+      const userItem = activeConversation.items[absoluteUserIndex]
+      if (userItem?.type !== 'user_message') return
+
+      const truncatedItems = activeConversation.items.slice(0, absoluteUserIndex)
+      replaceConversationItems(activeConversation.id, truncatedItems)
+
+      void sendMessage(
+        {
+          ...activeConversation,
+          items: truncatedItems,
+        },
+        userItem.content,
+        truncatedItems,
+      )
+    },
+    [activeConversation, isHydratingSession, isStreaming, replaceConversationItems, sendMessage],
+  )
 
   const hasConversation = useMemo(() => Boolean(activeConversation), [activeConversation])
 
@@ -515,7 +584,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     activeApprovalItemId: null,
     timelineItems,
     isStreaming,
-    isThinking,
     isHydratingSession,
     isLoadingSessions,
     deleteConversationDialog,

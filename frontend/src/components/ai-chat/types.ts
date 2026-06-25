@@ -1,13 +1,21 @@
+export interface StepDetail {
+  text?: string
+  input?: Record<string, any>
+  output?: Record<string, any>
+  error?: string
+  metadata?: Record<string, any>
+}
+
 export interface ThinkingStep {
   id: string
-  title: string
-  description?: string
-  status: 'pending' | 'running' | 'completed' | 'error'
-  tool?: string
-  eventType?: 'tool_call' | 'tool_result'
-  input?: Record<string, any>
-  result?: Record<string, any>
-  outcome?: string
+  kind: 'reasoning' | 'tool_input' | 'tool_output' | 'source' | 'file' | 'system'
+  status: 'pending' | 'running' | 'completed' | 'error' | 'denied' | 'skipped'
+  summary: string
+  label?: string
+  toolName?: string
+  detail?: StepDetail
+  startedAt?: string
+  endedAt?: string
 }
 
 export interface ProjectCardPayload {
@@ -35,27 +43,13 @@ export interface AssistantMessageItem extends TimelineItemBase {
   type: 'assistant_message'
   content: string
   status: 'streaming' | 'completed' | 'error' | 'stopped'
+  steps: ThinkingStep[]
 }
 
 export interface ProjectListItem extends TimelineItemBase {
   type: 'project_list'
   title: string
   projects: ProjectCardPayload[]
-}
-
-export interface ToolCallItem extends TimelineItemBase {
-  type: 'tool_call'
-  toolName?: string
-  input?: Record<string, any>
-  status: 'running' | 'completed' | 'error'
-}
-
-export interface ToolResultItem extends TimelineItemBase {
-  type: 'tool_result'
-  toolName?: string
-  result?: Record<string, any>
-  outcome?: string
-  status: 'completed' | 'error'
 }
 
 export interface SystemEventItem extends TimelineItemBase {
@@ -69,6 +63,4 @@ export type AIChatTimelineItem =
   | UserMessageItem
   | AssistantMessageItem
   | ProjectListItem
-  | ToolCallItem
-  | ToolResultItem
   | SystemEventItem
