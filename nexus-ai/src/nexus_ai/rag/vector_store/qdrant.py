@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from qdrant_client import AsyncQdrantClient
@@ -17,6 +18,7 @@ class QdrantVectorStore:
     async def ensure_collections(self, vector_size: int) -> None:
         await self._ensure_collection(self.settings.qdrant_document_collection, vector_size)
         await self._ensure_collection(self.settings.qdrant_chunk_collection, vector_size)
+        await self._ensure_text_indexes()
 
     async def upsert_document(
         self,
@@ -107,13 +109,81 @@ class QdrantVectorStore:
             with_payload=True,
         )
         return [
-            {
-                "id": str(result.id),
-                "score": result.score,
-                **(result.payload or {}),
-            }
+            self._point_to_result(result, source="dense")
             for result in response.points
         ]
+
+    async def search_documents(
+        self,
+        workspace_id: str,
+        query_embedding: list[float],
+        *,
+        limit: int,
+        min_score: float,
+        file_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        response = await self.client.query_points(
+            collection_name=self.settings.qdrant_document_collection,
+            query=query_embedding,
+            query_filter=self._filter(workspace_id, file_ids=file_ids),
+            limit=limit,
+            score_threshold=min_score,
+            with_payload=True,
+        )
+        return [self._point_to_result(point, source="document") for point in response.points]
+
+    async def search_chunks_dense(
+        self,
+        workspace_id: str,
+        query_embedding: list[float],
+        *,
+        limit: int,
+        min_score: float,
+        file_ids: list[str] | None = None,
+        document_ids: list[str] | None = None,
+        with_vectors: bool = False,
+    ) -> list[dict[str, Any]]:
+        response = await self.client.query_points(
+            collection_name=self.settings.qdrant_chunk_collection,
+            query=query_embedding,
+            query_filter=self._filter(workspace_id, file_ids=file_ids, document_ids=document_ids),
+            limit=limit,
+            score_threshold=min_score,
+            with_payload=True,
+            with_vectors=with_vectors,
+        )
+        return [self._point_to_result(point, source="dense") for point in response.points]
+
+    async def search_chunks_lexical(
+        self,
+        workspace_id: str,
+        query: str,
+        *,
+        limit: int,
+        file_ids: list[str] | None = None,
+        document_ids: list[str] | None = None,
+        with_vectors: bool = False,
+    ) -> list[dict[str, Any]]:
+        conditions = [
+            models.FieldCondition(key="chunk_text", match=models.MatchText(text=query)),
+            models.FieldCondition(key="raw_text", match=models.MatchText(text=query)),
+        ]
+        filter_ = self._filter(workspace_id, file_ids=file_ids, document_ids=document_ids)
+        filter_.should = conditions
+        points, _ = await self.client.scroll(
+            collection_name=self.settings.qdrant_chunk_collection,
+            scroll_filter=filter_,
+            limit=limit,
+            with_payload=True,
+            with_vectors=with_vectors,
+        )
+        results = [self._point_to_result(point, source="lexical") for point in points]
+        tokens = self._tokens(query)
+        for result in results:
+            haystack = f"{result.get('chunk_text', '')} {result.get('raw_text', '')} {result.get('title', '')}"
+            overlap = len(tokens & self._tokens(haystack))
+            result["score"] = float(overlap) / max(1, len(tokens))
+        return sorted(results, key=lambda result: float(result.get("score") or 0.0), reverse=True)
 
     async def _ensure_collection(self, name: str, vector_size: int) -> None:
         collections = await self.client.get_collections()
@@ -139,3 +209,60 @@ class QdrantVectorStore:
                 if isinstance(value, models.VectorParams):
                     return value.size
         return None
+
+    async def _ensure_text_indexes(self) -> None:
+        for field_name in ("chunk_text", "raw_text"):
+            try:
+                await self.client.create_payload_index(
+                    collection_name=self.settings.qdrant_chunk_collection,
+                    field_name=field_name,
+                    field_schema=models.TextIndexParams(
+                        type=models.TextIndexType.TEXT,
+                        tokenizer=models.TokenizerType.WORD,
+                        lowercase=True,
+                    ),
+                )
+            except Exception:
+                continue
+
+    def _filter(
+        self,
+        workspace_id: str,
+        *,
+        file_ids: list[str] | None = None,
+        document_ids: list[str] | None = None,
+    ) -> models.Filter:
+        must: list[models.FieldCondition] = [
+            models.FieldCondition(key="workspace_id", match=models.MatchValue(value=workspace_id))
+        ]
+        if file_ids:
+            must.append(models.FieldCondition(key="file_id", match=models.MatchAny(any=file_ids)))
+        if document_ids:
+            must.append(models.FieldCondition(key="file_id", match=models.MatchAny(any=document_ids)))
+        return models.Filter(must=must)
+
+    def _point_to_result(self, point: Any, *, source: str) -> dict[str, Any]:
+        payload = dict(getattr(point, "payload", None) or {})
+        vector = self._point_vector(point)
+        result = {
+            "id": str(point.id),
+            "score": float(getattr(point, "score", 0.0) or 0.0),
+            "retrieval_source": source,
+            **payload,
+        }
+        if vector:
+            result["_vector"] = vector
+        return result
+
+    def _point_vector(self, point: Any) -> list[float] | None:
+        vector = getattr(point, "vector", None)
+        if isinstance(vector, list):
+            return [float(value) for value in vector]
+        if isinstance(vector, dict):
+            first = next(iter(vector.values()), None)
+            if isinstance(first, list):
+                return [float(value) for value in first]
+        return None
+
+    def _tokens(self, text: str) -> set[str]:
+        return {token for token in re.findall(r"[\w-]+", text.lower()) if len(token) > 1}

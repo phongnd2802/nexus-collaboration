@@ -74,6 +74,8 @@ class RagSearchRequest(BaseModel):
     limit: int = 10
     min_score: float = 0.5
     file_ids: list[str] | None = None
+    strategy: str | None = None
+    include_debug: bool = False
 
 
 class RagDirectIndexRequest(BaseModel):

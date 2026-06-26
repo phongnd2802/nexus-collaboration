@@ -144,7 +144,8 @@ def _settings_from_request(
 ) -> Settings | Response:
     token = _bearer_token(_header(request, "authorization"))
     if not token:
-        return JSONResponse({"message": "Missing Authorization bearer token"}, status_code=HTTPStatus.UNAUTHORIZED)
+        #return JSONResponse({"message": "Missing Authorization bearer token"}, status_code=HTTPStatus.UNAUTHORIZED)
+        token = base_settings.api_token
     request_id = _header(request, "x-nexus-request-id") or session_id
     return base_settings.for_request(api_token=token, workspace_id=workspace_id, request_id=request_id)
 

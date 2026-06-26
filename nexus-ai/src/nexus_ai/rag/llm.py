@@ -61,6 +61,35 @@ class RagLlmClient:
         ).strip()
         return await self._complete(prompt, max_tokens=self.settings.rag_context_max_tokens)
 
+    async def generate_query_rewrites(self, query: str, *, count: int) -> list[str]:
+        if count <= 0:
+            return []
+        prompt = dedent(
+            f"""
+            Rewrite this retrieval query into {count} semantically different search queries.
+            Keep each rewrite short and focused. Use document vocabulary, not conversational phrasing.
+            Return one rewrite per line. Do not number the lines.
+
+            Query:
+            {query}
+            """
+        ).strip()
+        text = await self._complete(prompt, max_tokens=220)
+        return self._parse_lines(text, limit=count)
+
+    async def generate_step_back_query(self, query: str) -> str:
+        prompt = dedent(
+            f"""
+            Write one broader background search query that captures the principle behind this question.
+            Keep it short. Do not answer the question.
+
+            Question:
+            {query}
+            """
+        ).strip()
+        text = await self._complete(prompt, max_tokens=80)
+        return " ".join(text.split())
+
     async def _complete(self, prompt: str, *, max_tokens: int) -> str:
         async with self._semaphore:
             response = await model_request(
@@ -84,3 +113,13 @@ class RagLlmClient:
     def _page_count(self, document: ExtractedDocument) -> int:
         pages = {element.page_number for element in document.elements if element.page_number is not None}
         return len(pages)
+
+    def _parse_lines(self, text: str, *, limit: int) -> list[str]:
+        lines: list[str] = []
+        for raw_line in text.splitlines():
+            line = raw_line.strip().strip("-*0123456789. )")
+            if line and line not in lines:
+                lines.append(line)
+            if len(lines) >= limit:
+                break
+        return lines

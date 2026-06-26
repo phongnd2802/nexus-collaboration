@@ -79,6 +79,16 @@ class Settings:
     rag_llm_timeout_seconds: int
     rag_llm_concurrency: int
     rag_enable_contextual_retrieval: bool
+    rag_query_transform: str
+    rag_multi_query_count: int
+    rag_enable_step_back: bool
+    rag_enable_hyde: bool
+    rag_document_route_top_k: int
+    rag_dense_candidates: int
+    rag_lexical_candidates: int
+    rag_mmr_lambda: float
+    rag_rrf_k: int
+    rag_max_plan_searches: int
     openrouter_api_key: str
     qdrant_url: str
     qdrant_api_key: str
@@ -192,6 +202,16 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         rag_llm_timeout_seconds=_int(source.get("NEXUS_RAG_LLM_TIMEOUT_SECONDS"), 60),
         rag_llm_concurrency=_int(source.get("NEXUS_RAG_LLM_CONCURRENCY"), 4),
         rag_enable_contextual_retrieval=_bool(source.get("NEXUS_RAG_ENABLE_CONTEXTUAL_RETRIEVAL"), True),
+        rag_query_transform=source.get("NEXUS_RAG_QUERY_TRANSFORM", "multi_query_step_back"),
+        rag_multi_query_count=max(0, min(_int(source.get("NEXUS_RAG_MULTI_QUERY_COUNT"), 3), 5)),
+        rag_enable_step_back=_bool(source.get("NEXUS_RAG_ENABLE_STEP_BACK"), True),
+        rag_enable_hyde=_bool(source.get("NEXUS_RAG_ENABLE_HYDE"), False),
+        rag_document_route_top_k=_int(source.get("NEXUS_RAG_DOCUMENT_ROUTE_TOP_K"), 3),
+        rag_dense_candidates=_int(source.get("NEXUS_RAG_DENSE_CANDIDATES"), 40),
+        rag_lexical_candidates=_int(source.get("NEXUS_RAG_LEXICAL_CANDIDATES"), 40),
+        rag_mmr_lambda=_float(source.get("NEXUS_RAG_MMR_LAMBDA"), 0.65),
+        rag_rrf_k=_int(source.get("NEXUS_RAG_RRF_K"), 60),
+        rag_max_plan_searches=_int(source.get("NEXUS_RAG_MAX_PLAN_SEARCHES"), 4),
         openrouter_api_key=source.get("OPENROUTER_API_KEY", ""),
         qdrant_url=source.get("QDRANT_URL", "http://127.0.0.1:6333"),
         qdrant_api_key=source.get("QDRANT_API_KEY", ""),

@@ -8,6 +8,7 @@ from nexus_ai.rag.chunking.registry import resolve_chunking_strategy
 from nexus_ai.rag.embeddings.openrouter import OpenRouterEmbeddingClient
 from nexus_ai.rag.extraction.registry import resolve_extractor
 from nexus_ai.rag.llm import CONTEXT_PROMPT_VERSION, SUMMARY_PROMPT_VERSION, RagLlmClient
+from nexus_ai.rag.retrieval import RagRetrievalService
 from nexus_ai.rag.schemas import ChildChunk, FileSource, ParentChunk
 from nexus_ai.rag.source_client import BackendRagClient
 from nexus_ai.rag.vector_store.qdrant import QdrantVectorStore
@@ -49,16 +50,25 @@ class RagIndexer:
             "metadata": metadata,
         }
 
-    async def search(self, workspace_id: str, query: str, limit: int, min_score: float, file_ids: list[str] | None = None) -> list[dict]:
-        embedder = OpenRouterEmbeddingClient(self.settings)
-        vector_store = QdrantVectorStore(self.settings)
-        vector = (await embedder.embed([query]))[0]
-        return await vector_store.search_chunks(
-            workspace_id,
-            vector,
+    async def search(
+        self,
+        workspace_id: str,
+        query: str,
+        limit: int,
+        min_score: float,
+        file_ids: list[str] | None = None,
+        *,
+        strategy: str | None = None,
+        include_debug: bool = False,
+    ) -> list[dict]:
+        return await RagRetrievalService(self.settings).search(
+            workspace_id=workspace_id,
+            query=query,
             limit=limit,
             min_score=min_score,
             file_ids=file_ids,
+            strategy=strategy,
+            include_debug=include_debug,
         )
 
     async def index_source(self, source: FileSource, *, job_id: str) -> dict[str, object]:

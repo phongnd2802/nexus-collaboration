@@ -112,3 +112,49 @@ def test_rag_indexer_uses_llm_summary_and_context(monkeypatch, tmp_path):
     assert captured["chunk_upsert"]["context_source"] == "llm"
     assert captured["chunk_upsert"]["prompt_version"] == "rag_context_v1"
     assert updates[-1][0] == "indexed"
+
+
+def test_rag_indexer_search_uses_retrieval_service(monkeypatch):
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "test",
+            "NEXUS_API_TOKEN": "token",
+            "NEXUS_WORKSPACE_ID": "workspace",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+            "OPENROUTER_API_KEY": "test-key",
+        }
+    )
+    captured: dict[str, object] = {}
+
+    class FakeRetrievalService:
+        def __init__(self, settings):
+            self.settings = settings
+
+        async def search(self, **kwargs):
+            captured.update(kwargs)
+            return [{"id": "child-1"}]
+
+    monkeypatch.setattr("nexus_ai.rag.indexer.RagRetrievalService", FakeRetrievalService)
+
+    results = asyncio.run(
+        RagIndexer(settings).search(
+            "workspace",
+            "query",
+            5,
+            0.4,
+            ["file-1"],
+            strategy="raw",
+            include_debug=True,
+        )
+    )
+
+    assert results == [{"id": "child-1"}]
+    assert captured == {
+        "workspace_id": "workspace",
+        "query": "query",
+        "limit": 5,
+        "min_score": 0.4,
+        "file_ids": ["file-1"],
+        "strategy": "raw",
+        "include_debug": True,
+    }
