@@ -46,6 +46,7 @@ class ExtractedDocument(BaseModel):
 class ParentChunk(BaseModel):
     parent_id: str
     text: str
+    parent_index: int = 0
     heading_path: list[str] = Field(default_factory=list)
     page_numbers: list[int] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -55,9 +56,12 @@ class ChildChunk(BaseModel):
     child_id: str
     parent_id: str
     text: str
-    contextual_text: str
+    contextual_text: str = ""
+    contextual_header: str = ""
     parent_text: str
     chunk_index: int
+    context_source: str = "none"
+    context_prompt_version: str | None = None
     heading_path: list[str] = Field(default_factory=list)
     page_numbers: list[int] = Field(default_factory=list)
     bbox_refs: list[Any] = Field(default_factory=list)
