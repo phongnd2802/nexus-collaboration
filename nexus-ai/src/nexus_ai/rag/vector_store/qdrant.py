@@ -18,7 +18,15 @@ class QdrantVectorStore:
         await self._ensure_collection(self.settings.qdrant_document_collection, vector_size)
         await self._ensure_collection(self.settings.qdrant_chunk_collection, vector_size)
 
-    async def upsert_document(self, source: FileSource, summary: str, embedding: list[float]) -> None:
+    async def upsert_document(
+        self,
+        source: FileSource,
+        summary: str,
+        embedding: list[float],
+        *,
+        summary_model: str,
+        summary_prompt_version: str,
+    ) -> None:
         await self.client.upsert(
             collection_name=self.settings.qdrant_document_collection,
             points=[
@@ -32,6 +40,8 @@ class QdrantVectorStore:
                         "summary": summary,
                         "mime_type": source.mime_type,
                         "file_hash": source.file_hash,
+                        "summary_model": summary_model,
+                        "summary_prompt_version": summary_prompt_version,
                         "embedding_model": self.settings.rag_embedding_model,
                     },
                 )
@@ -57,8 +67,12 @@ class QdrantVectorStore:
                         "child_id": chunk.child_id,
                         "chunk_index": chunk.chunk_index,
                         "content": chunk.text,
-                        "chunk_text": chunk.text,
+                        "raw_text": chunk.text,
+                        "chunk_text": chunk.contextual_text,
                         "parent_text": chunk.parent_text,
+                        "contextual_header": chunk.contextual_header,
+                        "context_source": chunk.context_source,
+                        "context_prompt_version": chunk.context_prompt_version,
                         "page_numbers": chunk.page_numbers,
                         "bbox_refs": chunk.bbox_refs,
                         "heading_path": chunk.heading_path,

@@ -17,20 +17,20 @@ class DocumentRoutedParentChildStrategy(ChunkingStrategy):
         children: list[ChildChunk] = []
         for parent in parents:
             child_texts = self._window(parent.text, self.settings.rag_child_chunk_tokens, self.settings.rag_child_overlap_tokens)
-            for child_text in child_texts:
-                header = self._context_header(source, parent)
+            for child_offset, child_text in enumerate(child_texts):
                 child_index = len(children)
                 children.append(
                     ChildChunk(
                         child_id=self._id(source.id, parent.parent_id, child_index),
                         parent_id=parent.parent_id,
                         text=child_text,
-                        contextual_text=f"{header}\n\n{child_text}",
                         parent_text=parent.text,
                         chunk_index=child_index,
+                        contextual_text=child_text,
                         heading_path=parent.heading_path,
                         page_numbers=parent.page_numbers,
-                        metadata=parent.metadata,
+                        bbox_refs=self._bbox_refs(document, child_text),
+                        metadata={**parent.metadata, "parent_index": parent.parent_index, "child_offset": child_offset},
                     )
                 )
         return children
@@ -55,6 +55,7 @@ class DocumentRoutedParentChildStrategy(ChunkingStrategy):
             ParentChunk(
                 parent_id=self._id(source.id, "parent", index),
                 text=text,
+                parent_index=index,
                 page_numbers=self._page_numbers(document),
                 metadata={"strategy": self.settings.rag_chunking_strategy},
             )
@@ -81,13 +82,20 @@ class DocumentRoutedParentChildStrategy(ChunkingStrategy):
                 break
         return chunks
 
-    def _context_header(self, source: FileSource, parent: ParentChunk) -> str:
-        pages = ", ".join(str(page) for page in parent.page_numbers[:5]) if parent.page_numbers else "unknown"
-        return f"File: {source.name}\nPages: {pages}\nChunking strategy: {self.settings.rag_chunking_strategy}"
-
     def _page_numbers(self, document: ExtractedDocument) -> list[int]:
         pages = sorted({element.page_number for element in document.elements if element.page_number is not None})
         return pages
+
+    def _bbox_refs(self, document: ExtractedDocument, child_text: str) -> list[dict[str, object]]:
+        refs: list[dict[str, object]] = []
+        child_lower = child_text.lower()
+        for element in document.elements:
+            if not element.bbox or not element.content:
+                continue
+            snippet = element.content.strip().lower()
+            if snippet and (snippet in child_lower or child_lower[:120] in snippet):
+                refs.append({"page_number": element.page_number, "bbox": element.bbox})
+        return refs[:20]
 
     def _token_count(self, text: str) -> int:
         return max(1, len(text.split()))

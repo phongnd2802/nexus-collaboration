@@ -50,6 +50,12 @@ class Settings:
     rag_chunking_strategy: str
     rag_embedding_provider: str
     rag_embedding_model: str
+    rag_llm_model: str
+    rag_summary_max_tokens: int
+    rag_context_max_tokens: int
+    rag_llm_timeout_seconds: int
+    rag_llm_concurrency: int
+    rag_enable_contextual_retrieval: bool
     openrouter_api_key: str
     qdrant_url: str
     qdrant_api_key: str
@@ -128,6 +134,12 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         rag_chunking_strategy=source.get("NEXUS_RAG_CHUNKING_STRATEGY", "document_routed_parent_child_v1"),
         rag_embedding_provider=source.get("NEXUS_RAG_EMBEDDING_PROVIDER", "openrouter"),
         rag_embedding_model=source.get("NEXUS_RAG_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b"),
+        rag_llm_model=source.get("NEXUS_RAG_LLM_MODEL", "openrouter:openai/gpt-4o-mini"),
+        rag_summary_max_tokens=_int(source.get("NEXUS_RAG_SUMMARY_MAX_TOKENS"), 220),
+        rag_context_max_tokens=_int(source.get("NEXUS_RAG_CONTEXT_MAX_TOKENS"), 140),
+        rag_llm_timeout_seconds=_int(source.get("NEXUS_RAG_LLM_TIMEOUT_SECONDS"), 60),
+        rag_llm_concurrency=_int(source.get("NEXUS_RAG_LLM_CONCURRENCY"), 4),
+        rag_enable_contextual_retrieval=_bool(source.get("NEXUS_RAG_ENABLE_CONTEXTUAL_RETRIEVAL"), True),
         openrouter_api_key=source.get("OPENROUTER_API_KEY", ""),
         qdrant_url=source.get("QDRANT_URL", "http://127.0.0.1:6333"),
         qdrant_api_key=source.get("QDRANT_API_KEY", ""),

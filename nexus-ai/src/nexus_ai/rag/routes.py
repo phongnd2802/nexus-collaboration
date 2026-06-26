@@ -21,6 +21,8 @@ def rag_routes(settings: Settings) -> list[Route]:
                 "extractionProvider": settings.rag_extraction_provider,
                 "chunkingStrategy": settings.rag_chunking_strategy,
                 "embeddingModel": settings.rag_embedding_model,
+                "ragLlmModel": settings.rag_llm_model,
+                "contextualRetrievalEnabled": settings.rag_enable_contextual_retrieval,
                 "qdrantUrl": settings.qdrant_url,
             }
         )
