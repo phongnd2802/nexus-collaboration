@@ -3,15 +3,20 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any
 
 from nexus_ai.rag.extraction.base import DocumentExtractor
 from nexus_ai.rag.schemas import ExtractedDocument, ExtractedElement, FileSource
+from nexus_ai.settings import Settings
 
 
 class OpenDataLoaderPdfExtractor(DocumentExtractor):
+    def __init__(self, settings: Settings | None = None) -> None:
+        self.settings = settings
+
     async def extract(self, source: FileSource, content: bytes) -> ExtractedDocument:
         if source.mime_type not in {"application/pdf", "application/x-pdf"} and not source.name.lower().endswith(".pdf"):
             raise ValueError(f"OpenDataLoader PDF extractor only supports PDF files: {source.mime_type}")
@@ -25,7 +30,46 @@ class OpenDataLoaderPdfExtractor(DocumentExtractor):
     async def _convert(self, path: Path, output_dir: Path) -> Any:
         module = importlib.import_module("opendataloader_pdf")
         converter = self._resolve_converter(module)
-        result = converter(str(path), output_dir=str(output_dir), format=["json", "markdown"], quiet=True)
+        kwargs = {
+            "input_path": str(path),
+            "output_dir": str(output_dir),
+            "format": "json,markdown",
+            "quiet": True,
+        }
+        if self.settings is not None:
+            hybrid_mode = self.settings.rag_opendataloader_hybrid
+            kwargs.update(
+                {
+                    "use_struct_tree": self.settings.rag_opendataloader_use_struct_tree,
+                    "table_method": self.settings.rag_opendataloader_table_method,
+                    "reading_order": self.settings.rag_opendataloader_reading_order,
+                    "markdown_with_html": self.settings.rag_opendataloader_markdown_with_html,
+                    "include_header_footer": self.settings.rag_opendataloader_include_header_footer,
+                    "detect_strikethrough": self.settings.rag_opendataloader_detect_strikethrough,
+                    "hybrid": self.settings.rag_opendataloader_hybrid,
+                    "hybrid_mode": self.settings.rag_opendataloader_hybrid_mode,
+                    "hybrid_timeout": self.settings.rag_opendataloader_hybrid_timeout,
+                    "hybrid_fallback": self.settings.rag_opendataloader_hybrid_fallback,
+                }
+            )
+            if hybrid_mode == "off":
+                kwargs["threads"] = self.settings.rag_opendataloader_threads
+            if hybrid_mode == "hancom-ai":
+                kwargs["hybrid_hancom_ai_regionlist_strategy"] = (
+                    self.settings.rag_opendataloader_hybrid_hancom_ai_regionlist_strategy
+                )
+                kwargs["hybrid_hancom_ai_ocr_strategy"] = self.settings.rag_opendataloader_hybrid_hancom_ai_ocr_strategy
+                kwargs["hybrid_hancom_ai_image_cache"] = self.settings.rag_opendataloader_hybrid_hancom_ai_image_cache
+            if self.settings.rag_opendataloader_hybrid_url:
+                kwargs["hybrid_url"] = self.settings.rag_opendataloader_hybrid_url
+        try:
+            result = converter(**kwargs)
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stdout or exc.stderr or exc.output or "").strip()
+            message = "opendataloader-pdf convert() failed"
+            if detail:
+                message = f"{message}: {detail}"
+            raise RuntimeError(message) from exc
         if inspect.isawaitable(result):
             result = await result
         return result if result is not None else self._read_outputs(output_dir)
@@ -83,7 +127,13 @@ class OpenDataLoaderPdfExtractor(DocumentExtractor):
                 text=text,
                 markdown=markdown,
                 elements=elements,
-                metadata={"file_name": source.name, "raw_keys": list(result.keys())},
+                metadata={
+                    "file_name": source.name,
+                    "raw_keys": list(result.keys()),
+                    "number_of_pages": (nested_json or result).get("number of pages"),
+                    "title": (nested_json or result).get("title"),
+                    "author": (nested_json or result).get("author"),
+                },
             )
 
         text = str(result)
@@ -97,26 +147,90 @@ class OpenDataLoaderPdfExtractor(DocumentExtractor):
         return None
 
     def _extract_elements(self, data: dict[str, Any]) -> list[ExtractedElement]:
-        raw_elements = data.get("elements") or data.get("pages") or data.get("blocks") or []
         elements: list[ExtractedElement] = []
+        raw_elements = data.get("kids") or data.get("elements") or data.get("pages") or data.get("blocks") or []
+        self._walk_elements(raw_elements, elements)
+        return elements
+
+    def _walk_elements(self, raw_elements: Any, output: list[ExtractedElement]) -> None:
         if not isinstance(raw_elements, list):
-            return elements
+            return
         for item in raw_elements:
             if hasattr(item, "model_dump"):
                 item = item.model_dump()
             if not isinstance(item, dict):
                 continue
+
             content = self._first_string(item, ("content", "text", "markdown"))
-            if not content:
-                continue
-            page = item.get("page_number") or item.get("page") or item.get("pageIndex")
-            elements.append(
-                ExtractedElement(
-                    type=str(item.get("type") or item.get("category") or "text"),
-                    content=content,
-                    page_number=int(page) if isinstance(page, (int, float, str)) and str(page).isdigit() else None,
-                    bbox=item.get("bbox") if isinstance(item.get("bbox"), list) else None,
-                    metadata={k: v for k, v in item.items() if k not in {"content", "text", "markdown", "bbox"}},
+            page = self._page_number(item)
+            bbox = self._bounding_box(item)
+            item_type = str(item.get("type") or item.get("category") or "text")
+
+            if content:
+                output.append(
+                    ExtractedElement(
+                        type=item_type,
+                        content=content,
+                        page_number=page,
+                        bbox=bbox,
+                        metadata={
+                            k: v
+                            for k, v in item.items()
+                            if k not in {"content", "text", "markdown", "bbox", "bounding box", "kids", "list items", "rows"}
+                        },
+                    )
                 )
-            )
-        return elements
+
+            nested_children = item.get("kids")
+            if isinstance(nested_children, list):
+                self._walk_elements(nested_children, output)
+
+            list_items = item.get("list items")
+            if isinstance(list_items, list):
+                self._walk_elements(list_items, output)
+
+            rows = item.get("rows")
+            if isinstance(rows, list):
+                self._walk_table_rows(rows, page, output)
+
+    def _walk_table_rows(self, rows: list[Any], default_page: int | None, output: list[ExtractedElement]) -> None:
+        for row in rows:
+            if hasattr(row, "model_dump"):
+                row = row.model_dump()
+            if not isinstance(row, dict):
+                continue
+            for cell in row.get("cells", []):
+                if hasattr(cell, "model_dump"):
+                    cell = cell.model_dump()
+                if not isinstance(cell, dict):
+                    continue
+                content = self._first_string(cell, ("content", "text", "markdown"))
+                if content:
+                    output.append(
+                        ExtractedElement(
+                            type="table cell",
+                            content=content,
+                            page_number=self._page_number(cell) or default_page,
+                            bbox=self._bounding_box(cell),
+                            metadata={k: v for k, v in cell.items() if k not in {"content", "text", "markdown", "bounding box", "kids"}},
+                        )
+                    )
+                self._walk_elements(cell.get("kids"), output)
+
+    def _page_number(self, item: dict[str, Any]) -> int | None:
+        for key in ("page number", "page_number", "page", "pageIndex"):
+            value = item.get(key)
+            if isinstance(value, int):
+                return value
+            if isinstance(value, str) and value.isdigit():
+                return int(value)
+        return None
+
+    def _bounding_box(self, item: dict[str, Any]) -> list[float] | None:
+        bbox = item.get("bounding box")
+        if isinstance(bbox, list):
+            return [float(value) for value in bbox]
+        bbox = item.get("bbox")
+        if isinstance(bbox, list):
+            return [float(value) for value in bbox]
+        return None

@@ -118,8 +118,24 @@ class QdrantVectorStore:
     async def _ensure_collection(self, name: str, vector_size: int) -> None:
         collections = await self.client.get_collections()
         if any(collection.name == name for collection in collections.collections):
+            info = await self.client.get_collection(name)
+            configured_size = self._configured_vector_size(info.config.params.vectors)
+            if configured_size is not None and configured_size != vector_size:
+                raise RuntimeError(
+                    f"Qdrant collection {name!r} has vector size {configured_size}, expected {vector_size}. "
+                    "Recreate the collection or switch to a matching embedding model."
+                )
             return
         await self.client.create_collection(
             collection_name=name,
             vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
         )
+
+    def _configured_vector_size(self, config: object) -> int | None:
+        if isinstance(config, models.VectorParams):
+            return config.size
+        if isinstance(config, dict):
+            for value in config.values():
+                if isinstance(value, models.VectorParams):
+                    return value.size
+        return None

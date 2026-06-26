@@ -21,6 +21,26 @@ def test_runtime_uses_minimal_deps(tmp_path):
     assert runtime.deps.settings is settings
     assert runtime.deps.memory is not None
     assert runtime.agent.output_type is str
+    assert runtime.orchestrator is None
+
+
+def test_runtime_can_use_multi_agent_orchestrator(tmp_path):
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "test",
+            "NEXUS_API_TOKEN": "test-token",
+            "NEXUS_WORKSPACE_ID": "test-workspace",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+            "NEXUS_AI_RUNTIME_DIR": str(tmp_path / "runtime"),
+            "NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES": "false",
+            "NEXUS_AI_ORCHESTRATION_MODE": "multi",
+        }
+    )
+
+    runtime = build_runtime(settings)
+
+    assert runtime.deps.settings is settings
+    assert runtime.orchestrator is not None
 
 
 def test_mcp_tools_are_marked_for_deferred_loading():

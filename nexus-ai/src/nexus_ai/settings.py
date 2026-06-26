@@ -43,10 +43,33 @@ class Settings:
     max_cost_usd: float
     enable_ecosystem_capabilities: bool
     context_max_tokens: int
+    orchestration_mode: str
+    planner_model: str | None
+    retriever_model: str | None
+    synthesizer_model: str | None
+    critic_model: str | None
+    orchestrator_max_revisions: int
+    retrieval_top_k: int
+    rag_min_score: float
     rag_enabled: bool
     backend_url: str
     internal_api_key: str
     rag_extraction_provider: str
+    rag_opendataloader_use_struct_tree: bool
+    rag_opendataloader_table_method: str
+    rag_opendataloader_reading_order: str
+    rag_opendataloader_markdown_with_html: bool
+    rag_opendataloader_include_header_footer: bool
+    rag_opendataloader_detect_strikethrough: bool
+    rag_opendataloader_hybrid: str
+    rag_opendataloader_hybrid_mode: str
+    rag_opendataloader_hybrid_url: str | None
+    rag_opendataloader_hybrid_timeout: str
+    rag_opendataloader_hybrid_fallback: bool
+    rag_opendataloader_hybrid_hancom_ai_regionlist_strategy: str
+    rag_opendataloader_hybrid_hancom_ai_ocr_strategy: str
+    rag_opendataloader_hybrid_hancom_ai_image_cache: str
+    rag_opendataloader_threads: str
     rag_chunking_strategy: str
     rag_embedding_provider: str
     rag_embedding_model: str
@@ -127,10 +150,39 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         max_cost_usd=_float(source.get("NEXUS_AI_MAX_COST_USD"), 2.0),
         enable_ecosystem_capabilities=_bool(source.get("NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES"), True),
         context_max_tokens=_int(source.get("NEXUS_AI_CONTEXT_MAX_TOKENS"), 180000),
+        orchestration_mode=source.get("NEXUS_AI_ORCHESTRATION_MODE", "single"),
+        planner_model=source.get("NEXUS_AI_PLANNER_MODEL") or None,
+        retriever_model=source.get("NEXUS_AI_RETRIEVER_MODEL") or None,
+        synthesizer_model=source.get("NEXUS_AI_SYNTHESIZER_MODEL") or None,
+        critic_model=source.get("NEXUS_AI_CRITIC_MODEL") or None,
+        orchestrator_max_revisions=min(_int(source.get("NEXUS_AI_ORCHESTRATOR_MAX_REVISIONS"), 1), 1),
+        retrieval_top_k=_int(source.get("NEXUS_AI_RETRIEVAL_TOP_K"), 8),
+        rag_min_score=_float(source.get("NEXUS_AI_RAG_MIN_SCORE"), 0.5),
         rag_enabled=_bool(source.get("NEXUS_RAG_ENABLED"), True),
         backend_url=source.get("NEXUS_BACKEND_URL", source.get("NEXUS_API_BASE_URL", "http://127.0.0.1:3000/api/v1")),
         internal_api_key=source.get("NEXUS_INTERNAL_API_KEY", source.get("NEXUS_API_KEY", "")),
         rag_extraction_provider=source.get("NEXUS_RAG_EXTRACTION_PROVIDER", "opendataloader_pdf"),
+        rag_opendataloader_use_struct_tree=_bool(source.get("NEXUS_RAG_OPENDATALOADER_USE_STRUCT_TREE"), False),
+        rag_opendataloader_table_method=source.get("NEXUS_RAG_OPENDATALOADER_TABLE_METHOD", "default"),
+        rag_opendataloader_reading_order=source.get("NEXUS_RAG_OPENDATALOADER_READING_ORDER", "xycut"),
+        rag_opendataloader_markdown_with_html=_bool(source.get("NEXUS_RAG_OPENDATALOADER_MARKDOWN_WITH_HTML"), False),
+        rag_opendataloader_include_header_footer=_bool(source.get("NEXUS_RAG_OPENDATALOADER_INCLUDE_HEADER_FOOTER"), False),
+        rag_opendataloader_detect_strikethrough=_bool(source.get("NEXUS_RAG_OPENDATALOADER_DETECT_STRIKETHROUGH"), False),
+        rag_opendataloader_hybrid=source.get("NEXUS_RAG_OPENDATALOADER_HYBRID", "off"),
+        rag_opendataloader_hybrid_mode=source.get("NEXUS_RAG_OPENDATALOADER_HYBRID_MODE", "auto"),
+        rag_opendataloader_hybrid_url=source.get("NEXUS_RAG_OPENDATALOADER_HYBRID_URL") or None,
+        rag_opendataloader_hybrid_timeout=source.get("NEXUS_RAG_OPENDATALOADER_HYBRID_TIMEOUT", "0"),
+        rag_opendataloader_hybrid_fallback=_bool(source.get("NEXUS_RAG_OPENDATALOADER_HYBRID_FALLBACK"), False),
+        rag_opendataloader_hybrid_hancom_ai_regionlist_strategy=source.get(
+            "NEXUS_RAG_OPENDATALOADER_HANCOM_REGIONLIST_STRATEGY", "table-first"
+        ),
+        rag_opendataloader_hybrid_hancom_ai_ocr_strategy=source.get(
+            "NEXUS_RAG_OPENDATALOADER_HANCOM_OCR_STRATEGY", "auto"
+        ),
+        rag_opendataloader_hybrid_hancom_ai_image_cache=source.get(
+            "NEXUS_RAG_OPENDATALOADER_HANCOM_IMAGE_CACHE", "memory"
+        ),
+        rag_opendataloader_threads=source.get("NEXUS_RAG_OPENDATALOADER_THREADS", "1"),
         rag_chunking_strategy=source.get("NEXUS_RAG_CHUNKING_STRATEGY", "document_routed_parent_child_v1"),
         rag_embedding_provider=source.get("NEXUS_RAG_EMBEDDING_PROVIDER", "openrouter"),
         rag_embedding_model=source.get("NEXUS_RAG_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b"),
