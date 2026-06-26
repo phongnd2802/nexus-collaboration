@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import httpx
+import math
 
 from nexus_ai.settings import Settings
 
@@ -19,11 +20,33 @@ class OpenRouterEmbeddingClient:
                     "Authorization": f"Bearer {self.settings.openrouter_api_key}",
                     "Content-Type": "application/json",
                 },
-                json={"model": self.settings.rag_embedding_model, "input": texts},
+                json={
+                    "model": self.settings.rag_embedding_model,
+                    "input": texts,
+                    "encoding_format": "float",
+                },
             )
         response.raise_for_status()
         payload = response.json()
         data = payload.get("data")
         if not isinstance(data, list):
             raise RuntimeError("Invalid OpenRouter embeddings response")
-        return [item["embedding"] for item in data]
+
+        vectors: list[list[float]] = []
+        for index, item in enumerate(data):
+            embedding = item.get("embedding") if isinstance(item, dict) else None
+            if not isinstance(embedding, list) or not embedding:
+                raise RuntimeError(f"Invalid OpenRouter embedding at index {index}: missing float vector")
+
+            vector: list[float] = []
+            for value in embedding:
+                if not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+                    raise RuntimeError(f"Invalid OpenRouter embedding at index {index}: non-finite value")
+                vector.append(float(value))
+            vectors.append(vector)
+
+        if len(vectors) != len(texts):
+            raise RuntimeError(
+                f"Invalid OpenRouter embeddings response: expected {len(texts)} vectors, got {len(vectors)}"
+            )
+        return vectors

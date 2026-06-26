@@ -15,6 +15,7 @@ from pydantic_ai.ui.vercel_ai import VercelAIAdapter
 
 from nexus_ai.agent import build_runtime
 from nexus_ai.rag.routes import rag_routes
+from nexus_ai.rag.test_api import create_rag_test_app
 from nexus_ai.settings import Settings, load_settings
 from nexus_ai.storage import SessionRepository, SQLiteStore
 
@@ -130,7 +131,9 @@ def create_service_app(base_settings: Settings | None = None) -> Starlette:
         Route("/api/chat", post_chat, methods=["POST"]),
     ]
     routes.extend(rag_routes(base_settings))
-    return Starlette(routes=routes)
+    app = Starlette(routes=routes)
+    app.mount("/rag/test", create_rag_test_app(base_settings))
+    return app
 
 
 def _settings_from_request(

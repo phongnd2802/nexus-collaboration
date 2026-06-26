@@ -74,3 +74,19 @@ class RagSearchRequest(BaseModel):
     limit: int = 10
     min_score: float = 0.5
     file_ids: list[str] | None = None
+
+
+class RagDirectIndexRequest(BaseModel):
+    workspace_id: str
+    file_id: str
+    job_id: str | None = None
+    async_mode: bool = False
+
+
+class RagDirectIndexResponse(BaseModel):
+    accepted: bool
+    status: str
+    workspace_id: str
+    file_id: str
+    job_id: str
+    metadata: dict[str, Any] = Field(default_factory=dict)

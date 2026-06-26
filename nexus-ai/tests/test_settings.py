@@ -14,6 +14,8 @@ def test_load_settings_from_env():
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
             "NEXUS_RAG_LLM_MODEL": "openrouter:test-rag",
             "NEXUS_RAG_ENABLE_CONTEXTUAL_RETRIEVAL": "true",
+            "NEXUS_RAG_OPENDATALOADER_HYBRID": "docling-fast",
+            "NEXUS_RAG_OPENDATALOADER_HYBRID_URL": "http://127.0.0.1:5002",
         }
     )
 
@@ -22,4 +24,6 @@ def test_load_settings_from_env():
     assert settings.session_id == "request"
     assert settings.rag_llm_model == "openrouter:test-rag"
     assert settings.rag_enable_contextual_retrieval is True
+    assert settings.rag_opendataloader_hybrid == "docling-fast"
+    assert settings.rag_opendataloader_hybrid_url == "http://127.0.0.1:5002"
     assert settings.mcp_headers["X-Nexus-Workspace-ID"] == "workspace"

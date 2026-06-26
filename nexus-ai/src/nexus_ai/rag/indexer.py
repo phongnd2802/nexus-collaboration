@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import uuid
 
 from nexus_ai.rag.chunking.registry import resolve_chunking_strategy
 from nexus_ai.rag.embeddings.openrouter import OpenRouterEmbeddingClient
@@ -26,48 +27,27 @@ class RagIndexer:
         try:
             await self.backend.claim_job(workspace_id, job_id)
             source = await self.backend.get_file_source(workspace_id, file_id)
-            content = base64.b64decode(source.content_base64)
-            extractor = resolve_extractor(source.mime_type, source.name)
-            document = await extractor.extract(source, content)
-            chunks = resolve_chunking_strategy(self.settings).split(source, document)
-
-            if not chunks:
-                await self.backend.update_job(workspace_id, job_id, "skipped", error_message="No extractable text chunks")
-                return
-
-            llm_client = RagLlmClient(self.settings)
-            embedder = OpenRouterEmbeddingClient(self.settings)
-            vector_store = QdrantVectorStore(self.settings)
-            summary = await llm_client.generate_document_summary(source, document)
-            chunks = await self._apply_contextual_retrieval(source, chunks, llm_client)
-            vectors = await embedder.embed([summary, *[chunk.contextual_text for chunk in chunks]])
-            await vector_store.ensure_collections(len(vectors[0]))
-            await vector_store.upsert_document(
-                source,
-                summary,
-                vectors[0],
-                summary_model=self.settings.rag_llm_model,
-                summary_prompt_version=SUMMARY_PROMPT_VERSION,
-            )
-            await vector_store.upsert_chunks(source, chunks, vectors[1:], job_id)
-            await self.backend.update_job(
-                workspace_id,
-                job_id,
-                "indexed",
-                metadata={
-                    "chunks": len(chunks),
-                    "embedding_model": self.settings.rag_embedding_model,
-                    "summary_model": self.settings.rag_llm_model,
-                    "context_model": self.settings.rag_llm_model if self.settings.rag_enable_contextual_retrieval else None,
-                    "summary_prompt_version": SUMMARY_PROMPT_VERSION,
-                    "context_prompt_version": CONTEXT_PROMPT_VERSION if self.settings.rag_enable_contextual_retrieval else None,
-                },
-            )
+            metadata = await self.index_source(source, job_id=job_id)
+            await self.backend.update_job(workspace_id, job_id, "indexed", metadata=metadata)
         except ValueError as exc:
             await self.backend.update_job(workspace_id, job_id, "skipped", error_message=str(exc))
         except Exception as exc:
             await self.backend.update_job(workspace_id, job_id, "failed", error_message=str(exc))
             raise
+
+    async def index_file_direct(self, workspace_id: str, file_id: str, job_id: str | None = None) -> dict[str, object]:
+        if not self.settings.rag_enabled:
+            raise ValueError("RAG indexing is disabled")
+        source = await self.backend.get_file_source(workspace_id, file_id)
+        effective_job_id = job_id or f"manual-{uuid.uuid4()}"
+        metadata = await self.index_source(source, job_id=effective_job_id)
+        return {
+            "workspace_id": workspace_id,
+            "file_id": file_id,
+            "job_id": effective_job_id,
+            "status": "indexed",
+            "metadata": metadata,
+        }
 
     async def search(self, workspace_id: str, query: str, limit: int, min_score: float, file_ids: list[str] | None = None) -> list[dict]:
         embedder = OpenRouterEmbeddingClient(self.settings)
@@ -80,6 +60,39 @@ class RagIndexer:
             min_score=min_score,
             file_ids=file_ids,
         )
+
+    async def index_source(self, source: FileSource, *, job_id: str) -> dict[str, object]:
+        content = base64.b64decode(source.content_base64)
+        extractor = resolve_extractor(source.mime_type, source.name, self.settings)
+        document = await extractor.extract(source, content)
+        chunks = resolve_chunking_strategy(self.settings).split(source, document)
+
+        if not chunks:
+            raise ValueError("No extractable text chunks")
+
+        llm_client = RagLlmClient(self.settings)
+        embedder = OpenRouterEmbeddingClient(self.settings)
+        vector_store = QdrantVectorStore(self.settings)
+        summary = await llm_client.generate_document_summary(source, document)
+        chunks = await self._apply_contextual_retrieval(source, chunks, llm_client)
+        vectors = await embedder.embed([summary, *[chunk.contextual_text for chunk in chunks]])
+        await vector_store.ensure_collections(len(vectors[0]))
+        await vector_store.upsert_document(
+            source,
+            summary,
+            vectors[0],
+            summary_model=self.settings.rag_llm_model,
+            summary_prompt_version=SUMMARY_PROMPT_VERSION,
+        )
+        await vector_store.upsert_chunks(source, chunks, vectors[1:], job_id)
+        return {
+            "chunks": len(chunks),
+            "embedding_model": self.settings.rag_embedding_model,
+            "summary_model": self.settings.rag_llm_model,
+            "context_model": self.settings.rag_llm_model if self.settings.rag_enable_contextual_retrieval else None,
+            "summary_prompt_version": SUMMARY_PROMPT_VERSION,
+            "context_prompt_version": CONTEXT_PROMPT_VERSION if self.settings.rag_enable_contextual_retrieval else None,
+        }
 
     async def _apply_contextual_retrieval(
         self,
