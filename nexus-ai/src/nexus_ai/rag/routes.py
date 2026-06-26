@@ -50,6 +50,8 @@ def rag_routes(settings: Settings) -> list[Route]:
             payload.limit,
             payload.min_score,
             payload.file_ids,
+            strategy=payload.strategy,
+            include_debug=payload.include_debug,
         )
         return JSONResponse({"results": results})
 

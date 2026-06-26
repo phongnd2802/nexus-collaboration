@@ -26,4 +26,7 @@ def test_load_settings_from_env():
     assert settings.rag_enable_contextual_retrieval is True
     assert settings.rag_opendataloader_hybrid == "docling-fast"
     assert settings.rag_opendataloader_hybrid_url == "http://127.0.0.1:5002"
+    assert settings.rag_query_transform == "multi_query_step_back"
+    assert settings.rag_multi_query_count == 3
+    assert settings.rag_document_route_top_k == 3
     assert settings.mcp_headers["X-Nexus-Workspace-ID"] == "workspace"

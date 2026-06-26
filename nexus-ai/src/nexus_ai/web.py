@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+from http import HTTPStatus
+
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
 from nexus_ai.agent import build_runtime
 from nexus_ai.capabilities.observability import flush_langfuse, langfuse_attributes
 from nexus_ai.service import create_service_app
-from nexus_ai.settings import load_settings
+from nexus_ai.settings import Settings, load_settings
 
 
 def create_web_app():
     settings = load_settings()
     app = create_service_app(settings)
+    _mount_local_runtime_status(app, settings)
     _mount_local_test_ui(app, settings)
     return _wrap_with_langfuse_context(app, settings)
 
@@ -16,6 +22,7 @@ def create_web_app():
 def main() -> None:
     settings = load_settings()
     app = create_service_app(settings)
+    _mount_local_runtime_status(app, settings)
     _mount_local_test_ui(app, settings)
     app = _wrap_with_langfuse_context(app, settings)
 
@@ -29,7 +36,37 @@ def main() -> None:
     flush_langfuse(settings)
 
 
-def _mount_local_test_ui(app, settings) -> None:
+def _mount_local_runtime_status(app, settings: Settings) -> None:
+    async def health(_request: Request):
+        status_code = HTTPStatus.OK
+        payload = {
+            "webMounted": False,
+            "orchestrationMode": settings.orchestration_mode,
+            "model": settings.model,
+            "workspaceId": settings.workspace_id or None,
+            "mcpUrl": settings.mcp_url,
+            "hasApiToken": bool(settings.api_token),
+            "ragEnabled": settings.rag_enabled,
+            "capabilityWarnings": [],
+            "disabledReason": None,
+        }
+        try:
+            runtime = build_runtime(settings)
+        except RuntimeError as exc:
+            status_code = HTTPStatus.SERVICE_UNAVAILABLE
+            payload["disabledReason"] = str(exc)
+        else:
+            payload["webMounted"] = _can_mount_to_web(runtime.agent)
+            payload["capabilityWarnings"] = runtime.capability_warnings
+            if not payload["webMounted"]:
+                status_code = HTTPStatus.SERVICE_UNAVAILABLE
+                payload["disabledReason"] = "Agent.to_web() is unavailable"
+        return JSONResponse(payload, status_code=status_code)
+
+    app.add_route("/web-runtime/health", health, methods=["GET"])
+
+
+def _mount_local_test_ui(app, settings: Settings) -> None:
     try:
         runtime = build_runtime(settings)
     except RuntimeError as exc:
@@ -41,11 +78,15 @@ def _mount_local_test_ui(app, settings) -> None:
             print(f"[nexus-ai] capability warning: {warning}")
 
     agent = runtime.agent
-    if not hasattr(agent, "to_web"):
+    if not _can_mount_to_web(agent):
         print("[nexus-ai] local /web UI disabled: Agent.to_web() is unavailable")
         return
 
-    app.mount("/web", agent.to_web(deps=runtime.deps))
+    app.mount("/", agent.to_web(deps=runtime.deps))
+
+
+def _can_mount_to_web(agent) -> bool:
+    return hasattr(agent, "to_web")
 
 
 def _wrap_with_langfuse_context(app, settings):

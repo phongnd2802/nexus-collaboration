@@ -72,6 +72,7 @@ async def retriever_step(
             state.user_prompt,
             "Plan:",
             state.plan.model_dump_json(),
+            f"Maximum RAG searches: {ctx.deps.runtime_deps.settings.rag_max_plan_searches}",
         ]
     )
     result = await ctx.deps.stage_agents.retriever.run(prompt, deps=ctx.deps.runtime_deps)
