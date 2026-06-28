@@ -8,7 +8,7 @@ export interface StepDetail {
 
 export interface ThinkingStep {
   id: string
-  kind: 'reasoning' | 'tool_input' | 'tool_output' | 'source' | 'file' | 'system'
+  kind: 'reasoning' | 'orchestration' | 'tool_input' | 'tool_output' | 'source' | 'file' | 'system'
   status: 'pending' | 'running' | 'completed' | 'error' | 'denied' | 'skipped'
   summary: string
   label?: string
@@ -16,6 +16,31 @@ export interface ThinkingStep {
   detail?: StepDetail
   startedAt?: string
   endedAt?: string
+}
+
+export interface AIChatApprovalState {
+  id: string
+  approved?: boolean
+  reason?: string
+}
+
+export interface AIChatPartItem {
+  id: string
+  type: string
+  status: 'pending' | 'running' | 'completed' | 'error' | 'denied' | 'skipped'
+  label: string
+  summary?: string
+  text?: string
+  toolName?: string
+  startedAt?: string
+  endedAt?: string
+  input?: Record<string, any>
+  output?: Record<string, any>
+  error?: string
+  metadata?: Record<string, any>
+  projects?: ProjectCardPayload[]
+  approval?: AIChatApprovalState
+  raw?: Record<string, any>
 }
 
 export interface ProjectCardPayload {
@@ -43,7 +68,13 @@ export interface AssistantMessageItem extends TimelineItemBase {
   type: 'assistant_message'
   content: string
   status: 'streaming' | 'completed' | 'error' | 'stopped'
-  steps: ThinkingStep[]
+  parts: AIChatPartItem[]
+}
+
+export interface SystemMessageItem extends TimelineItemBase {
+  type: 'system_message'
+  content: string
+  parts: AIChatPartItem[]
 }
 
 export interface ProjectListItem extends TimelineItemBase {
@@ -62,5 +93,6 @@ export interface SystemEventItem extends TimelineItemBase {
 export type AIChatTimelineItem =
   | UserMessageItem
   | AssistantMessageItem
+  | SystemMessageItem
   | ProjectListItem
   | SystemEventItem

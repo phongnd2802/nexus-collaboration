@@ -34,6 +34,7 @@ class Settings:
     mcp_url: str
     api_token: str
     workspace_id: str
+    user_id: str | None
     request_id: str | None
     runtime_dir: Path
     sqlite_path: Path
@@ -124,18 +125,25 @@ class Settings:
             missing.append("NEXUS_WORKSPACE_ID")
         if missing:
             raise RuntimeError(f"Missing required Nexus AI env vars: {', '.join(missing)}")
+        if self.orchestration_mode not in {"multi", "single"}:
+            raise RuntimeError(
+                f"Invalid NEXUS_AI_ORCHESTRATION_MODE={self.orchestration_mode!r}. "
+                "Use 'multi'. 'single' is deprecated."
+            )
 
     def for_request(
         self,
         *,
         api_token: str,
         workspace_id: str,
+        user_id: str | None = None,
         request_id: str | None = None,
     ) -> "Settings":
         return replace(
             self,
             api_token=api_token,
             workspace_id=workspace_id,
+            user_id=user_id,
             request_id=request_id,
         )
 
@@ -151,6 +159,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         mcp_url=source.get("NEXUS_MCP_URL", "http://127.0.0.1:3333/mcp"),
         api_token=source.get("NEXUS_API_TOKEN", ""),
         workspace_id=source.get("NEXUS_WORKSPACE_ID", ""),
+        user_id=source.get("NEXUS_USER_ID") or None,
         request_id=source.get("NEXUS_REQUEST_ID") or None,
         runtime_dir=runtime_dir,
         sqlite_path=sqlite_path,
@@ -160,12 +169,12 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         max_cost_usd=_float(source.get("NEXUS_AI_MAX_COST_USD"), 2.0),
         enable_ecosystem_capabilities=_bool(source.get("NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES"), True),
         context_max_tokens=_int(source.get("NEXUS_AI_CONTEXT_MAX_TOKENS"), 180000),
-        orchestration_mode=source.get("NEXUS_AI_ORCHESTRATION_MODE", "single"),
+        orchestration_mode=source.get("NEXUS_AI_ORCHESTRATION_MODE", "multi"),
         planner_model=source.get("NEXUS_AI_PLANNER_MODEL") or None,
         retriever_model=source.get("NEXUS_AI_RETRIEVER_MODEL") or None,
         synthesizer_model=source.get("NEXUS_AI_SYNTHESIZER_MODEL") or None,
         critic_model=source.get("NEXUS_AI_CRITIC_MODEL") or None,
-        orchestrator_max_revisions=min(_int(source.get("NEXUS_AI_ORCHESTRATOR_MAX_REVISIONS"), 1), 1),
+        orchestrator_max_revisions=max(0, _int(source.get("NEXUS_AI_ORCHESTRATOR_MAX_REVISIONS"), 1)),
         retrieval_top_k=_int(source.get("NEXUS_AI_RETRIEVAL_TOP_K"), 8),
         rag_min_score=_float(source.get("NEXUS_AI_RAG_MIN_SCORE"), 0.5),
         rag_enabled=_bool(source.get("NEXUS_RAG_ENABLED"), True),

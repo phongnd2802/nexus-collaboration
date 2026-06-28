@@ -31,6 +31,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import { RagIndexingService } from '../rag/rag-indexing.service';
+import { AppGateway } from '../../common/gateways/app.gateway';
 
 @Injectable()
 export class FilesService {

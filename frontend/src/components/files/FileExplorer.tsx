@@ -59,8 +59,8 @@ import {
   FilePropertiesDialog,
 } from './FileOperationDialogs';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
-import { useOfflineSync } from '../../hooks/useOfflineSync';
-import { OfflineStatusBadge } from './OfflineStatusBadge';
+// import { useOfflineSync } from '../../hooks/useOfflineSync';
+// import { OfflineStatusBadge } from './OfflineStatusBadge';
 import { RagIndexingBadge } from './RagIndexingBadge';
 import type { FileItem } from '../../types';
 
@@ -1174,11 +1174,11 @@ export function FileExplorer({
                   </div>
                   <div className="mb-2 relative">
                     {getFileIcon(file, 'large')}
-                    {file.type === 'file' && (
+                    {/* {file.type === 'file' && (
                       <div className="absolute -bottom-0.5 -right-0.5">
                         <OfflineStatusBadge fileId={file.id} size="sm" showBackground />
                       </div>
-                    )}
+                    )} */}
                     {file.type === 'file' && !isTrashView && (
                       <div className="absolute -bottom-0.5 -left-0.5">
                         <RagIndexingBadge workspaceId={workspaceId} fileId={file.id} size="sm" showBackground />
