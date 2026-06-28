@@ -3793,15 +3793,6 @@
       },
       "modal": {
         "scheduleTitle": "Lên lịch họp",
-        "meetingPlatform": "Nền tảng họp",
-        "platforms": {
-          "video": "Video",
-          "videoDescription": "Video HD đầy đủ với tính năng",
-          "audio": "Âm thanh",
-          "audioDescription": "Cuộc họp âm thanh rõ nét",
-          "webinar": "Hội thảo trực tuyến",
-          "webinarDescription": "Thuyết trình cho khán giả lớn"
-        },
         "meetingTitle": "Tiêu đề cuộc họp",
         "meetingTitlePlaceholder": "Nhập tiêu đề cuộc họp",
         "duration": "Thời lượng",
@@ -3821,17 +3812,6 @@
         "date": "Ngày",
         "time": "Giờ",
         "timezone": "Múi giờ",
-        "meetingLocation": "Địa điểm họp",
-        "locations": {
-          "virtual": "Trực tuyến",
-          "virtualDescription": "Họp trực tuyến",
-          "inPerson": "Trực tiếp",
-          "inPersonDescription": "Địa điểm thực tế",
-          "hybrid": "Hybrid",
-          "hybridDescription": "Cả trực tuyến & trực tiếp"
-        },
-        "physicalLocation": "Địa điểm thực tế",
-        "physicalLocationPlaceholder": "Nhập địa điểm họp (địa chỉ, số phòng, v.v.)",
         "description": "Mô tả (Tùy chọn)",
         "descriptionPlaceholder": "Thêm chương trình họp hoặc ghi chú...",
         "addAttendees": "Thêm người tham dự",
@@ -3841,8 +3821,7 @@
         "summary": {
           "title": "Tóm tắt cuộc họp",
           "dateTime": "Ngày & Giờ:",
-          "duration": "Thời lượng:",
-          "location": "Địa điểm:"
+          "duration": "Thời lượng:"
         },
         "actions": {
           "startingCall": "Đang bắt đầu cuộc gọi...",

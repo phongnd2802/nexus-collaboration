@@ -3735,15 +3735,6 @@
       },
       "modal": {
         "scheduleTitle": "Schedule Meeting",
-        "meetingPlatform": "Meeting Platform",
-        "platforms": {
-          "video": "Video",
-          "videoDescription": "Full HD video with features",
-          "audio": "Audio",
-          "audioDescription": "Crystal clear audio meetings",
-          "webinar": "Webinar",
-          "webinarDescription": "Large audience presentations"
-        },
         "meetingTitle": "Meeting Title",
         "meetingTitlePlaceholder": "Enter meeting title",
         "duration": "Duration",
@@ -3763,17 +3754,6 @@
         "date": "Date",
         "time": "Time",
         "timezone": "Timezone",
-        "meetingLocation": "Meeting Location",
-        "locations": {
-          "virtual": "Virtual",
-          "virtualDescription": "Online meeting",
-          "inPerson": "In-Person",
-          "inPersonDescription": "Physical location",
-          "hybrid": "Hybrid",
-          "hybridDescription": "Both online & in-person"
-        },
-        "physicalLocation": "Physical Location",
-        "physicalLocationPlaceholder": "Enter meeting location (address, room number, etc.)",
         "description": "Description (Optional)",
         "descriptionPlaceholder": "Add meeting agenda or notes...",
         "addAttendees": "Add Attendees",
@@ -3783,8 +3763,7 @@
         "summary": {
           "title": "Meeting Summary",
           "dateTime": "Date & Time:",
-          "duration": "Duration:",
-          "location": "Location:"
+          "duration": "Duration:"
         },
         "actions": {
           "startingCall": "Starting Call...",
