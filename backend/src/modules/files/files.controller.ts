@@ -56,6 +56,18 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CurrentWorkspace } from '../../common/decorators/current-workspace.decorator';
 import { MAX_UPLOAD_SIZE } from '@/constants/upload';
 
+/**
+ * Multer (busboy) decodes multipart filenames as latin1, which mangles UTF-8
+ * names (e.g. Vietnamese "Đề cương" becomes "Ä�á»� cÆ°Æ¡ng"). Re-decode the
+ * raw bytes as UTF-8 so the original filename is preserved.
+ */
+function fixUploadedFilename<T extends Express.Multer.File>(file: T): T {
+  if (file?.originalname) {
+    file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+  }
+  return file;
+}
+
 @ApiTags('files')
 @ApiBearerAuth()
 @Controller('workspaces/:workspaceId/files')
@@ -414,7 +426,7 @@ export class FilesController {
     if (!file) {
       throw new Error('No file provided');
     }
-    return this.filesService.uploadFile(workspaceId, file, uploadFileDto, userId);
+    return this.filesService.uploadFile(workspaceId, fixUploadedFilename(file), uploadFileDto, userId);
   }
 
   @Post('upload/multiple')
@@ -433,7 +445,12 @@ export class FilesController {
     if (!files || files.length === 0) {
       throw new Error('No files provided');
     }
-    return this.filesService.uploadMultipleFiles(workspaceId, files, uploadFileDto, userId);
+    return this.filesService.uploadMultipleFiles(
+      workspaceId,
+      files.map(fixUploadedFilename),
+      uploadFileDto,
+      userId,
+    );
   }
 
   @Post('add-by-url')

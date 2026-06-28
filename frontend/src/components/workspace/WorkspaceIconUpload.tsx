@@ -81,10 +81,10 @@ export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) 
       <div
         className={`relative w-20 h-20 mx-auto rounded-xl border-2 border-dashed transition-all cursor-pointer group ${
           isDragging
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+            ? 'border-[#D97757] bg-[rgba(217,119,87,0.08)]'
             : preview
-            ? 'border-gray-200 dark:border-gray-700'
-            : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950'
+            ? 'border-[rgba(31,30,29,0.15)]'
+            : 'border-[rgba(31,30,29,0.3)] hover:border-[#D97757] hover:bg-[rgba(217,119,87,0.08)]'
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -113,7 +113,7 @@ export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) 
             </div>
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+          <div className="w-full h-full flex flex-col items-center justify-center text-[#73726C]">
             <Building2 className="w-6 h-6 mb-1" />
             <Upload className="w-3 h-3" />
           </div>
@@ -132,7 +132,7 @@ export function WorkspaceIconUpload({ onIconChange }: WorkspaceIconUploadProps) 
             ? intl.formatMessage({ id: 'workspace.createForm.icon.change' })
             : intl.formatMessage({ id: 'workspace.createForm.icon.upload' })}
         </Button>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-[#73726C] mt-1">
           {intl.formatMessage({ id: 'workspace.createForm.icon.hint' })}
         </p>
       </div>
