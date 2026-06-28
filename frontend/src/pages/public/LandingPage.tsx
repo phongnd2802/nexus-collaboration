@@ -39,8 +39,9 @@ const STYLES = `
 
 .nx-landing header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid rgba(31,30,29,.1); }
 .nx-landing .nav { display: flex; align-items: center; justify-content: space-between; height: 84px; }
-.nx-landing .logo { display: flex; align-items: center; gap: 10px; font-family: 'Playfair Display', serif; font-size: 22px; }
-.nx-landing .logo .mark { width: 32px; height: 32px; border-radius: 8px; background: var(--terracotta); display: grid; place-items: center; color: #fff; font-size: 18px; font-family: 'Playfair Display', serif; }
+.nx-landing .logo { display: flex; align-items: center; gap: 8px; }
+.nx-landing .logo .logo-text { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 24px; line-height: 1; background-image: linear-gradient(to right, #D97757, #DC6038); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.nx-landing .logo img { width: 34px; height: 34px; object-fit: contain; }
 .nx-landing .nav-links { display: flex; align-items: center; gap: 8px; }
 .nx-landing .nav-links a { color: var(--ink); font-size: 16px; font-weight: 400; padding: 8px 12px; border-radius: 8px; transition: color .15s, background .15s; }
 .nx-landing .nav-links a:hover { color: var(--ink-2); background: var(--hover-bg); }
@@ -72,8 +73,8 @@ const STYLES = `
 .nx-landing .mockup-bar .url { margin-left: 12px; font-size: 12px; color: var(--ink-3); background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 4px 12px; }
 .nx-landing .mockup-body { display: grid; grid-template-columns: 188px 1fr; min-height: 420px; }
 .nx-landing .mk-side { background: var(--card); border-right: 1px solid var(--line); padding: 14px 12px; text-align: left; }
-.nx-landing .mk-side .ws { display: flex; align-items: center; gap: 8px; font-family: 'Playfair Display', serif; font-size: 17px; padding: 4px 8px 14px; }
-.nx-landing .mk-side .ws .av { width: 26px; height: 26px; border-radius: 7px; background: var(--terracotta); display: grid; place-items: center; color: #fff; font-size: 15px; font-family: 'Playfair Display', serif; }
+.nx-landing .mk-side .ws { display: flex; align-items: center; gap: 7px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 17px; padding: 4px 8px 14px; line-height: 1; background-image: linear-gradient(to right, #D97757, #DC6038); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.nx-landing .mk-side .ws .av { width: 24px; height: 24px; object-fit: contain; }
 .nx-landing .mk-nav-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); padding: 8px 10px; border-radius: 8px; margin-bottom: 1px; }
 .nx-landing .mk-nav-item .mi { font-size: 13px; width: 16px; text-align: center; opacity: .75; }
 .nx-landing .mk-nav-item.active { background: var(--ink); color: #fff; font-weight: 600; }
@@ -345,7 +346,7 @@ export default function LandingPage() {
       {/* NAV */}
       <header>
         <div className="container nav">
-          <Link className="logo" to="/auth/login"><span className="mark">N</span> Nexus</Link>
+          <Link className="logo" to="/auth/login"><img src="/nexus-logo.png" alt="Nexus" /> <span className="logo-text">Nexus</span></Link>
           <nav className="nav-links">
             <a href="#features">Tính năng</a>
             <a href="#ai">Nexus AI</a>
@@ -379,7 +380,7 @@ export default function LandingPage() {
             </div>
             <div className="mockup-body">
               <aside className="mk-side">
-                <div className="ws"><span className="av">N</span> Nexus</div>
+                <div className="ws"><img className="av" src="/nexus-logo.png" alt="Nexus" /> Nexus</div>
                 <div className="mk-nav-item active"><span className="mi">⌂</span> Dashboard</div>
                 <div className="mk-nav-item"><span className="mi">💬</span> Messages</div>
                 <div className="mk-nav-item"><span className="mi">✦</span> AI Chat</div>
@@ -594,7 +595,7 @@ export default function LandingPage() {
         <div className="container">
           <div className="foot">
             <div className="col about">
-              <Link className="logo" to="/auth/login"><span className="mark">N</span> Nexus</Link>
+              <Link className="logo" to="/auth/login"><img src="/nexus-logo.png" alt="Nexus" /> <span className="logo-text">Nexus</span></Link>
               <p>Nền tảng workspace tất cả trong một cho các đội nhóm hiện đại.</p>
             </div>
             <div className="col">
