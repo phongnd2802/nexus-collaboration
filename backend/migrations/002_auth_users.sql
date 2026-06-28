@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS "users" (
   "email_verification_token" VARCHAR(255),
   "password_reset_token" VARCHAR(255),
   "password_reset_expires_at" TIMESTAMPTZ,
-  "is_active" BOOLEAN NOT NULL DEFAULT true,
   "is_banned" BOOLEAN NOT NULL DEFAULT false,
   "banned_reason" TEXT,
   -- Compat: timestamp form of is_banned. NULL = not banned;

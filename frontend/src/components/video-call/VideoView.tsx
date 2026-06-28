@@ -39,8 +39,6 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { ScheduleMeetingModal } from '@/components/video-call'
-import { MeetingSummaryView } from '@/components/video-call/MeetingSummaryView'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useWorkspaceMembers } from '@/lib/api/workspace-api'
 import { useCreateVideoCall, useVideoCalls, useMembersPresence } from '@/lib/api/video-call-api'
 import type { VideoCall } from '@/lib/api/video-call-api'
@@ -69,7 +67,6 @@ export function VideoView() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'online' | 'offline'>('all')
   const [showScheduleMeetingModal, setShowScheduleMeetingModal] = useState(false)
   const [meetingCode, setMeetingCode] = useState('')
-  const [selectedCallForSummary, setSelectedCallForSummary] = useState<VideoCall | null>(null)
 
   // Check for tab query parameter (from notifications)
   useEffect(() => {
@@ -286,7 +283,6 @@ export function VideoView() {
           call_type: type,
           is_group_call: isGroupCall,
           participant_ids: contactIds,
-          recording_enabled: false,
         }
       })
 
@@ -531,12 +527,6 @@ export function VideoView() {
                             {formatDuration(duration)}
                           </span>
                           <span>{formatTimestamp(timestamp)}</span>
-                          {call.is_recording && (
-                            <Badge variant="outline" className="text-xs">
-                              <Brain className="h-3 w-3 mr-1" />
-                              {intl.formatMessage({ id: 'modules.videoCallsApp.history.recorded' })}
-                            </Badge>
-                          )}
                           {call.is_group_call && (
                             <Badge variant="outline" className="text-xs">
                               <Users className="h-3 w-3 mr-1" />
@@ -567,15 +557,6 @@ export function VideoView() {
                       )}
 
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-950"
-                          onClick={() => setSelectedCallForSummary(call)}
-                        >
-                          <Brain className="h-4 w-4 mr-2" />
-                          {intl.formatMessage({ id: 'modules.videoCallsApp.history.viewSummary', defaultMessage: 'View Summary' })}
-                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -697,30 +678,6 @@ export function VideoView() {
         open={showScheduleMeetingModal}
         onOpenChange={setShowScheduleMeetingModal}
       />
-
-      {/* Meeting Summary Dialog */}
-      <Dialog
-        open={selectedCallForSummary !== null}
-        onOpenChange={(open) => !open && setSelectedCallForSummary(null)}
-      >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-500" />
-              {selectedCallForSummary
-                ? getCallDisplayTitle(selectedCallForSummary)
-                : intl.formatMessage({ id: 'modules.videoCallsApp.history.meetingSummaryTitle', defaultMessage: 'Meeting Summary' })}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedCallForSummary && (
-            <MeetingSummaryView
-              callId={selectedCallForSummary.id}
-              callTitle={selectedCallForSummary.title}
-              className="border-0 bg-transparent"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

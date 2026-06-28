@@ -49,8 +49,6 @@ export interface FileItem {
   is_deleted?: boolean;
   deleted_at?: string | null;
   deleted_by?: string | null;
-  starred_at?: string | null;
-  starred_by?: string | null;
   last_opened_at?: string | null;
   last_opened_by?: string | null;
   open_count?: number;
@@ -107,4 +105,4 @@ export interface FilesSidebarContent {
   selectedFile: FileItem | null;
 }
 
-export type FilesSidebarContentType = 'storage' | 'info' | 'preview' | 'activity' | 'comments';
+export type FilesSidebarContentType = 'storage' | 'info' | 'preview' | 'activity';

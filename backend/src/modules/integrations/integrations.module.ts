@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { GoogleOAuthController } from './google-oauth.controller';
-import { EmailModule } from '../integration-framework/email/email.module';
 import { CalendarModule } from '../calendar/calendar.module';
 import { IntegrationFrameworkModule } from '../integration-framework/integration-framework.module';
 
@@ -16,7 +15,6 @@ import { IntegrationFrameworkModule } from '../integration-framework/integration
  */
 @Module({
   imports: [
-    EmailModule,
     CalendarModule,
     IntegrationFrameworkModule,
   ],

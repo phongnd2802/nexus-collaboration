@@ -9,8 +9,6 @@ import {
   WorkflowTriggerType,
   WorkflowResponseDto,
   WorkflowStepResponseDto,
-  UseTemplateDto,
-  CreateTemplateFromWorkflowDto,
 } from '../dto/workflow.dto';
 import { camelCase, snakeCase } from 'change-case';
 import CronExpressionParser from 'cron-parser';
@@ -622,133 +620,6 @@ export class WorkflowsService {
   }
 
   // ============================================
-  // TEMPLATES
-  // ============================================
-
-  async listTemplates(options?: {
-    category?: string;
-    isFeatured?: boolean;
-    limit?: number;
-  }): Promise<any[]> {
-    let query = this.db.table('automation_templates').select('*');
-
-    if (options?.category) {
-      query = query.where('category', '=', options.category);
-    }
-
-    if (options?.isFeatured !== undefined) {
-      query = query.where('is_featured', '=', options.isFeatured);
-    }
-
-    if (options?.limit) {
-      query = query.limit(options.limit);
-    }
-
-    const result = await query.execute();
-    return (result.data || []).map(this.transformTemplate);
-  }
-
-  async getTemplate(templateId: string): Promise<any> {
-    const result = await this.db
-      .table('automation_templates')
-      .select('*')
-      .where('id', '=', templateId)
-      .execute();
-
-    if (!result.data?.[0]) {
-      throw new NotFoundException('Template not found');
-    }
-
-    return this.transformTemplate(result.data[0]);
-  }
-
-  async useTemplate(
-    workspaceId: string,
-    userId: string,
-    templateId: string,
-    dto: UseTemplateDto,
-  ): Promise<WorkflowResponseDto> {
-    const template = await this.getTemplate(templateId);
-
-    // Replace variables in template config
-    let config = JSON.stringify(template.templateConfig);
-    if (dto.variables) {
-      for (const [key, value] of Object.entries(dto.variables)) {
-        config = config.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
-      }
-    }
-    const parsedConfig = JSON.parse(config);
-
-    // Create workflow from template
-    const workflow = await this.createWorkflow(workspaceId, userId, {
-      name: dto.name || template.name,
-      description: template.description,
-      icon: template.icon,
-      color: template.color,
-      triggerType: parsedConfig.trigger.type,
-      triggerConfig: parsedConfig.trigger.config,
-      steps: parsedConfig.steps?.map((step: any, index: number) => ({
-        stepOrder: index,
-        stepType: step.type,
-        stepName: step.name,
-        stepConfig: step.config,
-      })),
-    });
-
-    // Increment use count
-    await this.db
-      .table('automation_templates')
-      .select('use_count')
-      .where('id', '=', templateId)
-      .execute()
-      .then(async (result) => {
-        const currentCount = result.data?.[0]?.use_count || 0;
-        await this.db.update('automation_templates', templateId, {
-          use_count: currentCount + 1,
-        });
-      });
-
-    return workflow;
-  }
-
-  async createTemplateFromWorkflow(
-    workspaceId: string,
-    workflowId: string,
-    userId: string,
-    dto: CreateTemplateFromWorkflowDto,
-  ): Promise<any> {
-    const workflow = await this.getWorkflow(workspaceId, workflowId);
-
-    const templateConfig = {
-      trigger: {
-        type: workflow.triggerType,
-        config: workflow.triggerConfig,
-      },
-      steps: workflow.steps?.map((step) => ({
-        type: step.stepType,
-        name: step.stepName,
-        config: step.stepConfig,
-      })),
-    };
-
-    const templateData = {
-      name: dto.name,
-      description: dto.description || workflow.description,
-      category: dto.category,
-      icon: dto.icon || workflow.icon,
-      color: dto.color || workflow.color,
-      template_config: templateConfig,
-      variables: dto.variables || [],
-      is_featured: false,
-      is_system: false,
-      created_by: userId,
-    };
-
-    const result = await this.db.insert('automation_templates', templateData);
-    return this.transformTemplate(result.data);
-  }
-
-  // ============================================
   // VALIDATION
   // ============================================
 
@@ -824,23 +695,6 @@ export class WorkflowsService {
     isActive: row.is_active,
     positionX: row.position_x,
     positionY: row.position_y,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  });
-
-  private transformTemplate = (row: any): any => ({
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    category: row.category,
-    icon: row.icon,
-    color: row.color,
-    templateConfig: row.template_config,
-    variables: row.variables,
-    isFeatured: row.is_featured,
-    isSystem: row.is_system,
-    useCount: row.use_count,
-    createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   });

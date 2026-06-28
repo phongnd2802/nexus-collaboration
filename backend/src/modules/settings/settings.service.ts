@@ -100,49 +100,10 @@ export class SettingsService {
         `Notification settings updated successfully for user: ${userId}${timezone ? ` with timezone: ${timezone}` : ''}`,
       );
 
-      // Sync email notification setting with email_connections table
-      await this.syncEmailNotificationSetting(userId, updatedSettings);
-
       return updatedSettings;
     } catch (error: any) {
       this.logger.error(`Failed to update notification settings: ${error.message}`, error.stack);
       throw error;
-    }
-  }
-
-  /**
-   * Sync email notification setting with email_connections table
-   */
-  private async syncEmailNotificationSetting(userId: string, settings: any) {
-    try {
-      // Find email category in settings
-      const emailCategory = settings.categories?.find((c: any) => c.id === 'email');
-      if (!emailCategory) {
-        return;
-      }
-
-      // Check if email notifications are enabled (either push or inApp)
-      const notificationsEnabled =
-        emailCategory.settings?.push === true || emailCategory.settings?.inApp === true;
-
-      this.logger.log(
-        `Syncing email notifications for user ${userId}: enabled=${notificationsEnabled}`,
-      );
-
-      // Update all email connections for this user
-      await this.db
-        .table('email_connections')
-        .update({
-          notifications_enabled: notificationsEnabled,
-          updated_at: new Date().toISOString(),
-        })
-        .where('user_id', '=', userId)
-        .execute();
-
-      this.logger.log(`Email connections updated for user ${userId}`);
-    } catch (error: any) {
-      // Log but don't throw - this is a best-effort sync
-      this.logger.warn(`Failed to sync email notification setting: ${error.message}`);
     }
   }
 
@@ -198,16 +159,6 @@ export class SettingsService {
           settings: {
             email: true,
             push: false,
-            inApp: true,
-          },
-        },
-        {
-          id: 'email',
-          label: 'Email Notifications',
-          description: 'Notifications for new emails in connected Gmail',
-          settings: {
-            email: false,
-            push: true,
             inApp: true,
           },
         },
@@ -356,7 +307,6 @@ export class SettingsService {
         'calendar',
         'video_calls',
         'files',
-        'email',
         'search',
         'connectors',
         'tools',

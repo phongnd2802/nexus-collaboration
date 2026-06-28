@@ -37,7 +37,7 @@ export interface CallHistory {
   duration: number
   timestamp: number
   isGroupCall: boolean
-  hasAIFeatures: boolean
+  hasAIFeatures?: boolean
   recording?: string
   status: 'completed' | 'missed' | 'declined'
 }
@@ -280,18 +280,6 @@ export interface VideoCallChatProps {
   onClose: () => void
 }
 
-export interface AIMeetingPanelProps {
-  callId: string  // Active video call ID
-  participants: CallParticipant[]
-  onClose: () => void
-}
-
-export interface LiveAIOverlayProps {
-  sessionId: string
-  isVisible: boolean
-  onToggle: () => void
-}
-
 export interface MediaJoinSettings {
   micEnabled: boolean
   cameraEnabled: boolean
@@ -337,8 +325,8 @@ export interface Meeting {
   duration: number
   timestamp: number
   participants: Array<{ name: string; avatar?: string | null; display_name?: string } | string>
-  hasNotes: boolean
-  hasSummary: boolean
+  hasNotes?: boolean
+  hasSummary?: boolean
   status: string
 }
 

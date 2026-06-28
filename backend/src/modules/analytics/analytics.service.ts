@@ -50,11 +50,10 @@ export class AnalyticsService {
     );
 
     // Get overview metrics
-    const [users, projects, tasks, activities] = await Promise.all([
+    const [users, projects, tasks] = await Promise.all([
       this.getUserStats(workspaceId, startDate, endDate),
       this.getProjectStats(workspaceId, startDate, endDate),
       this.getTaskStats(workspaceId, startDate, endDate),
-      this.getActivityStats(workspaceId, startDate, endDate),
     ]);
 
     return {
@@ -70,34 +69,17 @@ export class AnalyticsService {
         activeProjects: projects.active,
         totalTasks: tasks.total,
         completedTasks: tasks.completed,
-        totalActivities: activities.total,
       },
       trends: {
         userGrowth: users.growth,
         projectGrowth: projects.growth,
         taskCompletion: tasks.completionRate,
-        activityVolume: activities.volume,
       },
     };
   }
 
   async getUserAnalytics(workspaceId: string, query: AnalyticsQueryDto) {
-    const { startDate, endDate } = this.getDateRange(
-      query.timeRange,
-      query.startDate,
-      query.endDate,
-    );
-
-    // Get user activities
-    const activitiesResult = await this.db
-      .table('activity_logs')
-      .select('user_id', 'action', 'created_at')
-      .where('workspace_id', '=', workspaceId)
-      .where('created_at', '>=', startDate)
-      .where('created_at', '<=', endDate)
-      .execute();
-
-    const activities = activitiesResult.data || [];
+    this.getDateRange(query.timeRange, query.startDate, query.endDate);
 
     // Get workspace members
     const membersResult = await this.db
@@ -109,33 +91,10 @@ export class AnalyticsService {
 
     const members = membersResult.data || [];
 
-    // Process user activity data
-    const userActivityMap = new Map();
-    activities.forEach((activity) => {
-      const userId = activity.user_id;
-      if (!userActivityMap.has(userId)) {
-        userActivityMap.set(userId, {
-          userId,
-          totalActions: 0,
-          actions: {},
-          lastActivity: null,
-        });
-      }
-      const userActivity = userActivityMap.get(userId);
-      userActivity.totalActions++;
-      userActivity.actions[activity.action] = (userActivity.actions[activity.action] || 0) + 1;
-      if (
-        !userActivity.lastActivity ||
-        new Date(activity.created_at) > new Date(userActivity.lastActivity)
-      ) {
-        userActivity.lastActivity = activity.created_at;
-      }
-    });
-
     return {
       totalMembers: members.length,
-      activeUsers: userActivityMap.size,
-      userActivities: Array.from(userActivityMap.values()),
+      activeUsers: members.length,
+      userActivities: [],
       memberRoles: members.reduce((acc, member) => {
         acc[member.role] = (acc[member.role] || 0) + 1;
         return acc;
@@ -260,58 +219,8 @@ export class AnalyticsService {
     };
   }
 
-  async getActivityAnalytics(workspaceId: string, query: AnalyticsQueryDto) {
-    const { startDate, endDate } = this.getDateRange(
-      query.timeRange,
-      query.startDate,
-      query.endDate,
-    );
 
-    // Get activity logs
-    const activitiesResult = await this.db
-      .table('activity_logs')
-      .select('*')
-      .where('workspace_id', '=', workspaceId)
-      .where('created_at', '>=', startDate)
-      .where('created_at', '<=', endDate)
-      .execute();
-
-    const activities = activitiesResult.data || [];
-
-    // Process activity statistics
-    const actionCounts = activities.reduce((acc, activity) => {
-      acc[activity.action] = (acc[activity.action] || 0) + 1;
-      return acc;
-    }, {});
-
-    const hourlyActivity = activities.reduce((acc, activity) => {
-      const hour = new Date(activity.created_at).getHours();
-      acc[hour] = (acc[hour] || 0) + 1;
-      return acc;
-    }, {});
-
-    const dailyActivity = activities.reduce((acc, activity) => {
-      const date = new Date(activity.created_at).toISOString().split('T')[0];
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {});
-
-    return {
-      totalActivities: activities.length,
-      actionDistribution: actionCounts,
-      hourlyDistribution: hourlyActivity,
-      dailyDistribution: dailyActivity,
-      mostActiveHours: Object.entries(hourlyActivity)
-        .sort(([, a], [, b]) => (b as number) - (a as number))
-        .slice(0, 3)
-        .map(([hour, count]) => ({ hour: parseInt(hour), count })),
-      peakActivityDay:
-        Object.entries(dailyActivity).sort(([, a], [, b]) => (b as number) - (a as number))[0] ||
-        null,
-    };
-  }
-
-  private async getUserStats(workspaceId: string, startDate: string, endDate: string) {
+  private async getUserStats(workspaceId: string, _startDate: string, _endDate: string) {
     const membersResult = await this.db
       .table('workspace_members')
       .select('*')
@@ -320,20 +229,10 @@ export class AnalyticsService {
       .execute();
 
     const members = membersResult.data || [];
-    const activeMembersResult = await this.db
-      .table('activity_logs')
-      .select('user_id')
-      .where('workspace_id', '=', workspaceId)
-      .where('created_at', '>=', startDate)
-      .where('created_at', '<=', endDate)
-      .groupBy('user_id')
-      .execute();
-
-    const activeMembers = activeMembersResult.data || [];
 
     return {
       total: members.length,
-      active: activeMembers.length,
+      active: members.length,
       growth: 0, // Calculate growth based on historical data
     };
   }
@@ -371,23 +270,6 @@ export class AnalyticsService {
       total: tasks.length,
       completed: completedTasks.length,
       completionRate: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
-    };
-  }
-
-  private async getActivityStats(workspaceId: string, startDate: string, endDate: string) {
-    const activitiesResult = await this.db
-      .table('activity_logs')
-      .select('*')
-      .where('workspace_id', '=', workspaceId)
-      .where('created_at', '>=', startDate)
-      .where('created_at', '<=', endDate)
-      .execute();
-
-    const activities = activitiesResult.data || [];
-
-    return {
-      total: activities.length,
-      volume: activities.length, // Activities per day/hour
     };
   }
 

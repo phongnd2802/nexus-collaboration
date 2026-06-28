@@ -32,9 +32,7 @@ import { EventsModule } from './modules/events/events.module';
 import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
-import { EmailModule } from './modules/integration-framework/email/email.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
-import { GitHubModule } from './modules/integration-framework/github/github.module';
 import { IntegrationFrameworkModule } from './modules/integration-framework/integration-framework.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
 import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
@@ -73,10 +71,8 @@ import { AgentChatModule } from './modules/agent-chat/agent-chat.module';
     EventsModule,
     SettingsModule,
     SchedulerModule,
-    EmailModule,
     EmailProviderModule,
     IntegrationsModule,
-    GitHubModule,
     IntegrationFrameworkModule,
     WorkflowsModule,
     AgentChatModule,

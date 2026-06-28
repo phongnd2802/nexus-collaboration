@@ -1,7 +1,6 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
-import { EmailService } from '../integration-framework/email/email.service';
 import { GenericOAuthService } from '../integration-framework/services/generic-oauth.service';
 import { ConnectionService } from '../integration-framework/services/connection.service';
 import { CatalogService } from '../integration-framework/services/catalog.service';
@@ -26,7 +25,6 @@ import { CatalogService } from '../integration-framework/services/catalog.servic
 @Controller('integrations/google')
 export class GoogleOAuthController {
   constructor(
-    private readonly emailService: EmailService,
     private readonly genericOAuthService: GenericOAuthService,
     private readonly connectionService: ConnectionService,
     private readonly catalogService: CatalogService,
@@ -76,11 +74,7 @@ export class GoogleOAuthController {
 
       // Route to appropriate service handler
       switch (service) {
-        case 'gmail':
-        case 'email':
-          return await this.handleGmailCallback(code, state, stateData, res, frontendUrl);
-
-        // New Google services using generic OAuth handler
+        // Google services using generic OAuth handler
         case 'google-chat':
         case 'google-meet':
         case 'google-cloud':
@@ -88,58 +82,15 @@ export class GoogleOAuthController {
           return await this.handleGenericGoogleCallback(code, service, stateData, res, frontendUrl);
 
         default:
-          return await this.handleGmailCallback(code, state, stateData, res, frontendUrl);
+          return res.redirect(
+            `${frontendUrl}?google_error=${encodeURIComponent(`unsupported_service:${service}`)}`,
+          );
       }
     } catch (err) {
       console.error('Google OAuth callback error:', err);
       return res.redirect(
         `${frontendUrl}?google_error=${encodeURIComponent(this.getErrorMessage(err))}`,
       );
-    }
-  }
-
-  /**
-   * Handle Gmail OAuth callback
-   */
-  private async handleGmailCallback(
-    code: string,
-    state: string,
-    stateData: any,
-    res: Response,
-    frontendUrl: string,
-  ) {
-    try {
-      const connection = await this.emailService.handleOAuthCallback(code, state);
-      const returnUrl =
-        stateData.returnUrl || `${frontendUrl}/workspaces/${stateData.workspaceId}/email`;
-
-      // Build redirect URL with proper query parameter handling
-      const separator = returnUrl.includes('?') ? '&' : '?';
-      const redirectUrl = `${returnUrl}${separator}emailConnected=true&email=${encodeURIComponent(connection.emailAddress)}`;
-
-      console.log('Email OAuth redirect URL:', redirectUrl);
-
-      // Check if returnUrl is a custom scheme (mobile app deep link)
-      // Browsers can't redirect to custom schemes, so we need to serve an HTML page
-      if (this.isCustomScheme(returnUrl)) {
-        return this.sendDeepLinkPage(res, redirectUrl, 'Email Connected Successfully');
-      }
-
-      return res.redirect(redirectUrl);
-    } catch (err) {
-      console.error('Gmail OAuth callback error:', err);
-      const returnUrl =
-        stateData.returnUrl || `${frontendUrl}/workspaces/${stateData.workspaceId}/email`;
-
-      const separator = returnUrl.includes('?') ? '&' : '?';
-      const errorUrl = `${returnUrl}${separator}emailError=${encodeURIComponent(this.getErrorMessage(err))}`;
-
-      // Check if returnUrl is a custom scheme (mobile app deep link)
-      if (this.isCustomScheme(returnUrl)) {
-        return this.sendDeepLinkPage(res, errorUrl, 'Email Connection Failed');
-      }
-
-      return res.redirect(errorUrl);
     }
   }
 

@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { emailService, type EmailConnection } from '@/lib/api/email-api';
-import { githubApi, type GitHubConnection } from '@/lib/api/github-api';
 import {
   useIntegrationCatalog,
   useUserConnections,
@@ -16,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Loader2, Check, ExternalLink, LogOut, Github, Search } from 'lucide-react';
+import { Loader2, Check, ExternalLink, LogOut, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Whether a catalog integration is "connectable right now" is decided
@@ -38,99 +36,6 @@ const CATEGORY_TABS: Array<{ id: string; categories: string[] }> = [
   { id: 'ai', categories: ['AI', 'AUTOMATION'] },
   { id: 'security', categories: ['SECURITY', 'SUPPORT'] },
 ];
-
-// App logos
-const GmailLogo = () => (
-  <img src="/icons/gmail.png" alt="Gmail" className="w-10 h-10 object-contain" />
-);
-
-const GitHubLogo = () => (
-  <div className="w-10 h-10 flex items-center justify-center">
-    <Github className="w-8 h-8 text-foreground" />
-  </div>
-);
-
-interface AppCardProps {
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  category?: string;
-  isConnected: boolean;
-  isLoading: boolean;
-  connectionInfo?: string;
-  onConnect: () => void;
-  onOpen: () => void;
-  onDisconnect: () => void;
-}
-
-function AppCard({
-  name,
-  description,
-  icon,
-  category,
-  isConnected,
-  isLoading,
-  connectionInfo,
-  onConnect,
-  onOpen,
-  onDisconnect,
-}: AppCardProps) {
-  const intl = useIntl();
-
-  return (
-    <Card className="hover:border-primary/50 transition-colors h-full flex flex-col">
-      <CardHeader className="flex flex-row items-start gap-4 flex-1">
-        <div className="p-2 bg-muted rounded-lg shrink-0">{icon}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-base truncate">{name}</CardTitle>
-            {isConnected && (
-              <Badge variant="secondary" className="bg-green-500/10 text-green-600 shrink-0">
-                <Check className="w-3 h-3 mr-1" />
-                {intl.formatMessage({ id: 'integrations.status.connected', defaultMessage: 'Connected' })}
-              </Badge>
-            )}
-          </div>
-          <CardDescription className="mt-1 line-clamp-2 text-sm">{description}</CardDescription>
-          {category && (
-            <Badge variant="outline" className="mt-2 text-xs">
-              {category}
-            </Badge>
-          )}
-          {connectionInfo && isConnected && (
-            <p className="text-xs text-muted-foreground mt-2 truncate">{connectionInfo}</p>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex gap-2">
-          {isConnected ? (
-            <>
-              <Button onClick={onOpen} size="sm" className="flex-1">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                {intl.formatMessage({ id: 'apps.actions.open', defaultMessage: 'Open' })}
-              </Button>
-              <Button variant="outline" size="sm" onClick={onDisconnect} disabled={isLoading}>
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={onConnect} disabled={isLoading} size="sm" className="w-full">
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {intl.formatMessage({ id: 'apps.actions.connecting', defaultMessage: 'Connecting...' })}
-                </>
-              ) : (
-                intl.formatMessage({ id: 'apps.actions.connect', defaultMessage: 'Connect' })
-              )}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 // Integration card for catalog items
 function IntegrationCard({
@@ -225,27 +130,15 @@ function AppsGrid() {
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Connection states for hardcoded integrations
-  const [gmailConnection, setGmailConnection] = useState<EmailConnection | null>(null);
-  const [githubConnection, setGithubConnection] = useState<GitHubConnection | null>(null);
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
-  const [isConnectingGmail, setIsConnectingGmail] = useState(false);
-  const [isDisconnectingGmail, setIsDisconnectingGmail] = useState(false);
-  const [isConnectingGithub, setIsConnectingGithub] = useState(false);
-  const [isDisconnectingGithub, setIsDisconnectingGithub] = useState(false);
   // Fetch catalog integrations
   const { data: catalogData, isLoading: catalogLoading } = useIntegrationCatalog({ limit: 200 });
   const { data: connectionsData } = useUserConnections(workspaceId || '');
 
-  // Slugs of integrations that have hardcoded handlers
-  const hardcodedSlugs = ['gmail', 'github'];
-
   // Filter integrations by selected tab and search query
   const filteredIntegrations = useMemo(() => {
-    let integrations = catalogData?.integrations?.filter(
-      (integration) => !hardcodedSlugs.includes(integration.slug)
-    ) || [];
+    let integrations = catalogData?.integrations || [];
 
     // Filter by category tab
     if (selectedTab !== 'all') {
@@ -278,142 +171,10 @@ function AppsGrid() {
     );
   };
 
-  // Check for OAuth callback result in URL
+  // Mark initial load complete once the workspace is resolved
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailConnected = urlParams.get('emailConnected');
-    const calendarConnected = urlParams.get('calendarConnected');
-    const githubConnected = urlParams.get('githubConnected');
-    const githubError = urlParams.get('githubError');
-
-    if (emailConnected || calendarConnected || githubConnected) {
-      window.history.replaceState({}, '', window.location.pathname);
-      loadConnections();
-    } else if (githubError) {
-      console.error('OAuth error:', githubError);
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, []);
-
-  // Load connection status on mount
-  useEffect(() => {
-    loadConnections();
+    setIsLoading(false);
   }, [workspaceId]);
-
-  const loadConnections = async () => {
-    if (!workspaceId) return;
-
-    try {
-      setIsLoading(true);
-      const [emailConn, githubConn] = await Promise.all([
-        emailService.getConnection(workspaceId).catch(() => null),
-        githubApi.getConnection(workspaceId).catch(() => null),
-      ]);
-      setGmailConnection(emailConn?.data || null);
-      setGithubConnection(githubConn);
-    } catch (error) {
-      console.error('Failed to load connections:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handlers for hardcoded integrations
-  const handleConnectGmail = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingGmail(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await emailService.getAuthUrl(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get Gmail auth URL:', error);
-      setIsConnectingGmail(false);
-    }
-  };
-
-  const handleDisconnectGmail = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingGmail(true);
-      await emailService.disconnect(workspaceId);
-      setGmailConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect Gmail:', error);
-    } finally {
-      setIsDisconnectingGmail(false);
-    }
-  };
-
-  const handleOpenGmail = () => navigate(`/workspaces/${workspaceId}/email`);
-
-  const handleConnectGithub = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsConnectingGithub(true);
-      const returnUrl = window.location.href;
-      const { authorizationUrl } = await githubApi.getAuthUrl(workspaceId, returnUrl);
-      window.location.href = authorizationUrl;
-    } catch (error) {
-      console.error('Failed to get GitHub auth URL:', error);
-      setIsConnectingGithub(false);
-    }
-  };
-
-  const handleDisconnectGithub = async () => {
-    if (!workspaceId) return;
-    try {
-      setIsDisconnectingGithub(true);
-      await githubApi.disconnect(workspaceId);
-      setGithubConnection(null);
-    } catch (error) {
-      console.error('Failed to disconnect GitHub:', error);
-    } finally {
-      setIsDisconnectingGithub(false);
-    }
-  };
-
-  const handleOpenGithub = () => {
-    if (githubConnection?.githubLogin) {
-      window.open(`https://github.com/${githubConnection.githubLogin}`, '_blank');
-    }
-  };
-
-  // Check if hardcoded apps should show based on selected category
-  const shouldShowHardcodedApps = useMemo(() => {
-    if (selectedTab === 'all') return true;
-    const tab = CATEGORY_TABS.find(t => t.id === selectedTab);
-    if (!tab) return false;
-
-    // Map hardcoded apps to their categories
-    const hardcodedCategories: Record<string, string[]> = {
-      gmail: ['EMAIL', 'PRODUCTIVITY'],
-      github: ['DEVELOPMENT'],
-    };
-
-    // Check if any hardcoded app matches the selected category
-    return Object.values(hardcodedCategories).some(cats =>
-      cats.some(cat => tab.categories.includes(cat))
-    );
-  }, [selectedTab]);
-
-  // Individual hardcoded app visibility
-  const showGmail = selectedTab === 'all' || selectedTab === 'productivity';
-  const showGithub = selectedTab === 'all' || selectedTab === 'development';
-  // Filter hardcoded apps by search
-  const searchFilteredHardcoded = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return { gmail: showGmail, github: showGithub };
-    }
-    const query = searchQuery.toLowerCase();
-    return {
-      gmail: showGmail && 'gmail email'.includes(query),
-      github: showGithub && 'github development code'.includes(query),
-
-    };
-  }, [searchQuery, showGmail, showGithub]);
-
-  const hasHardcodedApps = Object.values(searchFilteredHardcoded).some(Boolean);
 
   if (isLoading || catalogLoading) {
     return (
@@ -423,7 +184,7 @@ function AppsGrid() {
     );
   }
 
-  const totalCount = (hasHardcodedApps ? Object.values(searchFilteredHardcoded).filter(Boolean).length : 0) + filteredIntegrations.length;
+  const totalCount = filteredIntegrations.length;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -487,37 +248,6 @@ function AppsGrid() {
 
       {/* Apps Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {/* Hardcoded Google/GitHub integrations */}
-        {searchFilteredHardcoded.gmail && (
-          <AppCard
-            name="Gmail"
-            description={intl.formatMessage({ id: 'apps.descriptions.gmail', defaultMessage: 'Connect your Gmail account to manage emails' })}
-            icon={<GmailLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.email', defaultMessage: 'Email' })}
-            isConnected={!!gmailConnection}
-            isLoading={isConnectingGmail || isDisconnectingGmail}
-            connectionInfo={gmailConnection?.emailAddress ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} ${gmailConnection.emailAddress}` : undefined}
-            onConnect={handleConnectGmail}
-            onOpen={handleOpenGmail}
-            onDisconnect={handleDisconnectGmail}
-          />
-        )}
-
-        {searchFilteredHardcoded.github && (
-          <AppCard
-            name="GitHub"
-            description={intl.formatMessage({ id: 'apps.descriptions.github', defaultMessage: 'Connect your GitHub repositories and issues' })}
-            icon={<GitHubLogo />}
-            category={intl.formatMessage({ id: 'apps.categoryLabels.development', defaultMessage: 'Development' })}
-            isConnected={!!githubConnection}
-            isLoading={isConnectingGithub || isDisconnectingGithub}
-            connectionInfo={githubConnection?.githubLogin ? `${intl.formatMessage({ id: 'integrations.connectedAs', defaultMessage: 'Connected as' })} @${githubConnection.githubLogin}` : undefined}
-            onConnect={handleConnectGithub}
-            onOpen={handleOpenGithub}
-            onDisconnect={handleDisconnectGithub}
-          />
-        )}
-
         {/* Catalog integrations. `isConfigured` comes from the server
             (`credentialConfigured`), which is true iff the operator has
             set the required OAuth / api_key env vars for this integration. */}

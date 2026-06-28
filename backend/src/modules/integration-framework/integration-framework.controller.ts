@@ -330,7 +330,7 @@ export class IntegrationFrameworkController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      'Run OAuth integration tests (uses nock + jest). Query params: ?slug=github&type=oauth (or type=actions or type=all). Leave slug empty to test all',
+      'Run OAuth integration tests (uses nock + jest). Query params: ?slug=gmail&type=oauth (or type=actions or type=all). Leave slug empty to test all',
   })
   async runIntegrationTests(
     @Query('slug') slug?: string,
@@ -353,10 +353,7 @@ export class IntegrationFrameworkController {
 
         if (testType === 'oauth') {
           // OAuth connection tests
-          const oauthPatternMap: Record<string, string> = {
-            gmail: 'integration-framework/email.*oauth',
-            github: 'integration-framework/github.*oauth',
-          };
+          const oauthPatternMap: Record<string, string> = {};
           testPattern = oauthPatternMap[slug];
         } else if (testType === 'actions') {
           // Action tests (service methods)
@@ -370,7 +367,7 @@ export class IntegrationFrameworkController {
         if (!testPattern) {
           return {
             success: false,
-            error: `No test found for integration: ${slug}. Available: gmail, github`,
+            error: `No test found for integration: ${slug}`,
           };
         }
 

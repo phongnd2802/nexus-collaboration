@@ -57,11 +57,6 @@ export class CreateVideoCallDto {
   @IsString({ each: true })
   participant_ids?: string[];
 
-  @ApiProperty({ description: 'Enable recording', example: false, required: false })
-  @IsOptional()
-  @IsBoolean()
-  recording_enabled?: boolean = false;
-
   @ApiProperty({
     description: 'Video quality',
     enum: VideoQuality,

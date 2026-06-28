@@ -1011,9 +1011,6 @@ export class AuthService {
         'notes',
         'calendar_events',
         'event_reminders',
-        'chat_sessions',
-        'activity_logs',
-        'user_activity_logs',
         'search_history',
         'saved_searches',
       ];
@@ -1031,12 +1028,6 @@ export class AuthService {
       const settingsTables = [
         'user_settings',
         'notifications',
-        'notification_preferences',
-        'push_subscriptions',
-        'device_tokens',
-        'password_reset_tokens',
-        'email_verification_tokens',
-        'ai_usage_stats',
       ];
 
       for (const table of settingsTables) {

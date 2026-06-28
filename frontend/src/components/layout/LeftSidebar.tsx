@@ -1714,7 +1714,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({
                             call_type: 'audio',
                             is_group_call: false,
                             participant_ids: [member.user_id],
-                            recording_enabled: false,
                           });
 
                           toast.dismiss();
@@ -1752,7 +1751,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({
                             call_type: 'video',
                             is_group_call: false,
                             participant_ids: [member.user_id],
-                            recording_enabled: false,
                           });
 
                           toast.dismiss();

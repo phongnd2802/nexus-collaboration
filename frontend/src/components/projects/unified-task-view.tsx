@@ -146,7 +146,6 @@ export function UnifiedTaskView({
       assignee: apiTask.assigned_to ? { id: apiTask.assigned_to, email: apiTask.assigned_to, name: apiTask.assigned_to } : undefined,
       assigneeId: apiTask.assigned_to,
       dueDate: apiTask.due_date || apiTask.dueDate,
-      actualHours: apiTask.actual_hours ? parseFloat(apiTask.actual_hours) : undefined,
       tags: apiTask.labels || [],
       attachments: apiTask.attachments || [],
       subtasks: [], // Will be populated when subtasks are available from API

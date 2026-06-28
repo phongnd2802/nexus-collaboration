@@ -4,14 +4,13 @@
  */
 
 import React from 'react';
-import { Info, Eye, Activity, MessageSquare } from 'lucide-react';
+import { Info, Eye, Activity } from 'lucide-react';
 import { useIntl } from 'react-intl';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
 import { FileInfoContent } from './FileInfoContent';
 import { FilePreviewContent } from './FilePreviewContent';
 import { FileActivityContent } from './FileActivityContent';
 import { StorageContent } from './StorageContent';
-import { FileCommentsPanel } from './FileCommentsPanel';
 
 interface FilesRightSidebarProps {
   files: any[];
@@ -47,10 +46,6 @@ export const FilesRightSidebar: React.FC<FilesRightSidebarProps> = ({
         return <FilePreviewContent file={selectedFile} />;
       case 'activity':
         return <FileActivityContent file={selectedFile} />;
-      case 'comments':
-        return selectedFile ? (
-          <FileCommentsPanel fileId={selectedFile.id} fileName={selectedFile.name} />
-        ) : null;
       case 'storage':
       default:
         return (
@@ -100,17 +95,6 @@ export const FilesRightSidebar: React.FC<FilesRightSidebarProps> = ({
             >
               <Activity className="h-3 w-3" />
               <span>{intl.formatMessage({ id: 'modules.files.sidebar.activity', defaultMessage: 'Activity' })}</span>
-            </button>
-            <button
-              onClick={() => setContent('comments')}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs transition-colors ${
-                content === 'comments'
-                  ? 'gradient-primary-active'
-                  : 'text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              <MessageSquare className="h-3 w-3" />
-              <span>{intl.formatMessage({ id: 'modules.files.sidebar.comments', defaultMessage: 'Comments' })}</span>
             </button>
           </div>
         </div>

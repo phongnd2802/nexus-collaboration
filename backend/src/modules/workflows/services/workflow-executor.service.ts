@@ -1,7 +1,6 @@
 import { Injectable, Logger, Optional, Inject, forwardRef } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { DatabaseService } from '../../database/database.service';
-import { EmailService } from '../../integration-framework/email/email.service';
 import { VideoCallsService } from '../../video-calls/video-calls.service';
 import { ConditionEvaluatorService } from './condition-evaluator.service';
 import {
@@ -54,9 +53,6 @@ export class WorkflowExecutorService {
     private readonly db: DatabaseService,
     private readonly conditionEvaluator: ConditionEvaluatorService,
     @Optional() private readonly sharedExecutionLogger?: SharedExecutionLoggerService,
-    @Optional()
-    @Inject(forwardRef(() => EmailService))
-    private readonly emailService?: EmailService,
     @Optional()
     @Inject(forwardRef(() => VideoCallsService))
     private readonly videoCallsService?: VideoCallsService,
@@ -520,33 +516,12 @@ export class WorkflowExecutorService {
 
   private async actionSendEmail(
     params: Record<string, any>,
-    context: Record<string, any>,
+    _context: Record<string, any>,
   ): Promise<any> {
-    this.logger.log(`[WorkflowExecutor] Email action: to=${params.to}, subject=${params.subject}`);
-
-    if (!this.emailService) {
-      this.logger.warn('[WorkflowExecutor] EmailService not available');
-      return { emailSent: false, error: 'Email service not configured' };
-    }
-
-    try {
-      const userId = params.userId || context.trigger?.triggeredBy;
-      const workspaceId = params.workspaceId || context.trigger?.workspaceId;
-
-      const result = await this.emailService.sendEmail(userId, workspaceId, {
-        to: Array.isArray(params.to) ? params.to : [params.to],
-        subject: params.subject,
-        body: params.body || params.content,
-        cc: params.cc,
-        bcc: params.bcc,
-        isHtml: params.isHtml !== false,
-      });
-
-      return { emailSent: true, result, to: params.to, subject: params.subject };
-    } catch (error) {
-      this.logger.error(`[WorkflowExecutor] Email failed: ${error.message}`);
-      return { emailSent: false, error: error.message };
-    }
+    this.logger.warn(
+      `[WorkflowExecutor] Email action is no longer supported (to=${params.to}, subject=${params.subject})`,
+    );
+    return { emailSent: false, error: 'Email service not configured' };
   }
 
   private async actionSendMessage(

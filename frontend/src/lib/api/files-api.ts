@@ -44,8 +44,6 @@ export interface FileItem {
   is_deleted?: boolean;
   deleted_at?: string | null;
   deleted_by?: string | null;
-  starred_at?: string | null;
-  starred_by?: string | null;
   last_opened_at?: string | null;
   last_opened_by?: string | null;
   open_count?: number;
@@ -81,8 +79,6 @@ export interface FileApiResponse {
     is_deleted: boolean;
     deleted_at: string | null;
     starred: boolean;
-    starred_at: string | null;
-    starred_by: string | null;
     last_opened_at: string | null;
     last_opened_by: string | null;
     open_count: number;
@@ -169,8 +165,6 @@ export interface TrashFileItem {
   collaborative_data?: Record<string, any>;
   is_deleted?: boolean;
   starred?: boolean;
-  starred_at?: string | null;
-  starred_by?: string | null;
   last_opened_at?: string | null;
   last_opened_by?: string | null;
   open_count?: number;
@@ -293,40 +287,6 @@ export interface FileVersion {
   comment?: string;
 }
 
-export interface FileComment {
-  id: string;
-  fileId: string;
-  userId: string;
-  content: string;
-  parentId: string | null;
-  isResolved: boolean;
-  resolvedBy: string | null;
-  resolvedAt: string | null;
-  isEdited: boolean;
-  editedAt: string | null;
-  metadata: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
-  author?: {
-    id: string;
-    name: string;
-    email: string;
-    avatarUrl?: string;
-  };
-  replies?: FileComment[];
-}
-
-export interface CreateCommentRequest {
-  content: string;
-  parent_id?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface UpdateCommentRequest {
-  content: string;
-  metadata?: Record<string, any>;
-}
-
 // Query Keys
 export const fileKeys = {
   all: ['files'] as const,
@@ -340,7 +300,6 @@ export const fileKeys = {
   starred: (workspaceId: string) => [...fileKeys.all, 'starred', workspaceId] as const,
   recent: (workspaceId: string) => [...fileKeys.all, 'recent', workspaceId] as const,
   trash: (workspaceId: string) => [...fileKeys.all, 'trash', workspaceId] as const,
-  comments: (fileId: string) => [...fileKeys.all, 'comments', fileId] as const,
 };
 
 // API Functions
@@ -498,8 +457,6 @@ export const fileApi = {
         collaborative_data: file.collaborative_data,
         is_deleted: file.is_deleted,
         deleted_at: file.deleted_at,
-        starred_at: file.starred_at,
-        starred_by: file.starred_by,
         last_opened_at: file.last_opened_at,
         last_opened_by: file.last_opened_by,
         open_count: file.open_count,
@@ -862,8 +819,6 @@ export const fileApi = {
       collaborative_data: file.collaborative_data,
       is_deleted: file.is_deleted,
       deleted_at: file.deleted_at,
-      starred_at: file.starred_at,
-      starred_by: file.starred_by,
       last_opened_at: file.last_opened_at,
       last_opened_by: file.last_opened_by,
       open_count: file.open_count,
@@ -939,31 +894,6 @@ export const fileApi = {
     return api.post<SharedFileResponse>(`/shared/${shareToken}/verify-password`, { password }, { requireAuth: false });
   },
 
-  // File comments
-  async getFileComments(workspaceId: string, fileId: string): Promise<FileComment[]> {
-    return api.get<FileComment[]>(`/workspaces/${workspaceId}/files/${fileId}/comments`);
-  },
-
-  async createComment(workspaceId: string, fileId: string, data: CreateCommentRequest): Promise<FileComment> {
-    return api.post<FileComment>(`/workspaces/${workspaceId}/files/${fileId}/comments`, data);
-  },
-
-  async getComment(workspaceId: string, fileId: string, commentId: string): Promise<FileComment> {
-    return api.get<FileComment>(`/workspaces/${workspaceId}/files/${fileId}/comments/${commentId}`);
-  },
-
-  async updateComment(workspaceId: string, fileId: string, commentId: string, data: UpdateCommentRequest): Promise<FileComment> {
-    return api.put<FileComment>(`/workspaces/${workspaceId}/files/${fileId}/comments/${commentId}`, data);
-  },
-
-  async deleteComment(workspaceId: string, fileId: string, commentId: string): Promise<{ success: boolean; message: string }> {
-    return api.delete<{ success: boolean; message: string }>(`/workspaces/${workspaceId}/files/${fileId}/comments/${commentId}`);
-  },
-
-  async resolveComment(workspaceId: string, fileId: string, commentId: string, isResolved: boolean): Promise<FileComment> {
-    return api.put<FileComment>(`/workspaces/${workspaceId}/files/${fileId}/comments/${commentId}/resolve`, { is_resolved: isResolved });
-  },
-
   // File versions
   async getFileVersions(fileId: string): Promise<FileVersion[]> {
     return api.get<FileVersion[]>(`/files/${fileId}/versions`);
@@ -1025,8 +955,6 @@ export const fileApi = {
       collaborative_data: file.collaborative_data,
       is_deleted: file.is_deleted,
       deleted_at: file.deleted_at,
-      starred_at: file.starred_at,
-      starred_by: file.starred_by,
       last_opened_at: file.last_opened_at,
       last_opened_by: file.last_opened_by,
       open_count: file.open_count,
@@ -1077,8 +1005,6 @@ export const fileApi = {
       collaborative_data: file.collaborative_data,
       is_deleted: file.is_deleted,
       deleted_at: file.deleted_at,
-      starred_at: file.starred_at,
-      starred_by: file.starred_by,
       last_opened_at: file.last_opened_at,
       last_opened_by: file.last_opened_by,
       open_count: file.open_count,
@@ -1134,8 +1060,6 @@ export const fileApi = {
       collaborative_data: file.collaborative_data,
       is_deleted: file.is_deleted,
       deleted_at: file.deleted_at,
-      starred_at: file.starred_at,
-      starred_by: file.starred_by,
       last_opened_at: file.last_opened_at,
       last_opened_by: file.last_opened_by,
       open_count: file.open_count,
@@ -1280,8 +1204,6 @@ export const fileApi = {
                 collaborative_data: file.collaborative_data,
                 starred: file.starred,
                 isStarred: file.starred,
-                starred_at: file.starred_at,
-                starred_by: file.starred_by,
                 last_opened_at: file.last_opened_at,
                 last_opened_by: file.last_opened_by,
                 open_count: file.open_count,
@@ -1333,8 +1255,6 @@ export const fileApi = {
             collaborative_data: file.collaborative_data,
             starred: file.starred,
             isStarred: file.starred,
-            starred_at: file.starred_at,
-            starred_by: file.starred_by,
             last_opened_at: file.last_opened_at,
             last_opened_by: file.last_opened_by,
             open_count: file.open_count,
@@ -1990,78 +1910,6 @@ export const useFileVersions = (fileId: string) => {
   });
 };
 
-// File Comments Hooks
-export const useFileComments = (workspaceId: string, fileId: string, options?: { enabled?: boolean }) => {
-  return useQuery({
-    queryKey: fileKeys.comments(fileId),
-    queryFn: () => fileApi.getFileComments(workspaceId, fileId),
-    enabled: options?.enabled ?? (!!workspaceId && !!fileId),
-    staleTime: 30000, // 30 seconds cache
-  });
-};
-
-export const useCreateComment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId, data }: {
-      workspaceId: string;
-      fileId: string;
-      data: CreateCommentRequest;
-    }) => fileApi.createComment(workspaceId, fileId, data),
-    onSuccess: (_, { fileId }) => {
-      queryClient.invalidateQueries({ queryKey: fileKeys.comments(fileId) });
-    },
-  });
-};
-
-export const useUpdateComment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId, commentId, data }: {
-      workspaceId: string;
-      fileId: string;
-      commentId: string;
-      data: UpdateCommentRequest;
-    }) => fileApi.updateComment(workspaceId, fileId, commentId, data),
-    onSuccess: (_, { fileId }) => {
-      queryClient.invalidateQueries({ queryKey: fileKeys.comments(fileId) });
-    },
-  });
-};
-
-export const useDeleteComment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId, commentId }: {
-      workspaceId: string;
-      fileId: string;
-      commentId: string;
-    }) => fileApi.deleteComment(workspaceId, fileId, commentId),
-    onSuccess: (_, { fileId }) => {
-      queryClient.invalidateQueries({ queryKey: fileKeys.comments(fileId) });
-    },
-  });
-};
-
-export const useResolveComment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId, commentId, isResolved }: {
-      workspaceId: string;
-      fileId: string;
-      commentId: string;
-      isResolved: boolean;
-    }) => fileApi.resolveComment(workspaceId, fileId, commentId, isResolved),
-    onSuccess: (_, { fileId }) => {
-      queryClient.invalidateQueries({ queryKey: fileKeys.comments(fileId) });
-    },
-  });
-};
-
 export const useUploadNewVersion = () => {
   const queryClient = useQueryClient();
   
@@ -2157,8 +2005,6 @@ export const useSearchFiles = (workspaceId: string, query: string, options?: { e
         collaborative_data: file.collaborative_data,
         is_deleted: file.is_deleted,
         deleted_at: file.deleted_at,
-        starred_at: file.starred_at,
-        starred_by: file.starred_by,
         last_opened_at: file.last_opened_at,
         last_opened_by: file.last_opened_by,
         open_count: file.open_count,
@@ -2270,254 +2116,3 @@ export const filesAgentApi = {
     return api.get<ConversationStats>(`/workspaces/${workspaceId}/files/ai/stats`);
   },
 };
-
-// ============================================
-// OFFLINE FILES API
-// ============================================
-
-export type OfflineSyncStatus = 'pending' | 'syncing' | 'synced' | 'error' | 'outdated';
-
-export interface OfflineFile {
-  id: string;
-  fileId: string;
-  userId: string;
-  workspaceId: string;
-  syncStatus: OfflineSyncStatus;
-  lastSyncedAt: string | null;
-  syncedVersion: number;
-  autoSync: boolean;
-  priority: number;
-  fileSize: number;
-  errorMessage: string | null;
-  createdAt: string;
-  updatedAt: string;
-  // Joined file data
-  fileName?: string;
-  mimeType?: string;
-  fileUrl?: string;
-  serverVersion?: number;
-  needsSync?: boolean;
-}
-
-export interface MarkOfflineOptions {
-  autoSync?: boolean;
-  priority?: number;
-}
-
-export interface UpdateOfflineOptions {
-  autoSync?: boolean;
-  priority?: number;
-  syncStatus?: OfflineSyncStatus;
-  syncedVersion?: number;
-  errorMessage?: string;
-}
-
-export interface OfflineStorageStats {
-  totalFiles: number;
-  totalSize: number;
-  pendingCount: number;
-  syncedCount: number;
-  errorCount: number;
-  outdatedCount: number;
-}
-
-export interface CheckUpdateResult {
-  fileId: string;
-  serverVersion: number;
-  syncedVersion: number;
-  hasUpdate: boolean;
-  fileSize: number;
-  updatedAt: string;
-}
-
-export interface BatchSyncUpdate {
-  fileId: string;
-  syncStatus: OfflineSyncStatus;
-  syncedVersion?: number;
-  errorMessage?: string;
-}
-
-export const offlineFilesApi = {
-  /**
-   * Mark a file for offline access
-   */
-  async markFileOffline(workspaceId: string, fileId: string, options?: MarkOfflineOptions): Promise<OfflineFile> {
-    return api.post<OfflineFile>(`/workspaces/${workspaceId}/files/${fileId}/offline`, options || {});
-  },
-
-  /**
-   * Remove file from offline access
-   */
-  async removeFileOffline(workspaceId: string, fileId: string): Promise<{ success: boolean; message: string }> {
-    return api.delete<{ success: boolean; message: string }>(`/workspaces/${workspaceId}/files/${fileId}/offline`);
-  },
-
-  /**
-   * Get all offline files for a workspace
-   */
-  async getOfflineFiles(workspaceId: string): Promise<OfflineFile[]> {
-    return api.get<OfflineFile[]>(`/workspaces/${workspaceId}/files/offline`);
-  },
-
-  /**
-   * Get offline status for a specific file
-   */
-  async getOfflineStatus(workspaceId: string, fileId: string): Promise<{ isOffline: boolean } & Partial<OfflineFile>> {
-    return api.get<{ isOffline: boolean } & Partial<OfflineFile>>(`/workspaces/${workspaceId}/files/${fileId}/offline`);
-  },
-
-  /**
-   * Update offline file settings
-   */
-  async updateOfflineSettings(workspaceId: string, fileId: string, options: UpdateOfflineOptions): Promise<OfflineFile> {
-    return api.put<OfflineFile>(`/workspaces/${workspaceId}/files/${fileId}/offline`, options);
-  },
-
-  /**
-   * Check if file has updates available
-   */
-  async checkFileUpdate(workspaceId: string, fileId: string): Promise<CheckUpdateResult> {
-    return api.get<CheckUpdateResult>(`/workspaces/${workspaceId}/files/${fileId}/offline/check-update`);
-  },
-
-  /**
-   * Get offline storage statistics
-   */
-  async getOfflineStorageStats(workspaceId: string): Promise<OfflineStorageStats> {
-    return api.get<OfflineStorageStats>(`/workspaces/${workspaceId}/files/offline/stats`);
-  },
-
-  /**
-   * Get files that need syncing
-   */
-  async getFilesNeedingSync(workspaceId: string): Promise<OfflineFile[]> {
-    return api.get<OfflineFile[]>(`/workspaces/${workspaceId}/files/offline/needs-sync`);
-  },
-
-  /**
-   * Batch update sync status for multiple files
-   */
-  async batchUpdateSyncStatus(workspaceId: string, updates: BatchSyncUpdate[]): Promise<Array<{ fileId: string; success: boolean; error?: string }>> {
-    return api.post<Array<{ fileId: string; success: boolean; error?: string }>>(`/workspaces/${workspaceId}/files/offline/sync-status`, { updates });
-  },
-};
-
-// ============================================
-// OFFLINE FILES REACT QUERY HOOKS
-// ============================================
-
-/**
- * Hook to get all offline files for a workspace
- */
-export function useOfflineFiles(workspaceId: string) {
-  return useQuery({
-    queryKey: ['offline-files', workspaceId],
-    queryFn: () => offlineFilesApi.getOfflineFiles(workspaceId),
-    enabled: !!workspaceId,
-    staleTime: 30000,
-  });
-}
-
-/**
- * Hook to get offline status for a specific file
- */
-export function useOfflineStatus(workspaceId: string, fileId: string) {
-  return useQuery({
-    queryKey: ['offline-status', workspaceId, fileId],
-    queryFn: () => offlineFilesApi.getOfflineStatus(workspaceId, fileId),
-    enabled: !!workspaceId && !!fileId,
-    staleTime: 30000,
-  });
-}
-
-/**
- * Hook to get offline storage statistics
- */
-export function useOfflineStorageStats(workspaceId: string) {
-  return useQuery({
-    queryKey: ['offline-storage-stats', workspaceId],
-    queryFn: () => offlineFilesApi.getOfflineStorageStats(workspaceId),
-    enabled: !!workspaceId,
-    staleTime: 60000,
-  });
-}
-
-/**
- * Hook to get files needing sync
- */
-export function useFilesNeedingSync(workspaceId: string) {
-  return useQuery({
-    queryKey: ['files-needing-sync', workspaceId],
-    queryFn: () => offlineFilesApi.getFilesNeedingSync(workspaceId),
-    enabled: !!workspaceId,
-    staleTime: 30000,
-  });
-}
-
-/**
- * Hook to mark a file for offline access
- */
-export function useMarkFileOffline() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId, options }: { workspaceId: string; fileId: string; options?: MarkOfflineOptions }) =>
-      offlineFilesApi.markFileOffline(workspaceId, fileId, options),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-status', variables.workspaceId, variables.fileId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
-    },
-  });
-}
-
-/**
- * Hook to remove file from offline access
- */
-export function useRemoveFileOffline() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId }: { workspaceId: string; fileId: string }) =>
-      offlineFilesApi.removeFileOffline(workspaceId, fileId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-status', variables.workspaceId, variables.fileId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
-    },
-  });
-}
-
-/**
- * Hook to update offline file settings
- */
-export function useUpdateOfflineSettings() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, fileId, options }: { workspaceId: string; fileId: string; options: UpdateOfflineOptions }) =>
-      offlineFilesApi.updateOfflineSettings(workspaceId, fileId, options),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-status', variables.workspaceId, variables.fileId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
-    },
-  });
-}
-
-/**
- * Hook to batch update sync status
- */
-export function useBatchUpdateSyncStatus() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ workspaceId, updates }: { workspaceId: string; updates: BatchSyncUpdate[] }) =>
-      offlineFilesApi.batchUpdateSyncStatus(workspaceId, updates),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
-      queryClient.invalidateQueries({ queryKey: ['files-needing-sync', variables.workspaceId] });
-    },
-  });
-}

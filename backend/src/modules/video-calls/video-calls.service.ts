@@ -20,7 +20,6 @@ import {
   CreateVideoCallDto,
   JoinVideoCallDto,
   UpdateParticipantDto,
-  StartRecordingDto,
   InviteParticipantsDto,
 } from './dto';
 
@@ -93,7 +92,6 @@ export class VideoCallsService {
       livekitRoom = await this.dbVideoService.createRoom({
         roomName: uniqueRoomName,
         maxParticipants: dto.max_participants || 50,
-        recordingEnabled: dto.recording_enabled || false,
       } as any);
 
       this.logger.log(`LiveKit room created successfully:`, livekitRoom);
@@ -127,7 +125,6 @@ export class VideoCallsService {
       call_type: dto.call_type,
       is_group_call: dto.is_group_call || false,
       status: dto.scheduled_start_time ? 'scheduled' : 'active',
-      is_recording: false,
       scheduled_start_time: dto.scheduled_start_time || null,
       scheduled_end_time: dto.scheduled_end_time || null,
       actual_start_time: dto.scheduled_start_time ? null : new Date().toISOString(),
@@ -245,22 +242,6 @@ export class VideoCallsService {
 
         this.logger.log(
           `✅ [VideoCallService] Sent WebSocket notifications via main '/' namespace to ${dto.participant_ids.length} participants`,
-        );
-
-        // Send data-only FCM push notification for incoming call
-        // This allows Flutter app to show full-screen call UI with ringtone
-        await this.notificationsService.sendIncomingCallNotification(dto.participant_ids, {
-          call_id: call.id,
-          call_type: dto.call_type,
-          is_group_call: dto.is_group_call || false,
-          caller_user_id: userId,
-          caller_name: hostName,
-          caller_avatar: hostAvatar,
-          workspace_id: workspaceId,
-        });
-
-        this.logger.log(
-          `✅ [VideoCallService] Sent data-only FCM call notification to ${dto.participant_ids.length} participants`,
         );
       } catch (error) {
         this.logger.error(
@@ -1124,147 +1105,6 @@ export class VideoCallsService {
   }
 
   // ============================================
-  // Recording Operations
-  // ============================================
-
-  /**
-   * Start recording a call
-   */
-  async startRecording(callId: string, userId: string, dto?: StartRecordingDto) {
-    const call = await this.getCallById(callId, userId);
-
-    // Only host can start recording
-    if (call.host_user_id !== userId) {
-      throw new ForbiddenException('Only the host can start recording');
-    }
-
-    if (call.is_recording) {
-      throw new BadRequestException('Recording is already in progress');
-    }
-
-    // Start database recording - use actual LiveKit room ID from metadata
-    const liveKitRoomId = call.metadata?.livekit_room_id || call.livekit_room_id;
-
-    const recordingConfig: any = {
-      layout: 'grid',
-      outputFormat: 'mp4',
-    };
-
-    // For audio-only recordings, we can set minimal video resolution
-    if (dto?.audio_only) {
-      recordingConfig.width = 1;
-      recordingConfig.height = 1;
-      recordingConfig.videoBitrate = 1;
-    }
-
-    this.logger.log(`Starting recording with LiveKit room ID: ${liveKitRoomId}`);
-    const recording = await this.dbVideoService.startRecording(liveKitRoomId, recordingConfig);
-
-    // Store recording in database
-    const recordingData = await this.db.insert('video_call_recordings', {
-      video_call_id: callId,
-      livekit_recording_id:
-        (recording as any).egressId || recording.recordingId || (recording as any).id, // Use the provider's recording/egress ID for stopping
-      status: 'recording',
-      started_at: new Date().toISOString(),
-      metadata: {
-        transcription_enabled: dto?.transcription_enabled || false,
-        audio_only: dto?.audio_only || false,
-      },
-      created_at: new Date().toISOString(),
-    });
-
-    // Update call recording status
-    await this.db.update(
-      'video_calls',
-      { id: callId },
-      {
-        is_recording: true,
-        updated_at: new Date().toISOString(),
-      },
-    );
-
-    this.logger.log(`Recording started for call ${callId}`);
-
-    return recordingData;
-  }
-
-  /**
-   * Stop recording a call
-   */
-  async stopRecording(callId: string, recordingId: string, userId: string) {
-    const call = await this.getCallById(callId, userId);
-
-    // Only host can stop recording
-    if (call.host_user_id !== userId) {
-      throw new ForbiddenException('Only the host can stop recording');
-    }
-
-    const recording = await this.db.findOne('video_call_recordings', {
-      id: recordingId,
-      video_call_id: callId,
-    });
-
-    if (!recording) {
-      throw new NotFoundException('Recording not found');
-    }
-
-    // Get LiveKit room ID from metadata or fallback to livekit_room_id
-    const liveKitRoomId = call.metadata?.livekit_room_id || call.livekit_room_id;
-
-    // Stop database recording - now requires roomId parameter
-    await this.dbVideoService.stopRecording(liveKitRoomId, recording.livekit_recording_id);
-
-    // Calculate duration
-    const duration = recording.started_at
-      ? Math.floor((new Date().getTime() - new Date(recording.started_at).getTime()) / 1000)
-      : 0;
-
-    // Update recording status to "processing" - background job will check for completion
-    await this.db.update(
-      'video_call_recordings',
-      { id: recordingId },
-      {
-        status: 'processing',
-        completed_at: new Date().toISOString(),
-        duration_seconds: duration,
-      },
-    );
-
-    // Update call recording status
-    await this.db.update(
-      'video_calls',
-      { id: callId },
-      {
-        is_recording: false,
-        updated_at: new Date().toISOString(),
-      },
-    );
-
-    this.logger.log(`Recording stopped for call ${callId} - processing in background`);
-
-    return {
-      message: 'Recording stopped - processing in background. You will be notified when ready.',
-      duration_seconds: duration,
-      status: 'processing',
-    };
-  }
-
-  /**
-   * Get all recordings for a call
-   */
-  async getRecordings(callId: string, userId: string) {
-    // Verify call exists and user has access
-    await this.getCallById(callId, userId);
-
-    const result = await this.db.findMany('video_call_recordings', {
-      video_call_id: callId,
-    });
-
-    return result.data || [];
-  }
-
-  // ============================================
   // Invitation Operations
   // ============================================
 
@@ -1337,29 +1177,6 @@ export class VideoCallsService {
       callerAvatar,
       participantIds: dto.user_ids,
     });
-
-    // Send data-only FCM push notification for incoming call invitation
-    // This allows Flutter app to show full-screen call UI with ringtone
-    try {
-      await this.notificationsService.sendIncomingCallNotification(dto.user_ids, {
-        call_id: callId,
-        call_type: call.call_type,
-        is_group_call: call.is_group_call || false,
-        caller_user_id: userId,
-        caller_name: callerName,
-        caller_avatar: callerAvatar,
-        workspace_id: call.workspace_id,
-      });
-
-      this.logger.log(
-        `✅ [VideoCallService] Sent data-only FCM call notification to ${dto.user_ids.length} invited participants`,
-      );
-    } catch (fcmError) {
-      this.logger.error(
-        `❌ [VideoCallService] Failed to send FCM notification: ${this.getErrorMessage(fcmError)}`,
-      );
-      // Don't fail the entire operation if FCM fails
-    }
 
     // Send email notifications to invited users
     try {

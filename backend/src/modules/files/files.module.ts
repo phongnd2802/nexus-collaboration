@@ -5,13 +5,11 @@ import { StorageController } from './storage.controller';
 import { PublicStorageController } from './public-storage.controller';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { WebSocketModule } from '../../common/gateways/websocket.module';
 
 @Module({
   imports: [
     forwardRef(() => AuthModule),
     forwardRef(() => NotificationsModule),
-    forwardRef(() => WebSocketModule),
   ],
   controllers: [FilesController, SharedFilesController, StorageController, PublicStorageController],
   providers: [FilesService],

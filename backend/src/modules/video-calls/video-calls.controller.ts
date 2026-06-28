@@ -23,7 +23,6 @@ import {
   CreateVideoCallDto,
   JoinVideoCallDto,
   UpdateParticipantDto,
-  StartRecordingDto,
   InviteParticipantsDto,
   TogglePinDto,
 } from './dto';
@@ -184,45 +183,6 @@ export class VideoCallsController {
     @Body() dto: UpdateParticipantDto,
   ) {
     return this.videoCallsService.updateParticipant(callId, participantId, userId, dto);
-  }
-
-  // ============================================
-  // Recording Management
-  // ============================================
-
-  @Post('video-calls/:callId/recording/start')
-  @ApiOperation({ summary: 'Start recording a call' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiResponse({ status: 200, description: 'Recording started successfully' })
-  @ApiResponse({ status: 403, description: 'Only the host can start recording' })
-  async startRecording(
-    @Param('callId') callId: string,
-    @CurrentUser('sub') userId: string,
-    @Body() dto?: StartRecordingDto,
-  ) {
-    return this.videoCallsService.startRecording(callId, userId, dto);
-  }
-
-  @Post('video-calls/:callId/recording/:recordingId/stop')
-  @ApiOperation({ summary: 'Stop recording a call' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiParam({ name: 'recordingId', description: 'Recording ID' })
-  @ApiResponse({ status: 200, description: 'Recording stopped successfully' })
-  @ApiResponse({ status: 403, description: 'Only the host can stop recording' })
-  async stopRecording(
-    @Param('callId') callId: string,
-    @Param('recordingId') recordingId: string,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.videoCallsService.stopRecording(callId, recordingId, userId);
-  }
-
-  @Get('video-calls/:callId/recordings')
-  @ApiOperation({ summary: 'Get all recordings for a call' })
-  @ApiParam({ name: 'callId', description: 'Video call ID' })
-  @ApiResponse({ status: 200, description: 'List of recordings' })
-  async getRecordings(@Param('callId') callId: string, @CurrentUser('sub') userId: string) {
-    return this.videoCallsService.getRecordings(callId, userId);
   }
 
   // ============================================

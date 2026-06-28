@@ -28,7 +28,6 @@ import {
   FileText,
   RotateCcw,
   Upload,
-  MessageSquare,
 } from 'lucide-react';
 
 interface FileActionsDropdownProps {
@@ -37,7 +36,6 @@ interface FileActionsDropdownProps {
   fileName: string;
   isStarred?: boolean;
   isShared?: boolean;
-  isOffline?: boolean;
   onOpen?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
@@ -49,8 +47,6 @@ interface FileActionsDropdownProps {
   onShare?: () => void;
   onDownload?: () => void;
   onInfo?: () => void;
-  onComments?: () => void;
-  onToggleOffline?: () => void;
   canPaste?: boolean;
   isTrashView?: boolean;
   isSearchView?: boolean;
@@ -64,7 +60,6 @@ export function FileActionsDropdown({
   fileName,
   isStarred = false,
   isShared = false,
-  isOffline = false,
   onOpen,
   onRename,
   onDelete,
@@ -76,8 +71,6 @@ export function FileActionsDropdown({
   onShare,
   onDownload,
   onInfo,
-  onComments,
-  onToggleOffline,
   canPaste = false,
   isTrashView = false,
   isSearchView = false,
@@ -127,10 +120,6 @@ export function FileActionsDropdown({
                 <DropdownMenuItem onSelect={handleAction(onDownload)}>
                   <Download className="mr-2 h-4 w-4" />
                   {intl.formatMessage({ id: 'modules.files.contextMenu.download' })}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={handleAction(onComments)}>
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  {intl.formatMessage({ id: 'modules.files.contextMenu.comments', defaultMessage: 'Comments' })}
                 </DropdownMenuItem>
               </>
             )}
@@ -224,14 +213,6 @@ export function FileActionsDropdown({
                   <DropdownMenuItem onSelect={handleAction(onShare)}>
                     <Share2 className={`mr-2 h-4 w-4 ${isShared ? 'text-blue-500' : ''}`} />
                     {isShared ? intl.formatMessage({ id: 'modules.files.contextMenu.manageSharing' }) : intl.formatMessage({ id: 'modules.files.contextMenu.share' })}
-                  </DropdownMenuItem>
-                )}
-
-                {/* Comments - only for files */}
-                {fileType === 'file' && (
-                  <DropdownMenuItem onSelect={handleAction(onComments)}>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    {intl.formatMessage({ id: 'modules.files.contextMenu.comments', defaultMessage: 'Comments' })}
                   </DropdownMenuItem>
                 )}
 
