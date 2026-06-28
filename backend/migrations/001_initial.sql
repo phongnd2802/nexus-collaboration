@@ -1,5 +1,5 @@
-﻿-- =====================================================
--- Deskive Database Schema - Initial Migration
+-- =====================================================
+-- Nexus Database Schema - Initial Migration
 -- Auto-generated from schema.ts
 -- Generated: 2026-04-09T14:11:02.126Z
 -- Updated: 2026-06-11 - Refactored to include migrations 002-013
@@ -1187,5 +1187,4 @@ CREATE TABLE IF NOT EXISTS "conversation_keys" (
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_conversation_keys_conversation_id_user_id" ON "conversation_keys" ("conversation_id", "user_id");
 CREATE INDEX IF NOT EXISTS "idx_conversation_keys_conversation_id" ON "conversation_keys" ("conversation_id");
 CREATE INDEX IF NOT EXISTS "idx_conversation_keys_user_id" ON "conversation_keys" ("user_id");
-
 
