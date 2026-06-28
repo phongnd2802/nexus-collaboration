@@ -23,6 +23,7 @@ import { SearchService } from './search.service';
 import { SemanticSearchService, IndexableContentType } from './semantic-search.service';
 import { ContentIndexerService } from './content-indexer.service';
 import { SearchProviderService } from '../search-provider/search-provider.service';
+import { RagIndexingService } from '../rag/rag-indexing.service';
 import {
   SearchQueryDto,
   GetRecentSearchesDto,
@@ -47,6 +48,7 @@ export class SearchController {
     private readonly semanticSearchService: SemanticSearchService,
     private readonly contentIndexerService: ContentIndexerService,
     private readonly searchProviderService: SearchProviderService,
+    private readonly ragIndexingService: RagIndexingService,
   ) {}
 
   @Get()
@@ -246,15 +248,39 @@ export class SearchController {
     @Query('limit') limit?: number,
     @Query('minScore') minScore?: number,
     @CurrentUser('sub') userId?: string,
+    @Req() req?: Request,
   ) {
     const contentTypes = types ? (types.split(',') as IndexableContentType[]) : undefined;
+    const limitValue = limit || 20;
+    const minScoreValue = minScore || 0.5;
+    const wantsFiles = !contentTypes || contentTypes.includes('file');
+    const wantsOnlyFiles = contentTypes?.length === 1 && contentTypes[0] === 'file';
+    const legacyTypes = contentTypes?.filter((type) => type !== 'file');
 
-    return this.semanticSearchService.search(query, workspaceId, {
-      contentTypes,
-      limit: limit || 20,
-      minScore: minScore || 0.5,
-      userId,
-    });
+    const legacyResults = wantsOnlyFiles
+      ? []
+      : await this.semanticSearchService.search(query, workspaceId, {
+          contentTypes: legacyTypes && legacyTypes.length > 0 ? legacyTypes : contentTypes,
+          limit: limitValue,
+          minScore: minScoreValue,
+          userId,
+        });
+
+    const ragResults = wantsFiles
+      ? await this.ragIndexingService.searchFiles(
+          workspaceId,
+          query,
+          limitValue,
+          minScoreValue,
+          userId,
+          req?.headers.authorization,
+          (req?.headers['x-nexus-request-id'] as string | undefined) || undefined,
+        )
+      : [];
+
+    return [...ragResults, ...legacyResults]
+      .sort((a: any, b: any) => Number(b.score || 0) - Number(a.score || 0))
+      .slice(0, limitValue);
   }
 
   @Get('semantic/similar/:contentType/:contentId')

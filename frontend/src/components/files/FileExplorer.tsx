@@ -59,6 +59,9 @@ import {
   FilePropertiesDialog,
 } from './FileOperationDialogs';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
+import { useOfflineSync } from '../../hooks/useOfflineSync';
+import { OfflineStatusBadge } from './OfflineStatusBadge';
+import { RagIndexingBadge } from './RagIndexingBadge';
 import type { FileItem } from '../../types';
 
 interface FileExplorerProps {
@@ -1171,6 +1174,16 @@ export function FileExplorer({
                   </div>
                   <div className="mb-2 relative">
                     {getFileIcon(file, 'large')}
+                    {file.type === 'file' && (
+                      <div className="absolute -bottom-0.5 -right-0.5">
+                        <OfflineStatusBadge fileId={file.id} size="sm" showBackground />
+                      </div>
+                    )}
+                    {file.type === 'file' && !isTrashView && (
+                      <div className="absolute -bottom-0.5 -left-0.5">
+                        <RagIndexingBadge workspaceId={workspaceId} fileId={file.id} size="sm" showBackground />
+                      </div>
+                    )}
                   </div>
                   <span className="text-xs text-center line-clamp-2 break-words w-full px-1">
                     {file.name}
@@ -1239,6 +1252,12 @@ export function FileExplorer({
                     </div>
                   </div>
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    {file.type === 'file' && !isTrashView && (
+                      <RagIndexingBadge workspaceId={workspaceId} fileId={file.id} size="sm" />
+                    )}
+                    {file.type === 'file' && (
+                      <OfflineStatusBadge fileId={file.id} size="sm" />
+                    )}
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <FileActionsDropdown
                         fileId={file.id}

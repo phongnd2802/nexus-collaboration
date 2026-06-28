@@ -54,6 +54,9 @@ export interface FileItem {
   open_count?: number;
   parent_ids?: string[] | null;
   parent_folder_ids?: string[];
+  ragStatus?: 'queued' | 'processing' | 'indexed' | 'failed' | 'skipped' | 'deleted' | null;
+  ragErrorMessage?: string | null;
+  ragIndexedAt?: string | null;
   // UI-specific fields
   uploader?: {
     id: string;
