@@ -193,7 +193,7 @@ export class RagIndexingService {
     return Array.isArray(payload?.results) ? payload.results : [];
   }
 
-  private async getSearchableFileIds(workspaceId: string, userId?: string): Promise<string[]> {
+  async getSearchableFileIds(workspaceId: string, userId?: string): Promise<string[]> {
     if (!userId) {
       return [];
     }
@@ -214,12 +214,31 @@ export class RagIndexingService {
       return (Array.isArray(result.data) ? result.data : result).map((file: any) => file.id);
     }
 
-    const result = await this.db.findMany(
+    const ownedResult = await this.db.findMany(
       'files',
       { workspace_id: workspaceId, uploaded_by: userId, is_deleted: false },
       { limit: 5000 },
     );
-    return (Array.isArray(result.data) ? result.data : result).map((file: any) => file.id);
+    const ownedFileIds = (Array.isArray(ownedResult.data) ? ownedResult.data : ownedResult).map((file: any) => file.id);
+
+    const sharedResult = await this.db.query(
+      `
+      SELECT DISTINCT f.id
+      FROM "files" f
+      INNER JOIN "file_shares" fs ON fs.file_id = f.id
+      WHERE f.workspace_id = $1
+        AND f.is_deleted = false
+        AND fs.shared_with = $2
+        AND fs.is_active = true
+        AND COALESCE(fs.expires_at > now(), true)
+        AND (fs.permissions IS NULL OR fs.permissions->>'read' IS DISTINCT FROM 'false')
+      LIMIT 5000
+      `,
+      [workspaceId, userId],
+    );
+    const sharedFileIds = sharedResult.rows.map((row: any) => row.id);
+
+    return [...new Set([...ownedFileIds, ...sharedFileIds])];
   }
 
   assertInternalRequest(headers: Record<string, string | string[] | undefined>): void {

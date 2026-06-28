@@ -53,4 +53,15 @@ export class RagController {
     this.ragIndexingService.assertInternalRequest(headers);
     return this.ragIndexingService.retryJob(workspaceId, jobId);
   }
+
+  @Post('workspaces/:workspaceId/rag/internal/authorized-file-ids')
+  async getAuthorizedFileIds(
+    @Headers() headers: Record<string, string | string[] | undefined>,
+    @Param('workspaceId') workspaceId: string,
+    @Body() body: { user_id?: string },
+  ) {
+    this.ragIndexingService.assertInternalRequest(headers);
+    const fileIds = await this.ragIndexingService.getSearchableFileIds(workspaceId, body.user_id);
+    return { file_ids: fileIds };
+  }
 }

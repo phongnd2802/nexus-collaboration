@@ -54,6 +54,9 @@ def test_web_runtime_health_reports_single_mode_without_secrets(tmp_path):
     assert status == 200
     assert body["webMounted"] is True
     assert body["orchestrationMode"] == "single"
+    assert body["singleAgentDeprecated"] is True
+    assert body["recommendedMode"] == "multi"
+    assert body["orchestratorMaxRevisions"] == 1
     assert body["workspaceId"] == "workspace"
     assert body["hasApiToken"] is True
     assert "secret-token" not in json.dumps(body)
@@ -77,6 +80,9 @@ def test_web_runtime_health_reports_multi_mode(tmp_path):
 
     assert status == 200
     assert body["orchestrationMode"] == "multi"
+    assert body["singleAgentDeprecated"] is False
+    assert body["recommendedMode"] == "multi"
+    assert body["orchestratorMaxRevisions"] == 1
 
 
 def test_web_runtime_health_reports_missing_config(tmp_path):
