@@ -1894,7 +1894,7 @@ export function CreateTaskModal({
                           onClick={() => handleRemoveTag(tag)}
                           className="ml-2 hover:text-red-500"
                         >
-                          Ã—
+                          x
                         </button>
                       </Badge>
                     ))}
@@ -2095,7 +2095,7 @@ export function CreateTaskModal({
                                 onClick={() => setNewFieldOptions(newFieldOptions.filter((_, i) => i !== idx))}
                                 className="ml-1 hover:text-red-500"
                               >
-                                Ã—
+                                x
                               </button>
                             </Badge>
                           ))}

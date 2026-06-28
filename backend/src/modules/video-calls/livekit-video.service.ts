@@ -6,12 +6,9 @@
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DatabaseService } from '../database/database.service';
 import {
   CreateRoomOptions,
   Participant,
-  Recording,
-  RecordingConfig,
   RoomToken,
   TokenOptions,
   VideoProvider,
@@ -24,10 +21,7 @@ export class LivekitVideoService {
   private readonly logger = new Logger(LivekitVideoService.name);
   private readonly provider: VideoProvider;
 
-  constructor(
-    private readonly db: DatabaseService,
-    private readonly config: ConfigService,
-  ) {
+  constructor(private readonly config: ConfigService) {
     this.provider = createVideoProvider(this.config);
     this.logger.log(
       `Video provider initialized: ${this.provider.name} (available=${this.provider.isAvailable()})`,
@@ -59,7 +53,7 @@ export class LivekitVideoService {
   /**
    * Create a new video conference room.
    * Accepts both the new CreateRoomOptions shape AND the legacy shape
-   * (`{name, maxParticipants, recordingEnabled}` from older callers).
+   * (`{name, maxParticipants}` from older callers).
    */
   async createRoom(options: any): Promise<any> {
     const normalized: CreateRoomOptions = {
@@ -67,7 +61,6 @@ export class LivekitVideoService {
       maxParticipants: options.maxParticipants ?? 50,
       emptyTimeout: options.emptyTimeout,
       metadata: options.metadata,
-      recordingEnabled: options.recordingEnabled ?? false,
     };
     this.logger.log(`Creating video room: ${normalized.roomName} (provider=${this.provider.name})`);
     const room = await this.provider.createRoom(normalized);
@@ -144,69 +137,11 @@ export class LivekitVideoService {
   }
 
   // ============================================
-  // Recording Management
-  // ============================================
-
-  async startRecording(roomId: string, config?: RecordingConfig): Promise<Recording> {
-    this.logger.log(`Starting recording for room ${roomId} (provider=${this.provider.name})`);
-    return this.provider.startRecording(roomId, config);
-  }
-
-  async stopRecording(roomIdOrRecordingId: string, recordingId?: string): Promise<void> {
-    // Legacy signature was stopRecording(roomId, recordingId). New providers
-    // only need the recording ID.
-    const id = recordingId ?? roomIdOrRecordingId;
-    this.logger.log(`Stopping recording: ${id}`);
-    return this.provider.stopRecording(id);
-  }
-
-  async getRecording(recordingId: string): Promise<Recording | null> {
-    return this.provider.getRecording(recordingId);
-  }
-
-  async listRecordings(_roomId: string): Promise<Recording[]> {
-    // Per-room recording listing is provider-specific. Return empty by
-    // default; concrete providers can override via their own methods.
-    return [];
-  }
-
-  /**
-   * Look up a recording by its egress / job ID. This used to live in the
-   * legacy LivekitVideoService and is still called by the recording
-   * processor cron job.
-   */
-  async getRecordingByEgressId(egressId: string): Promise<Recording | null> {
-    return this.provider.getRecording(egressId);
-  }
-
-  /**
-   * Download a finished recording's bytes. Defers to DatabaseService's
-   * generic download path (which is wired to the configured S3-compat
-   * storage backend - same one used everywhere else in the app).
-   */
-  async downloadRecording(egressId: string): Promise<Buffer> {
-    this.logger.log(`Downloading recording: ${egressId}`);
-    return this.db.downloadRecording(egressId);
-  }
-
-  // ============================================
   // Session Analytics
   // ============================================
 
   async getSessionStats(_sessionId: string): Promise<any> {
     return null;
-  }
-
-  // ============================================
-  // Streaming (legacy egress passthrough)
-  // ============================================
-
-  async startEgress(options: any): Promise<any> {
-    return this.provider.startRecording(options.roomId, options);
-  }
-
-  async stopEgress(egressId: string): Promise<void> {
-    return this.provider.stopRecording(egressId);
   }
 
   // ============================================

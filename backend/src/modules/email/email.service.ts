@@ -15,8 +15,6 @@
  *
  *   1. `backend/src/modules/database/email-helpers.ts` — legacy
  *      nodemailer SMTP sender used by DatabaseService.sendEmail().
- *   2. `backend/src/modules/integration-framework/email/` — IMAP
- *      polling + email event extraction (inbound, different concern).
  *
  * Call sites should migrate to EmailProviderService. Old paths can be
  * deleted in follow-ups once every caller is moved.

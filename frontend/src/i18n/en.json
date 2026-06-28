@@ -274,7 +274,6 @@
     "getStarted": "Get Started",
     "dashboard": "Dashboard",
     "messages": "Messages",
-    "email": "Email",
     "projects": "Projects",
     "notes": "Notes",
     "calendar": "Calendar",
@@ -3661,7 +3660,7 @@
     "videoCallsApp": {
       "page": {
         "title": "Video Calls",
-        "subtitle": "Start AI-powered video calls with your team",
+        "subtitle": "Start video calls with your team",
         "newMeeting": "New Meeting",
         "scheduleMeeting": "Schedule Meeting"
       },
@@ -3739,7 +3738,7 @@
         "meetingPlatform": "Meeting Platform",
         "platforms": {
           "video": "Video",
-          "videoDescription": "Full HD video with AI features",
+          "videoDescription": "Full HD video with features",
           "audio": "Audio",
           "audioDescription": "Crystal clear audio meetings",
           "webinar": "Webinar",
@@ -3794,135 +3793,6 @@
           "scheduleMeeting": "Schedule Meeting"
         },
         "cancel": "Cancel"
-      }
-    },
-    "email": {
-      "compose": {
-        "newMessage": "New Message",
-        "replyPrefix": "Re: {subject}",
-        "unknownSender": "Unknown",
-        "labels": {
-          "to": "To",
-          "cc": "Cc",
-          "bcc": "Bcc",
-          "subject": "Subject"
-        },
-        "placeholders": {
-          "recipients": "recipients@email.com",
-          "cc": "cc@email.com",
-          "bcc": "bcc@email.com",
-          "subject": "Subject",
-          "body": "Write your message..."
-        },
-        "buttons": {
-          "send": "Send",
-          "discard": "Discard",
-          "cancel": "Cancel",
-          "attach": "Attach{count}"
-        },
-        "attachments": {
-          "title": "Attachments ({count})",
-          "fromDevice": "Attach from device",
-          "fromDrive": "Attach from Google Drive"
-        },
-        "ai": {
-          "helpMeWrite": "Help me write",
-          "smartReplies": "Smart Replies",
-          "generatingReplies": "Generating smart replies...",
-          "suggestions": "AI Suggestions",
-          "suggestionsGenerated": "AI suggestions generated",
-          "regenerate": "Regenerate"
-        },
-        "drive": {
-          "title": "Select from Google Drive",
-          "description": "Browse and select files to attach to your email",
-          "myDrive": "My Drive",
-          "search": "Search",
-          "searchPlaceholder": "Search files...",
-          "searchResults": "Search results for \"{query}\"",
-          "clear": "Clear",
-          "noFiles": "No files found",
-          "folder": "Folder",
-          "modified": "Modified",
-          "selected": "Selected ({count})"
-        },
-        "errors": {
-          "subjectRequired": "Please enter a subject first",
-          "recipientRequired": "Please enter a recipient",
-          "generateFailed": "Failed to generate email suggestions",
-          "attachmentsFailed": "Failed to process some attachments",
-          "driveLoadFailed": "Failed to load Drive files",
-          "driveSearchFailed": "Failed to search Drive files",
-          "driveAttachFailed": "Failed to attach some files from Drive",
-          "sendFailed": "Failed to send email. Please try again."
-        }
-      },
-      "addAccount": "Add",
-      "search": {
-        "placeholder": "Search emails..."
-      },
-      "analyzePriority": {
-        "button": "Analyze Priority",
-        "analyzing": "Analyzing..."
-      },
-      "labels": {
-        "inbox": "Inbox",
-        "starred": "Starred",
-        "sent": "Sent",
-        "drafts": "Drafts",
-        "trash": "Trash",
-        "spam": "Spam"
-      },
-      "connect": {
-        "title": "Connect your Email",
-        "subtitle": "Choose how you want to connect your email account to Nexus",
-        "gmail": {
-          "title": "Gmail",
-          "description": "Quick and secure OAuth connection",
-          "oneClick": "One-click secure login",
-          "noPassword": "No password stored",
-          "fullAccess": "Full Gmail API access"
-        },
-        "smtp": {
-          "title": "SMTP / IMAP",
-          "description": "Works with any email provider",
-          "anyProvider": "Any email provider",
-          "customServers": "Custom mail servers",
-          "standardProtocols": "Standard protocols"
-        },
-        "features": {
-          "title": "What you can do with connected email:",
-          "read": "Read emails",
-          "readDesc": "Access your inbox",
-          "send": "Send emails",
-          "sendDesc": "Compose & reply",
-          "organize": "Organize",
-          "organizeDesc": "Star & label"
-        },
-        "security": "Your data is secure and encrypted"
-      },
-      "settings": {
-        "title": "Email Settings",
-        "description": "Configure settings for {email}",
-        "loadError": "Failed to load settings. Please try again.",
-        "notifications": {
-          "title": "Email Notifications",
-          "description": "Receive notifications when new emails arrive",
-          "enabled": "Notifications enabled",
-          "disabled": "Notifications disabled",
-          "enabledDesc": "You will receive notifications for new emails.",
-          "disabledDesc": "You will no longer receive notifications for new emails.",
-          "error": "Failed to update notification settings."
-        },
-        "autoCreateEvents": {
-          "title": "Auto-Create Events",
-          "description": "Automatically create calendar events from travel tickets, appointments, and bookings",
-          "enabled": "Auto-create events enabled",
-          "disabled": "Auto-create events disabled",
-          "enabledDesc": "Events will be automatically created from emails containing travel tickets, appointments, and bookings.",
-          "disabledDesc": "Automatic event creation from emails has been disabled.",
-          "error": "Failed to update auto-create events settings."
-        }
       }
     }
   },
@@ -5181,7 +5051,7 @@
       },
       "page": {
         "title": "Video Calls",
-        "subtitle": "Start AI-powered video calls with your team",
+        "subtitle": "Start video calls with your team",
         "newMeeting": "New Meeting",
         "scheduleMeeting": "Schedule Meeting",
         "loading": "Loading..."
@@ -5242,7 +5112,7 @@
         "platforms": {
           "video": {
             "name": "Video",
-            "description": "Full HD video with AI features"
+            "description": "Full HD video with features"
           },
           "audio": {
             "name": "Audio",

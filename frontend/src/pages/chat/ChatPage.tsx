@@ -534,7 +534,6 @@ const ChatPage: React.FC = () => {
           call_type: callType,
           is_group_call: false,
           participant_ids: [user.id, remoteUserId],
-          recording_enabled: false,
         }
       });
 

@@ -50,7 +50,6 @@ const CalendarPage = lazy(() => import('./pages/calendar/CalendarPage'));
 const NotesPage = lazy(() => import('./pages/notes/NotesPage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
-const EmailPage = lazy(() => import('./pages/email/EmailPage'));
 const SearchPage = lazy(() => import('./pages/search/SearchPage').then(m => ({ default: m.SearchPage })));
 const TemplatesPage = lazy(() => import('./pages/templates/TemplatesPage'));
 const MembersPage = lazy(() => import('./pages/members/MembersPage'));
@@ -189,9 +188,6 @@ function WorkspaceRoutes() {
         <Route path="more/*" element={<MorePage />} />
         <Route path="apps/*" element={<AppsPage />} />
         <Route path="video-calls/*" element={<VideoCallPage />} />
-        <Route path="email" element={<EmailPage />} />
-        <Route path="email/:folder" element={<EmailPage />} />
-        <Route path="email/message/:messageId" element={<EmailPage />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Routes>
     </Suspense>

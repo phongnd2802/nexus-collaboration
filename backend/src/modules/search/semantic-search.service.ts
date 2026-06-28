@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 /**
  * Content types that can be indexed for semantic search
  */
-export type IndexableContentType = 'note' | 'message' | 'file' | 'task' | 'meeting_transcript';
+export type IndexableContentType = 'note' | 'message' | 'file' | 'task';
 
 /**
  * Indexed content item stored in Qdrant

@@ -274,7 +274,6 @@
     "getStarted": "Bắt đầu",
     "dashboard": "Bảng điều khiển",
     "messages": "Tin nhắn",
-    "email": "Email",
     "projects": "Dự án",
     "notes": "Ghi chú",
     "calendar": "Lịch",
@@ -3656,7 +3655,7 @@
     "videoCallsApp": {
       "page": {
         "title": "Cuộc gọi video",
-        "subtitle": "Bắt đầu cuộc gọi video hỗ trợ AI với nhóm của bạn",
+        "subtitle": "Bắt đầu cuộc gọi video với nhóm của bạn",
         "newMeeting": "Cuộc họp mới",
         "scheduleMeeting": "Lên lịch họp"
       },
@@ -3797,7 +3796,7 @@
         "meetingPlatform": "Nền tảng họp",
         "platforms": {
           "video": "Video",
-          "videoDescription": "Video HD đầy đủ với tính năng AI",
+          "videoDescription": "Video HD đầy đủ với tính năng",
           "audio": "Âm thanh",
           "audioDescription": "Cuộc họp âm thanh rõ nét",
           "webinar": "Hội thảo trực tuyến",
@@ -3852,135 +3851,6 @@
           "scheduleMeeting": "Lên lịch họp"
         },
         "cancel": "Hủy"
-      }
-    },
-    "email": {
-      "compose": {
-        "newMessage": "Tin nhắn mới",
-        "replyPrefix": "Re: {subject}",
-        "unknownSender": "Không xác định",
-        "labels": {
-          "to": "Đến",
-          "cc": "Cc",
-          "bcc": "Bcc",
-          "subject": "Tiêu đề"
-        },
-        "placeholders": {
-          "recipients": "recipients@email.com",
-          "cc": "cc@email.com",
-          "bcc": "bcc@email.com",
-          "subject": "Tiêu đề",
-          "body": "Viết tin nhắn của bạn..."
-        },
-        "buttons": {
-          "send": "Gửi",
-          "discard": "Hủy",
-          "cancel": "Hủy",
-          "attach": "Đính kèm{count}"
-        },
-        "attachments": {
-          "title": "Tệp đính kèm ({count})",
-          "fromDevice": "Đính kèm từ thiết bị",
-          "fromDrive": "Đính kèm từ Google Drive"
-        },
-        "ai": {
-          "helpMeWrite": "Hỗ trợ viết",
-          "smartReplies": "Phản hồi thông minh",
-          "generatingReplies": "Đang tạo phản hồi thông minh...",
-          "suggestions": "Đề xuất AI",
-          "suggestionsGenerated": "Đã tạo đề xuất AI",
-          "regenerate": "Tạo lại"
-        },
-        "drive": {
-          "title": "Chọn từ Google Drive",
-          "description": "Duyệt và chọn tệp để đính kèm vào email",
-          "myDrive": "Drive của tôi",
-          "search": "Tìm kiếm",
-          "searchPlaceholder": "Tìm kiếm tệp...",
-          "searchResults": "Kết quả tìm kiếm cho  \"{query} \"",
-          "clear": "Xóa",
-          "noFiles": "Không tìm thấy tệp",
-          "folder": "Thư mục",
-          "modified": "Đã sửa đổi",
-          "selected": "Đã chọn ({count})"
-        },
-        "errors": {
-          "subjectRequired": "Vui lòng nhập tiêu đề trước",
-          "recipientRequired": "Vui lòng nhập người nhận",
-          "generateFailed": "Không thể tạo đề xuất email",
-          "attachmentsFailed": "Không thể xử lý một số tệp đính kèm",
-          "driveLoadFailed": "Không thể tải tệp Drive",
-          "driveSearchFailed": "Không thể tìm kiếm tệp Drive",
-          "driveAttachFailed": "Không thể đính kèm một số tệp từ Drive",
-          "sendFailed": "Không thể gửi email. Vui lòng thử lại."
-        }
-      },
-      "addAccount": "Thêm",
-      "search": {
-        "placeholder": "Tìm kiếm email..."
-      },
-      "analyzePriority": {
-        "button": "Phân tích mức ưu tiên",
-        "analyzing": "Đang phân tích..."
-      },
-      "labels": {
-        "inbox": "Hộp thư đến",
-        "starred": "Đã gắn sao",
-        "sent": "Đã gửi",
-        "drafts": "Bản nháp",
-        "trash": "Thùng rác",
-        "spam": "Thư rác"
-      },
-      "connect": {
-        "title": "Kết nối Email",
-        "subtitle": "Chọn cách kết nối tài khoản email với Nexus",
-        "gmail": {
-          "title": "Gmail",
-          "description": "Kết nối OAuth nhanh chóng và an toàn",
-          "oneClick": "Đăng nhập an toàn một lần nhấp",
-          "noPassword": "Không lưu mật khẩu",
-          "fullAccess": "Truy cập đầy đủ Gmail API"
-        },
-        "smtp": {
-          "title": "SMTP / IMAP",
-          "description": "Hoạt động với mọi nhà cung cấp email",
-          "anyProvider": "Mọi nhà cung cấp email",
-          "customServers": "Máy chủ mail tùy chỉnh",
-          "standardProtocols": "Giao thức chuẩn"
-        },
-        "features": {
-          "title": "Những gì bạn có thể làm với email đã kết nối:",
-          "read": "Đọc email",
-          "readDesc": "Truy cập hộp thư đến",
-          "send": "Gửi email",
-          "sendDesc": "Soạn & trả lời",
-          "organize": "Sắp xếp",
-          "organizeDesc": "Gắn sao & gắn nhãn"
-        },
-        "security": "Dữ liệu của bạn được bảo mật và mã hóa"
-      },
-      "settings": {
-        "title": "Cài đặt Email",
-        "description": "Cấu hình cài đặt cho {email}",
-        "loadError": "Không thể tải cài đặt. Vui lòng thử lại.",
-        "notifications": {
-          "title": "Thông báo Email",
-          "description": "Nhận thông báo khi email mới đến",
-          "enabled": "Đã bật thông báo",
-          "disabled": "Đã tắt thông báo",
-          "enabledDesc": "Bạn sẽ nhận được thông báo cho email mới.",
-          "disabledDesc": "Bạn sẽ không còn nhận thông báo cho email mới.",
-          "error": "Không thể cập nhật cài đặt thông báo."
-        },
-        "autoCreateEvents": {
-          "title": "Tự động tạo sự kiện",
-          "description": "Tự động tạo sự kiện lịch từ vé du lịch, cuộc hẹn và đặt chỗ",
-          "enabled": "Đã bật tự động tạo sự kiện",
-          "disabled": "Đã tắt tự động tạo sự kiện",
-          "enabledDesc": "Sự kiện sẽ tự động được tạo từ email chứa vé du lịch, cuộc hẹn và đặt chỗ.",
-          "disabledDesc": "Đã tắt tự động tạo sự kiện từ email.",
-          "error": "Không thể cập nhật cài đặt tự động tạo sự kiện."
-        }
       }
     }
   },
@@ -5239,7 +5109,7 @@
       },
       "page": {
         "title": "Cuộc gọi video",
-        "subtitle": "Bắt đầu cuộc gọi video hỗ trợ AI với nhóm của bạn",
+        "subtitle": "Bắt đầu cuộc gọi video với nhóm của bạn",
         "newMeeting": "Cuộc họp mới",
         "scheduleMeeting": "Lên lịch họp",
         "loading": "Đang tải..."
@@ -5303,7 +5173,7 @@
         "platforms": {
           "video": {
             "name": "Video",
-            "description": "Video HD đầy đủ với tính năng AI"
+            "description": "Video HD đầy đủ với tính năng"
           },
           "audio": {
             "name": "Âm thanh",

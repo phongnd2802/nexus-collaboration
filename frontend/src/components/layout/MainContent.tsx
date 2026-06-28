@@ -19,7 +19,6 @@ import {
   Link2,
   BarChart3,
   FileIcon,
-  Mail,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -33,7 +32,6 @@ interface MainContentProps {
 const viewConfigs: Record<string, { titleKey: string; icon: LucideIcon }> = {
   dashboard: { titleKey: 'navigation.dashboard', icon: Home },
   chat: { titleKey: 'navigation.messages', icon: MessageSquare },
-  email: { titleKey: 'navigation.email', icon: Mail },
   projects: { titleKey: 'navigation.projects', icon: ClipboardList },
   notes: { titleKey: 'navigation.notes', icon: FileText },
   calendar: { titleKey: 'navigation.calendar', icon: Calendar },
@@ -73,8 +71,8 @@ export function MainContent({
       {/* Sub-Header (Page Title) */}
       <header className="h-14 bg-background/90 backdrop-blur-xl border-b border-border flex items-center justify-between px-6 z-30">
         <div className="flex items-center gap-4">
-          {/* Hide left sidebar toggle for dashboard, email, apps, and more views - they have no/own sidebar content */}
-          {currentView !== 'dashboard' && currentView !== 'email' && currentView !== 'apps' && currentView !== 'more' && (
+          {/* Hide left sidebar toggle for dashboard, apps, and more views - they have no/own sidebar content */}
+          {currentView !== 'dashboard' && currentView !== 'apps' && currentView !== 'more' && (
             <Button
               variant="ghost"
               size="sm"
@@ -92,8 +90,8 @@ export function MainContent({
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Sidebar Toggle - Hidden for dashboard, settings, search, email, apps, and more */}
-          {currentView !== 'dashboard' && currentView !== 'settings' && currentView !== 'search' && currentView !== 'email' && currentView !== 'apps' && currentView !== 'more' && (
+          {/* Sidebar Toggle - Hidden for dashboard, settings, search, apps, and more */}
+          {currentView !== 'dashboard' && currentView !== 'settings' && currentView !== 'search' && currentView !== 'apps' && currentView !== 'more' && (
             <Button
               variant="ghost"
               size="sm"

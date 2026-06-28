@@ -112,7 +112,6 @@ export const VideoLeftSidebar: React.FC<VideoLeftSidebarProps> = ({
         duration,
         timestamp: startTime,
         isGroupCall: call.is_group_call,
-        hasAIFeatures: !!(call.metadata?.transcription || call.metadata?.summary),
         status: 'completed' as const
       }
     }).filter(call => call.participants.length > 0)
@@ -424,11 +423,6 @@ export const VideoLeftSidebar: React.FC<VideoLeftSidebarProps> = ({
                             call.participants[0]?.name
                           }
                         </p>
-                        {call.hasAIFeatures && (
-                          <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-300">
-                            AI
-                          </Badge>
-                        )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{call.status}</span>

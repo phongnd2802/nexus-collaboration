@@ -23,18 +23,3 @@ export {
   PublicFileResponseDto,
   AccessLevel,
 } from './create-share-link.dto';
-export {
-  CreateFileCommentDto,
-  UpdateFileCommentDto,
-  ResolveCommentDto,
-  FileCommentResponseDto,
-} from './file-comment.dto';
-export {
-  MarkFileOfflineDto,
-  UpdateOfflineSettingsDto,
-  BatchUpdateSyncStatusDto,
-  OfflineFileResponseDto,
-  CheckUpdateResponseDto,
-  OfflineStorageStatsDto,
-  SyncStatus,
-} from './offline-file.dto';

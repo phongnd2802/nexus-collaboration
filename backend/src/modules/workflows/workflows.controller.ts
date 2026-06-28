@@ -22,8 +22,6 @@ import {
   CreateWorkflowStepDto,
   UpdateWorkflowStepDto,
   ManualExecuteWorkflowDto,
-  UseTemplateDto,
-  CreateTemplateFromWorkflowDto,
   WorkflowTriggerType,
 } from './dto/workflow.dto';
 
@@ -302,106 +300,6 @@ export class WorkflowsController {
     }
   }
 
-  // ============================================
-  // TEMPLATES
-  // ============================================
-
-  @Post(':workflowId/save-as-template')
-  @ApiOperation({ summary: 'Save workflow as template' })
-  async saveAsTemplate(
-    @Param('workspaceId') workspaceId: string,
-    @Param('workflowId') workflowId: string,
-    @Body() dto: CreateTemplateFromWorkflowDto,
-    @Req() req: any,
-  ) {
-    const userId = req.user.sub || req.user.userId;
-    const template = await this.workflowsService.createTemplateFromWorkflow(
-      workspaceId,
-      workflowId,
-      userId,
-      dto,
-    );
-    return { data: template, message: 'Template created successfully' };
-  }
-}
-
-// ============================================
-// TEMPLATES CONTROLLER (Separate route)
-// ============================================
-
-@ApiTags('Automation Templates')
-@ApiBearerAuth()
-@Controller('automation-templates')
-export class AutomationTemplatesController {
-  constructor(private readonly workflowsService: WorkflowsService) {}
-
-  @Get()
-  @ApiOperation({ summary: 'List automation templates' })
-  @ApiQuery({ name: 'category', required: false })
-  @ApiQuery({ name: 'featured', required: false, type: Boolean })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async listTemplates(
-    @Query('category') category?: string,
-    @Query('featured') featured?: string,
-    @Query('limit') limit?: string,
-  ) {
-    const templates = await this.workflowsService.listTemplates({
-      category,
-      isFeatured: featured !== undefined ? featured === 'true' : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
-    });
-    return { data: templates };
-  }
-
-  @Get('categories')
-  @ApiOperation({ summary: 'List template categories' })
-  async listCategories() {
-    const categories = [
-      { id: 'project_management', name: 'Project Management', icon: 'folder' },
-      { id: 'communication', name: 'Communication', icon: 'chat' },
-      { id: 'productivity', name: 'Productivity', icon: 'bolt' },
-      { id: 'onboarding', name: 'Onboarding', icon: 'person_add' },
-      { id: 'notifications', name: 'Notifications', icon: 'notifications' },
-      { id: 'scheduling', name: 'Scheduling', icon: 'calendar_today' },
-      { id: 'integrations', name: 'Integrations', icon: 'extension' },
-    ];
-    return { data: categories };
-  }
-
-  @Get('featured')
-  @ApiOperation({ summary: 'Get featured templates' })
-  async getFeaturedTemplates() {
-    const templates = await this.workflowsService.listTemplates({
-      isFeatured: true,
-      limit: 10,
-    });
-    return { data: templates };
-  }
-
-  @Get(':templateId')
-  @ApiOperation({ summary: 'Get template details' })
-  async getTemplate(@Param('templateId') templateId: string) {
-    const template = await this.workflowsService.getTemplate(templateId);
-    return { data: template };
-  }
-
-  @Post(':templateId/use')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Create workflow from template' })
-  async useTemplate(
-    @Param('templateId') templateId: string,
-    @Body() dto: UseTemplateDto & { workspaceId: string },
-    @Req() req: any,
-  ) {
-    const userId = req.user.sub || req.user.userId;
-    const workflow = await this.workflowsService.useTemplate(
-      dto.workspaceId,
-      userId,
-      templateId,
-      dto,
-    );
-    return { data: workflow, message: 'Workflow created from template' };
-  }
 }
 
 // ============================================

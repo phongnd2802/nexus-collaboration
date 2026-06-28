@@ -13,14 +13,12 @@ import {
   type SearchResultItem
 } from '../../services/searchService';
 
-import { emailService, type EmailListItem } from '../../lib/api/email-api';
 import type {
   SearchQuery,
   UseUniversalSearchReturn,
   SearchResults,
   SearchResult,
-  SearchResultAuthor,
-  EmailSearchResult
+  SearchResultAuthor
 } from '../../types/search';
 
 
@@ -31,40 +29,6 @@ import type {
 const matchesSearchQuery = (text: string | undefined, query: string): boolean => {
   if (!text) return false;
   return text.toLowerCase().includes(query.toLowerCase());
-};
-
-/**
- * Transform email list item to search result format
- */
-const transformEmailToSearchResult = (email: EmailListItem, source: 'gmail' | 'smtp-imap'): EmailSearchResult => {
-  return {
-    id: email.id,
-    type: 'email',
-    title: email.subject || '(No subject)',
-    snippet: email.snippet || '',
-    author: {
-      id: email.from?.email || 'unknown',
-      name: email.from?.name || email.from?.email || 'Unknown',
-      email: email.from?.email,
-      imageUrl: undefined,
-    },
-    workspace: undefined,
-    highlights: [],
-    relevanceScore: undefined,
-    updatedAt: email.date || new Date().toISOString(),
-    metadata: email,
-    source: source,
-    externalUrl: undefined,
-    from: email.from,
-    to: undefined, // Not available in list item
-    subject: email.subject,
-    date: email.date,
-    isRead: email.isRead,
-    isStarred: email.isStarred,
-    hasAttachments: email.hasAttachments,
-    labelIds: email.labelIds,
-    threadId: email.threadId,
-  };
 };
 
 /**
@@ -229,54 +193,15 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
         // Convert filters to API params
         const filterParams = convertFiltersToParams(query.filters || {});
 
-        // Determine if we should search emails (for all or emails searches)
-        const shouldSearchEmails = query.type === 'all' || query.type === 'emails';
-
-        // Run searches in parallel
-        const [backendResponse, gmailResponse, imapResponse] = await Promise.all([
-          // Backend search
-          universalSearch(workspaceId, {
-            query: query.query,
-            types,
-            page: 1,
-            limit: 50,
-            semantic: query.mode === 'semantic' || query.mode === 'hybrid',
-            ...filterParams,
-          }),
-          // Gmail search
-          shouldSearchEmails
-            ? emailService.getMessages(workspaceId, {
-                query: query.query,
-                maxResults: 50,
-              }).catch((err) => {
-                console.warn('[useUniversalSearch] Gmail search failed (may not be connected):', err.message);
-                return { emails: [] };
-              })
-            : Promise.resolve({ emails: [] }),
-          // SMTP/IMAP email search - fetch all and filter client-side (IMAP SEARCH can be unreliable)
-          shouldSearchEmails
-            ? emailService.getSmtpImapMessages(workspaceId, {
-                maxResults: 100, // Fetch more emails, filter client-side
-              }).then((response) => {
-                console.log('[useUniversalSearch] IMAP raw response (before filter):', response?.emails?.length || 0, 'emails');
-                // Filter emails client-side by search query
-                if (response?.emails && response.emails.length > 0) {
-                  const searchLower = query.query.toLowerCase();
-                  response.emails = response.emails.filter((email) =>
-                    (email.subject?.toLowerCase().includes(searchLower)) ||
-                    (email.snippet?.toLowerCase().includes(searchLower)) ||
-                    (email.from?.name?.toLowerCase().includes(searchLower)) ||
-                    (email.from?.email?.toLowerCase().includes(searchLower))
-                  );
-                  console.log('[useUniversalSearch] IMAP filtered results:', response.emails.length);
-                }
-                return response;
-              }).catch((err) => {
-                console.error('[useUniversalSearch] IMAP search failed:', err.message, err.response?.data || err);
-                return { emails: [] };
-              })
-            : Promise.resolve({ emails: [] }),
-        ]);
+        // Backend search
+        const backendResponse = await universalSearch(workspaceId, {
+          query: query.query,
+          types,
+          page: 1,
+          limit: 50,
+          semantic: query.mode === 'semantic' || query.mode === 'hybrid',
+          ...filterParams,
+        });
 
         // Transform results by content type
         const transformedResults: SearchResults = {};
@@ -310,46 +235,11 @@ export function useUniversalSearch(): UseUniversalSearchReturn {
           transformedResults[groupKey]!.push(transformed as any);
         });
 
-        const driveResponse = { files: [] as any[] };
-
-        // Process Gmail results
-        if (gmailResponse && gmailResponse.emails && gmailResponse.emails.length > 0) {
-          gmailResponse.emails.forEach((email: EmailListItem) => {
-            const transformed = transformEmailToSearchResult(email, 'gmail');
-            allResults.push(transformed);
-
-            // Merge into emails category
-            if (!transformedResults.emails) {
-              transformedResults.emails = [];
-            }
-            transformedResults.emails.push(transformed);
-          });
-
-          console.log('[useUniversalSearch] Gmail emails found:', gmailResponse.emails.length);
-        }
-
-        // Process IMAP results
-        if (imapResponse && imapResponse.emails && imapResponse.emails.length > 0) {
-          imapResponse.emails.forEach((email: EmailListItem) => {
-            const transformed = transformEmailToSearchResult(email, 'smtp-imap');
-            allResults.push(transformed);
-
-            // Merge into emails category
-            if (!transformedResults.emails) {
-              transformedResults.emails = [];
-            }
-            transformedResults.emails.push(transformed);
-          });
-
-          console.log('[useUniversalSearch] IMAP emails found:', imapResponse.emails.length);
-        }
-
         // Add 'all' category
         transformedResults.all = allResults;
 
-        const totalEmails = (gmailResponse?.emails?.length || 0) + (imapResponse?.emails?.length || 0);
         console.log('[useUniversalSearch] Search results:', {
-          total: backendResponse.total + totalEmails,
+          total: backendResponse.total,
           grouped: Object.keys(transformedResults).reduce((acc, key) => {
             acc[key] = transformedResults[key]?.length || 0;
             return acc;

@@ -15,7 +15,6 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@ne
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { NotificationSchedulerService } from './notification-scheduler.service';
-import { RecordingProcessorService } from './recording-processor.service';
 import { TaskReminderService } from './task-reminder.service';
 import {
   CreateScheduledNotificationDto,
@@ -33,7 +32,6 @@ import {
 export class SchedulerController {
   constructor(
     private readonly schedulerService: NotificationSchedulerService,
-    private readonly recordingProcessorService: RecordingProcessorService,
     private readonly taskReminderService: TaskReminderService,
   ) {}
 
@@ -127,30 +125,6 @@ export class SchedulerController {
   })
   async triggerProcessing(): Promise<{ processed: number }> {
     return this.schedulerService.triggerProcessing();
-  }
-
-  // =============================================
-  // RECORDING PROCESSING (Admin)
-  // =============================================
-
-  @Get('recordings/stats')
-  @ApiOperation({ summary: 'Get recording processing statistics' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Recording processing statistics retrieved successfully',
-  })
-  async getRecordingStats() {
-    return this.recordingProcessorService.getProcessingStats();
-  }
-
-  @Post('recordings/cleanup')
-  @ApiOperation({ summary: 'Clean up stuck recordings (mark old processing recordings as failed)' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Stuck recordings cleaned up successfully',
-  })
-  async cleanupStuckRecordings() {
-    return this.recordingProcessorService.cleanupStuckRecordings();
   }
 
   // =============================================

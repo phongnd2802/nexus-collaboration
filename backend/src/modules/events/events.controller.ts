@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { EventsService } from './events.service';
-import { CreateActivityEventDto, EventsQueryDto, ActivityFeedQueryDto } from './dto';
+import { CreateActivityEventDto, EventsQueryDto } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -49,18 +49,6 @@ export class EventsController {
     return this.eventsService.createEvent(workspaceId, createEventDto, userId);
   }
 
-  @Get('workspaces/:workspaceId/activity-feed')
-  @ApiOperation({ summary: 'Get activity feed for workspace' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Activity feed retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Access denied to workspace' })
-  async getActivityFeed(
-    @Param('workspaceId') workspaceId: string,
-    @Query() query: ActivityFeedQueryDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.eventsService.getActivityFeed(workspaceId, query, userId);
-  }
 
   @Patch('workspaces/:workspaceId/events/:eventId/read')
   @ApiOperation({ summary: 'Mark event as read' })

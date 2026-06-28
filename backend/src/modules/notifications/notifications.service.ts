@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { NotificationsGateway } from './notifications.gateway';
-import { FirebaseService } from './firebase.service';
 import {
   CreateNotificationDto,
   UpdatePreferencesDto,
@@ -20,9 +19,6 @@ import {
   PaginatedNotificationsDto,
   NotificationType,
   NotificationPriority,
-  RegisterFcmTokenDto,
-  UnregisterFcmTokenDto,
-  FcmTokenResponseDto,
 } from './dto';
 import { buildBrandedEmail } from '../email/branded-email';
 
@@ -76,7 +72,6 @@ export class NotificationsService {
     private readonly db: DatabaseService,
     @Inject(forwardRef(() => NotificationsGateway))
     private readonly notificationsGateway: NotificationsGateway,
-    private readonly firebaseService: FirebaseService,
   ) {}
 
   // =============================================
@@ -794,11 +789,7 @@ export class NotificationsService {
     config?: Record<string, any>,
   ): Promise<void> {
     try {
-      // Get user preferences for sound setting
-      const preferences = await this.getNotificationPreferences(userId);
-      const soundEnabled = preferences.metadata?.sound ?? true;
-
-      // Try to send web push notification (wrap in try-catch to not block FCM)
+      // Try to send web push notification
       try {
         // Get user's active push subscriptions (for web)
         const subscriptions = await this.db.findMany('health_metrics', {
@@ -836,21 +827,9 @@ export class NotificationsService {
         }
       } catch (webPushError) {
         this.logger.warn(
-          `⚠️ Web push notification failed (table may not exist), continuing with FCM: ${webPushError.message}`,
+          `⚠️ Web push notification failed (table may not exist): ${webPushError.message}`,
         );
       }
-
-      // NEW: Send FCM notification to mobile devices (Flutter app)
-      await this.sendFcmToUser(userId, {
-        title: notificationData.title,
-        body: notificationData.message || '',
-        data: {
-          ...notificationData.data,
-          action_url: notificationData.action_url,
-          type: notificationData.type,
-          sound_enabled: soundEnabled.toString(), // Include sound preference (FCM requires string values)
-        },
-      });
     } catch (error) {
       this.logger.error(`Failed to send push notification: ${error.message}`, error.stack);
       // Don't throw error here as it shouldn't block the main notification flow
@@ -1294,309 +1273,4 @@ export class NotificationsService {
     };
   }
 
-  // =============================================
-  // FCM TOKEN MANAGEMENT (NEW - FOR FLUTTER APP)
-  // =============================================
-
-  /**
-   * Register FCM token for mobile device (called on Flutter app login)
-   */
-  async registerFcmToken(
-    userId: string,
-    registerDto: RegisterFcmTokenDto,
-  ): Promise<FcmTokenResponseDto> {
-    try {
-      this.logger.log(
-        `📱 Registering FCM token for user ${userId}, platform: ${registerDto.platform}`,
-      );
-
-      // Check if token already exists
-      const existingToken = await this.db.findOne('device_tokens', {
-        fcm_token: registerDto.fcm_token,
-      });
-
-      const now = new Date().toISOString();
-
-      if (existingToken) {
-        // Update existing token
-        await this.db.update('device_tokens', existingToken.id, {
-          user_id: userId,
-          platform: registerDto.platform,
-          device_name: registerDto.device_name || null,
-          device_id: registerDto.device_id || null,
-          app_version: registerDto.app_version || null,
-          is_active: true,
-          last_used_at: now,
-          updated_at: now,
-        });
-
-        this.logger.log(`✅ FCM token updated for user ${userId}`);
-        return {
-          success: true,
-          token_id: existingToken.id,
-          message: 'FCM token updated successfully',
-        };
-      }
-
-      // Create new token
-      const newToken = await this.db.insert('device_tokens', {
-        user_id: userId,
-        fcm_token: registerDto.fcm_token,
-        platform: registerDto.platform,
-        device_name: registerDto.device_name || null,
-        device_id: registerDto.device_id || null,
-        app_version: registerDto.app_version || null,
-        is_active: true,
-        last_used_at: now,
-        created_at: now,
-        updated_at: now,
-      });
-
-      this.logger.log(`✅ FCM token registered for user ${userId}`);
-      return {
-        success: true,
-        token_id: newToken.id,
-        message: 'FCM token registered successfully',
-      };
-    } catch (error) {
-      this.logger.error(`❌ Failed to register FCM token: ${error.message}`, error.stack);
-      throw new BadRequestException(`Failed to register FCM token: ${error.message}`);
-    }
-  }
-
-  /**
-   * Unregister FCM token (called on Flutter app logout)
-   */
-  async unregisterFcmToken(
-    userId: string,
-    unregisterDto: UnregisterFcmTokenDto,
-  ): Promise<FcmTokenResponseDto> {
-    try {
-      this.logger.log(`📱 Unregistering FCM token for user ${userId}`);
-
-      const token = await this.db.findOne('device_tokens', {
-        user_id: userId,
-        fcm_token: unregisterDto.fcm_token,
-      });
-
-      if (!token) {
-        this.logger.warn(`⚠️ FCM token not found for user ${userId}`);
-        return {
-          success: true,
-          message: 'FCM token not found (already unregistered)',
-        };
-      }
-
-      // Mark as inactive instead of deleting
-      await this.db.update('device_tokens', token.id, {
-        is_active: false,
-        updated_at: new Date().toISOString(),
-      });
-
-      this.logger.log(`✅ FCM token unregistered for user ${userId}`);
-      return {
-        success: true,
-        message: 'FCM token unregistered successfully',
-      };
-    } catch (error) {
-      this.logger.error(`❌ Failed to unregister FCM token: ${error.message}`, error.stack);
-      throw new BadRequestException(`Failed to unregister FCM token: ${error.message}`);
-    }
-  }
-
-  /**
-   * Send FCM notification to a user's mobile devices
-   */
-  private async sendFcmToUser(
-    userId: string,
-    notification: {
-      title: string;
-      body: string;
-      data?: Record<string, any>;
-    },
-  ): Promise<void> {
-    try {
-      // Check if Firebase is initialized
-      if (!this.firebaseService.isInitialized()) {
-        this.logger.debug('⏭️ Firebase not initialized, skipping FCM notification');
-        return;
-      }
-
-      // Get user's active FCM tokens
-      const tokensResult = await this.db.findMany('device_tokens', {
-        user_id: userId,
-        is_active: true,
-      });
-
-      const tokens = Array.isArray(tokensResult.data)
-        ? tokensResult.data
-        : Array.isArray(tokensResult)
-          ? tokensResult
-          : [];
-
-      if (tokens.length === 0) {
-        this.logger.debug(`⏭️ No active FCM tokens found for user ${userId}`);
-        return;
-      }
-
-      this.logger.log(
-        `📱 Sending FCM notification to ${tokens.length} device(s) for user ${userId}`,
-      );
-
-      // Convert data to string format (FCM requires string values)
-      const stringData: Record<string, string> = {};
-      if (notification.data) {
-        Object.keys(notification.data).forEach((key) => {
-          const value = notification.data![key];
-          stringData[key] = typeof value === 'string' ? value : JSON.stringify(value);
-        });
-      }
-
-      this.logger.debug(`🔍 FCM Data Payload: ${JSON.stringify(stringData, null, 2)}`);
-
-      // Send to all tokens
-      const fcmTokens = tokens.map((t) => t.fcm_token);
-      const result = await this.firebaseService.sendToMultipleTokens(
-        fcmTokens,
-        {
-          title: notification.title,
-          body: notification.body,
-        },
-        stringData,
-      );
-
-      this.logger.log(
-        `✅ FCM sent to user ${userId}: ${result.successCount} succeeded, ${result.failureCount} failed`,
-      );
-
-      // Clean up invalid tokens
-      if (result.invalidTokens.length > 0) {
-        this.logger.warn(`⚠️ Cleaning up ${result.invalidTokens.length} invalid FCM tokens`);
-        await this.cleanupInvalidTokens(result.invalidTokens);
-      }
-    } catch (error) {
-      this.logger.error(`❌ Failed to send FCM notification: ${error.message}`, error.stack);
-      // Don't throw error here as it shouldn't block the main notification flow
-    }
-  }
-
-  /**
-   * Clean up invalid FCM tokens
-   */
-  private async cleanupInvalidTokens(invalidTokens: string[]): Promise<void> {
-    try {
-      for (const token of invalidTokens) {
-        const tokenRecord = await this.db.findOne('device_tokens', {
-          fcm_token: token,
-        });
-
-        if (tokenRecord) {
-          await this.db.update('device_tokens', tokenRecord.id, {
-            is_active: false,
-            updated_at: new Date().toISOString(),
-          });
-          this.logger.log(`🗑️ Cleaned up invalid FCM token: ${tokenRecord.id}`);
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Failed to cleanup invalid tokens: ${error.message}`, error.stack);
-    }
-  }
-
-  // =============================================
-  // CALL NOTIFICATIONS (DATA-ONLY FCM)
-  // =============================================
-
-  /**
-   * Send incoming call notification using data-only FCM message
-   * This allows the Flutter app to show custom full-screen call UI
-   */
-  async sendIncomingCallNotification(
-    userIds: string[],
-    callData: {
-      call_id: string;
-      call_type: 'audio' | 'video';
-      is_group_call: boolean;
-      caller_user_id: string;
-      caller_name: string;
-      caller_avatar?: string;
-      workspace_id: string;
-    },
-  ): Promise<void> {
-    try {
-      this.logger.log(
-        `📞 [NotificationsService] Sending incoming call notification to ${userIds.length} users`,
-      );
-
-      // Check if Firebase is initialized
-      if (!this.firebaseService.isInitialized()) {
-        this.logger.debug('⏭️ Firebase not initialized, skipping call notification');
-        return;
-      }
-
-      // Collect all FCM tokens for the users
-      const allTokens: string[] = [];
-
-      for (const userId of userIds) {
-        const tokensResult = await this.db.findMany('device_tokens', {
-          user_id: userId,
-          is_active: true,
-        });
-
-        const tokens = Array.isArray(tokensResult.data)
-          ? tokensResult.data
-          : Array.isArray(tokensResult)
-            ? tokensResult
-            : [];
-
-        allTokens.push(...tokens.map((t) => t.fcm_token));
-      }
-
-      if (allTokens.length === 0) {
-        this.logger.debug(`⏭️ No active FCM tokens found for incoming call`);
-        return;
-      }
-
-      this.logger.log(
-        `📱 Sending data-only FCM to ${allTokens.length} device(s) for incoming call`,
-      );
-
-      // Prepare data-only payload (all values must be strings)
-      const dataPayload: Record<string, string> = {
-        type: 'incoming_call',
-        call_id: callData.call_id,
-        call_type: callData.call_type,
-        is_group_call: String(callData.is_group_call),
-        caller_user_id: callData.caller_user_id,
-        caller_name: callData.caller_name,
-        caller_avatar: callData.caller_avatar || '',
-        workspace_id: callData.workspace_id,
-        timestamp: new Date().toISOString(),
-      };
-
-      this.logger.debug(`🔍 Call FCM Data Payload: ${JSON.stringify(dataPayload, null, 2)}`);
-
-      // Send data-only FCM message
-      const result = await this.firebaseService.sendDataOnlyToMultipleTokens(
-        allTokens,
-        dataPayload,
-      );
-
-      this.logger.log(
-        `✅ Incoming call FCM sent: ${result.successCount} succeeded, ${result.failureCount} failed`,
-      );
-
-      // Clean up invalid tokens
-      if (result.invalidTokens.length > 0) {
-        this.logger.warn(`⚠️ Cleaning up ${result.invalidTokens.length} invalid FCM tokens`);
-        await this.cleanupInvalidTokens(result.invalidTokens);
-      }
-    } catch (error) {
-      this.logger.error(
-        `❌ Failed to send incoming call notification: ${error.message}`,
-        error.stack,
-      );
-      // Don't throw error here as it shouldn't block the main flow
-    }
-  }
 }

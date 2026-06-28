@@ -21,13 +21,7 @@ export { VideoCallChat } from './VideoCallChat'
 export { VideoLeftSidebar } from './VideoLeftSidebar'
 export { VideoRightSidebar } from './VideoRightSidebar'
 
-// AI Features
-export { AIMeetingPanel } from './AIMeetingPanel'
-export { LiveAIOverlay } from './LiveAIOverlay'
-
 // Modals
 export { IncomingCallModal } from './IncomingCallModal'
 export { InvitePeopleModal } from './InvitePeopleModal'
-export { RecordingManager } from './RecordingManager'
-export { RecordingManagerModal } from './RecordingManagerModal'
 export { ScheduleMeetingModal } from './ScheduleMeetingModal'

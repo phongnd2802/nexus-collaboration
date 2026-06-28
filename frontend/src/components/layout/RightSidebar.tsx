@@ -89,8 +89,6 @@ export function RightSidebar({
         return null; // Hide sidebar for dashboard
       case 'settings':
         return null; // Hide sidebar for settings
-      case 'email':
-        return null; // Hide sidebar for email - email has its own detail view
       case 'apps':
         return null; // Hide sidebar for apps
       case 'more':
@@ -128,7 +126,6 @@ export function RightSidebar({
 
   // Force collapse for views that don't need a right sidebar
   const shouldForceCollapse =
-    currentView === 'email' ||
     currentView === 'apps' ||
     currentView === 'more' ||
     currentView === 'dashboard' ||
@@ -161,7 +158,6 @@ function DefaultRightSidebar({ currentView }: { currentView: ViewType }) {
       calendar: { id: 'navigation.calendar', defaultMessage: 'Calendar' },
       video: { id: 'navigation.videoCall', defaultMessage: 'Video' },
       files: { id: 'navigation.files', defaultMessage: 'Files' },
-      email: { id: 'navigation.email', defaultMessage: 'Email' },
       search: { id: 'navigation.search', defaultMessage: 'Search' },
       settings: { id: 'navigation.settings', defaultMessage: 'Settings' },
       integrations: { id: 'navigation.integrations', defaultMessage: 'Integrations' },

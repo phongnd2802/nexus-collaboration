@@ -64,17 +64,4 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getTaskAnalytics(workspaceId, query);
   }
-
-  @Get('activity')
-  @ApiOperation({ summary: 'Get activity analytics for workspace' })
-  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
-  @ApiResponse({ status: 200, description: 'Activity analytics data retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Access denied to workspace' })
-  async getActivityAnalytics(
-    @Param('workspaceId') workspaceId: string,
-    @Query() query: AnalyticsQueryDto,
-    @CurrentUser('sub') userId: string,
-  ) {
-    return this.analyticsService.getActivityAnalytics(workspaceId, query);
-  }
 }

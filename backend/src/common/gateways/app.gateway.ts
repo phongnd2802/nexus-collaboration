@@ -913,11 +913,6 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
       return true;
     }
 
-    // Allow file rooms for comments (file:fileId:comments)
-    if (room.startsWith('file:')) {
-      return true;
-    }
-
     // Allow user sub-rooms
     if (room.startsWith(`user:${userId}:`)) {
       return true;

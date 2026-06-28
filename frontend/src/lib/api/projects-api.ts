@@ -29,13 +29,10 @@ export interface Project {
   end_date?: string;
   endDate?: string;
   estimated_hours?: number;
-  actual_hours?: number;
   budget?: number;
   is_template?: boolean;
   kanban_stages?: KanbanStage[];
   archived_at?: string;
-  archived_by?: string;
-  settings?: Record<string, any>;
   collaborative_data?: Record<string, any>;
   teamMembers?: string[];
   tags?: string[];
@@ -81,7 +78,6 @@ export interface Task {
   dueTime?: string; // HH:MM 24h, e.g. "14:30"
   reminderSettings?: ReminderSettings;
   startDate?: string;
-  actualHours?: number;
   tags: string[];
   attachments?: TaskAttachment[];
   subtasks?: Subtask[];
@@ -163,7 +159,6 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskRequest extends Partial<CreateTaskRequest> {
-  actualHours?: number;
   subtasks?: Subtask[];
 }
 

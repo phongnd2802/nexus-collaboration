@@ -31,9 +31,6 @@ import {
   BulkActionDto,
   NotificationResponseDto,
   PaginatedNotificationsDto,
-  RegisterFcmTokenDto,
-  UnregisterFcmTokenDto,
-  FcmTokenResponseDto,
 } from './dto';
 
 @ApiTags('Notifications')
@@ -325,46 +322,4 @@ export class NotificationsController {
     return this.notificationsService.markAllAsReadBulk(req.user.sub);
   }
 
-  // =============================================
-  // FCM TOKEN ENDPOINTS (FOR FLUTTER MOBILE APP)
-  // =============================================
-
-  @Post('fcm/register-token')
-  @ApiOperation({
-    summary: 'Register FCM token for mobile device',
-    description:
-      'Called when Flutter app user logs in. Registers the device for push notifications via Firebase Cloud Messaging.',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'FCM token registered successfully',
-    type: FcmTokenResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async registerFcmToken(
-    @Request() req: any,
-    @Body() registerDto: RegisterFcmTokenDto,
-  ): Promise<FcmTokenResponseDto> {
-    return this.notificationsService.registerFcmToken(req.user.sub, registerDto);
-  }
-
-  @Post('fcm/unregister-token')
-  @ApiOperation({
-    summary: 'Unregister FCM token',
-    description: 'Called when Flutter app user logs out. Marks the device token as inactive.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'FCM token unregistered successfully',
-    type: FcmTokenResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async unregisterFcmToken(
-    @Request() req: any,
-    @Body() unregisterDto: UnregisterFcmTokenDto,
-  ): Promise<FcmTokenResponseDto> {
-    return this.notificationsService.unregisterFcmToken(req.user.sub, unregisterDto);
-  }
 }

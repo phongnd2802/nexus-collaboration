@@ -11,8 +11,6 @@ export interface CreateRoomOptions {
   emptyTimeout?: number;
   /** Arbitrary string metadata stored with the room (provider-dependent). */
   metadata?: string;
-  /** Whether to enable recording on this room (provider-dependent). */
-  recordingEnabled?: boolean;
 }
 
 export interface VideoRoom {
@@ -66,31 +64,6 @@ export interface Participant {
   metadata?: string;
 }
 
-export interface RecordingConfig {
-  /** File format. Default 'mp4'. */
-  fileType?: 'mp4' | 'webm' | 'ogg';
-  /** Audio-only recording (no video). */
-  audioOnly?: boolean;
-  /** Layout for composite recordings (provider-dependent). */
-  layout?: 'speaker' | 'grid' | 'single-speaker';
-  /** S3-compatible upload destination (overrides provider default). */
-  s3Bucket?: string;
-  s3KeyPrefix?: string;
-}
-
-export interface Recording {
-  /** Provider-specific recording / egress / job ID. */
-  recordingId: string;
-  /** When the recording started. */
-  startedAt: string;
-  /** Current status. */
-  status: 'starting' | 'recording' | 'completed' | 'failed';
-  /** URL to the recorded file (only when status === 'completed'). */
-  fileUrl?: string;
-  /** File size in bytes (only when completed). */
-  fileSize?: number;
-}
-
 /**
  * Common interface implemented by every video conferencing provider.
  * Methods that a provider doesn't support should throw a clear
@@ -125,11 +98,6 @@ export interface VideoProvider {
   // Participant management
   listParticipants(roomId: string): Promise<Participant[]>;
   removeParticipant(roomId: string, identity: string): Promise<void>;
-
-  // Recording (optional - may throw NotSupportedError)
-  startRecording(roomId: string, config?: RecordingConfig): Promise<Recording>;
-  stopRecording(recordingId: string): Promise<void>;
-  getRecording(recordingId: string): Promise<Recording | null>;
 }
 
 /**

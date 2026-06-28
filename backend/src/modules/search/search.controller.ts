@@ -233,7 +233,7 @@ export class SearchController {
   @ApiQuery({
     name: 'types',
     description:
-      'Content types to search (comma-separated: note,message,file,task,meeting_transcript)',
+      'Content types to search (comma-separated: note,message,file,task)',
     required: false,
   })
   @ApiQuery({ name: 'limit', description: 'Max results', required: false })
@@ -262,7 +262,7 @@ export class SearchController {
   @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
   @ApiParam({
     name: 'contentType',
-    description: 'Content type (note, message, file, task, meeting_transcript)',
+    description: 'Content type (note, message, file, task)',
   })
   @ApiParam({ name: 'contentId', description: 'Content ID to find similar items for' })
   @ApiQuery({ name: 'limit', description: 'Max results', required: false })

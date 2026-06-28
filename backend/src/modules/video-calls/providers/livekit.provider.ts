@@ -23,8 +23,6 @@ import { ConfigService } from '@nestjs/config';
 import {
   CreateRoomOptions,
   Participant,
-  Recording,
-  RecordingConfig,
   RoomToken,
   TokenOptions,
   VideoProvider,
@@ -40,11 +38,9 @@ export class LiveKitProvider implements VideoProvider {
   private readonly apiKey: string;
   private readonly apiSecret: string;
   private readonly webhookSecret?: string;
-  private readonly recordingBucket?: string;
 
   // Lazy-loaded SDK clients (so the dep is truly optional at runtime)
   private roomService: any;
-  private egressService: any;
   private accessTokenClass: any;
   private sdkLoaded = false;
 
@@ -53,9 +49,6 @@ export class LiveKitProvider implements VideoProvider {
     this.apiKey = config.get<string>('LIVEKIT_API_KEY', '');
     this.apiSecret = config.get<string>('LIVEKIT_API_SECRET', '');
     this.webhookSecret = config.get<string>('LIVEKIT_WEBHOOK_SECRET');
-    this.recordingBucket =
-      config.get<string>('LIVEKIT_RECORDING_BUCKET') ||
-      config.get<string>('STORAGE_BUCKET_DEFAULT');
 
     if (this.isAvailable()) {
       this.logger.log(`LiveKit provider configured: ${this.url}`);
@@ -94,7 +87,6 @@ export class LiveKitProvider implements VideoProvider {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const sdk = require('livekit-server-sdk');
       this.roomService = new sdk.RoomServiceClient(this.url, this.apiKey, this.apiSecret);
-      this.egressService = new sdk.EgressClient(this.url, this.apiKey, this.apiSecret);
       this.accessTokenClass = sdk.AccessToken;
       this.sdkLoaded = true;
       this.logger.log('livekit-server-sdk loaded');
@@ -203,89 +195,6 @@ export class LiveKitProvider implements VideoProvider {
   async removeParticipant(roomId: string, identity: string): Promise<void> {
     this.loadSdk();
     await this.roomService.removeParticipant(roomId, identity);
-  }
-
-  async startRecording(roomId: string, config: RecordingConfig = {}): Promise<Recording> {
-    this.loadSdk();
-
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const sdk = require('livekit-server-sdk');
-
-    const fileType =
-      config.fileType === 'webm'
-        ? sdk.EncodedFileType.WEBM
-        : config.fileType === 'ogg'
-          ? sdk.EncodedFileType.OGG
-          : sdk.EncodedFileType.MP4;
-
-    const filename = `${roomId}-${Date.now()}.${config.fileType ?? 'mp4'}`;
-    const keyPrefix = config.s3KeyPrefix ?? 'video-recordings';
-
-    let output: any;
-    if (this.recordingBucket) {
-      // S3-compatible upload (works with AWS S3, R2, MinIO, etc.) using
-      // the same STORAGE_* env vars as the rest of the app.
-      const region = process.env.STORAGE_REGION ?? 'auto';
-      const endpoint = process.env.STORAGE_ENDPOINT;
-      const accessKey = process.env.STORAGE_ACCESS_KEY_ID ?? '';
-      const secret = process.env.STORAGE_SECRET_ACCESS_KEY ?? '';
-
-      const s3Upload = new sdk.S3Upload({
-        accessKey,
-        secret,
-        region,
-        endpoint,
-        bucket: config.s3Bucket ?? this.recordingBucket,
-        forcePathStyle: false,
-      });
-      output = new sdk.EncodedFileOutput({
-        fileType,
-        filepath: `${keyPrefix}/${filename}`,
-        output: { case: 's3', value: s3Upload },
-      });
-    } else {
-      output = new sdk.EncodedFileOutput({
-        fileType,
-        filepath: `/out/${filename}`,
-      });
-      this.logger.warn(
-        'No recording bucket configured - recording will only be stored locally on the LiveKit server',
-      );
-    }
-
-    const response = await this.egressService.startRoomCompositeEgress(roomId, output, {
-      layout: config.layout ?? 'speaker',
-      audioOnly: config.audioOnly ?? false,
-      videoOnly: false,
-      encodingOptions: sdk.EncodingOptionsPreset.H264_1080P_30,
-    });
-
-    return {
-      recordingId: response.egressId,
-      startedAt: new Date().toISOString(),
-      status: 'recording',
-    };
-  }
-
-  async stopRecording(recordingId: string): Promise<void> {
-    this.loadSdk();
-    await this.egressService.stopEgress(recordingId);
-  }
-
-  async getRecording(recordingId: string): Promise<Recording | null> {
-    this.loadSdk();
-    const list = await this.egressService.listEgress({ egressId: recordingId });
-    if (list.length === 0) return null;
-    const e = list[0];
-    return {
-      recordingId: e.egressId,
-      startedAt: e.startedAt
-        ? new Date(Number(e.startedAt) / 1_000_000).toISOString()
-        : new Date().toISOString(),
-      status: e.status === 2 ? 'completed' : e.status === 3 ? 'failed' : 'recording',
-      fileUrl: e.fileResults?.[0]?.location ?? e.fileResults?.[0]?.filename,
-      fileSize: e.fileResults?.[0]?.size ? Number(e.fileResults[0].size) : undefined,
-    };
   }
 
   /**

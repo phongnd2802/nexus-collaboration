@@ -16,7 +16,6 @@ export interface VideoCall {
   call_type: 'audio' | 'video';
   is_group_call: boolean;
   status: 'scheduled' | 'active' | 'ended' | 'cancelled' | 'completed';
-  is_recording: boolean;
   scheduled_start_time?: string;
   scheduled_end_time?: string;
   actual_start_time?: string;
@@ -110,7 +109,6 @@ export interface CreateCallRequest {
   call_type: 'audio' | 'video';
   is_group_call?: boolean;
   participant_ids?: string[];
-  recording_enabled?: boolean;
   video_quality?: 'low' | 'medium' | 'high' | 'hd' | '4k';
   max_participants?: number;
   scheduled_start_time?: string;
@@ -713,167 +711,6 @@ export function useSummarizeRecording() {
     onSuccess: (_, { callId }) => {
       queryClient.invalidateQueries({ queryKey: videoCallKeys.recordings(callId) });
     },
-  });
-}
-
-// ============================================
-// Meeting Intelligence Types
-// ============================================
-
-export interface MeetingActionItem {
-  id: string;
-  task: string;
-  assignee: string | null;
-  assigneeId: string | null;
-  deadline: string | null;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'completed';
-}
-
-export interface MeetingSummary {
-  id: string;
-  video_call_id: string;
-  workspace_id: string;
-  summary: string;
-  key_points: string[];
-  action_items: MeetingActionItem[];
-  decisions: string[];
-  topics_discussed: string[];
-  sentiment: 'positive' | 'neutral' | 'negative';
-  participants: string[];
-  generated_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MeetingTranscript {
-  id: string;
-  video_call_id: string;
-  workspace_id: string;
-  full_text: string;
-  segments: Array<{
-    speakerId: string;
-    speakerName: string;
-    text: string;
-    timestamp: number;
-  }>;
-  language: string;
-  duration_seconds: number;
-  word_count: number;
-  created_at: string;
-}
-
-// ============================================
-// Meeting Intelligence API Functions
-// ============================================
-
-export const meetingIntelligenceApi = {
-  /**
-   * Get AI-generated meeting summary
-   */
-  async getMeetingSummary(callId: string): Promise<{
-    success: boolean;
-    message?: string;
-    data: MeetingSummary | null;
-  }> {
-    return api.get(`/video-calls/${callId}/summary`);
-  },
-
-  /**
-   * Get meeting transcript
-   */
-  async getCallTranscript(callId: string): Promise<{
-    success: boolean;
-    message?: string;
-    data: MeetingTranscript | null;
-  }> {
-    return api.get(`/video-calls/${callId}/transcript`);
-  },
-
-  /**
-   * Regenerate meeting summary
-   */
-  async regenerateMeetingSummary(callId: string): Promise<{
-    success: boolean;
-    message?: string;
-    data: MeetingSummary | null;
-  }> {
-    return api.post(`/video-calls/${callId}/summary/regenerate`, {});
-  },
-
-  /**
-   * Create tasks from meeting action items
-   */
-  async createTasksFromMeeting(
-    callId: string,
-    projectId?: string
-  ): Promise<{
-    success: boolean;
-    message: string;
-    tasksCreated: number;
-  }> {
-    return api.post(`/video-calls/${callId}/create-tasks`, { projectId });
-  },
-};
-
-// ============================================
-// Meeting Intelligence Query Keys
-// ============================================
-
-export const meetingIntelligenceKeys = {
-  summary: (callId: string) => ['meetingSummary', callId] as const,
-  transcript: (callId: string) => ['meetingTranscript', callId] as const,
-};
-
-// ============================================
-// Meeting Intelligence Hooks
-// ============================================
-
-/**
- * Get meeting summary hook
- */
-export function useMeetingSummary(callId: string) {
-  return useQuery({
-    queryKey: meetingIntelligenceKeys.summary(callId),
-    queryFn: () => meetingIntelligenceApi.getMeetingSummary(callId),
-    enabled: !!callId,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
-}
-
-/**
- * Get meeting transcript hook
- */
-export function useMeetingTranscript(callId: string) {
-  return useQuery({
-    queryKey: meetingIntelligenceKeys.transcript(callId),
-    queryFn: () => meetingIntelligenceApi.getCallTranscript(callId),
-    enabled: !!callId,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
-}
-
-/**
- * Regenerate meeting summary mutation
- */
-export function useRegenerateMeetingSummary() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (callId: string) => meetingIntelligenceApi.regenerateMeetingSummary(callId),
-    onSuccess: (_, callId) => {
-      queryClient.invalidateQueries({ queryKey: meetingIntelligenceKeys.summary(callId) });
-    },
-  });
-}
-
-/**
- * Create tasks from meeting action items mutation
- */
-export function useCreateTasksFromMeeting() {
-  return useMutation({
-    mutationFn: ({ callId, projectId }: { callId: string; projectId?: string }) =>
-      meetingIntelligenceApi.createTasksFromMeeting(callId, projectId),
   });
 }
 

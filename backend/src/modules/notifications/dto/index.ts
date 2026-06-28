@@ -7,6 +7,3 @@ export * from './notification-query.dto';
 
 // Subscription DTOs
 export * from './push-subscription.dto';
-
-// FCM Token DTOs (for Flutter mobile app)
-export * from './fcm-token.dto';

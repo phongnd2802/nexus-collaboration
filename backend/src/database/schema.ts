@@ -14,50 +14,12 @@ export const schema = {
       { name: 'website', type: 'text', nullable: true },
       { name: 'is_active', type: 'boolean', default: true },
       { name: 'owner_id', type: 'string', nullable: false },
-      { name: 'max_storage_gb', type: 'integer', default: 10 },
       { name: 'settings', type: 'jsonb', default: '{}' },
       { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
     indexes: [{ columns: ['owner_id'] }, { columns: ['is_active'] }, { columns: ['created_at'] }],
-  },
-
-  // ==================== WORKSPACE SUBSCRIPTIONS ====================
-  workspace_subscriptions: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'plan', type: 'string', nullable: false, default: 'free' }, // free, starter, professional, enterprise
-      { name: 'billing_cycle', type: 'string', nullable: true }, // month, year
-      { name: 'status', type: 'string', nullable: false, default: 'active' }, // active, canceled, expired, past_due
-      { name: 'source', type: 'string', nullable: true }, // stripe, apple, google
-      { name: 'stripe_customer_id', type: 'string', nullable: true },
-      { name: 'stripe_subscription_id', type: 'string', nullable: true },
-      { name: 'apple_product_id', type: 'string', nullable: true },
-      { name: 'apple_transaction_id', type: 'string', nullable: true },
-      { name: 'apple_original_transaction_id', type: 'string', nullable: true },
-      { name: 'google_product_id', type: 'string', nullable: true },
-      { name: 'google_purchase_token', type: 'string', nullable: true },
-      { name: 'google_order_id', type: 'string', nullable: true },
-      { name: 'current_period_start', type: 'timestamptz', nullable: true },
-      { name: 'current_period_end', type: 'timestamptz', nullable: true },
-      { name: 'cancel_at_period_end', type: 'boolean', default: false },
-      { name: 'trial_end', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'], unique: true },
-      { columns: ['status'] },
-      { columns: ['source'] },
-      { columns: ['plan'] },
-      { columns: ['stripe_subscription_id'] },
-      { columns: ['apple_original_transaction_id'] },
-      { columns: ['google_order_id'] },
-      { columns: ['current_period_end'] },
-    ],
   },
 
   workspace_members: {
@@ -71,7 +33,6 @@ export const schema = {
       { name: 'invited_at', type: 'timestamptz', nullable: true },
       { name: 'invited_by', type: 'string', nullable: true },
       { name: 'is_active', type: 'boolean', default: true },
-      { name: 'collaborative_data', type: 'jsonb', default: '{}' },
     ],
     indexes: [
       { columns: ['workspace_id', 'user_id'], unique: true },
@@ -80,18 +41,6 @@ export const schema = {
       { columns: ['role'] },
       { columns: ['is_active'] },
     ],
-  },
-
-  workspace_settings: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'key', type: 'string', nullable: false },
-      { name: 'value', type: 'text', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [{ columns: ['workspace_id', 'key'], unique: true }, { columns: ['workspace_id'] }],
   },
 
   workspace_invites: {
@@ -126,8 +75,6 @@ export const schema = {
       { name: 'type', type: 'string', default: 'channel' },
       { name: 'is_private', type: 'boolean', default: false },
       { name: 'is_archived', type: 'boolean', default: false },
-      { name: 'archived_at', type: 'timestamptz', nullable: true },
-      { name: 'archived_by', type: 'string', nullable: true },
       { name: 'created_by', type: 'string', nullable: true },
       { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
@@ -174,7 +121,6 @@ export const schema = {
       { name: 'is_pinned', type: 'boolean', default: false },
       { name: 'pinned_at', type: 'timestamptz', nullable: true },
       { name: 'pinned_by', type: 'string', nullable: true },
-      { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -296,7 +242,6 @@ export const schema = {
       { name: 'start_date', type: 'date', nullable: true },
       { name: 'end_date', type: 'date', nullable: true },
       { name: 'estimated_hours', type: 'numeric', nullable: true },
-      { name: 'actual_hours', type: 'numeric', nullable: true },
       { name: 'budget', type: 'numeric', nullable: true },
       { name: 'is_template', type: 'boolean', default: false },
       {
@@ -311,8 +256,6 @@ export const schema = {
         default: '{"note_attachment": [], "file_attachment": [], "event_attachment": []}',
       },
       { name: 'archived_at', type: 'timestamptz', nullable: true },
-      { name: 'archived_by', type: 'string', nullable: true },
-      { name: 'settings', type: 'jsonb', default: '{}' },
       { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
@@ -338,7 +281,6 @@ export const schema = {
       { name: 'joined_at', type: 'timestamptz', default: 'now()' },
       { name: 'invited_by', type: 'string', nullable: true },
       { name: 'is_active', type: 'boolean', default: true },
-      { name: 'notification_settings', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -372,8 +314,6 @@ export const schema = {
       { name: 'reminder_settings', type: 'jsonb', nullable: true }, // { enabled, intervals }
       { name: 'completed_at', type: 'timestamptz', nullable: true },
       { name: 'completed_by', type: 'string', nullable: true },
-      { name: 'estimated_hours', type: 'numeric', nullable: true },
-      { name: 'actual_hours', type: 'numeric', nullable: true },
       { name: 'story_points', type: 'integer', nullable: true },
       { name: 'labels', type: 'jsonb', default: '[]' },
       {
@@ -459,7 +399,6 @@ export const schema = {
       { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
       { name: 'name', type: 'string', nullable: false },
       { name: 'parent_id', type: 'uuid', nullable: true, references: { table: 'folders' } },
-      { name: 'parent_ids', type: 'jsonb', nullable: true },
       { name: 'created_by', type: 'string', nullable: true },
       { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'is_deleted', type: 'boolean', default: false },
@@ -490,20 +429,15 @@ export const schema = {
       { name: 'folder_id', type: 'uuid', nullable: true, references: { table: 'folders' } },
       { name: 'parent_folder_ids', type: 'jsonb', default: '{}' },
       { name: 'version', type: 'integer', default: 1 },
-      { name: 'previous_version_id', type: 'uuid', nullable: true, references: { table: 'files' } },
       { name: 'file_hash', type: 'string', nullable: true },
       { name: 'virus_scan_status', type: 'string', default: 'pending' },
-      { name: 'virus_scan_at', type: 'timestamptz', nullable: true },
       { name: 'extracted_text', type: 'text', nullable: true },
-      { name: 'ocr_status', type: 'string', nullable: true },
       { name: 'is_ai_generated', type: 'boolean', nullable: true },
       { name: 'metadata', type: 'jsonb', default: '{}' },
       { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'is_deleted', type: 'boolean', default: false },
       { name: 'deleted_at', type: 'timestamptz', nullable: true },
       { name: 'starred', type: 'boolean', default: false },
-      { name: 'starred_at', type: 'timestamptz', nullable: true },
-      { name: 'starred_by', type: 'string', nullable: true },
       { name: 'last_opened_at', type: 'timestamptz', nullable: true },
       { name: 'last_opened_by', type: 'string', nullable: true },
       { name: 'open_count', type: 'integer', default: 0 },
@@ -555,63 +489,6 @@ export const schema = {
     ],
   },
 
-  // ==================== FILE COMMENTS ====================
-  file_comments: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'file_id', type: 'uuid', nullable: false, references: { table: 'files' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'content', type: 'text', nullable: false },
-      { name: 'parent_id', type: 'uuid', nullable: true, references: { table: 'file_comments' } }, // For replies/threads
-      { name: 'is_resolved', type: 'boolean', default: false }, // Mark comment as resolved
-      { name: 'resolved_by', type: 'string', nullable: true },
-      { name: 'resolved_at', type: 'timestamptz', nullable: true },
-      { name: 'is_edited', type: 'boolean', default: false },
-      { name: 'edited_at', type: 'timestamptz', nullable: true },
-      { name: 'is_deleted', type: 'boolean', default: false },
-      { name: 'deleted_at', type: 'timestamptz', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' }, // For mentions, attachments, etc.
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['file_id'] },
-      { columns: ['user_id'] },
-      { columns: ['parent_id'] },
-      { columns: ['is_resolved'] },
-      { columns: ['is_deleted'] },
-      { columns: ['created_at'] },
-      { columns: ['file_id', 'is_deleted'] },
-    ],
-  },
-
-  // ==================== OFFLINE FILES ====================
-  offline_files: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'file_id', type: 'uuid', nullable: false, references: { table: 'files' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'sync_status', type: 'string', default: 'pending' }, // pending, syncing, synced, error, outdated
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'synced_version', type: 'integer', default: 1 }, // Track which file version is synced locally
-      { name: 'auto_sync', type: 'boolean', default: true }, // Auto-sync when file is updated
-      { name: 'priority', type: 'integer', default: 0 }, // Sync priority (higher = sync first)
-      { name: 'file_size', type: 'bigint', nullable: false }, // For tracking offline storage usage
-      { name: 'error_message', type: 'text', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['file_id', 'user_id'], unique: true }, // One offline entry per file per user
-      { columns: ['user_id'] },
-      { columns: ['workspace_id'] },
-      { columns: ['sync_status'] },
-      { columns: ['auto_sync'] },
-      { columns: ['user_id', 'workspace_id'] },
-    ],
-  },
-
   // ==================== CHANNEL MEMBERS ====================
   channel_members: {
     columns: [
@@ -649,12 +526,6 @@ export const schema = {
       { name: 'created_by', type: 'string', nullable: false },
       { name: 'is_active', type: 'boolean', default: true },
       { name: 'is_archived', type: 'boolean', default: false },
-      { name: 'archived_at', type: 'timestamptz', nullable: true },
-      { name: 'archived_by', type: 'string', nullable: true },
-      { name: 'last_message_at', type: 'timestamptz', nullable: true },
-      { name: 'message_count', type: 'integer', default: 0 },
-      { name: 'settings', type: 'jsonb', default: '{}' },
-      { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -664,7 +535,6 @@ export const schema = {
       { columns: ['created_by'] },
       { columns: ['is_active'] },
       { columns: ['is_archived'] },
-      { columns: ['last_message_at'] },
       { columns: ['created_at'] },
     ],
   },
@@ -686,9 +556,6 @@ export const schema = {
       { name: 'last_read_at', type: 'timestamptz', nullable: true },
       { name: 'last_read_message_id', type: 'uuid', nullable: true },
       { name: 'joined_at', type: 'timestamptz', default: 'now()' },
-      { name: 'left_at', type: 'timestamptz', nullable: true },
-      { name: 'notifications_enabled', type: 'boolean', default: true },
-      { name: 'collaborative_data', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -812,39 +679,7 @@ export const schema = {
     ],
   },
 
-  meeting_bookings: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'room_id', type: 'uuid', nullable: false, references: { table: 'meeting_rooms' } },
-      { name: 'event_id', type: 'uuid', nullable: true, references: { table: 'calendar_events' } },
-      { name: 'booked_by', type: 'string', nullable: false },
-      { name: 'start_time', type: 'timestamptz', nullable: false },
-      { name: 'end_time', type: 'timestamptz', nullable: false },
-      { name: 'status', type: 'string', default: 'confirmed' },
-      { name: 'purpose', type: 'string', nullable: true },
-      { name: 'notes', type: 'text', nullable: true },
-      { name: 'attendee_count', type: 'integer', nullable: true },
-      { name: 'required_equipment', type: 'jsonb', default: '[]' },
-      { name: 'catering_requirements', type: 'jsonb', default: '{}' },
-      { name: 'is_recurring', type: 'boolean', default: false },
-      { name: 'recurring_pattern_id', type: 'string', nullable: true },
-      { name: 'cancelled_at', type: 'timestamptz', nullable: true },
-      { name: 'cancelled_by', type: 'string', nullable: true },
-      { name: 'cancellation_reason', type: 'string', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['room_id'] },
-      { columns: ['start_time', 'end_time'] },
-      { columns: ['booked_by'] },
-      { columns: ['status'] },
-      { columns: ['event_id'] },
-      { columns: ['is_recurring'] },
-    ],
-  },
-
-  // Room bookings table (alias for meeting_bookings for backward compatibility)
+  // Room bookings table
   room_bookings: {
     columns: [
       { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
@@ -874,8 +709,6 @@ export const schema = {
       { name: 'email', type: 'string', nullable: true },
       { name: 'name', type: 'string', nullable: true },
       { name: 'status', type: 'string', default: 'pending' }, // pending, accepted, declined, tentative
-      { name: 'response_message', type: 'text', nullable: true },
-      { name: 'responded_at', type: 'timestamptz', nullable: true },
       { name: 'is_organizer', type: 'boolean', default: false },
       { name: 'is_required', type: 'boolean', default: true },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
@@ -898,7 +731,6 @@ export const schema = {
       { name: 'reminder_time', type: 'integer', nullable: false }, // minutes before event
       { name: 'notification_type', type: 'string', default: 'email' }, // email, push, in-app
       { name: 'is_sent', type: 'boolean', default: false },
-      { name: 'sent_at', type: 'timestamptz', nullable: true },
       { name: 'scheduled_for', type: 'timestamptz', nullable: true },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -922,11 +754,8 @@ export const schema = {
       { name: 'author_id', type: 'string', nullable: true },
       { name: 'created_by', type: 'string', nullable: false },
       { name: 'last_edited_by', type: 'string', nullable: true },
-      { name: 'position', type: 'integer', default: 0 },
       { name: 'view_count', type: 'integer', default: 0 },
       { name: 'is_published', type: 'boolean', default: false },
-      { name: 'published_at', type: 'timestamptz', nullable: true },
-      { name: 'slug', type: 'string', nullable: true },
       { name: 'cover_image', type: 'text', nullable: true },
       { name: 'icon', type: 'string', nullable: true },
       { name: 'tags', type: 'jsonb', default: '[]' },
@@ -949,33 +778,6 @@ export const schema = {
       { columns: ['parent_id'] },
       { columns: ['is_favorite'] },
       { columns: ['is_published'] },
-      { columns: ['slug'] },
-      { columns: ['created_at'] },
-    ],
-  },
-
-  // ==================== ACTIVITY LOGS ====================
-  activity_logs: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'action', type: 'string', nullable: false },
-      { name: 'entity_type', type: 'string', nullable: false },
-      { name: 'entity_id', type: 'uuid', nullable: false },
-      { name: 'old_values', type: 'jsonb', nullable: true },
-      { name: 'new_values', type: 'jsonb', nullable: true },
-      { name: 'ip_address', type: 'string', nullable: true },
-      { name: 'user_agent', type: 'text', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['action'] },
-      { columns: ['entity_type'] },
-      { columns: ['entity_id'] },
       { columns: ['created_at'] },
     ],
   },
@@ -1006,58 +808,12 @@ export const schema = {
     ],
   },
 
-  password_reset_tokens: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'token', type: 'string', unique: true, nullable: false },
-      { name: 'expires_at', type: 'timestamptz', nullable: false },
-      { name: 'is_used', type: 'boolean', default: false },
-      { name: 'used_at', type: 'timestamptz', nullable: true },
-      { name: 'ip_address', type: 'string', nullable: true },
-      { name: 'user_agent', type: 'text', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'] },
-      { columns: ['token'], unique: true },
-      { columns: ['expires_at'] },
-      { columns: ['is_used'] },
-    ],
-  },
-
-  email_verification_tokens: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'email', type: 'string', nullable: false },
-      { name: 'token', type: 'string', unique: true, nullable: false },
-      { name: 'expires_at', type: 'timestamptz', nullable: false },
-      { name: 'is_verified', type: 'boolean', default: false },
-      { name: 'verified_at', type: 'timestamptz', nullable: true },
-      { name: 'attempts', type: 'integer', default: 0 },
-      { name: 'ip_address', type: 'string', nullable: true },
-      { name: 'user_agent', type: 'text', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'] },
-      { columns: ['email'] },
-      { columns: ['token'], unique: true },
-      { columns: ['expires_at'] },
-      { columns: ['is_verified'] },
-    ],
-  },
   // ==================== ENHANCED FEATURES ====================
   task_dependencies: {
     columns: [
       { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
       { name: 'task_id', type: 'uuid', nullable: false, references: { table: 'tasks' } },
       { name: 'depends_on_task_id', type: 'uuid', nullable: false, references: { table: 'tasks' } },
-      { name: 'dependency_type', type: 'string', default: 'blocks' },
-      { name: 'lag_days', type: 'integer', default: 0 },
-      { name: 'is_critical_path', type: 'boolean', default: false },
-      { name: 'created_by', type: 'string', nullable: false },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
       { name: 'updated_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -1065,118 +821,7 @@ export const schema = {
       { columns: ['task_id', 'depends_on_task_id'], unique: true },
       { columns: ['task_id'] },
       { columns: ['depends_on_task_id'] },
-      { columns: ['dependency_type'] },
-      { columns: ['is_critical_path'] },
     ],
-  },
-
-  integration_logs: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'integration_type', type: 'string', nullable: false },
-      { name: 'action', type: 'string', nullable: false },
-      { name: 'direction', type: 'string', nullable: false },
-      { name: 'status', type: 'string', nullable: false },
-      { name: 'request_data', type: 'jsonb', nullable: true },
-      { name: 'response_data', type: 'jsonb', nullable: true },
-      { name: 'error_message', type: 'text', nullable: true },
-      { name: 'error_code', type: 'string', nullable: true },
-      { name: 'retry_count', type: 'integer', default: 0 },
-      { name: 'max_retries', type: 'integer', default: 3 },
-      { name: 'next_retry_at', type: 'timestamptz', nullable: true },
-      { name: 'execution_time_ms', type: 'integer', nullable: true },
-      { name: 'triggered_by', type: 'string', nullable: true },
-      { name: 'entity_type', type: 'string', nullable: true },
-      { name: 'entity_id', type: 'uuid', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['integration_type'] },
-      { columns: ['status'] },
-      { columns: ['action'] },
-      { columns: ['created_at'] },
-      { columns: ['entity_type', 'entity_id'] },
-    ],
-  },
-
-  user_activity_logs: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'session_id', type: 'string', nullable: true },
-      { name: 'action', type: 'string', nullable: false },
-      { name: 'category', type: 'string', nullable: false },
-      { name: 'details', type: 'string', nullable: true },
-      { name: 'entity_type', type: 'string', nullable: true },
-      { name: 'entity_id', type: 'uuid', nullable: true },
-      { name: 'previous_values', type: 'jsonb', nullable: true },
-      { name: 'new_values', type: 'jsonb', nullable: true },
-      { name: 'ip_address', type: 'string', nullable: true },
-      { name: 'user_agent', type: 'text', nullable: true },
-      { name: 'referer', type: 'string', nullable: true },
-      { name: 'duration_ms', type: 'integer', nullable: true },
-      { name: 'device_info', type: 'jsonb', nullable: true },
-      { name: 'location_info', type: 'jsonb', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['action'] },
-      { columns: ['category'] },
-      { columns: ['entity_type', 'entity_id'] },
-      { columns: ['created_at'] },
-    ],
-  },
-
-  ai_usage_stats: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', unique: true, nullable: false },
-      { name: 'total_requests', type: 'integer', default: 0 },
-      { name: 'tokens_used', type: 'bigint', default: 0 },
-      { name: 'images_generated', type: 'integer', default: 0 },
-      { name: 'characters_translated', type: 'bigint', default: 0 },
-      { name: 'last_reset', type: 'timestamptz', default: 'now()' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'], unique: true },
-      { columns: ['total_requests'] },
-      { columns: ['last_reset'] },
-    ],
-  },
-
-  chat_sessions: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'title', type: 'string', default: 'New Chat' },
-      { name: 'context', type: 'string', nullable: true },
-      { name: 'personality', type: 'string', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [{ columns: ['user_id'] }, { columns: ['created_at'] }, { columns: ['updated_at'] }],
-  },
-
-  chat_messages: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'session_id', type: 'uuid', nullable: false, references: { table: 'chat_sessions' } },
-      { name: 'role', type: 'string', nullable: false },
-      { name: 'content', type: 'text', nullable: false },
-      { name: 'timestamp', type: 'timestamptz', default: 'now()' },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-    ],
-    indexes: [{ columns: ['session_id'] }, { columns: ['timestamp'] }, { columns: ['role'] }],
   },
 
   // ==================== VIDEO CALLS ====================
@@ -1191,7 +836,6 @@ export const schema = {
       { name: 'call_type', type: 'string', nullable: false, default: 'video' }, // 'audio' | 'video'
       { name: 'is_group_call', type: 'boolean', default: false },
       { name: 'status', type: 'string', default: 'scheduled' }, // 'scheduled' | 'active' | 'ended' | 'cancelled'
-      { name: 'is_recording', type: 'boolean', default: false },
       { name: 'scheduled_start_time', type: 'timestamptz', nullable: true },
       { name: 'scheduled_end_time', type: 'timestamptz', nullable: true },
       { name: 'actual_start_time', type: 'timestamptz', nullable: true },
@@ -1230,7 +874,6 @@ export const schema = {
       { name: 'requested_at', type: 'timestamptz', default: 'now()' },
       { name: 'responded_at', type: 'timestamptz', nullable: true },
       { name: 'responded_by', type: 'string', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
     ],
     indexes: [
       { columns: ['video_call_id'] },
@@ -1251,7 +894,6 @@ export const schema = {
         references: { table: 'video_calls' },
       },
       { name: 'user_id', type: 'string', nullable: false },
-      { name: 'livekit_participant_id', type: 'string', nullable: true },
       { name: 'display_name', type: 'string', nullable: true },
       { name: 'role', type: 'string', default: 'participant' }, // 'host' | 'participant'
       { name: 'status', type: 'string', default: 'invited' }, // 'invited' | 'declined' | 'joined' | 'left'
@@ -1262,7 +904,6 @@ export const schema = {
       { name: 'is_video_muted', type: 'boolean', default: false },
       { name: 'is_screen_sharing', type: 'boolean', default: false },
       { name: 'is_hand_raised', type: 'boolean', default: false },
-      { name: 'connection_quality', type: 'string', nullable: true }, // 'excellent' | 'good' | 'poor'
       { name: 'metadata', type: 'jsonb', default: '{}' },
       { name: 'created_at', type: 'timestamptz', default: 'now()' },
     ],
@@ -1273,86 +914,6 @@ export const schema = {
       { columns: ['joined_at'] },
       { columns: ['left_at'] },
       { columns: ['status'] },
-    ],
-  },
-
-  video_call_recordings: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'video_call_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'video_calls' },
-      },
-      { name: 'livekit_recording_id', type: 'string', nullable: false },
-      { name: 'recording_url', type: 'text', nullable: true },
-      { name: 'transcript_url', type: 'text', nullable: true },
-      { name: 'duration_seconds', type: 'integer', default: 0 },
-      { name: 'file_size_bytes', type: 'bigint', default: 0 },
-      { name: 'status', type: 'string', default: 'recording' }, // 'recording' | 'processing' | 'completed' | 'failed'
-      { name: 'started_at', type: 'timestamptz', nullable: true },
-      { name: 'completed_at', type: 'timestamptz', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['video_call_id'] },
-      { columns: ['livekit_recording_id'], unique: true },
-      { columns: ['status'] },
-      { columns: ['created_at'] },
-    ],
-  },
-
-  video_call_transcripts: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'video_call_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'video_calls' },
-      },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'full_text', type: 'text', nullable: false },
-      { name: 'segments', type: 'jsonb', default: '[]' }, // Array of transcript segments with speaker, timestamp
-      { name: 'language', type: 'string', default: 'en' },
-      { name: 'duration_seconds', type: 'integer', default: 0 },
-      { name: 'word_count', type: 'integer', default: 0 },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['video_call_id'], unique: true },
-      { columns: ['workspace_id'] },
-      { columns: ['created_at'] },
-    ],
-  },
-
-  meeting_summaries: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'video_call_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'video_calls' },
-      },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'summary', type: 'text', nullable: false },
-      { name: 'key_points', type: 'jsonb', default: '[]' }, // Array of key discussion points
-      { name: 'action_items', type: 'jsonb', default: '[]' }, // Array of { task, assignee, deadline, status }
-      { name: 'decisions', type: 'jsonb', default: '[]' }, // Array of decisions made
-      { name: 'topics_discussed', type: 'jsonb', default: '[]' }, // Array of topics/themes
-      { name: 'sentiment', type: 'string', nullable: true }, // 'positive' | 'neutral' | 'negative'
-      { name: 'participants', type: 'jsonb', default: '[]' }, // Array of participant names
-      { name: 'generated_by', type: 'string', default: 'ai' }, // 'ai' | 'manual'
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['video_call_id'], unique: true },
-      { columns: ['workspace_id'] },
-      { columns: ['created_at'] },
     ],
   },
 
@@ -1456,246 +1017,6 @@ export const schema = {
       { columns: ['is_scheduled', 'is_sent'] },
       { columns: ['is_scheduled', 'schedule_status'] },
       { columns: ['scheduled_at', 'is_sent', 'schedule_status'] }, // Composite index for pending scheduled notifications
-    ],
-  },
-
-  notification_preferences: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', unique: true, nullable: false },
-      { name: 'workspace_id', type: 'uuid', nullable: true, references: { table: 'workspaces' } },
-      { name: 'global_enabled', type: 'boolean', default: true },
-      { name: 'in_app_enabled', type: 'boolean', default: true },
-      { name: 'email_enabled', type: 'boolean', default: true },
-      { name: 'push_enabled', type: 'boolean', default: true },
-      { name: 'sound_enabled', type: 'boolean', default: true },
-      { name: 'do_not_disturb', type: 'boolean', default: false },
-      { name: 'quiet_hours_start', type: 'time', nullable: true }, // e.g., '22:00:00'
-      { name: 'quiet_hours_end', type: 'time', nullable: true }, // e.g., '08:00:00'
-      { name: 'frequency', type: 'string', default: 'immediate' }, // immediate, digest, daily, weekly
-      { name: 'digest_time', type: 'time', nullable: true }, // Time for digest delivery
-      { name: 'categories', type: 'jsonb', default: {} },
-      { name: 'muted_workspaces', type: 'jsonb', default: [] }, // Array of workspace IDs
-      { name: 'muted_projects', type: 'jsonb', default: [] }, // Array of project IDs
-      { name: 'muted_channels', type: 'jsonb', default: [] }, // Array of channel IDs
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'], unique: true },
-      { columns: ['workspace_id'] },
-      { columns: ['do_not_disturb'] },
-      { columns: ['created_at'] },
-    ],
-  },
-
-  push_subscriptions: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'endpoint', type: 'text', unique: true, nullable: false },
-      { name: 'keys', type: 'jsonb', nullable: true }, // p256dh and auth keys
-      { name: 'device_type', type: 'string', nullable: true }, // desktop, mobile, tablet
-      { name: 'browser', type: 'string', nullable: true },
-      { name: 'os', type: 'string', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_used_at', type: 'timestamptz', default: 'now()' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'] },
-      { columns: ['endpoint'], unique: true },
-      { columns: ['is_active'] },
-      { columns: ['last_used_at'] },
-    ],
-  },
-
-  // FCM Device Tokens for Flutter mobile app
-  device_tokens: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'fcm_token', type: 'text', unique: true, nullable: false },
-      { name: 'platform', type: 'string', nullable: false }, // android or ios
-      { name: 'device_name', type: 'string', nullable: true },
-      { name: 'device_id', type: 'string', nullable: true }, // Unique device identifier
-      { name: 'app_version', type: 'string', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_used_at', type: 'timestamptz', default: 'now()' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id'] },
-      { columns: ['fcm_token'], unique: true },
-      { columns: ['platform'] },
-      { columns: ['is_active'] },
-      { columns: ['user_id', 'is_active'] },
-      { columns: ['last_used_at'] },
-      { columns: ['created_at'] },
-    ],
-  },
-  // ==================== EMAIL CONNECTIONS ====================
-  // Supports both OAuth (Gmail) and SMTP/IMAP providers
-  email_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'provider', type: 'string', nullable: false, default: 'gmail' }, // 'gmail' | 'smtp_imap'
-      // OAuth fields (for Gmail)
-      { name: 'access_token', type: 'text', nullable: true },
-      { name: 'refresh_token', type: 'text', nullable: true },
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      // SMTP fields (for sending emails)
-      { name: 'smtp_host', type: 'string', nullable: true },
-      { name: 'smtp_port', type: 'integer', nullable: true },
-      { name: 'smtp_secure', type: 'boolean', default: true }, // true for SSL/TLS
-      { name: 'smtp_user', type: 'string', nullable: true },
-      { name: 'smtp_password', type: 'text', nullable: true }, // encrypted
-      // IMAP fields (for receiving emails)
-      { name: 'imap_host', type: 'string', nullable: true },
-      { name: 'imap_port', type: 'integer', nullable: true },
-      { name: 'imap_secure', type: 'boolean', default: true }, // true for SSL/TLS
-      { name: 'imap_user', type: 'string', nullable: true },
-      { name: 'imap_password', type: 'text', nullable: true }, // encrypted
-      // Common fields
-      { name: 'email_address', type: 'string', nullable: true },
-      { name: 'display_name', type: 'string', nullable: true },
-      { name: 'profile_picture', type: 'text', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'notifications_enabled', type: 'boolean', default: true },
-      { name: 'auto_create_events', type: 'boolean', default: false }, // Auto-create calendar events from emails
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'last_history_id', type: 'string', nullable: true }, // Gmail history ID
-      { name: 'last_uid', type: 'string', nullable: true }, // IMAP last processed UID
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      // Changed: Allow multiple connections per provider, but same email can't be added twice
-      { columns: ['workspace_id', 'user_id', 'email_address'], unique: true },
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['provider'] },
-      { columns: ['is_active'] },
-      { columns: ['notifications_enabled'] },
-      { columns: ['email_address'] },
-    ],
-  },
-
-  // ==================== EMAIL PRIORITIES ====================
-  // Stores AI-analyzed email priorities for syncing between frontend and mobile
-  email_priorities: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      {
-        name: 'connection_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'email_connections' },
-      },
-      { name: 'email_id', type: 'string', nullable: false }, // Gmail/IMAP message ID
-      { name: 'level', type: 'string', nullable: false }, // 'high' | 'medium' | 'low' | 'none'
-      { name: 'score', type: 'integer', nullable: false }, // 0-10 scale
-      { name: 'reason', type: 'text', nullable: true },
-      { name: 'factors', type: 'jsonb', default: '[]' }, // Array of factor strings
-      { name: 'analyzed_at', type: 'timestamptz', default: 'now()' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id', 'user_id', 'email_id'], unique: true },
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['connection_id'] },
-      { columns: ['email_id'] },
-      { columns: ['level'] },
-      { columns: ['analyzed_at'] },
-    ],
-  },
-
-  // ==================== GITHUB CONNECTIONS ====================
-  // User-specific GitHub connection within workspace
-  github_connections: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who connected GitHub
-      { name: 'access_token', type: 'text', nullable: false },
-      { name: 'refresh_token', type: 'text', nullable: true }, // GitHub App tokens may have refresh
-      { name: 'token_type', type: 'string', default: 'Bearer' },
-      { name: 'scope', type: 'text', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true }, // GitHub OAuth tokens don't expire by default
-      { name: 'github_id', type: 'string', nullable: true }, // GitHub user ID
-      { name: 'github_login', type: 'string', nullable: true }, // GitHub username
-      { name: 'github_name', type: 'string', nullable: true },
-      { name: 'github_email', type: 'string', nullable: true },
-      { name: 'github_avatar', type: 'text', nullable: true },
-      { name: 'installation_id', type: 'string', nullable: true }, // GitHub App installation ID
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['workspace_id', 'user_id'], unique: true }, // One connection per user per workspace
-      { columns: ['is_active'] },
-      { columns: ['github_login'] },
-    ],
-  },
-
-  // ==================== GITHUB ISSUE LINKS ====================
-  // Links GitHub issues/PRs to Nexus project tasks
-  github_issue_links: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'task_id', type: 'uuid', nullable: false, references: { table: 'tasks' } },
-      {
-        name: 'github_connection_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'github_connections' },
-      },
-      // GitHub issue/PR details
-      { name: 'issue_type', type: 'string', nullable: false }, // 'issue' | 'pull_request'
-      { name: 'issue_number', type: 'integer', nullable: false },
-      { name: 'issue_id', type: 'string', nullable: false }, // GitHub's internal issue ID
-      { name: 'repo_owner', type: 'string', nullable: false },
-      { name: 'repo_name', type: 'string', nullable: false },
-      { name: 'repo_full_name', type: 'string', nullable: false },
-      { name: 'title', type: 'string', nullable: false },
-      { name: 'state', type: 'string', nullable: false }, // 'open' | 'closed' | 'merged'
-      { name: 'html_url', type: 'text', nullable: false },
-      { name: 'author_login', type: 'string', nullable: true },
-      { name: 'author_avatar', type: 'text', nullable: true },
-      { name: 'labels', type: 'jsonb', default: '[]' }, // Array of {name, color}
-      { name: 'created_at_github', type: 'timestamptz', nullable: true },
-      { name: 'updated_at_github', type: 'timestamptz', nullable: true },
-      { name: 'closed_at_github', type: 'timestamptz', nullable: true },
-      { name: 'merged_at_github', type: 'timestamptz', nullable: true }, // For PRs only
-      // Sync settings
-      { name: 'auto_update_task_status', type: 'boolean', default: false }, // Auto-complete task when issue closes
-      { name: 'last_synced_at', type: 'timestamptz', nullable: true },
-      { name: 'linked_by', type: 'string', nullable: false }, // User who created the link
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['task_id'] },
-      { columns: ['github_connection_id'] },
-      { columns: ['repo_full_name', 'issue_number'], unique: false }, // For finding by repo+issue
-      { columns: ['task_id', 'repo_full_name', 'issue_number'], unique: true }, // Prevent duplicate links
-      { columns: ['state'] },
-      { columns: ['issue_type'] },
     ],
   },
 
@@ -1820,113 +1141,7 @@ export const schema = {
     ],
   },
 
-  // Integration Webhooks - Webhook subscriptions for integrations
-  integration_webhooks: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      {
-        name: 'connection_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'integration_connections' },
-      },
-      {
-        name: 'integration_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'integration_catalog' },
-      },
-
-      // Webhook Configuration
-      { name: 'webhook_id', type: 'string', nullable: true }, // External webhook ID from provider
-      { name: 'webhook_url', type: 'text', nullable: false }, // Our endpoint URL
-      { name: 'secret', type: 'text', nullable: true }, // For signature verification
-      { name: 'events', type: 'jsonb', default: '[]' }, // Subscribed events
-
-      // Status & Health
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'last_received_at', type: 'timestamptz', nullable: true },
-      { name: 'failure_count', type: 'integer', default: 0 },
-      { name: 'last_failure_at', type: 'timestamptz', nullable: true },
-      { name: 'last_failure_reason', type: 'text', nullable: true },
-
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['connection_id'] },
-      { columns: ['integration_id'] },
-      { columns: ['webhook_id'] },
-      { columns: ['is_active'] },
-    ],
-  },
-
-  // Integration Sync History - Track sync operations
-  integration_sync_history: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'connection_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'integration_connections' },
-      },
-      { name: 'sync_type', type: 'string', nullable: false }, // full, incremental, webhook
-      { name: 'status', type: 'string', nullable: false }, // pending, running, completed, failed
-      { name: 'started_at', type: 'timestamptz', default: 'now()' },
-      { name: 'completed_at', type: 'timestamptz', nullable: true },
-      { name: 'items_processed', type: 'integer', default: 0 },
-      { name: 'items_created', type: 'integer', default: 0 },
-      { name: 'items_updated', type: 'integer', default: 0 },
-      { name: 'items_deleted', type: 'integer', default: 0 },
-      { name: 'error_message', type: 'text', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['connection_id'] },
-      { columns: ['status'] },
-      { columns: ['sync_type'] },
-      { columns: ['started_at'] },
-    ],
-  },
-
   // ==================== PROJECT TEMPLATES ====================
-  // System and user-created project templates for quick project setup
-  project_templates: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: true, references: { table: 'workspaces' } }, // null for system templates
-      { name: 'name', type: 'string', nullable: false },
-      { name: 'slug', type: 'string', nullable: false },
-      { name: 'description', type: 'text', nullable: true },
-      { name: 'category', type: 'string', nullable: false }, // software_development, marketing, hr, etc.
-      { name: 'icon', type: 'string', nullable: true }, // Icon name or emoji
-      { name: 'color', type: 'string', nullable: true }, // Hex color for UI
-      { name: 'structure', type: 'jsonb', nullable: false }, // Template structure with sections/tasks
-      { name: 'project_type', type: 'string', default: 'kanban' }, // kanban, scrum, waterfall
-      { name: 'kanban_stages', type: 'jsonb', nullable: true }, // Custom stages for this template
-      { name: 'custom_fields', type: 'jsonb', default: '[]' }, // Custom field definitions
-      { name: 'settings', type: 'jsonb', default: '{}' }, // Additional template settings
-      { name: 'is_system', type: 'boolean', default: false }, // true for built-in templates
-      { name: 'is_featured', type: 'boolean', default: false }, // Featured in gallery
-      { name: 'usage_count', type: 'integer', default: 0 }, // Track popularity
-      { name: 'created_by', type: 'string', nullable: true }, // null for system templates
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['category'] },
-      { columns: ['slug'], unique: true },
-      { columns: ['is_system'] },
-      { columns: ['is_featured'] },
-      { columns: ['usage_count'] },
-      { columns: ['created_at'] },
-    ],
-  },
 
   // ===========================================
   // SUPER AGENT MEMORY TABLES
@@ -1936,114 +1151,12 @@ export const schema = {
    * Agent Memory - Stores episodic, preference, and long-term memories for Super Agents
    * Enables agents to remember context, learn from interactions, and make intelligent decisions
    */
-  agent_memory: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'agent_id', type: 'string', nullable: true }, // e.g., 'autopilot', 'project-agent', 'task-agent'
-      { name: 'memory_type', type: 'string', nullable: false }, // 'episodic', 'preference', 'long_term', 'decision'
-      { name: 'content', type: 'text', nullable: false },
-      { name: 'summary', type: 'text', nullable: true }, // AI-generated summary for quick retrieval
-      { name: 'context_type', type: 'string', nullable: true }, // 'task', 'chat', 'note', 'meeting', 'project', 'file'
-      { name: 'context_id', type: 'uuid', nullable: true },
-      { name: 'importance', type: 'integer', default: 5 }, // 1-10 scale
-      { name: 'tags', type: 'jsonb', default: '[]' }, // Array of tags for filtering
-      { name: 'metadata', type: 'jsonb', default: '{}' }, // Flexible metadata
-      { name: 'embedding_id', type: 'string', nullable: true }, // Qdrant vector ID
-      { name: 'expires_at', type: 'timestamptz', nullable: true }, // For time-limited memories
-      { name: 'access_count', type: 'integer', default: 0 }, // Track retrieval frequency
-      { name: 'last_accessed_at', type: 'timestamptz', nullable: true },
-      { name: 'is_active', type: 'boolean', default: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id', 'user_id'] },
-      { columns: ['workspace_id', 'agent_id'] },
-      { columns: ['workspace_id', 'memory_type'] },
-      { columns: ['context_type', 'context_id'] },
-      { columns: ['importance'] },
-      { columns: ['expires_at'] },
-      { columns: ['is_active'] },
-      { columns: ['created_at'] },
-    ],
-  },
 
   /**
    * Agent Memory Preferences - Stores learned user preferences and behavior patterns
    * Allows agents to personalize responses based on observed user patterns
    */
-  agent_memory_preferences: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'preference_key', type: 'string', nullable: false }, // e.g., 'task_default_priority', 'preferred_meeting_time'
-      { name: 'preference_value', type: 'jsonb', nullable: false },
-      { name: 'confidence', type: 'numeric', default: 0.5 }, // 0-1 confidence score
-      { name: 'learned_from', type: 'jsonb', default: '[]' }, // Array of memory IDs that contributed
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id', 'user_id', 'preference_key'], unique: true },
-      { columns: ['workspace_id', 'user_id'] },
-      { columns: ['confidence'] },
-    ],
-  },
-  // ==================== AUTOPILOT PROACTIVE FEATURES ====================Â Â Â Â /**Â Â Â Â Â * Autopilot Briefings - Daily/weekly summaries for usersÂ Â Â Â Â * Generated proactively to help users stay on top of their workÂ Â Â Â Â */
-  autopilot_briefings: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'briefing_type', type: 'string', nullable: false }, // 'daily', 'weekly', 'deadline_alert'
-      { name: 'content', type: 'jsonb', nullable: false }, // { summary, tasks, events, highlights, recommendations }
-      { name: 'generated_at', type: 'timestamptz', default: 'now()' },
-      { name: 'is_read', type: 'boolean', default: false },
-      { name: 'read_at', type: 'timestamptz', nullable: true },
-      { name: 'expires_at', type: 'timestamptz', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-    ],
-    indexes: [
-      { columns: ['user_id', 'workspace_id'] },
-      { columns: ['briefing_type'] },
-      { columns: ['generated_at'] },
-      { columns: ['is_read'] },
-      { columns: ['expires_at'] },
-    ],
-  },
   /**Â Â Â Â Â * Autopilot Alerts - Proactive deadline and reminder alertsÂ Â Â Â Â * Monitors tasks and events to alert users before deadlinesÂ Â Â Â Â */
-  autopilot_alerts: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'user_id', type: 'string', nullable: false },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'alert_type', type: 'string', nullable: false }, // 'deadline_24h', 'deadline_3d', 'overdue', 'conflict', 'reminder'
-      { name: 'entity_type', type: 'string', nullable: false }, // 'task', 'event', 'project'
-      { name: 'entity_id', type: 'uuid', nullable: false },
-      { name: 'priority', type: 'string', default: 'normal' }, // 'low', 'normal', 'high', 'urgent'
-      { name: 'title', type: 'string', nullable: false },
-      { name: 'message', type: 'text', nullable: false },
-      { name: 'action_url', type: 'string', nullable: true },
-      { name: 'is_sent', type: 'boolean', default: false },
-      { name: 'sent_at', type: 'timestamptz', nullable: true },
-      { name: 'is_dismissed', type: 'boolean', default: false },
-      { name: 'dismissed_at', type: 'timestamptz', nullable: true },
-      { name: 'metadata', type: 'jsonb', default: '{}' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['user_id', 'workspace_id'] },
-      { columns: ['alert_type'] },
-      { columns: ['entity_type', 'entity_id'] },
-      { columns: ['priority'] },
-      { columns: ['is_sent'] },
-      { columns: ['is_dismissed'] },
-      { columns: ['created_at'] },
-    ],
-  },
   // ============================================
   // ADVANCED WORKFLOW AUTOMATION SYSTEM
   // ============================================
@@ -2200,34 +1313,6 @@ export const schema = {
   },
 
   /**
-   * Automation Templates - Pre-built workflow templates
-   */
-  automation_templates: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'name', type: 'string', nullable: false },
-      { name: 'description', type: 'text', nullable: true },
-      { name: 'category', type: 'string', nullable: false }, // project_management, communication, productivity, approvals, etc.
-      { name: 'icon', type: 'string', nullable: true },
-      { name: 'color', type: 'string', nullable: true },
-      { name: 'template_config', type: 'jsonb', nullable: false }, // Full workflow definition
-      { name: 'variables', type: 'jsonb', default: '[]' }, // Configurable variables when using template
-      { name: 'is_featured', type: 'boolean', default: 'false' },
-      { name: 'is_system', type: 'boolean', default: 'false' }, // System templates vs user-created
-      { name: 'use_count', type: 'integer', default: '0' },
-      { name: 'created_by', type: 'string', nullable: true }, // null for system templates
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['category'] },
-      { columns: ['is_featured'] },
-      { columns: ['is_system'] },
-      { columns: ['use_count'] },
-    ],
-  },
-
-  /**
    * Workflow Scheduled Jobs - For time-based workflow triggers
    */
   workflow_scheduled_jobs: {
@@ -2272,51 +1357,6 @@ export const schema = {
       { columns: ['is_active'] },
     ],
   },
-
-  /**
-   * Workflow Variables - Global variables for workflows
-   */
-  workflow_variables: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'name', type: 'string', nullable: false },
-      { name: 'value', type: 'text', nullable: true },
-      { name: 'value_type', type: 'string', default: 'string' }, // string, number, boolean, json
-      { name: 'is_secret', type: 'boolean', default: 'false' }, // For API keys, passwords
-      { name: 'description', type: 'text', nullable: true },
-      { name: 'created_by', type: 'string', nullable: false },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [{ columns: ['workspace_id'] }, { columns: ['workspace_id', 'name'], unique: true }],
-  },
-  scheduled_actions: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      { name: 'workspace_id', type: 'uuid', nullable: false, references: { table: 'workspaces' } },
-      { name: 'user_id', type: 'string', nullable: false }, // User who scheduled the action
-      { name: 'action_type', type: 'string', nullable: false }, // send_email, send_notification, create_task, etc.
-      { name: 'action_config', type: 'jsonb', nullable: false }, // Action parameters
-      { name: 'scheduled_at', type: 'timestamptz', nullable: false }, // When to execute
-      { name: 'status', type: 'string', default: 'pending' }, // pending, executing, completed, failed, cancelled
-      { name: 'executed_at', type: 'timestamptz', nullable: true }, // Actual execution time
-      { name: 'result', type: 'jsonb', nullable: true }, // Execution result or error
-      { name: 'description', type: 'text', nullable: true }, // Human readable description
-      { name: 'retry_count', type: 'integer', default: '0' },
-      { name: 'max_retries', type: 'integer', default: '3' },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-      { name: 'updated_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [
-      { columns: ['workspace_id'] },
-      { columns: ['user_id'] },
-      { columns: ['status'] },
-      { columns: ['scheduled_at'] },
-      { columns: ['status', 'scheduled_at'] }, // For finding pending actions to execute
-    ],
-  },
-
 
   // ==================== END-TO-END ENCRYPTION (E2EE) ====================
 
@@ -2372,23 +1412,6 @@ export const schema = {
   /**
    * Tracks encryption key rotation history
    */
-  key_rotation_history: {
-    columns: [
-      { name: 'id', type: 'uuid', primaryKey: true, default: 'gen_random_uuid()' },
-      {
-        name: 'conversation_id',
-        type: 'uuid',
-        nullable: false,
-        references: { table: 'conversations' },
-      },
-      { name: 'old_key_version', type: 'integer', nullable: false },
-      { name: 'new_key_version', type: 'integer', nullable: false },
-      { name: 'rotated_by', type: 'string', nullable: false },
-      { name: 'rotation_reason', type: 'string', nullable: true },
-      { name: 'created_at', type: 'timestamptz', default: 'now()' },
-    ],
-    indexes: [{ columns: ['conversation_id'] }, { columns: ['created_at'] }],
-  },
 };
 
 export default schema;

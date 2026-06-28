@@ -565,57 +565,6 @@ export class ManualExecuteWorkflowDto {
 }
 
 // ============================================
-// TEMPLATE DTOs
-// ============================================
-
-export class CreateTemplateFromWorkflowDto {
-  @ApiProperty({ description: 'Template name' })
-  @IsString()
-  name: string;
-
-  @ApiPropertyOptional({ description: 'Template description' })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiProperty({ description: 'Category' })
-  @IsString()
-  category: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  icon?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  color?: string;
-
-  @ApiPropertyOptional({ type: [Object], description: 'Configurable variables' })
-  @IsOptional()
-  @IsArray()
-  variables?: Array<{
-    name: string;
-    type: 'string' | 'number' | 'boolean' | 'array';
-    default?: any;
-    description?: string;
-  }>;
-}
-
-export class UseTemplateDto {
-  @ApiPropertyOptional({ description: 'Custom name for the workflow' })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional({ description: 'Variable values to customize template' })
-  @IsOptional()
-  @IsObject()
-  variables?: Record<string, any>;
-}
-
-// ============================================
 // AI BUILDER DTOs
 // ============================================
 
@@ -705,24 +654,3 @@ export class WorkflowStepExecutionResponseDto {
   createdAt: string;
 }
 
-export class AutomationTemplateResponseDto {
-  id: string;
-  name: string;
-  description?: string;
-  category: string;
-  icon?: string;
-  color?: string;
-  templateConfig: Record<string, any>;
-  variables: Array<{
-    name: string;
-    type: string;
-    default?: any;
-    description?: string;
-  }>;
-  isFeatured: boolean;
-  isSystem: boolean;
-  useCount: number;
-  createdBy?: string;
-  createdAt: string;
-  updatedAt: string;
-}

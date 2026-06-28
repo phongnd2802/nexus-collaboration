@@ -58,10 +58,7 @@ import {
   FilePreviewDialog,
   FilePropertiesDialog,
 } from './FileOperationDialogs';
-import { FileCommentsModal } from './FileCommentsModal';
 import { useFilesSidebar } from '../../contexts/FilesSidebarContext';
-import { useOfflineSync } from '../../hooks/useOfflineSync';
-import { OfflineStatusBadge } from './OfflineStatusBadge';
 import type { FileItem } from '../../types';
 
 interface FileExplorerProps {
@@ -147,14 +144,8 @@ export function FileExplorer({
   // TanStack Query client for cache invalidation
   const queryClient = useQueryClient();
 
-  // Sidebar context for file info/comments panel
+  // Sidebar context for file info panel
   const { setSelectedFile, setContent } = useFilesSidebar();
-
-  // Offline sync hook
-  const { markFileOffline, removeFileOffline, isMarkingOffline } = useOfflineSync({
-    workspaceId,
-    enableAutoSync: true,
-  });
 
   // Debug logging
   React.useEffect(() => {
@@ -231,7 +222,6 @@ export function FileExplorer({
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [propertiesFile, setPropertiesFile] = useState<FileItem | null>(null);
   const [shareFile, setShareFile] = useState<{ id: string; name: string } | null>(null);
-  const [commentsFile, setCommentsFile] = useState<{ id: string; name: string } | null>(null);
 
   const getFileIcon = (file: FileItem, size: 'small' | 'large' = 'small') => {
     if (file.type === 'folder') return <Folder className={size === 'large' ? 'h-12 w-12' : 'h-5 w-5'} style={{ color: '#3b82f6' }} />;
@@ -371,24 +361,6 @@ export function FileExplorer({
       setSelectedFileIds([]); // Clear selection when navigating
     } else {
       setPreviewFile(file);
-    }
-  };
-
-  // Handle toggle offline for a file
-  const handleToggleOffline = async (file: FileItem) => {
-    if (file.type !== 'file') return;
-
-    try {
-      // For now, we'll just mark it for offline - the hook handles the logic
-      await markFileOffline(file.id, {
-        fileName: file.name,
-        mimeType: file.mime_type || file.mimeType || 'application/octet-stream',
-        size: file.size || 0,
-        version: file.version || 1,
-        url: typeof file.url === 'string' ? file.url : file.url?.publicUrl,
-      });
-    } catch (error) {
-      console.error('Failed to toggle offline:', error);
     }
   };
 
@@ -1189,11 +1161,9 @@ export function FileExplorer({
                       onToggleStar={file.type === 'file' ? () => onToggleStar?.(file.id, file.starred || false) : undefined}
                       onRestore={isTrashView ? () => onFileRestore?.(file.id) : undefined}
                       onShare={() => setShareFile({ id: file.id, name: file.name })}
-                      onComments={() => setCommentsFile({ id: file.id, name: file.name })}
                       isSharedWithMeView={isSharedWithMeView}
                       onDownload={file.type === 'file' ? () => onFileDownload?.(file.id, file.name) : undefined}
                       onInfo={() => setPropertiesFile(file)}
-                      onToggleOffline={file.type === 'file' ? () => handleToggleOffline(file) : undefined}
                       isTrashView={isTrashView}
                       isSearchView={isSearchView}
                       allowCutCopyPaste={allowCutCopyPaste}
@@ -1201,11 +1171,6 @@ export function FileExplorer({
                   </div>
                   <div className="mb-2 relative">
                     {getFileIcon(file, 'large')}
-                    {file.type === 'file' && (
-                      <div className="absolute -bottom-0.5 -right-0.5">
-                        <OfflineStatusBadge fileId={file.id} size="sm" showBackground />
-                      </div>
-                    )}
                   </div>
                   <span className="text-xs text-center line-clamp-2 break-words w-full px-1">
                     {file.name}
@@ -1274,9 +1239,6 @@ export function FileExplorer({
                     </div>
                   </div>
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    {file.type === 'file' && (
-                      <OfflineStatusBadge fileId={file.id} size="sm" />
-                    )}
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <FileActionsDropdown
                         fileId={file.id}
@@ -1294,11 +1256,9 @@ export function FileExplorer({
                         onToggleStar={file.type === 'file' ? () => onToggleStar?.(file.id, file.starred || false) : undefined}
                         onRestore={isTrashView ? () => onFileRestore?.(file.id) : undefined}
                         onShare={() => setShareFile({ id: file.id, name: file.name })}
-                        onComments={() => setCommentsFile({ id: file.id, name: file.name })}
                         isSharedWithMeView={isSharedWithMeView}
                         onDownload={file.type === 'file' ? () => onFileDownload?.(file.id, file.name) : undefined}
                         onInfo={() => setPropertiesFile(file)}
-                        onToggleOffline={file.type === 'file' ? () => handleToggleOffline(file) : undefined}
                         isTrashView={isTrashView}
                         isSearchView={isSearchView}
                         allowCutCopyPaste={allowCutCopyPaste}
@@ -1361,13 +1321,6 @@ export function FileExplorer({
         onClose={() => setShareFile(null)}
         fileId={shareFile?.id || ''}
         fileName={shareFile?.name || ''}
-      />
-
-      <FileCommentsModal
-        isOpen={!!commentsFile}
-        onClose={() => setCommentsFile(null)}
-        fileId={commentsFile?.id || ''}
-        fileName={commentsFile?.name || ''}
       />
 
       <FileUploadModal

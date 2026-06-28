@@ -374,7 +374,6 @@ export const useVideoCallStore = create<VideoCallState>()(
           participant_ids: participantIds,
           video_quality: 'hd',
           max_participants: 50,
-          recording_enabled: false,
         })
 
         console.log('✅ Call created:', call.id)

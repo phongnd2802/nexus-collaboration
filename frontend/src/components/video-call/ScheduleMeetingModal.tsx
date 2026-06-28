@@ -21,8 +21,7 @@ import {
   Settings,
   MapPin,
   X,
-  Mic,
-  Sparkles
+  Mic
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, addMinutes } from 'date-fns'
@@ -30,7 +29,6 @@ import { toast } from 'sonner'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCreateVideoCall } from '@/lib/api/video-call-api'
 import { useWorkspaceMembers } from '@/lib/api/workspace-api'
-import { useGenerateDescriptionSuggestions } from '@/lib/api/ai-api'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -84,7 +82,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
 
   // Location and logistics
-  const [locationType, setLocationType] = useState<'virtual' | 'physical' | 'hybrid'>('virtual')
+  const [locationType, setLocationType] = useState<'virtual' | 'physical'>('virtual')
   const [physicalLocation, setPhysicalLocation] = useState('')
 
   // Recurrence
@@ -101,10 +99,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
   const [startImmediately, setStartImmediately] = useState(false)
 
   // AI Description states
-  const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false)
-  const [descriptionSuggestions, setDescriptionSuggestions] = useState<string[]>([])
-  const [showDescriptionSuggestions, setShowDescriptionSuggestions] = useState(false)
-  const descriptionMutation = useGenerateDescriptionSuggestions()
 
   const platforms: MeetingPlatform[] = [
     {
@@ -113,13 +107,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
       icon: <Video className="h-5 w-5" />,
       color: 'gradient-primary',
       description: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.videoDescription' })
-    },
-    {
-      id: 'nexus-webinar',
-      name: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.webinar' }),
-      icon: <Users className="h-5 w-5" />,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      description: intl.formatMessage({ id: 'modules.videoCallsApp.modal.platforms.webinarDescription' })
     }
   ]
 
@@ -171,7 +158,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
             call_type: callType,
             is_group_call: isGroupCall,
             max_participants: 50,
-            recording_enabled: false,
             participant_ids: selectedAttendees, // Backend will send real-time notifications
             // No scheduled_start_time = instant call
             metadata: {
@@ -218,7 +204,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
             max_participants: 50,
             scheduled_start_time: meetingDateTime.toISOString(),
             scheduled_end_time: endDateTime.toISOString(),
-            recording_enabled: false,
             participant_ids: selectedAttendees,
             metadata: {
               location_type: locationType,
@@ -268,83 +253,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
   const handleClose = () => {
     onOpenChange(false)
     resetForm()
-  }
-
-  const generateAIMeetingDescription = async () => {
-    // Validate that meeting title is filled
-    if (!meetingTitle.trim()) {
-      toast.error('Please enter a meeting title first before generating AI description')
-      return
-    }
-
-    setAiDescriptionLoading(true)
-    setDescriptionSuggestions([])
-    setShowDescriptionSuggestions(false)
-
-    try {
-      const title = meetingTitle.trim()
-      const duration = meetingDuration
-      const platform = selectedPlatformData?.name || 'Video Call'
-
-      // Build context based on meeting details
-      const contextParts: string[] = []
-      if (selectedPlatform === 'nexus-video') {
-        contextParts.push('Video conference meeting')
-      } else if (selectedPlatform === 'nexus-audio') {
-        contextParts.push('Audio-only conference call')
-      } else if (selectedPlatform === 'nexus-webinar') {
-        contextParts.push('Webinar presentation')
-      }
-
-      if (locationType === 'virtual') {
-        contextParts.push('virtual meeting')
-      } else if (locationType === 'physical') {
-        contextParts.push('in-person meeting')
-      } else if (locationType === 'hybrid') {
-        contextParts.push('hybrid meeting')
-      }
-
-      contextParts.push(`Duration: ${duration} minutes`)
-
-      // Call the unified description suggestions endpoint
-      const response = await descriptionMutation.mutateAsync({
-        type: 'meeting',
-        title: title,
-        context: contextParts.join('. '),
-        count: 3,
-        tone: 'professional',
-        length: 'medium'
-      })
-
-      // Use pre-parsed suggestions from backend
-      let suggestions = response.suggestions
-
-      // Fallback if no suggestions returned
-      if (suggestions.length === 0) {
-        const fallbackDescriptions = [
-          `Join us for ${title}. This ${duration}-minute ${platform.toLowerCase()} will cover key topics and provide an opportunity for discussion and collaboration.`,
-          `${title} - A ${duration}-minute session to discuss important matters and align on next steps. All participants are encouraged to come prepared with questions.`,
-          `This meeting focuses on ${title.toLowerCase()}. We will review progress, address any concerns, and plan the way forward. Duration: ${duration} minutes.`
-        ]
-        suggestions = fallbackDescriptions
-      }
-
-      setDescriptionSuggestions(suggestions)
-      setShowDescriptionSuggestions(true)
-
-      toast.success('Descriptions generated! Select one below.')
-    } catch (error) {
-      console.error('AI description generation failed:', error)
-      toast.error('Failed to generate descriptions. Please try again or write one manually.')
-    } finally {
-      setAiDescriptionLoading(false)
-    }
-  }
-
-  const selectDescriptionSuggestion = (suggestion: string) => {
-    setMeetingDescription(suggestion)
-    setShowDescriptionSuggestions(false)
-    setDescriptionSuggestions([])
   }
 
   return (
@@ -512,11 +420,10 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
                 {/* Location Type */}
                 <div className="space-y-3">
                   <Label>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.meetingLocation' })}</Label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
                       { key: 'virtual', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.virtual' }), icon: Video, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.virtualDescription' }) },
-                      { key: 'physical', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.inPerson' }), icon: MapPin, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.inPersonDescription' }) },
-                      { key: 'hybrid', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.hybrid' }), icon: Users, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.hybridDescription' }) }
+                      { key: 'physical', label: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.inPerson' }), icon: MapPin, desc: intl.formatMessage({ id: 'modules.videoCallsApp.modal.locations.inPersonDescription' }) }
                     ].map(({ key, label, icon: Icon, desc }) => (
                       <Card
                         key={key}
@@ -550,29 +457,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
                 )}
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="meeting-description">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.description' })}</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={generateAIMeetingDescription}
-                      disabled={aiDescriptionLoading || !meetingTitle.trim()}
-                      className="text-xs"
-                    >
-                      {aiDescriptionLoading ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          {intl.formatMessage({ id: 'modules.videoCallsApp.modal.ai.generating', defaultMessage: 'Generating...' })}
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          {intl.formatMessage({ id: 'modules.videoCallsApp.modal.ai.createWithAI', defaultMessage: 'Create with AI' })}
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Label htmlFor="meeting-description">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.description' })}</Label>
                   <RichTextEditor
                     value={meetingDescription}
                     onChange={setMeetingDescription}
@@ -580,24 +465,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
                     minHeight="100px"
                     enableMentions={true}
                   />
-
-                  {/* AI Description Suggestions */}
-                  {showDescriptionSuggestions && descriptionSuggestions.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      <div className="text-sm font-medium text-muted-foreground">
-                        {intl.formatMessage({ id: 'modules.videoCallsApp.modal.ai.suggestions', defaultMessage: 'AI Suggestions (click to select):' })}
-                      </div>
-                      {descriptionSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="p-3 text-sm bg-muted rounded-md cursor-pointer hover:bg-muted/80 transition-colors border border-border/50"
-                          onClick={() => selectDescriptionSuggestion(suggestion)}
-                        >
-                          {suggestion}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* Attendees Selection */}
@@ -684,9 +551,9 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
               <div className="flex justify-between">
                 <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.location' })}</span>
                 <span className="font-medium">
-                  {locationType === 'virtual' ? selectedPlatformData?.name :
-                   locationType === 'physical' ? physicalLocation || 'Physical location' :
-                   `${selectedPlatformData?.name} + ${physicalLocation || 'Physical location'}`}
+                  {locationType === 'virtual'
+                    ? selectedPlatformData?.name
+                    : physicalLocation || 'Physical location'}
                 </span>
               </div>
               {recurrence.frequency !== 'none' && (

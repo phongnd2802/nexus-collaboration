@@ -213,51 +213,6 @@ export class ContentIndexerService {
   }
 
   // ============================================
-  // Meeting Transcript Indexing
-  // ============================================
-
-  /**
-   * Index a meeting transcript for semantic search
-   */
-  async indexMeetingTranscript(transcriptId: string): Promise<boolean> {
-    try {
-      const transcript = await this.db.findOne('video_call_transcripts', { id: transcriptId });
-      if (!transcript) {
-        return false;
-      }
-
-      // Get video call for title
-      const videoCall = await this.db.findOne('video_calls', { id: transcript.video_call_id });
-
-      await this.semanticSearchService.indexContent({
-        content_type: 'meeting_transcript',
-        content_id: transcriptId,
-        workspace_id: transcript.workspace_id,
-        title: videoCall?.title || 'Meeting Transcript',
-        content: transcript.full_text,
-        metadata: {
-          video_call_id: transcript.video_call_id,
-          created_at: transcript.created_at,
-          language: transcript.language,
-          duration_seconds: transcript.duration_seconds,
-        },
-      });
-
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to index transcript ${transcriptId}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Remove transcript from index
-   */
-  async removeMeetingTranscript(transcriptId: string): Promise<boolean> {
-    return this.semanticSearchService.removeContent('meeting_transcript', transcriptId);
-  }
-
-  // ============================================
   // Bulk Indexing
   // ============================================
 
@@ -270,7 +225,6 @@ export class ContentIndexerService {
     messages: number;
     files: number;
     tasks: number;
-    transcripts: number;
   }> {
     this.logger.log(`Starting workspace indexing for ${workspaceId}`);
 
@@ -279,7 +233,6 @@ export class ContentIndexerService {
       messages: 0,
       files: 0,
       tasks: 0,
-      transcripts: 0,
     };
 
     // Index notes
@@ -332,21 +285,6 @@ export class ContentIndexerService {
       }
     } catch (error) {
       this.logger.error('Failed to index tasks:', error);
-    }
-
-    // Index transcripts
-    try {
-      const transcriptsResult = await this.db.findMany('video_call_transcripts', {
-        workspace_id: workspaceId,
-      });
-      const transcripts = transcriptsResult.data || [];
-      for (const transcript of transcripts) {
-        if (await this.indexMeetingTranscript(transcript.id)) {
-          stats.transcripts++;
-        }
-      }
-    } catch (error) {
-      this.logger.error('Failed to index transcripts:', error);
     }
 
     // Index messages (via channels)
