@@ -42,6 +42,9 @@ def _mount_local_runtime_status(app, settings: Settings) -> None:
         payload = {
             "webMounted": False,
             "orchestrationMode": settings.orchestration_mode,
+            "singleAgentDeprecated": settings.orchestration_mode == "single",
+            "recommendedMode": "multi",
+            "orchestratorMaxRevisions": settings.orchestrator_max_revisions,
             "model": settings.model,
             "workspaceId": settings.workspace_id or None,
             "mcpUrl": settings.mcp_url,

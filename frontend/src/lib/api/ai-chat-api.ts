@@ -1,5 +1,6 @@
 import { API_CONFIG } from '@/lib/config'
-import type { ProjectCardPayload, ThinkingStep } from '@/components/ai-chat/types'
+import type { AIChatPartItem, ProjectCardPayload } from '@/components/ai-chat/types'
+import { normalizeTranscriptStatus, orchestrationLabel } from '@/components/ai-chat/transcriptModel'
 
 export interface AIChatCommandRequest {
   command: string
@@ -10,11 +11,10 @@ export interface AIChatCommandRequest {
 
 export interface AIChatStreamCallbacks {
   onStatus?: (status: string, message: string) => void
-  onStep?: (step: ThinkingStep) => void
+  onPart?: (part: AIChatPartItem) => void
   onAction?: (tool: string, success: boolean, message: string) => void
   onText?: (content: string) => void
   onTextDelta?: (content: string) => void
-  onProjectList?: (payload: { title: string; projects: ProjectCardPayload[] }) => void
   onComplete?: (result: {
     success: boolean
     sessionId: string
@@ -46,6 +46,7 @@ export interface AIChatSessionSnapshot {
   sessionId: string
   title: string
   items: Array<Record<string, any>>
+  transcript?: Array<Record<string, any>>
   uiMessages?: Array<Record<string, any>>
   updatedAt: string
 }
@@ -189,6 +190,7 @@ async function consumeNexusAIUIStream(
   const toolCalls = new Map<string, { toolName?: string; input?: Record<string, any>; startedAt?: string }>()
   let reasoningText = ''
   let reasoningStartedAt: string | undefined
+  const assistantTextPartId = 'assistant-text'
 
   const complete = () => {
     callbacks.onComplete?.(completionResult(sessionId, assistantContent))
@@ -223,8 +225,32 @@ async function consumeNexusAIUIStream(
         continue
       }
 
+      if (chunk?.type === 'data-orchestration_stage') {
+        const data = chunk.data || {}
+        const stage = typeof data.stage === 'string' ? data.stage : 'unknown'
+        const label = orchestrationLabel(stage)
+        callbacks.onPart?.({
+          id: `orchestration-${stage}`,
+          type: 'data-orchestration_stage',
+          summary: typeof data.summary === 'string' ? data.summary : label,
+          label,
+          status: normalizeTranscriptStatus(data.status),
+          metadata: typeof data.metadata === 'object' && data.metadata ? data.metadata : undefined,
+          startedAt: typeof data.startedAt === 'string' ? data.startedAt : undefined,
+          endedAt: typeof data.endedAt === 'string' ? data.endedAt : undefined,
+        })
+        continue
+      }
+
       if (chunk?.type === 'text-delta' && typeof chunk.delta === 'string') {
         assistantContent += chunk.delta
+        callbacks.onPart?.({
+          id: assistantTextPartId,
+          type: 'text',
+          label: 'Message',
+          status: 'running',
+          text: assistantContent,
+        })
         callbacks.onTextDelta?.(chunk.delta)
         continue
       }
@@ -232,15 +258,13 @@ async function consumeNexusAIUIStream(
       if (chunk?.type === 'reasoning-start') {
         reasoningText = ''
         reasoningStartedAt = new Date().toISOString()
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.id || 'reasoning',
-          kind: 'reasoning',
+          type: 'reasoning',
           summary: 'Dang suy nghi...',
           label: 'Dang suy nghi...',
           status: 'running',
-          detail: {
-            text: '',
-          },
+          text: '',
           startedAt: reasoningStartedAt,
         })
         continue
@@ -248,30 +272,26 @@ async function consumeNexusAIUIStream(
 
       if (chunk?.type === 'reasoning-delta' && typeof chunk.delta === 'string') {
         reasoningText += chunk.delta
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.id || 'reasoning',
-          kind: 'reasoning',
+          type: 'reasoning',
           summary: 'Dang suy nghi...',
           label: 'Dang suy nghi...',
           status: 'running',
-          detail: {
-            text: reasoningText,
-          },
+          text: reasoningText,
           startedAt: reasoningStartedAt,
         })
         continue
       }
 
       if (chunk?.type === 'reasoning-end') {
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.id || 'reasoning',
-          kind: 'reasoning',
+          type: 'reasoning',
           summary: 'Da suy nghi',
           label: 'Da suy nghi',
           status: 'completed',
-          detail: {
-            text: reasoningText || 'Assistant completed reasoning',
-          },
+          text: reasoningText || 'Assistant completed reasoning',
           startedAt: reasoningStartedAt,
           endedAt: new Date().toISOString(),
         })
@@ -285,16 +305,14 @@ async function consumeNexusAIUIStream(
           input: {},
           startedAt,
         })
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
-          kind: 'tool_input',
+          type: 'tool-input',
           summary: 'Dang goi cong cu...',
           label: `Calling ${chunk.tool_name || 'tool'}`,
           status: 'running',
           toolName: chunk.tool_name,
-          detail: {
-            text: 'Preparing tool arguments',
-          },
+          text: 'Preparing tool arguments',
           startedAt,
         })
         continue
@@ -302,17 +320,15 @@ async function consumeNexusAIUIStream(
 
       if (chunk?.type === 'tool-input-delta') {
         const current = toolCalls.get(chunk.tool_call_id)
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.tool_call_id || `${current?.toolName || 'tool'}-${Date.now()}`,
-          kind: 'tool_input',
+          type: 'tool-input',
           summary: 'Dang goi cong cu...',
           label: `Calling ${current?.toolName || 'tool'}`,
           status: 'running',
           toolName: current?.toolName,
-          detail: {
-            text: 'Streaming tool arguments',
-            input: current?.input,
-          },
+          text: 'Streaming tool arguments',
+          input: current?.input,
           startedAt: current?.startedAt,
         })
         continue
@@ -325,17 +341,15 @@ async function consumeNexusAIUIStream(
           input: chunk.input,
           startedAt,
         })
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
-          kind: 'tool_input',
+          type: 'tool-input',
           summary: 'Dang goi cong cu...',
           label: `Calling ${chunk.tool_name || 'tool'}`,
           status: 'running',
           toolName: chunk.tool_name,
-          detail: {
-            text: 'Tool arguments ready',
-            input: chunk.input,
-          },
+          text: 'Tool arguments ready',
+          input: chunk.input,
           startedAt,
         })
         continue
@@ -343,18 +357,16 @@ async function consumeNexusAIUIStream(
 
       if (chunk?.type === 'tool-output-available') {
         const toolCall = toolCalls.get(chunk.tool_call_id)
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
-          kind: 'tool_output',
+          type: 'tool-output',
           summary: `${toolCall?.toolName || 'Tool'} completed`,
           label: `${toolCall?.toolName || 'Tool'} completed`,
           status: 'completed',
           toolName: toolCall?.toolName,
-          detail: {
-            text: 'Tool result received',
-            input: toolCall?.input,
-            output: chunk.output,
-          },
+          text: 'Tool result received',
+          input: toolCall?.input,
+          output: chunk.output,
           startedAt: toolCall?.startedAt,
           endedAt: new Date().toISOString(),
         })
@@ -363,17 +375,15 @@ async function consumeNexusAIUIStream(
 
       if (chunk?.type === 'tool-output-error') {
         const toolCall = toolCalls.get(chunk.tool_call_id)
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
-          kind: 'tool_output',
+          type: 'tool-output',
           summary: `${toolCall?.toolName || 'Tool'} failed`,
           label: `${toolCall?.toolName || 'Tool'} failed`,
           status: 'error',
           toolName: toolCall?.toolName,
-          detail: {
-            input: toolCall?.input,
-            error: chunk.error_text || 'Tool execution failed',
-          },
+          input: toolCall?.input,
+          error: chunk.error_text || 'Tool execution failed',
           startedAt: toolCall?.startedAt,
           endedAt: new Date().toISOString(),
         })
@@ -382,17 +392,15 @@ async function consumeNexusAIUIStream(
 
       if (chunk?.type === 'tool-output-denied') {
         const toolCall = toolCalls.get(chunk.tool_call_id)
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
-          kind: 'tool_output',
+          type: 'tool-output',
           summary: `${toolCall?.toolName || 'Tool'} denied`,
           label: `${toolCall?.toolName || 'Tool'} denied`,
           status: 'denied',
           toolName: toolCall?.toolName,
-          detail: {
-            input: toolCall?.input,
-            error: 'Tool execution denied',
-          },
+          input: toolCall?.input,
+          error: 'Tool execution denied',
           startedAt: toolCall?.startedAt,
           endedAt: new Date().toISOString(),
         })
@@ -400,51 +408,45 @@ async function consumeNexusAIUIStream(
       }
 
       if (chunk?.type === 'source-url') {
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.id || `source-url-${Date.now()}`,
-          kind: 'source',
+          type: 'source-url',
           summary: 'Source attached',
           label: chunk.title || chunk.url || 'Source',
           status: 'completed',
-          detail: {
-            metadata: {
-              url: chunk.url,
-              title: chunk.title,
-            },
+          metadata: {
+            url: chunk.url,
+            title: chunk.title,
           },
         })
         continue
       }
 
       if (chunk?.type === 'source-document') {
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.id || `source-document-${Date.now()}`,
-          kind: 'source',
+          type: 'source-document',
           summary: 'Document attached',
           label: chunk.title || 'Document',
           status: 'completed',
-          detail: {
-            metadata: {
-              title: chunk.title,
-              mediaType: chunk.mediaType,
-            },
+          metadata: {
+            title: chunk.title,
+            mediaType: chunk.mediaType,
           },
         })
         continue
       }
 
       if (chunk?.type === 'file') {
-        callbacks.onStep?.({
+        callbacks.onPart?.({
           id: chunk.id || `file-${Date.now()}`,
-          kind: 'file',
+          type: 'file',
           summary: 'File attached',
           label: chunk.filename || chunk.mediaType || 'File',
           status: 'completed',
-          detail: {
-            metadata: {
-              filename: chunk.filename,
-              mediaType: chunk.mediaType,
-            },
+          metadata: {
+            filename: chunk.filename,
+            mediaType: chunk.mediaType,
           },
         })
         continue
@@ -453,11 +455,15 @@ async function consumeNexusAIUIStream(
       if (chunk?.type === 'data-project_list') {
         const projects = toProjectCardPayloads(chunk.data?.projects || chunk.projects)
         if (projects.length > 0) {
-          callbacks.onProjectList?.({
-            title:
+          callbacks.onPart?.({
+            id: chunk.id || `project-list-${Date.now()}`,
+            type: 'data-project_list',
+            summary: 'Project list attached',
+            label:
               (typeof chunk.data?.title === 'string' && chunk.data.title)
-                || (typeof chunk.title === 'string' && chunk.title)
-                || 'Projects',
+              || (typeof chunk.title === 'string' && chunk.title)
+              || 'Projects',
+            status: 'completed',
             projects,
           })
         }

@@ -8,9 +8,10 @@ from .sqlite import SQLiteStore, decode_json, encode_json
 
 @dataclass(frozen=True)
 class SessionRecord:
+    row_id: int
     session_id: str
     workspace_id: str
-    user_id: str | None
+    user_id: str
     title: str
     messages: list[dict[str, Any]]
     ui_messages: list[dict[str, Any]]
@@ -26,7 +27,7 @@ class SessionRepository:
         self,
         session_id: str,
         workspace_id: str,
-        user_id: str | None,
+        user_id: str,
         title: str,
         metadata: dict[str, Any] | None = None,
         messages: list[dict[str, Any]] | None = None,
@@ -37,7 +38,7 @@ class SessionRepository:
                 """
                 INSERT INTO sessions (session_id, workspace_id, user_id, title, messages, ui_messages, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(session_id) DO UPDATE SET
+                ON CONFLICT(workspace_id, user_id, session_id) DO UPDATE SET
                   workspace_id = excluded.workspace_id,
                   user_id = excluded.user_id,
                   title = excluded.title,
@@ -57,34 +58,43 @@ class SessionRepository:
                 ),
             )
 
-    def list(self, workspace_id: str, limit: int = 50) -> list[SessionRecord]:
+    def list(self, workspace_id: str, user_id: str, limit: int = 50) -> list[SessionRecord]:
         with self.store.connect() as conn:
             rows = conn.execute(
-                "SELECT * FROM sessions WHERE workspace_id = ? ORDER BY updated_at DESC LIMIT ?",
-                (workspace_id, limit),
+                "SELECT * FROM sessions WHERE workspace_id = ? AND user_id = ? ORDER BY updated_at DESC LIMIT ?",
+                (workspace_id, user_id, limit),
             ).fetchall()
         return [self._record_from_row(row) for row in rows]
 
-    def get(self, workspace_id: str, session_id: str) -> SessionRecord | None:
+    def get(self, workspace_id: str, session_id: str, user_id: str) -> SessionRecord | None:
         with self.store.connect() as conn:
             row = conn.execute(
-                "SELECT * FROM sessions WHERE workspace_id = ? AND session_id = ?",
-                (workspace_id, session_id),
+                "SELECT * FROM sessions WHERE workspace_id = ? AND session_id = ? AND user_id = ?",
+                (workspace_id, session_id, user_id),
             ).fetchone()
         if row is None:
             return None
         return self._record_from_row(row)
 
-    def delete(self, workspace_id: str, session_id: str) -> bool:
+    def exists(self, workspace_id: str, session_id: str) -> bool:
+        with self.store.connect() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM sessions WHERE workspace_id = ? AND session_id = ?",
+                (workspace_id, session_id),
+            ).fetchone()
+        return row is not None
+
+    def delete(self, workspace_id: str, session_id: str, user_id: str) -> bool:
         with self.store.connect() as conn:
             cursor = conn.execute(
-                "DELETE FROM sessions WHERE workspace_id = ? AND session_id = ?",
-                (workspace_id, session_id),
+                "DELETE FROM sessions WHERE workspace_id = ? AND session_id = ? AND user_id = ?",
+                (workspace_id, session_id, user_id),
             )
             return cursor.rowcount > 0
 
     def _record_from_row(self, row: Any) -> SessionRecord:
         return SessionRecord(
+            row_id=int(row["id"]),
             session_id=row["session_id"],
             workspace_id=row["workspace_id"],
             user_id=row["user_id"],

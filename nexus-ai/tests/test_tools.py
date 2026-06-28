@@ -4,7 +4,7 @@ from nexus_ai.settings import load_settings
 from pydantic_ai.tools import ToolDefinition
 
 
-def test_runtime_uses_minimal_deps(tmp_path):
+def test_runtime_defaults_to_multi_agent_orchestrator(tmp_path):
     settings = load_settings(
         {
             "NEXUS_AI_MODEL": "test",
@@ -20,8 +20,28 @@ def test_runtime_uses_minimal_deps(tmp_path):
 
     assert runtime.deps.settings is settings
     assert runtime.deps.memory is not None
+    assert runtime.orchestrator is not None
+
+
+def test_runtime_can_use_deprecated_single_agent_fallback(tmp_path):
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "test",
+            "NEXUS_API_TOKEN": "test-token",
+            "NEXUS_WORKSPACE_ID": "test-workspace",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+            "NEXUS_AI_RUNTIME_DIR": str(tmp_path / "runtime"),
+            "NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES": "true",
+            "NEXUS_AI_ORCHESTRATION_MODE": "single",
+        }
+    )
+
+    runtime = build_runtime(settings)
+
+    assert runtime.deps.settings is settings
     assert runtime.agent.output_type is str
     assert runtime.orchestrator is None
+    assert any("deprecated" in warning for warning in runtime.capability_warnings)
 
 
 def test_runtime_can_use_multi_agent_orchestrator(tmp_path):

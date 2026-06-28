@@ -29,4 +29,5 @@ def test_load_settings_from_env():
     assert settings.rag_query_transform == "multi_query_step_back"
     assert settings.rag_multi_query_count == 3
     assert settings.rag_document_route_top_k == 3
+    assert settings.orchestration_mode == "multi"
     assert settings.mcp_headers["X-Nexus-Workspace-ID"] == "workspace"

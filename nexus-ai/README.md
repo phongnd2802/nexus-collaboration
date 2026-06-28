@@ -1,6 +1,6 @@
 # Nexus AI
 
-Standalone Nexus AI agent runtime for local development and capability testing.
+Standalone Nexus AI multi-agent runtime for local development and capability testing.
 
 It connects to `nexus-mcp` over Streamable HTTP and exposes the Pydantic AI web test interface through `agent.to_web()`.
 For Nexus app integration, the NestJS backend proxies `/api/v1/agent-chat/*` to this service.
@@ -43,7 +43,15 @@ Local runtime status:
 
 - `/web-runtime/health`
 
-Single agent local profile:
+Default multi-agent local profile:
+
+```bash
+NEXUS_AI_ORCHESTRATION_MODE=multi
+NEXUS_REQUEST_ID=web-local-multi
+uv run nexus-ai-web
+```
+
+Deprecated single-agent fallback:
 
 ```bash
 NEXUS_AI_ORCHESTRATION_MODE=single
@@ -51,13 +59,7 @@ NEXUS_REQUEST_ID=web-local-single
 uv run nexus-ai-web
 ```
 
-Multi-agent local profile:
-
-```bash
-NEXUS_AI_ORCHESTRATION_MODE=multi
-NEXUS_REQUEST_ID=web-local-multi
-uv run nexus-ai-web
-```
+`single` mode is deprecated and will be removed. Use `multi` for local and production runs.
 
 After changing `NEXUS_AI_ORCHESTRATION_MODE`, restart `nexus-ai-web`; `/web` is mounted from the runtime built at startup.
 

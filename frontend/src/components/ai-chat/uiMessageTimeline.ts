@@ -1,4 +1,5 @@
-import type { AIChatTimelineItem, ProjectCardPayload, ThinkingStep } from './types'
+import type { AIChatPartItem, AIChatTimelineItem, ProjectCardPayload } from './types'
+import { normalizeTranscriptStatus, orchestrationLabel } from './transcriptModel'
 
 function timestampFromMetadata(value: Record<string, any> | undefined, fallback: string): string {
   return typeof value?.timestamp === 'string' ? value.timestamp : fallback
@@ -14,52 +15,268 @@ function toProjectCardPayloads(value: unknown): ProjectCardPayload[] {
   if (!Array.isArray(value)) return []
 
   return value.reduce<ProjectCardPayload[]>((acc, item) => {
-      if (!item || typeof item !== 'object') return acc
-      const record = item as Record<string, any>
-      const id = typeof record.id === 'string' ? record.id : ''
-      const name = typeof record.name === 'string' ? record.name : ''
-      const href = typeof record.href === 'string' ? record.href : ''
-      if (!id || !name || !href) return acc
+    if (!item || typeof item !== 'object') return acc
+    const record = item as Record<string, any>
+    const id = typeof record.id === 'string' ? record.id : ''
+    const name = typeof record.name === 'string' ? record.name : ''
+    const href = typeof record.href === 'string' ? record.href : ''
+    if (!id || !name || !href) return acc
 
-      acc.push({
-        id,
-        name,
-        href,
-        description: typeof record.description === 'string' ? record.description : undefined,
-        status: typeof record.status === 'string' ? record.status : undefined,
-        type: typeof record.type === 'string' ? record.type : undefined,
-        updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
-        memberCount: typeof record.memberCount === 'number' ? record.memberCount : undefined,
-      })
-      return acc
-    }, [])
+    acc.push({
+      id,
+      name,
+      href,
+      description: typeof record.description === 'string' ? record.description : undefined,
+      status: typeof record.status === 'string' ? record.status : undefined,
+      type: typeof record.type === 'string' ? record.type : undefined,
+      updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
+      memberCount: typeof record.memberCount === 'number' ? record.memberCount : undefined,
+    })
+    return acc
+  }, [])
 }
 
-function upsertStep(steps: ThinkingStep[], nextStep: ThinkingStep) {
-  const index = steps.findIndex(step => step.id === nextStep.id)
-  if (index === -1) {
-    steps.push(nextStep)
-    return
+function textPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'text' || typeof part.text !== 'string') return null
+  return {
+    id: String(part.id || `text-${index}`),
+    type: 'text',
+    status: part.state === 'streaming' ? 'running' : 'completed',
+    label: 'Message',
+    text: part.text,
+    raw: part,
   }
+}
 
-  steps[index] = {
-    ...steps[index],
-    ...nextStep,
-    detail: {
-      ...steps[index].detail,
-      ...nextStep.detail,
+function reasoningPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'reasoning' && typeof part.reasoning !== 'string') return null
+  const text = typeof part.text === 'string' ? part.text : part.reasoning
+  return {
+    id: String(part.id || `reasoning-${index}`),
+    type: 'reasoning',
+    status: part.state === 'streaming' ? 'running' : 'completed',
+    label: part.state === 'streaming' ? 'Dang suy nghi...' : 'Da suy nghi',
+    summary: part.state === 'streaming' ? 'Dang suy nghi...' : 'Da suy nghi',
+    text,
+    raw: part,
+  }
+}
+
+function orchestrationPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'data-orchestration_stage') return null
+  const data = typeof part.data === 'object' && part.data ? part.data : {}
+  const stage = typeof data.stage === 'string' ? data.stage : 'unknown'
+  const label = orchestrationLabel(stage)
+  return {
+    id: String(part.id || `orchestration-${stage}-${index}`),
+    type: 'data-orchestration_stage',
+    status: normalizeTranscriptStatus(typeof data.status === 'string' ? data.status : undefined),
+    label,
+    summary: typeof data.summary === 'string' ? data.summary : label,
+    startedAt: typeof data.startedAt === 'string' ? data.startedAt : undefined,
+    endedAt: typeof data.endedAt === 'string' ? data.endedAt : undefined,
+    metadata: typeof data.metadata === 'object' && data.metadata ? data.metadata : undefined,
+    raw: part,
+  }
+}
+
+function sourceUrlPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'source-url') return null
+  return {
+    id: String(part.id || `source-url-${index}`),
+    type: 'source-url',
+    status: 'completed',
+    label: typeof part.title === 'string' ? part.title : typeof part.url === 'string' ? part.url : 'Source',
+    summary: 'Source attached',
+    metadata: {
+      url: part.url,
+      title: part.title,
     },
+    raw: part,
   }
 }
 
-export function uiMessagesToTimeline(
-  uiMessages: Array<Record<string, any>> | undefined,
+function sourceDocumentPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'source-document') return null
+  return {
+    id: String(part.id || `source-document-${index}`),
+    type: 'source-document',
+    status: 'completed',
+    label: typeof part.title === 'string' ? part.title : 'Document',
+    summary: 'Document attached',
+    metadata: {
+      title: part.title,
+      mediaType: part.mediaType,
+    },
+    raw: part,
+  }
+}
+
+function filePart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'file') return null
+  return {
+    id: String(part.id || `file-${index}`),
+    type: 'file',
+    status: 'completed',
+    label: typeof part.filename === 'string' ? part.filename : 'File',
+    summary: 'File attached',
+    metadata: {
+      filename: part.filename,
+      mediaType: part.mediaType,
+    },
+    raw: part,
+  }
+}
+
+function projectListPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'data-project_list') return null
+  const projects = toProjectCardPayloads(part.data?.projects || part.projects)
+  if (projects.length === 0) return null
+  return {
+    id: String(part.id || `project-list-${index}`),
+    type: 'data-project_list',
+    status: 'completed',
+    label:
+      (typeof part.data?.title === 'string' && part.data.title)
+      || (typeof part.title === 'string' && part.title)
+      || 'Projects',
+    summary: 'Project list attached',
+    projects,
+    raw: part,
+  }
+}
+
+function approvalPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (!part?.approval || typeof part.approval !== 'object') return null
+  const approval = part.approval as Record<string, any>
+  const approved = approval.approved
+  return {
+    id: String(part.id || approval.id || `approval-${index}`),
+    type: part.type || 'approval',
+    status:
+      approved === true
+        ? 'completed'
+        : approved === false
+          ? 'denied'
+          : 'pending',
+    label: typeof part.title === 'string' ? part.title : 'Approval',
+    summary:
+      approved === true
+        ? 'Approved'
+        : approved === false
+          ? 'Rejected'
+          : 'Pending approval',
+    approval: {
+      id: typeof approval.id === 'string' ? approval.id : `approval-${index}`,
+      approved: typeof approved === 'boolean' ? approved : undefined,
+      reason: typeof approval.reason === 'string' ? approval.reason : undefined,
+    },
+    metadata: {
+      toolName: toolNameFromPart(part),
+    },
+    raw: part,
+  }
+}
+
+function toolPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (typeof part?.type !== 'string' || !part.type.startsWith('tool-')) return null
+  const toolName = toolNameFromPart(part)
+  const toolCallId = typeof part.toolCallId === 'string' ? part.toolCallId : part.tool_call_id
+  const status =
+    part.state === 'output-error'
+      ? 'error'
+      : part.state === 'output-denied'
+        ? 'denied'
+        : part.state === 'output-available'
+          ? 'completed'
+          : 'running'
+
+  return {
+    id: String(toolCallId || `${part.type}-${index}`),
+    type: part.type,
+    status,
+    label:
+      status === 'running'
+        ? `Calling ${toolName || 'tool'}`
+        : status === 'error'
+          ? `${toolName || 'Tool'} failed`
+          : status === 'denied'
+            ? `${toolName || 'Tool'} denied`
+            : `${toolName || 'Tool'} completed`,
+    summary:
+      status === 'running'
+        ? 'Dang goi cong cu...'
+        : status === 'error'
+          ? `${toolName || 'Tool'} failed`
+          : status === 'denied'
+            ? `${toolName || 'Tool'} denied`
+            : `${toolName || 'Tool'} completed`,
+    toolName,
+    input: typeof part.input === 'object' && part.input ? part.input : undefined,
+    output: typeof part.output === 'object' && part.output ? part.output : undefined,
+    error:
+      typeof part.errorText === 'string'
+        ? part.errorText
+        : typeof part.error_text === 'string'
+          ? part.error_text
+          : status === 'denied'
+            ? 'Tool execution denied'
+            : undefined,
+    text:
+      typeof part.errorText === 'string'
+        ? part.errorText
+        : typeof part.error_text === 'string'
+          ? part.error_text
+          : status === 'completed'
+            ? 'Tool result received'
+            : 'Tool execution in progress',
+    raw: part,
+  }
+}
+
+function fallbackPart(part: Record<string, any>, index: number): AIChatPartItem {
+  return {
+    id: String(part.id || `${part.type || 'part'}-${index}`),
+    type: typeof part.type === 'string' ? part.type : 'unknown',
+    status: normalizeStatus(typeof part.state === 'string' ? part.state : undefined),
+    label: typeof part.type === 'string' ? part.type : 'Unknown part',
+    text: typeof part.text === 'string' ? part.text : undefined,
+    raw: part,
+  }
+}
+
+function toPart(part: Record<string, any>, index: number): AIChatPartItem {
+  return (
+    textPart(part, index)
+    || reasoningPart(part, index)
+    || projectListPart(part, index)
+    || orchestrationPart(part, index)
+    || sourceUrlPart(part, index)
+    || sourceDocumentPart(part, index)
+    || filePart(part, index)
+    || approvalPart(part, index)
+    || toolPart(part, index)
+    || fallbackPart(part, index)
+  )
+}
+
+function messageContent(parts: AIChatPartItem[]): string {
+  return parts
+    .filter(part => part.type === 'text' && typeof part.text === 'string')
+    .map(part => part.text)
+    .join('')
+    .trim()
+}
+
+export function transcriptToTimeline(
+  transcriptMessages: Array<Record<string, any>> | undefined,
 ): { items: AIChatTimelineItem[]; activeApprovalItemId: string | null } | null {
-  if (!Array.isArray(uiMessages) || uiMessages.length === 0) return null
+  if (!Array.isArray(transcriptMessages) || transcriptMessages.length === 0) return null
 
   const items: AIChatTimelineItem[] = []
+  let activeApprovalItemId: string | null = null
 
-  for (const message of uiMessages) {
+  for (const message of transcriptMessages) {
     const timestamp = timestampFromMetadata(message.metadata, new Date().toISOString())
     const parts = Array.isArray(message.parts) ? message.parts : []
 
@@ -81,173 +298,48 @@ export function uiMessagesToTimeline(
       continue
     }
 
-    if (message.role !== 'assistant') continue
+    const normalizedParts = parts
+      .filter((part): part is Record<string, any> => Boolean(part && typeof part === 'object'))
+      .map((part, index) => toPart(part, index))
 
-    const assistantItem: Extract<AIChatTimelineItem, { type: 'assistant_message' }> = {
-      id: `${message.id}-assistant`,
-      type: 'assistant_message',
-      content: '',
-      status: 'completed',
-      steps: [],
-      timestamp,
-    }
-    const projectListItems: Extract<AIChatTimelineItem, { type: 'project_list' }>[] = []
-
-    for (const part of parts) {
-      if (part?.type === 'text' && typeof part.text === 'string') {
-        assistantItem.content += part.text
-        if (part.state === 'streaming') assistantItem.status = 'streaming'
-        continue
-      }
-
-      if (part?.type === 'reasoning' || typeof part.reasoning === 'string') {
-        upsertStep(assistantItem.steps, {
-          id: `${message.id}-reasoning`,
-          kind: 'reasoning',
-          status: part.state === 'streaming' ? 'running' : 'completed',
-          summary: part.state === 'streaming' ? 'Dang suy nghi...' : 'Da suy nghi',
-          label: part.state === 'streaming' ? 'Dang suy nghi...' : 'Da suy nghi',
-          detail: {
-            text: typeof part.text === 'string' ? part.text : part.reasoning,
-          },
-        })
-        continue
-      }
-
-      if (part?.type === 'data-project_list') {
-        const projects = toProjectCardPayloads(part.data?.projects || part.projects)
-        if (projects.length > 0) {
-          projectListItems.push({
-            id: `${message.id}-project-list`,
-            type: 'project_list',
-            title:
-              (typeof part.data?.title === 'string' && part.data.title)
-                || (typeof part.title === 'string' && part.title)
-                || 'Projects',
-            projects,
-            timestamp,
-          })
-        }
-        continue
-      }
-
-      if (part?.type === 'source-url') {
-        upsertStep(assistantItem.steps, {
-          id: `${message.id}-source-url-${assistantItem.steps.length}`,
-          kind: 'source',
-          status: 'completed',
-          summary: 'Source attached',
-          label: typeof part.title === 'string' ? part.title : typeof part.url === 'string' ? part.url : 'Source',
-          detail: {
-            metadata: {
-              url: part.url,
-              title: part.title,
-            },
-          },
-        })
-        continue
-      }
-
-      if (part?.type === 'source-document') {
-        upsertStep(assistantItem.steps, {
-          id: `${message.id}-source-document-${assistantItem.steps.length}`,
-          kind: 'source',
-          status: 'completed',
-          summary: 'Document attached',
-          label: typeof part.title === 'string' ? part.title : 'Document',
-          detail: {
-            metadata: {
-              title: part.title,
-              mediaType: part.mediaType,
-            },
-          },
-        })
-        continue
-      }
-
-      if (part?.type === 'file') {
-        upsertStep(assistantItem.steps, {
-          id: `${message.id}-file-${assistantItem.steps.length}`,
-          kind: 'file',
-          status: 'completed',
-          summary: 'File attached',
-          label: typeof part.filename === 'string' ? part.filename : 'File',
-          detail: {
-            metadata: {
-              filename: part.filename,
-              mediaType: part.mediaType,
-            },
-          },
-        })
-        continue
-      }
-
-      if (typeof part?.type === 'string' && part.type.startsWith('tool-')) {
-        const toolName = toolNameFromPart(part)
-        const toolCallId = typeof part.toolCallId === 'string' ? part.toolCallId : part.tool_call_id
-        if (!toolCallId) continue
-
-        const status =
-          part.state === 'output-error'
-            ? 'error'
-            : part.state === 'output-denied'
-              ? 'denied'
-              : part.state === 'output-available'
-                ? 'completed'
-                : 'running'
-
-        upsertStep(assistantItem.steps, {
-          id: toolCallId,
-          kind: part.state === 'output-available' || part.state === 'output-error' || part.state === 'output-denied'
-            ? 'tool_output'
-            : 'tool_input',
-          status,
-          summary:
-            status === 'running'
-              ? 'Dang goi cong cu...'
-              : status === 'error'
-                ? `${toolName || 'Tool'} failed`
-                : status === 'denied'
-                  ? `${toolName || 'Tool'} denied`
-                  : `${toolName || 'Tool'} completed`,
-          label:
-            status === 'running'
-              ? `Calling ${toolName || 'tool'}`
-              : status === 'error'
-                ? `${toolName || 'Tool'} failed`
-                : status === 'denied'
-                  ? `${toolName || 'Tool'} denied`
-                  : `${toolName || 'Tool'} completed`,
-          toolName,
-          detail: {
-            text:
-              typeof part.errorText === 'string'
-                ? part.errorText
-                : typeof part.error_text === 'string'
-                  ? part.error_text
-                  : status === 'completed'
-                    ? 'Tool result received'
-                    : 'Tool execution in progress',
-            input: part.input,
-            output: part.output,
-            error:
-              typeof part.errorText === 'string'
-                ? part.errorText
-                : typeof part.error_text === 'string'
-                  ? part.error_text
-                  : status === 'denied'
-                    ? 'Tool execution denied'
-                    : undefined,
-          },
-        })
+    for (const part of normalizedParts) {
+      if (part.approval && part.approval.approved === undefined && activeApprovalItemId == null) {
+        activeApprovalItemId = part.approval.id
       }
     }
 
-    if (assistantItem.content.trim() || assistantItem.steps.length > 0) {
-      items.push(assistantItem)
+    const content = messageContent(normalizedParts)
+
+    if (message.role === 'assistant') {
+      if (content || normalizedParts.length > 0) {
+        items.push({
+          id: `${message.id}-assistant`,
+          type: 'assistant_message',
+          content,
+          status: normalizedParts.some(part => part.status === 'running') ? 'streaming' : 'completed',
+          parts: normalizedParts,
+          timestamp,
+        })
+      }
+      continue
     }
-    items.push(...projectListItems)
+
+    if (message.role === 'system') {
+      items.push({
+        id: `${message.id}-system`,
+        type: 'system_message',
+        content,
+        parts: normalizedParts,
+        timestamp,
+      })
+    }
   }
 
-  return { items, activeApprovalItemId: null }
+  return { items, activeApprovalItemId }
+}
+
+export function uiMessagesToTimeline(
+  uiMessages: Array<Record<string, any>> | undefined,
+): { items: AIChatTimelineItem[]; activeApprovalItemId: string | null } | null {
+  return transcriptToTimeline(uiMessages)
 }
