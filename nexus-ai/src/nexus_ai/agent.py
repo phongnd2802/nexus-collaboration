@@ -22,6 +22,10 @@ change happened unless a tool result confirms it. Prefer read-only exploration
 before taking action. Never expose secrets.
 """
 
+SINGLE_AGENT_DEPRECATION_WARNING = (
+    "NEXUS_AI_ORCHESTRATION_MODE=single is deprecated and will be removed. Use multi."
+)
+
 
 @dataclass
 class AgentDeps:
@@ -124,7 +128,11 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         validate_user_input(prompt)
         return {"status": "accepted"}
 
-    return NexusAgentRuntime(agent=agent, deps=deps, capability_warnings=capability_registry.warnings)
+    return NexusAgentRuntime(
+        agent=agent,
+        deps=deps,
+        capability_warnings=[SINGLE_AGENT_DEPRECATION_WARNING, *capability_registry.warnings],
+    )
 
 
 def _resolve_model(model_name: str) -> Any:

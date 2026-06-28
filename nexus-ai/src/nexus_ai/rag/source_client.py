@@ -44,6 +44,16 @@ class BackendRagClient:
             json={"status": status, "error_message": error_message, "metadata": metadata or {}},
         )
 
+    async def get_authorized_file_ids(self, workspace_id: str, user_id: str) -> list[str]:
+        payload = await self._request(
+            "POST",
+            f"/workspaces/{workspace_id}/rag/internal/authorized-file-ids",
+            workspace_id=workspace_id,
+            json={"user_id": user_id},
+        )
+        file_ids = payload.get("file_ids")
+        return [str(file_id) for file_id in file_ids] if isinstance(file_ids, list) else []
+
     async def _request(
         self,
         method: str,

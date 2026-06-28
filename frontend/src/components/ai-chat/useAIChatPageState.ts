@@ -5,8 +5,8 @@ import { toast } from 'sonner'
 
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
 import { buildAIChatPath, buildAIChatTitle, createTimestamp, MODELS_KEY, toRequestMessages } from './aiChatPageUtils'
-import { uiMessagesToTimeline } from './uiMessageTimeline'
-import type { AIChatTimelineItem, AssistantMessageItem, ThinkingStep } from './types'
+import { transcriptToTimeline } from './uiMessageTimeline'
+import type { AIChatPartItem, AIChatTimelineItem, AssistantMessageItem } from './types'
 
 interface LocalConversation {
   id: string
@@ -66,6 +66,14 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
 
   const activeConversation = conversations.find(item => item.id === activeConversationId) || null
   const timelineItems = useMemo(() => activeConversation?.items || [], [activeConversation])
+
+  const assistantContentFromParts = useCallback((parts: AIChatPartItem[]) => {
+    return parts
+      .filter(part => part.type === 'text' && typeof part.text === 'string')
+      .map(part => part.text)
+      .join('')
+      .trim()
+  }, [])
 
   const updateConversation = useCallback(
     (conversationId: string, updater: (conversation: LocalConversation) => LocalConversation) => {
@@ -155,7 +163,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
         type: 'assistant_message',
         content: '',
         status: 'streaming',
-        steps: [],
+        parts: [],
         timestamp: createTimestamp(),
       })
       return itemId
@@ -163,8 +171,8 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     [appendItem],
   )
 
-  const upsertAssistantStep = useCallback(
-    (conversationId: string, step: ThinkingStep) => {
+  const upsertAssistantPart = useCallback(
+    (conversationId: string, part: AIChatPartItem) => {
       const itemId = ensureAssistantItem(conversationId)
       upsertItem(
         conversationId,
@@ -172,25 +180,30 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
         () => ({
           id: itemId,
           type: 'assistant_message',
-          content: '',
+          content: part.type === 'text' ? part.text || '' : '',
           status: 'streaming',
-          steps: [step],
+          parts: [part],
           timestamp: createTimestamp(),
         }),
         current => {
           if (current.type !== 'assistant_message') return current
-          const existingIndex = current.steps.findIndex(existing => existing.id === step.id)
-          const nextSteps = [...current.steps]
+          const existingIndex = current.parts.findIndex(existing => existing.id === part.id)
+          const nextParts = [...current.parts]
           if (existingIndex === -1) {
-            nextSteps.push(step)
+            nextParts.push(part)
           } else {
-            nextSteps[existingIndex] = { ...nextSteps[existingIndex], ...step }
+            nextParts[existingIndex] = { ...nextParts[existingIndex], ...part }
           }
-          return { ...current, steps: nextSteps, status: 'streaming' }
+          return {
+            ...current,
+            parts: nextParts,
+            content: assistantContentFromParts(nextParts),
+            status: 'streaming',
+          }
         },
       )
     },
-    [ensureAssistantItem, upsertItem],
+    [assistantContentFromParts, ensureAssistantItem, upsertItem],
   )
 
   const finalizeAssistantItem = useCallback(
@@ -203,7 +216,17 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           type: 'assistant_message',
           content: finalContent,
           status,
-          steps: [],
+          parts: finalContent
+            ? [
+                {
+                  id: `assistant-text-${Date.now()}`,
+                  type: 'text',
+                  status: status === 'error' ? 'error' : 'completed',
+                  label: 'Message',
+                  text: finalContent,
+                },
+              ]
+            : [],
           timestamp: createTimestamp(),
         })
         return
@@ -217,12 +240,35 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           type: 'assistant_message',
           content: finalContent,
           status,
-          steps: [],
+          parts: finalContent
+            ? [
+                {
+                  id: `assistant-text-${Date.now()}`,
+                  type: 'text',
+                  status: status === 'error' ? 'error' : 'completed',
+                  label: 'Message',
+                  text: finalContent,
+                },
+              ]
+            : [],
           timestamp: createTimestamp(),
         }),
         current => {
           if (current.type !== 'assistant_message') return current
-          return { ...current, content: finalContent || current.content, status }
+          const nextParts = current.parts.map(part =>
+            part.status === 'running'
+              ? {
+                  ...part,
+                  status: (status === 'error' ? 'error' : 'completed') as AIChatPartItem['status'],
+                }
+              : part,
+          )
+          return {
+            ...current,
+            content: finalContent || current.content,
+            parts: nextParts,
+            status,
+          }
         },
       )
     },
@@ -306,7 +352,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     aiChatApi
       .getSession(workspaceId, routeSessionId, token)
       .then(snapshot => {
-        const timeline = uiMessagesToTimeline(snapshot.uiMessages)
+        const timeline = transcriptToTimeline(snapshot.transcript ?? snapshot.uiMessages)
         setConversations(prev => {
           const next: LocalConversation = {
             id: routeSessionId,
@@ -375,35 +421,9 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           {
             onTextDelta: (content: string) => {
               currentAssistantContentRef.current += content
-              const itemId = ensureAssistantItem(conversation.id)
-              upsertItem(
-                conversation.id,
-                itemId,
-                () => ({
-                  id: itemId,
-                  type: 'assistant_message',
-                  content: currentAssistantContentRef.current,
-                  status: 'streaming',
-                  steps: [],
-                  timestamp: createTimestamp(),
-                }),
-                current => {
-                  if (current.type !== 'assistant_message') return current
-                  return { ...current, content: current.content + content, status: 'streaming' }
-                },
-              )
             },
-            onStep: (step: ThinkingStep) => {
-              upsertAssistantStep(conversation.id, step)
-            },
-            onProjectList: payload => {
-              appendItem(conversation.id, {
-                id: `project-list-${Date.now()}-${crypto.randomUUID()}`,
-                type: 'project_list',
-                title: payload.title,
-                projects: payload.projects,
-                timestamp: createTimestamp(),
-              })
+            onPart: (part: AIChatPartItem) => {
+              upsertAssistantPart(conversation.id, part)
             },
             onSession: (sessionId: string) => {
               setConversationSession(conversation.id, sessionId)
@@ -454,9 +474,8 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       setConversationSession,
       stopStreamState,
       syncRoute,
-      upsertAssistantStep,
+      upsertAssistantPart,
       updateConversation,
-      upsertItem,
       workspaceId,
     ],
   )

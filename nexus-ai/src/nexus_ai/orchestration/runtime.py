@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from pydantic_ai import Agent, RunContext
 
 from nexus_ai.orchestration.agents import build_stage_agents
-from nexus_ai.orchestration.graph import OrchestratorDeps, OrchestratorState, build_orchestrator_graph
 from nexus_ai.orchestration.schemas import OrchestratorResult
+from nexus_ai.orchestration.workflow import WorkflowOrchestrator
 from nexus_ai.settings import Settings
 
 
@@ -21,14 +21,15 @@ class NexusOrchestrator:
     def __init__(self, settings: Settings, deps_type: type[Any]) -> None:
         self.settings = settings
         self.stage_agents = build_stage_agents(settings, deps_type)
-        self.graph = build_orchestrator_graph()
+        self.workflow = WorkflowOrchestrator(self.stage_agents)
 
-    async def run(self, user_prompt: str, runtime_deps: Any) -> OrchestratorResult:
-        return await self.graph.run(
-            state=OrchestratorState(user_prompt=user_prompt),
-            deps=OrchestratorDeps(runtime_deps=runtime_deps, stage_agents=self.stage_agents),
-            inputs=user_prompt,
-        )
+    async def run(
+        self,
+        user_prompt: str,
+        runtime_deps: Any,
+        event_sink: Callable[[dict[str, Any]], Awaitable[None]] | None = None,
+    ) -> OrchestratorResult:
+        return await self.workflow.run(user_prompt, runtime_deps, event_sink=event_sink)
 
 
 def build_orchestrator_shell_agent(settings: Settings, deps_type: type[Any]) -> tuple[Any, NexusOrchestrator, list[str]]:
