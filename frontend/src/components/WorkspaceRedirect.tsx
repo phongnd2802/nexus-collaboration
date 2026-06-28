@@ -1,13 +1,14 @@
 /**
  * Workspace Redirect Component
  * Redirects authenticated users to their workspace or create workspace page
- * Redirects unauthenticated users to login page
+ * Shows the public landing page to unauthenticated users
  */
 
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { workspaceApi } from '../lib/api/workspace-api'
+import LandingPage from '../pages/public/LandingPage'
 
 export const WorkspaceRedirect = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
@@ -56,9 +57,9 @@ export const WorkspaceRedirect = () => {
     )
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, show the public landing page
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace />
+    return <LandingPage />
   }
 
   // If we have a redirect path, navigate there
