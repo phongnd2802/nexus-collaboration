@@ -9,6 +9,7 @@ from nexus_ai.capabilities import build_capabilities
 from nexus_ai.capabilities.context import current_time_instruction, memory_instruction
 from nexus_ai.capabilities.observability import instrument_pydantic_ai
 from nexus_ai.capabilities.shields import validate_user_input
+from nexus_ai.orchestration.runtime import build_orchestrator_shell_agent
 from nexus_ai.settings import Settings, load_settings
 from nexus_ai.storage import MemoryRepository, SQLiteStore
 
@@ -33,6 +34,7 @@ class NexusAgentRuntime:
     agent: Any
     deps: AgentDeps
     capability_warnings: list[str]
+    orchestrator: Any | None = None
 
 
 def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
@@ -46,6 +48,10 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
     deps = AgentDeps(settings=settings, memory=memory)
 
     instrument_pydantic_ai(settings)
+
+    if settings.orchestration_mode == "multi":
+        agent, orchestrator, warnings = build_orchestrator_shell_agent(settings, AgentDeps)
+        return NexusAgentRuntime(agent=agent, deps=deps, capability_warnings=warnings, orchestrator=orchestrator)
 
     try:
         from pydantic_ai import Agent

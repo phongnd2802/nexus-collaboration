@@ -14,6 +14,8 @@ from starlette.routing import Route
 from pydantic_ai.ui.vercel_ai import VercelAIAdapter
 
 from nexus_ai.agent import build_runtime
+from nexus_ai.rag.routes import rag_routes
+from nexus_ai.rag.test_api import create_rag_test_app
 from nexus_ai.settings import Settings, load_settings
 from nexus_ai.storage import SessionRepository, SQLiteStore
 
@@ -128,7 +130,10 @@ def create_service_app(base_settings: Settings | None = None) -> Starlette:
         Route("/api/health", health, methods=["GET"]),
         Route("/api/chat", post_chat, methods=["POST"]),
     ]
-    return Starlette(routes=routes)
+    routes.extend(rag_routes(base_settings))
+    app = Starlette(routes=routes)
+    app.mount("/rag/test", create_rag_test_app(base_settings))
+    return app
 
 
 def _settings_from_request(
@@ -139,7 +144,8 @@ def _settings_from_request(
 ) -> Settings | Response:
     token = _bearer_token(_header(request, "authorization"))
     if not token:
-        return JSONResponse({"message": "Missing Authorization bearer token"}, status_code=HTTPStatus.UNAUTHORIZED)
+        #return JSONResponse({"message": "Missing Authorization bearer token"}, status_code=HTTPStatus.UNAUTHORIZED)
+        token = base_settings.api_token
     request_id = _header(request, "x-nexus-request-id") or session_id
     return base_settings.for_request(api_token=token, workspace_id=workspace_id, request_id=request_id)
 

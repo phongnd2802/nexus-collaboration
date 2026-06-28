@@ -37,6 +37,29 @@ Production routes:
 - `/agent-chat/workspaces/{workspace_id}/sessions/{session_id}`
 
 The local Pydantic AI web test UI is mounted at `/web` when `NEXUS_API_TOKEN` and `NEXUS_WORKSPACE_ID` are configured.
+The browser does not need to send auth headers to `/web`; the local runtime uses `NEXUS_API_TOKEN` and `NEXUS_WORKSPACE_ID` from config when building MCP headers.
+
+Local runtime status:
+
+- `/web-runtime/health`
+
+Single agent local profile:
+
+```bash
+NEXUS_AI_ORCHESTRATION_MODE=single
+NEXUS_REQUEST_ID=web-local-single
+uv run nexus-ai-web
+```
+
+Multi-agent local profile:
+
+```bash
+NEXUS_AI_ORCHESTRATION_MODE=multi
+NEXUS_REQUEST_ID=web-local-multi
+uv run nexus-ai-web
+```
+
+After changing `NEXUS_AI_ORCHESTRATION_MODE`, restart `nexus-ai-web`; `/web` is mounted from the runtime built at startup.
 
 Langfuse is enabled when `NEXUS_AI_ENABLE_LANGFUSE=true` and Langfuse keys are configured.
 

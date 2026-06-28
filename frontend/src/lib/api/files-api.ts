@@ -1,5 +1,6 @@
 // src/lib/api/files-api.ts
 import { api } from '@/lib/fetch';
+import { ApiRequestError } from '@/lib/fetch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Types
@@ -49,6 +50,9 @@ export interface FileItem {
   open_count?: number;
   parent_ids?: string[] | null;
   parent_folder_ids?: string[];
+  ragStatus?: 'queued' | 'processing' | 'indexed' | 'failed' | 'skipped' | 'deleted' | null;
+  ragErrorMessage?: string | null;
+  ragIndexedAt?: string | null;
   shareSettings?: {
     isPublic?: boolean;
   };
@@ -137,6 +141,16 @@ export interface DashboardStats {
     name: string;
     max_storage_gb: number;
   };
+}
+
+export interface RagFileStatusResponse {
+  id?: string;
+  workspace_id?: string;
+  file_id?: string;
+  status: 'queued' | 'processing' | 'indexed' | 'failed' | 'skipped' | 'deleted';
+  error_message?: string | null;
+  indexed_at?: string | null;
+  updated_at?: string | null;
 }
 
 // Trash API Response Types
@@ -300,6 +314,8 @@ export const fileKeys = {
   starred: (workspaceId: string) => [...fileKeys.all, 'starred', workspaceId] as const,
   recent: (workspaceId: string) => [...fileKeys.all, 'recent', workspaceId] as const,
   trash: (workspaceId: string) => [...fileKeys.all, 'trash', workspaceId] as const,
+  comments: (fileId: string) => [...fileKeys.all, 'comments', fileId] as const,
+  ragStatus: (workspaceId: string, fileId: string) => [...fileKeys.all, 'rag-status', workspaceId, fileId] as const,
 };
 
 // API Functions
@@ -485,6 +501,17 @@ export const fileApi = {
 
   async getFile(workspaceId: string, fileId: string): Promise<FileItem> {
     return api.get<FileItem>(`/workspaces/${workspaceId}/files/${fileId}`);
+  },
+
+  async getRagStatus(workspaceId: string, fileId: string): Promise<RagFileStatusResponse | null> {
+    try {
+      return await api.get<RagFileStatusResponse>(`/workspaces/${workspaceId}/rag/files/${fileId}/status`);
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   },
 
   async uploadFile(workspaceId: string, data: UploadFileRequest): Promise<FileItem> {
@@ -1357,6 +1384,25 @@ export const useFile = (workspaceId: string, fileId: string) => {
   });
 };
 
+export const useFileRagStatus = (
+  workspaceId: string,
+  fileId: string,
+  options?: {
+    enabled?: boolean;
+  }
+) => {
+  return useQuery({
+    queryKey: fileKeys.ragStatus(workspaceId, fileId),
+    queryFn: () => fileApi.getRagStatus(workspaceId, fileId),
+    enabled: options?.enabled ?? (!!workspaceId && !!fileId),
+    staleTime: 5000,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === 'queued' || status === 'processing' ? 2000 : false;
+    },
+  });
+};
+
 export const useUploadFile = () => {
   const queryClient = useQueryClient();
 
@@ -2116,3 +2162,254 @@ export const filesAgentApi = {
     return api.get<ConversationStats>(`/workspaces/${workspaceId}/files/ai/stats`);
   },
 };
+
+// ============================================
+// OFFLINE FILES API
+// ============================================
+
+export type OfflineSyncStatus = 'pending' | 'syncing' | 'synced' | 'error' | 'outdated';
+
+export interface OfflineFile {
+  id: string;
+  fileId: string;
+  userId: string;
+  workspaceId: string;
+  syncStatus: OfflineSyncStatus;
+  lastSyncedAt: string | null;
+  syncedVersion: number;
+  autoSync: boolean;
+  priority: number;
+  fileSize: number;
+  errorMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Joined file data
+  fileName?: string;
+  mimeType?: string;
+  fileUrl?: string;
+  serverVersion?: number;
+  needsSync?: boolean;
+}
+
+export interface MarkOfflineOptions {
+  autoSync?: boolean;
+  priority?: number;
+}
+
+export interface UpdateOfflineOptions {
+  autoSync?: boolean;
+  priority?: number;
+  syncStatus?: OfflineSyncStatus;
+  syncedVersion?: number;
+  errorMessage?: string;
+}
+
+export interface OfflineStorageStats {
+  totalFiles: number;
+  totalSize: number;
+  pendingCount: number;
+  syncedCount: number;
+  errorCount: number;
+  outdatedCount: number;
+}
+
+export interface CheckUpdateResult {
+  fileId: string;
+  serverVersion: number;
+  syncedVersion: number;
+  hasUpdate: boolean;
+  fileSize: number;
+  updatedAt: string;
+}
+
+export interface BatchSyncUpdate {
+  fileId: string;
+  syncStatus: OfflineSyncStatus;
+  syncedVersion?: number;
+  errorMessage?: string;
+}
+
+export const offlineFilesApi = {
+  /**
+   * Mark a file for offline access
+   */
+  async markFileOffline(workspaceId: string, fileId: string, options?: MarkOfflineOptions): Promise<OfflineFile> {
+    return api.post<OfflineFile>(`/workspaces/${workspaceId}/files/${fileId}/offline`, options || {});
+  },
+
+  /**
+   * Remove file from offline access
+   */
+  async removeFileOffline(workspaceId: string, fileId: string): Promise<{ success: boolean; message: string }> {
+    return api.delete<{ success: boolean; message: string }>(`/workspaces/${workspaceId}/files/${fileId}/offline`);
+  },
+
+  /**
+   * Get all offline files for a workspace
+   */
+  async getOfflineFiles(workspaceId: string): Promise<OfflineFile[]> {
+    return api.get<OfflineFile[]>(`/workspaces/${workspaceId}/files/offline`);
+  },
+
+  /**
+   * Get offline status for a specific file
+   */
+  async getOfflineStatus(workspaceId: string, fileId: string): Promise<{ isOffline: boolean } & Partial<OfflineFile>> {
+    return api.get<{ isOffline: boolean } & Partial<OfflineFile>>(`/workspaces/${workspaceId}/files/${fileId}/offline`);
+  },
+
+  /**
+   * Update offline file settings
+   */
+  async updateOfflineSettings(workspaceId: string, fileId: string, options: UpdateOfflineOptions): Promise<OfflineFile> {
+    return api.put<OfflineFile>(`/workspaces/${workspaceId}/files/${fileId}/offline`, options);
+  },
+
+  /**
+   * Check if file has updates available
+   */
+  async checkFileUpdate(workspaceId: string, fileId: string): Promise<CheckUpdateResult> {
+    return api.get<CheckUpdateResult>(`/workspaces/${workspaceId}/files/${fileId}/offline/check-update`);
+  },
+
+  /**
+   * Get offline storage statistics
+   */
+  async getOfflineStorageStats(workspaceId: string): Promise<OfflineStorageStats> {
+    return api.get<OfflineStorageStats>(`/workspaces/${workspaceId}/files/offline/stats`);
+  },
+
+  /**
+   * Get files that need syncing
+   */
+  async getFilesNeedingSync(workspaceId: string): Promise<OfflineFile[]> {
+    return api.get<OfflineFile[]>(`/workspaces/${workspaceId}/files/offline/needs-sync`);
+  },
+
+  /**
+   * Batch update sync status for multiple files
+   */
+  async batchUpdateSyncStatus(workspaceId: string, updates: BatchSyncUpdate[]): Promise<Array<{ fileId: string; success: boolean; error?: string }>> {
+    return api.post<Array<{ fileId: string; success: boolean; error?: string }>>(`/workspaces/${workspaceId}/files/offline/sync-status`, { updates });
+  },
+};
+
+// ============================================
+// OFFLINE FILES REACT QUERY HOOKS
+// ============================================
+
+/**
+ * Hook to get all offline files for a workspace
+ */
+export function useOfflineFiles(workspaceId: string) {
+  return useQuery({
+    queryKey: ['offline-files', workspaceId],
+    queryFn: () => offlineFilesApi.getOfflineFiles(workspaceId),
+    enabled: !!workspaceId,
+    staleTime: 30000,
+  });
+}
+
+/**
+ * Hook to get offline status for a specific file
+ */
+export function useOfflineStatus(workspaceId: string, fileId: string) {
+  return useQuery({
+    queryKey: ['offline-status', workspaceId, fileId],
+    queryFn: () => offlineFilesApi.getOfflineStatus(workspaceId, fileId),
+    enabled: !!workspaceId && !!fileId,
+    staleTime: 30000,
+  });
+}
+
+/**
+ * Hook to get offline storage statistics
+ */
+export function useOfflineStorageStats(workspaceId: string) {
+  return useQuery({
+    queryKey: ['offline-storage-stats', workspaceId],
+    queryFn: () => offlineFilesApi.getOfflineStorageStats(workspaceId),
+    enabled: !!workspaceId,
+    staleTime: 60000,
+  });
+}
+
+/**
+ * Hook to get files needing sync
+ */
+export function useFilesNeedingSync(workspaceId: string) {
+  return useQuery({
+    queryKey: ['files-needing-sync', workspaceId],
+    queryFn: () => offlineFilesApi.getFilesNeedingSync(workspaceId),
+    enabled: !!workspaceId,
+    staleTime: 30000,
+  });
+}
+
+/**
+ * Hook to mark a file for offline access
+ */
+export function useMarkFileOffline() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, fileId, options }: { workspaceId: string; fileId: string; options?: MarkOfflineOptions }) =>
+      offlineFilesApi.markFileOffline(workspaceId, fileId, options),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-status', variables.workspaceId, variables.fileId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
+    },
+  });
+}
+
+/**
+ * Hook to remove file from offline access
+ */
+export function useRemoveFileOffline() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, fileId }: { workspaceId: string; fileId: string }) =>
+      offlineFilesApi.removeFileOffline(workspaceId, fileId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-status', variables.workspaceId, variables.fileId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
+    },
+  });
+}
+
+/**
+ * Hook to update offline file settings
+ */
+export function useUpdateOfflineSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, fileId, options }: { workspaceId: string; fileId: string; options: UpdateOfflineOptions }) =>
+      offlineFilesApi.updateOfflineSettings(workspaceId, fileId, options),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-status', variables.workspaceId, variables.fileId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
+    },
+  });
+}
+
+/**
+ * Hook to batch update sync status
+ */
+export function useBatchUpdateSyncStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, updates }: { workspaceId: string; updates: BatchSyncUpdate[] }) =>
+      offlineFilesApi.batchUpdateSyncStatus(workspaceId, updates),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['offline-files', variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['offline-storage-stats', variables.workspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['files-needing-sync', variables.workspaceId] });
+    },
+  });
+}
