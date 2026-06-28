@@ -38,8 +38,6 @@ export class FilesService {
     private readonly db: DatabaseService,
     @Inject(forwardRef(() => NotificationsService))
     private notificationsService: NotificationsService,
-    @Inject(forwardRef(() => AppGateway))
-    private appGateway: AppGateway,
     private readonly ragIndexingService: RagIndexingService,
   ) {}
 
