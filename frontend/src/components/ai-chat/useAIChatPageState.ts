@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
 import { buildAIChatPath, buildAIChatTitle, createTimestamp, MODELS_KEY, toRequestMessages } from './aiChatPageUtils'
-import { transcriptToTimeline } from './uiMessageTimeline'
+import { groupAssistantPartsForThinking, messageContent, thinkingGroupPart, transcriptToTimeline } from './uiMessageTimeline'
 import type { AIChatPartItem, AIChatTimelineItem, AssistantMessageItem } from './types'
 
 interface LocalConversation {
@@ -66,14 +66,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
 
   const activeConversation = conversations.find(item => item.id === activeConversationId) || null
   const timelineItems = useMemo(() => activeConversation?.items || [], [activeConversation])
-
-  const assistantContentFromParts = useCallback((parts: AIChatPartItem[]) => {
-    return parts
-      .filter(part => part.type === 'text' && typeof part.text === 'string')
-      .map(part => part.text)
-      .join('')
-      .trim()
-  }, [])
 
   const updateConversation = useCallback(
     (conversationId: string, updater: (conversation: LocalConversation) => LocalConversation) => {
@@ -182,28 +174,24 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
           type: 'assistant_message',
           content: part.type === 'text' ? part.text || '' : '',
           status: 'streaming',
-          parts: [part],
+          parts: groupAssistantPartsForThinking([part]),
           timestamp: createTimestamp(),
         }),
         current => {
           if (current.type !== 'assistant_message') return current
-          const existingIndex = current.parts.findIndex(existing => existing.id === part.id)
-          const nextParts = [...current.parts]
-          if (existingIndex === -1) {
-            nextParts.push(part)
-          } else {
-            nextParts[existingIndex] = { ...nextParts[existingIndex], ...part }
-          }
+          const nextParts = part.type === 'text'
+            ? upsertTextPart(current.parts, part)
+            : upsertThinkingChild(current.parts, part)
           return {
             ...current,
             parts: nextParts,
-            content: assistantContentFromParts(nextParts),
+            content: messageContent(nextParts),
             status: 'streaming',
           }
         },
       )
     },
-    [assistantContentFromParts, ensureAssistantItem, upsertItem],
+    [ensureAssistantItem, upsertItem],
   )
 
   const finalizeAssistantItem = useCallback(
@@ -255,14 +243,7 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
         }),
         current => {
           if (current.type !== 'assistant_message') return current
-          const nextParts = current.parts.map(part =>
-            part.status === 'running'
-              ? {
-                  ...part,
-                  status: (status === 'error' ? 'error' : 'completed') as AIChatPartItem['status'],
-                }
-              : part,
-          )
+          const nextParts = finalizeParts(current.parts, status)
           return {
             ...current,
             content: finalContent || current.content,
@@ -623,3 +604,41 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
 }
 
 export type UseAIChatPageStateReturn = ReturnType<typeof useAIChatPageState>
+
+function upsertTextPart(parts: AIChatPartItem[], part: AIChatPartItem): AIChatPartItem[] {
+  const existingIndex = parts.findIndex(existing => existing.id === part.id)
+  if (existingIndex === -1) return [...parts, part]
+  const nextParts = [...parts]
+  nextParts[existingIndex] = { ...nextParts[existingIndex], ...part }
+  return nextParts
+}
+
+function upsertThinkingChild(parts: AIChatPartItem[], child: AIChatPartItem): AIChatPartItem[] {
+  const thinking = parts.find(part => part.type === 'thinking_group')
+  const otherParts = parts.filter(part => part.type !== 'thinking_group')
+  const children = thinking?.children ? [...thinking.children] : []
+  const existingIndex = children.findIndex(existing => existing.id === child.id)
+  if (existingIndex === -1) {
+    children.push(child)
+  } else {
+    children[existingIndex] = { ...children[existingIndex], ...child }
+  }
+  return [thinkingGroupPart(children), ...otherParts]
+}
+
+function finalizeParts(parts: AIChatPartItem[], status: AssistantMessageItem['status']): AIChatPartItem[] {
+  const finalPartStatus = (status === 'error' ? 'error' : status === 'stopped' ? 'skipped' : 'completed') as AIChatPartItem['status']
+  return parts.map(part => {
+    if (part.type === 'thinking_group') {
+      const children = (part.children || []).map(child =>
+        child.status === 'running' || child.status === 'pending'
+          ? { ...child, status: finalPartStatus }
+          : child,
+      )
+      return thinkingGroupPart(children)
+    }
+    return part.status === 'running' || part.status === 'pending'
+      ? { ...part, status: finalPartStatus }
+      : part
+  })
+}
