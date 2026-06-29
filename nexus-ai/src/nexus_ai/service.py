@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 import uuid
 from http import HTTPStatus
 from typing import Any
@@ -14,12 +15,13 @@ from starlette.routing import Route
 from nexus_ai.agent import build_runtime
 from nexus_ai.rag.routes import rag_routes
 from nexus_ai.rag.test_api import create_rag_test_app
+from nexus_ai.routing import routing_event_payload
 from nexus_ai.service_auth import resolve_request_settings, resolve_workspace_id, require_session_user
 from nexus_ai.service_persistence import (
     message_count,
     save_regular_session,
 )
-from nexus_ai.service_transport import dispatch_orchestrated_chat, prepend_session_event
+from nexus_ai.service_transport import dispatch_orchestrated_chat, prepend_stream_events
 from nexus_ai.settings import Settings, load_settings
 from nexus_ai.storage import SessionRepository, SQLiteStore
 
@@ -58,8 +60,19 @@ def create_service_app(base_settings: Settings | None = None) -> Starlette:
 
         runtime = build_runtime(request_settings_or_response)
         request_payload = _json_body(body)
+        user_prompt = _extract_user_prompt(request_payload)
+        routing_event = None
+        route = "multi" if runtime.orchestrator is not None and runtime.routing_mode == "multi" else "direct_workspace"
+        execution_path = route
+        if runtime.routing_mode == "hybrid" and runtime.router is not None:
+            decision = runtime.router.decide(user_prompt, request_payload)
+            if inspect.isawaitable(decision):
+                decision = await decision
+            route = decision.route
+            execution_path = decision.execution_path
+            routing_event = routing_event_payload(decision)
 
-        if runtime.orchestrator is not None:
+        if route == "multi" and runtime.orchestrator is not None:
             return dispatch_orchestrated_chat(
                 runtime=runtime,
                 deps=runtime.deps,
@@ -68,7 +81,10 @@ def create_service_app(base_settings: Settings | None = None) -> Starlette:
                 workspace_id=workspace_id,
                 session_id=session_id,
                 user_id=user_id,
+                routing_event=routing_event,
             )
+
+        agent = runtime.direct_workspace_agent or runtime.agent
 
         async def save_session(result: Any) -> None:
             save_regular_session(
@@ -77,16 +93,20 @@ def create_service_app(base_settings: Settings | None = None) -> Starlette:
                 workspace_id=workspace_id,
                 user_id=user_id,
                 result=result,
+                routing_event=routing_event,
             )
 
         response = await VercelAIAdapter.dispatch_request(
             request,
-            agent=runtime.agent,
+            agent=agent,
             conversation_id=session_id,
             deps=runtime.deps,
             on_complete=save_session,
         )
-        return prepend_session_event(response, session_id)
+        events = [{"type": "data-session", "data": {"sessionId": session_id}}]
+        if routing_event is not None:
+            events.append(routing_event)
+        return prepend_stream_events(response, events)
 
     async def list_sessions(request: Request) -> Response:
         workspace_id = request.path_params["workspace_id"]
@@ -173,3 +193,23 @@ def _extract_session_id(body: bytes) -> str | None:
         return None
     value = payload.get("id")
     return value if isinstance(value, str) and value else None
+
+
+def _extract_user_prompt(payload: dict[str, Any]) -> str:
+    messages = payload.get("messages")
+    if not isinstance(messages, list):
+        return ""
+    for message in reversed(messages):
+        if not isinstance(message, dict) or message.get("role") != "user":
+            continue
+        parts = message.get("parts")
+        if not isinstance(parts, list):
+            continue
+        text = "".join(
+            part.get("text", "")
+            for part in parts
+            if isinstance(part, dict) and part.get("type") == "text" and isinstance(part.get("text"), str)
+        ).strip()
+        if text:
+            return text
+    return ""

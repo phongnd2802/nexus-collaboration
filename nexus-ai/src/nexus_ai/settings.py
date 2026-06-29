@@ -50,6 +50,10 @@ class Settings:
     synthesizer_model: str | None
     critic_model: str | None
     orchestrator_max_revisions: int
+    orchestrator_max_retrieval_retries: int
+    router_model: str | None
+    router_confidence_threshold: float
+    router_enable_model_fallback: bool
     retrieval_top_k: int
     rag_min_score: float
     rag_enabled: bool
@@ -125,10 +129,10 @@ class Settings:
             missing.append("NEXUS_WORKSPACE_ID")
         if missing:
             raise RuntimeError(f"Missing required Nexus AI env vars: {', '.join(missing)}")
-        if self.orchestration_mode not in {"multi", "single"}:
+        if self.orchestration_mode not in {"hybrid", "multi", "single"}:
             raise RuntimeError(
                 f"Invalid NEXUS_AI_ORCHESTRATION_MODE={self.orchestration_mode!r}. "
-                "Use 'multi'. 'single' is deprecated."
+                "Use 'hybrid' or 'multi'. 'single' is deprecated."
             )
 
     def for_request(
@@ -169,12 +173,16 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         max_cost_usd=_float(source.get("NEXUS_AI_MAX_COST_USD"), 2.0),
         enable_ecosystem_capabilities=_bool(source.get("NEXUS_AI_ENABLE_ECOSYSTEM_CAPABILITIES"), True),
         context_max_tokens=_int(source.get("NEXUS_AI_CONTEXT_MAX_TOKENS"), 180000),
-        orchestration_mode=source.get("NEXUS_AI_ORCHESTRATION_MODE", "multi"),
+        orchestration_mode=source.get("NEXUS_AI_ORCHESTRATION_MODE", "hybrid"),
         planner_model=source.get("NEXUS_AI_PLANNER_MODEL") or None,
         retriever_model=source.get("NEXUS_AI_RETRIEVER_MODEL") or None,
         synthesizer_model=source.get("NEXUS_AI_SYNTHESIZER_MODEL") or None,
         critic_model=source.get("NEXUS_AI_CRITIC_MODEL") or None,
         orchestrator_max_revisions=max(0, _int(source.get("NEXUS_AI_ORCHESTRATOR_MAX_REVISIONS"), 1)),
+        orchestrator_max_retrieval_retries=max(0, _int(source.get("NEXUS_AI_ORCHESTRATOR_MAX_RETRIEVAL_RETRIES"), 1)),
+        router_model=source.get("NEXUS_AI_ROUTER_MODEL") or None,
+        router_confidence_threshold=max(0.0, min(_float(source.get("NEXUS_AI_ROUTER_CONFIDENCE_THRESHOLD"), 0.8), 1.0)),
+        router_enable_model_fallback=_bool(source.get("NEXUS_AI_ROUTER_ENABLE_MODEL_FALLBACK"), False),
         retrieval_top_k=_int(source.get("NEXUS_AI_RETRIEVAL_TOP_K"), 8),
         rag_min_score=_float(source.get("NEXUS_AI_RAG_MIN_SCORE"), 0.5),
         rag_enabled=_bool(source.get("NEXUS_RAG_ENABLED"), True),

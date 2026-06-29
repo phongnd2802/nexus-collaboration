@@ -11,7 +11,7 @@ import { registerWorkspaceTools } from './workspace.js';
 export function registerTools(server: McpServer, client: NexusApiClient) {
   registerWorkspaceTools(server, client);
   registerDashboardTools(server, client);
-  registerSearchTools(server, client);
+  //registerSearchTools(server, client);
   registerNotesTools(server, client);
   registerProjectTools(server, client);
   registerChatTools(server, client);

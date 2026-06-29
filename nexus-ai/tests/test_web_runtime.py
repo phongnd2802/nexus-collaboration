@@ -54,9 +54,13 @@ def test_web_runtime_health_reports_single_mode_without_secrets(tmp_path):
     assert status == 200
     assert body["webMounted"] is True
     assert body["orchestrationMode"] == "single"
+    assert body["routingMode"] == "single"
     assert body["singleAgentDeprecated"] is True
-    assert body["recommendedMode"] == "multi"
+    assert body["recommendedMode"] == "hybrid"
     assert body["orchestratorMaxRevisions"] == 1
+    assert body["orchestratorMaxRetrievalRetries"] == 1
+    assert body["routerConfidenceThreshold"] == 0.8
+    assert "retriever" in body["availableDomainSkills"]
     assert body["workspaceId"] == "workspace"
     assert body["hasApiToken"] is True
     assert "secret-token" not in json.dumps(body)
@@ -70,7 +74,7 @@ def test_web_runtime_health_reports_multi_mode(tmp_path):
             "NEXUS_WORKSPACE_ID": "workspace",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
             "NEXUS_AI_RUNTIME_DIR": str(tmp_path / "runtime"),
-            "NEXUS_AI_ORCHESTRATION_MODE": "multi",
+            "NEXUS_AI_ORCHESTRATION_MODE": "hybrid",
         }
     )
     app = Starlette()
@@ -79,10 +83,13 @@ def test_web_runtime_health_reports_multi_mode(tmp_path):
     status, body = asyncio.run(_get(app, "/web-runtime/health"))
 
     assert status == 200
-    assert body["orchestrationMode"] == "multi"
+    assert body["orchestrationMode"] == "hybrid"
+    assert body["routingMode"] == "hybrid"
     assert body["singleAgentDeprecated"] is False
-    assert body["recommendedMode"] == "multi"
+    assert body["recommendedMode"] == "hybrid"
     assert body["orchestratorMaxRevisions"] == 1
+    assert body["orchestratorMaxRetrievalRetries"] == 1
+    assert "workspace-doc-rag" in body["availableDomainSkills"]["retriever"]
 
 
 def test_web_runtime_health_reports_missing_config(tmp_path):
