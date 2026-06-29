@@ -55,6 +55,7 @@ def build_orchestrator_shell_agent(settings: Settings, deps_type: type[Any]) -> 
             "content": result.content,
             "approved": result.approved,
             "revision_count": result.revision_count,
+            "retrieval_retry_count": result.retrieval_retry_count,
             "limitations": result.limitations,
             "trace": result.trace,
         }

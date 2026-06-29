@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from nexus_ai.agent import build_runtime
 from nexus_ai.capabilities.observability import flush_langfuse, langfuse_attributes
+from nexus_ai.orchestration.domain_skills import available_domain_skill_ids_by_role
 from nexus_ai.service import create_service_app
 from nexus_ai.settings import Settings, load_settings
 
@@ -42,14 +43,19 @@ def _mount_local_runtime_status(app, settings: Settings) -> None:
         payload = {
             "webMounted": False,
             "orchestrationMode": settings.orchestration_mode,
+            "routingMode": settings.orchestration_mode,
             "singleAgentDeprecated": settings.orchestration_mode == "single",
-            "recommendedMode": "multi",
+            "recommendedMode": "hybrid",
             "orchestratorMaxRevisions": settings.orchestrator_max_revisions,
+            "orchestratorMaxRetrievalRetries": settings.orchestrator_max_retrieval_retries,
+            "routerModel": settings.router_model,
+            "routerConfidenceThreshold": settings.router_confidence_threshold,
             "model": settings.model,
             "workspaceId": settings.workspace_id or None,
             "mcpUrl": settings.mcp_url,
             "hasApiToken": bool(settings.api_token),
             "ragEnabled": settings.rag_enabled,
+            "availableDomainSkills": available_domain_skill_ids_by_role(),
             "capabilityWarnings": [],
             "disabledReason": None,
         }
@@ -61,6 +67,7 @@ def _mount_local_runtime_status(app, settings: Settings) -> None:
         else:
             payload["webMounted"] = _can_mount_to_web(runtime.agent)
             payload["capabilityWarnings"] = runtime.capability_warnings
+            payload["routingMode"] = runtime.routing_mode
             if not payload["webMounted"]:
                 status_code = HTTPStatus.SERVICE_UNAVAILABLE
                 payload["disabledReason"] = "Agent.to_web() is unavailable"

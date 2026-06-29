@@ -4,6 +4,8 @@ import {
   Bot,
   Check,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Copy,
   ExternalLink,
   FileText,
@@ -17,7 +19,13 @@ import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 
 import { MarkdownRenderer } from './MarkdownRenderer'
-import type { AIChatPartItem, AIChatTimelineItem, ProjectCardPayload } from './types'
+import type {
+  AIChatPartItem,
+  AIChatTimelineItem,
+  ProjectCardPayload,
+  WorkspaceActionPayload,
+  WorkspaceReferencePayload,
+} from './types'
 
 interface AIChatMessageProps {
   item: AIChatTimelineItem
@@ -112,8 +120,148 @@ function ProjectCards({ projects }: { projects: ProjectCardPayload[] }) {
   )
 }
 
+function ReferenceLinks({ references }: { references: WorkspaceReferencePayload[] }) {
+  const navigate = useNavigate()
+  return (
+    <div className="mt-3 grid gap-2">
+      {references.map((reference, index) => (
+        <button
+          key={`${reference.href || reference.entityId || reference.title || 'reference'}-${index}`}
+          type="button"
+          onClick={() => {
+            if (reference.href) navigate(reference.href)
+          }}
+          disabled={!reference.href}
+          className="w-full rounded-lg border border-[rgba(31,30,29,0.1)] bg-white px-3 py-2 text-left transition-colors hover:border-[rgba(31,30,29,0.2)] disabled:cursor-default disabled:bg-[rgba(31,30,29,0.02)]"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="truncate text-[13px] leading-5 text-[#1F1E1D]">
+                {reference.title || reference.href || reference.entityId || 'Source'}
+              </div>
+              {reference.snippet ? (
+                <div className="mt-0.5 line-clamp-2 text-[12px] leading-5 text-[#73726C]">{reference.snippet}</div>
+              ) : null}
+            </div>
+            {reference.href ? <ExternalLink className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#73726C]" /> : null}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ActionLinks({ actions }: { actions: WorkspaceActionPayload[] }) {
+  const navigate = useNavigate()
+  return (
+    <div className="mt-3 grid gap-2">
+      {actions.map((action, index) => (
+        <button
+          key={`${action.href || action.entityId || action.message || 'action'}-${index}`}
+          type="button"
+          onClick={() => {
+            if (action.href) navigate(action.href)
+          }}
+          disabled={!action.href}
+          className="w-full rounded-lg border border-[rgba(31,30,29,0.1)] bg-white px-3 py-2 text-left transition-colors hover:border-[rgba(31,30,29,0.2)] disabled:cursor-default disabled:bg-[rgba(31,30,29,0.02)]"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="truncate text-[13px] leading-5 text-[#1F1E1D]">
+                {action.title || action.message || action.entityId || action.action || 'Action result'}
+              </div>
+              <div className="mt-0.5 text-[12px] leading-5 text-[#73726C]">
+                {[action.status, action.entityType, action.toolName].filter(Boolean).join(' · ')}
+              </div>
+            </div>
+            {action.href ? <ExternalLink className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#73726C]" /> : null}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ThinkingTimelineItem({ part }: { part: AIChatPartItem }) {
+  const duration = formatDuration(part.startedAt, part.endedAt)
+
+  return (
+    <div className="rounded-lg border border-[rgba(31,30,29,0.08)] bg-white px-3 py-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] leading-5">
+        <span className="flex h-4 w-4 items-center justify-center">{partIcon(part)}</span>
+        <span className="min-w-0 flex-1 truncate text-[#1F1E1D]">{part.summary || part.label}</span>
+        {part.toolName ? <span className="max-w-[180px] truncate text-[#73726C]">{part.toolName}</span> : null}
+        <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${statusTone(part)}`}>{statusText(part)}</span>
+        {duration ? <span className="text-[11px] text-[#8A877F]">{duration}</span> : null}
+      </div>
+
+      {part.text && part.type !== 'reasoning' ? (
+        <div className="mt-2 whitespace-pre-wrap break-words text-[12px] leading-5 text-[#4B4A45]">
+          {part.text}
+        </div>
+      ) : null}
+
+      {part.references && part.references.length > 0 ? <ReferenceLinks references={part.references} /> : null}
+      {part.actions && part.actions.length > 0 ? <ActionLinks actions={part.actions} /> : null}
+
+      <div className="mt-2 space-y-2">
+        <JsonBlock label="Input" value={part.input} />
+        <JsonBlock label="Output" value={part.output} />
+        {part.error ? <div className="text-[12px] leading-5 text-[#BE123C]">{part.error}</div> : null}
+        <JsonBlock label="Metadata" value={part.metadata} />
+      </div>
+    </div>
+  )
+}
+
+function ThinkingGroup({ part }: { part: AIChatPartItem }) {
+  const [open, setOpen] = useState(false)
+  const children = part.children || []
+  const isRunning = part.status === 'running'
+
+  return (
+    <div className="rounded-xl border border-[rgba(31,30,29,0.08)] bg-[rgba(255,255,255,0.7)]">
+      <button
+        type="button"
+        onClick={() => setOpen(value => !value)}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left text-[13px] leading-5 transition-colors hover:bg-[rgba(31,30,29,0.025)]"
+      >
+        <span className="flex h-5 w-5 items-center justify-center">
+          {isRunning ? (
+            <Loader2 className="h-4 w-4 animate-spin text-[#D97757]" />
+          ) : (
+            <Sparkles className="h-4 w-4 text-[#D97757]" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1 text-[#1F1E1D]">
+          {isRunning ? part.summary || 'Đang suy nghĩ...' : part.summary || 'Đã xử lý'}
+          {isRunning ? <span className="ml-1 inline-block animate-pulse">...</span> : null}
+        </span>
+        <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${statusTone(part)}`}>{statusText(part)}</span>
+        <span className="text-[#73726C]">
+          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </span>
+      </button>
+
+      {open ? (
+        <div className="space-y-2 border-t border-[rgba(31,30,29,0.08)] px-4 py-3">
+          {children.length > 0 ? (
+            children.map(child => <ThinkingTimelineItem key={child.id} part={child} />)
+          ) : (
+            <div className="text-[12px] leading-5 text-[#73726C]">Chưa có bước xử lý chi tiết.</div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function TranscriptPart({ part }: { part: AIChatPartItem }) {
   const duration = formatDuration(part.startedAt, part.endedAt)
+
+  if (part.type === 'thinking_group') {
+    return <ThinkingGroup part={part} />
+  }
 
   if (part.type === 'text') {
     return (
@@ -142,17 +290,8 @@ function TranscriptPart({ part }: { part: AIChatPartItem }) {
         </div>
       ) : null}
 
-      {part.approval ? (
-        <div className="mt-3 rounded-lg bg-[rgba(31,30,29,0.03)] px-3 py-2 text-[12px] leading-5 text-[#4B4A45]">
-          <div>Approval ID: {part.approval.id}</div>
-          {typeof part.approval.approved === 'boolean' ? (
-            <div>{part.approval.approved ? 'Approved' : 'Rejected'}</div>
-          ) : (
-            <div>Pending approval</div>
-          )}
-          {part.approval.reason ? <div>{part.approval.reason}</div> : null}
-        </div>
-      ) : null}
+      {part.references && part.references.length > 0 ? <ReferenceLinks references={part.references} /> : null}
+      {part.actions && part.actions.length > 0 ? <ActionLinks actions={part.actions} /> : null}
 
       {part.text && part.type !== 'text' ? (
         <div className="mt-3 whitespace-pre-wrap break-words text-[12px] leading-5 text-[#4B4A45]">
@@ -164,7 +303,6 @@ function TranscriptPart({ part }: { part: AIChatPartItem }) {
         <JsonBlock label="Output" value={part.output} />
         {part.error ? <div className="text-[12px] leading-5 text-[#BE123C]">{part.error}</div> : null}
         <JsonBlock label="Metadata" value={part.metadata} />
-        {part.raw && !part.projects ? <JsonBlock label="Raw part" value={part.raw} /> : null}
       </div>
     </div>
   )

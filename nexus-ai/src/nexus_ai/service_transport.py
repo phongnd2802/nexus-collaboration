@@ -23,6 +23,7 @@ def dispatch_orchestrated_chat(
     workspace_id: str,
     session_id: str,
     user_id: str | None,
+    routing_event: dict[str, Any] | None = None,
 ) -> StreamingResponse:
     user_prompt = extract_user_prompt(request_payload)
     if not user_prompt:
@@ -34,6 +35,8 @@ def dispatch_orchestrated_chat(
 
     async def body() -> AsyncIterator[str]:
         yield sse({"type": "data-session", "data": {"sessionId": session_id}})
+        if routing_event is not None:
+            yield sse(routing_event)
         events: list[dict[str, Any]] = []
         queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
 
@@ -63,8 +66,9 @@ def dispatch_orchestrated_chat(
             workspace_id=workspace_id,
             user_id=user_id,
             request_payload=request_payload,
-            assistant_content=result.content,
             orchestration_events=events,
+            orchestrator_result=result,
+            routing_event=routing_event,
         )
         yield "data: [DONE]\n\n"
 
@@ -94,12 +98,13 @@ def sse(event: dict[str, Any]) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
-def prepend_session_event(response: StreamingResponse, session_id: str) -> StreamingResponse:
+def prepend_stream_events(response: StreamingResponse, events: list[dict[str, Any]]) -> StreamingResponse:
     if not isinstance(response, StreamingResponse) or response.status_code >= 400:
         return response
 
     async def body() -> AsyncIterator[str | bytes]:
-        yield f'data: {json.dumps({"type": "data-session", "data": {"sessionId": session_id}})}\n\n'
+        for event in events:
+            yield f"data: {json.dumps(event)}\n\n"
         async for chunk in response.body_iterator:
             yield chunk
 
@@ -110,6 +115,10 @@ def prepend_session_event(response: StreamingResponse, session_id: str) -> Strea
         headers=dict(response.headers),
         background=response.background,
     )
+
+
+def prepend_session_event(response: StreamingResponse, session_id: str) -> StreamingResponse:
+    return prepend_stream_events(response, [{"type": "data-session", "data": {"sessionId": session_id}}])
 
 
 def extract_user_prompt(payload: dict[str, Any]) -> str:

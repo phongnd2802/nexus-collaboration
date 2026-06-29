@@ -111,7 +111,7 @@ export function AIChatPage() {
           {
             id: 'modules.aiChat.deleteSession.description',
             defaultMessage:
-              'Delete "{title}"? This will remove the conversation history and cancel any pending approvals in this session.',
+              'Delete "{title}"? This will remove the conversation history.',
           },
           { title: deleteConversationDialog?.title || intl.formatMessage({ id: 'modules.aiChat.sidebar.untitled', defaultMessage: 'Untitled chat' }) },
         )}
