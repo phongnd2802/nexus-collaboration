@@ -39,8 +39,33 @@ export interface AIChatPartItem {
   error?: string
   metadata?: Record<string, any>
   projects?: ProjectCardPayload[]
+  references?: WorkspaceReferencePayload[]
+  actions?: WorkspaceActionPayload[]
+  children?: AIChatPartItem[]
   approval?: AIChatApprovalState
   raw?: Record<string, any>
+}
+
+export interface WorkspaceReferencePayload {
+  sourceType?: string
+  entityType?: string
+  entityId?: string
+  title?: string
+  href?: string
+  snippet?: string
+  citation?: string
+  score?: number
+}
+
+export interface WorkspaceActionPayload {
+  toolName?: string
+  action?: string
+  status?: string
+  entityType?: string
+  entityId?: string
+  title?: string
+  href?: string
+  message?: string
 }
 
 export interface ProjectCardPayload {

@@ -1,4 +1,10 @@
-import type { AIChatPartItem, AIChatTimelineItem, ProjectCardPayload } from './types'
+import type {
+  AIChatPartItem,
+  AIChatTimelineItem,
+  ProjectCardPayload,
+  WorkspaceActionPayload,
+  WorkspaceReferencePayload,
+} from './types'
 import { normalizeTranscriptStatus, orchestrationLabel } from './transcriptModel'
 
 function timestampFromMetadata(value: Record<string, any> | undefined, fallback: string): string {
@@ -31,6 +37,52 @@ function toProjectCardPayloads(value: unknown): ProjectCardPayload[] {
       type: typeof record.type === 'string' ? record.type : undefined,
       updatedAt: typeof record.updatedAt === 'string' ? record.updatedAt : undefined,
       memberCount: typeof record.memberCount === 'number' ? record.memberCount : undefined,
+    })
+    return acc
+  }, [])
+}
+
+function toWorkspaceReferences(value: unknown): WorkspaceReferencePayload[] {
+  if (!Array.isArray(value)) return []
+  return value.reduce<WorkspaceReferencePayload[]>((acc, item) => {
+    if (!item || typeof item !== 'object') return acc
+    const record = item as Record<string, any>
+    const title = typeof record.title === 'string' ? record.title : undefined
+    const href = typeof record.href === 'string' ? record.href : undefined
+    const entityId = typeof record.entityId === 'string' ? record.entityId : undefined
+    if (!title && !href && !entityId) return acc
+    acc.push({
+      sourceType: typeof record.sourceType === 'string' ? record.sourceType : undefined,
+      entityType: typeof record.entityType === 'string' ? record.entityType : undefined,
+      entityId,
+      title,
+      href,
+      snippet: typeof record.snippet === 'string' ? record.snippet : undefined,
+      citation: typeof record.citation === 'string' ? record.citation : undefined,
+      score: typeof record.score === 'number' ? record.score : undefined,
+    })
+    return acc
+  }, [])
+}
+
+function toWorkspaceActions(value: unknown): WorkspaceActionPayload[] {
+  if (!Array.isArray(value)) return []
+  return value.reduce<WorkspaceActionPayload[]>((acc, item) => {
+    if (!item || typeof item !== 'object') return acc
+    const record = item as Record<string, any>
+    const title = typeof record.title === 'string' ? record.title : undefined
+    const href = typeof record.href === 'string' ? record.href : undefined
+    const message = typeof record.message === 'string' ? record.message : undefined
+    if (!title && !href && !message) return acc
+    acc.push({
+      toolName: typeof record.toolName === 'string' ? record.toolName : undefined,
+      action: typeof record.action === 'string' ? record.action : undefined,
+      status: typeof record.status === 'string' ? record.status : undefined,
+      entityType: typeof record.entityType === 'string' ? record.entityType : undefined,
+      entityId: typeof record.entityId === 'string' ? record.entityId : undefined,
+      title,
+      href,
+      message,
     })
     return acc
   }, [])
@@ -76,6 +128,95 @@ function orchestrationPart(part: Record<string, any>, index: number): AIChatPart
     startedAt: typeof data.startedAt === 'string' ? data.startedAt : undefined,
     endedAt: typeof data.endedAt === 'string' ? data.endedAt : undefined,
     metadata: typeof data.metadata === 'object' && data.metadata ? data.metadata : undefined,
+    raw: part,
+  }
+}
+
+function routingDecisionPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (part?.type !== 'data-routing_decision') return null
+  const data = typeof part.data === 'object' && part.data ? part.data : {}
+  const route = typeof data.route === 'string' ? data.route : 'unknown'
+  const executionPath = typeof data.executionPath === 'string' ? data.executionPath : undefined
+  return {
+    id: String(part.id || `routing-${executionPath || route}-${index}`),
+    type: 'data-routing_decision',
+    status: 'completed',
+    label:
+      route === 'direct_workspace' || executionPath === 'direct_workspace' || route === 'direct'
+        ? 'Direct workspace route'
+        : 'Multi-agent route',
+    summary:
+      route === 'direct_workspace' || executionPath === 'direct_workspace' || route === 'direct'
+        ? 'Routed to direct workspace agent'
+        : 'Routed to multi-agent orchestration',
+    metadata: data,
+    raw: part,
+  }
+}
+
+function orchestrationArtifactPart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (
+    part?.type !== 'data-plan'
+    && part?.type !== 'data-retrieval_bundle'
+    && part?.type !== 'data-draft_answer'
+    && part?.type !== 'data-critique'
+    && part?.type !== 'data-final_answer'
+  ) {
+    return null
+  }
+  const labelByType: Record<string, string> = {
+    'data-plan': 'Plan',
+    'data-retrieval_bundle': 'Retrieval bundle',
+    'data-draft_answer': 'Draft answer',
+    'data-critique': 'Critique',
+    'data-final_answer': 'Final answer',
+  }
+  const data = typeof part.data === 'object' && part.data ? part.data : {}
+  return {
+    id: String(part.id || `${part.type}-${index}`),
+    type: part.type,
+    status: 'completed',
+    label: labelByType[part.type] || part.type,
+    summary: labelByType[part.type] || part.type,
+    metadata: data,
+    text: part.type === 'data-final_answer' && typeof data.content === 'string' ? data.content : undefined,
+    raw: part,
+  }
+}
+
+function workspaceReferencePart(part: Record<string, any>, index: number): AIChatPartItem | null {
+  if (
+    part?.type !== 'data-rag_sources'
+    && part?.type !== 'data-mcp_sources'
+    && part?.type !== 'data-action_result'
+  ) {
+    return null
+  }
+  const data = typeof part.data === 'object' && part.data ? part.data : {}
+  if (part.type === 'data-action_result') {
+    const actions = toWorkspaceActions(data.actions || data.actionResults || data.results)
+    if (actions.length === 0) return null
+    return {
+      id: String(part.id || `action-result-${index}`),
+      type: part.type,
+      status: actions.some(action => action.status === 'error') ? 'error' : 'completed',
+      label: 'Action result',
+      summary: 'Workspace action result',
+      actions,
+      metadata: data,
+      raw: part,
+    }
+  }
+  const references = toWorkspaceReferences(data.sources || data.references || data.results)
+  if (references.length === 0) return null
+  return {
+    id: String(part.id || `${part.type}-${index}`),
+    type: part.type,
+    status: 'completed',
+    label: part.type === 'data-rag_sources' ? 'RAG sources' : 'Workspace sources',
+    summary: part.type === 'data-rag_sources' ? 'Indexed file sources' : 'Workspace data sources',
+    references,
+    metadata: data,
     raw: part,
   }
 }
@@ -146,38 +287,6 @@ function projectListPart(part: Record<string, any>, index: number): AIChatPartIt
   }
 }
 
-function approvalPart(part: Record<string, any>, index: number): AIChatPartItem | null {
-  if (!part?.approval || typeof part.approval !== 'object') return null
-  const approval = part.approval as Record<string, any>
-  const approved = approval.approved
-  return {
-    id: String(part.id || approval.id || `approval-${index}`),
-    type: part.type || 'approval',
-    status:
-      approved === true
-        ? 'completed'
-        : approved === false
-          ? 'denied'
-          : 'pending',
-    label: typeof part.title === 'string' ? part.title : 'Approval',
-    summary:
-      approved === true
-        ? 'Approved'
-        : approved === false
-          ? 'Rejected'
-          : 'Pending approval',
-    approval: {
-      id: typeof approval.id === 'string' ? approval.id : `approval-${index}`,
-      approved: typeof approved === 'boolean' ? approved : undefined,
-      reason: typeof approval.reason === 'string' ? approval.reason : undefined,
-    },
-    metadata: {
-      toolName: toolNameFromPart(part),
-    },
-    raw: part,
-  }
-}
-
 function toolPart(part: Record<string, any>, index: number): AIChatPartItem | null {
   if (typeof part?.type !== 'string' || !part.type.startsWith('tool-')) return null
   const toolName = toolNameFromPart(part)
@@ -238,7 +347,7 @@ function fallbackPart(part: Record<string, any>, index: number): AIChatPartItem 
   return {
     id: String(part.id || `${part.type || 'part'}-${index}`),
     type: typeof part.type === 'string' ? part.type : 'unknown',
-    status: normalizeStatus(typeof part.state === 'string' ? part.state : undefined),
+    status: normalizeTranscriptStatus(typeof part.state === 'string' ? part.state : undefined),
     label: typeof part.type === 'string' ? part.type : 'Unknown part',
     text: typeof part.text === 'string' ? part.text : undefined,
     raw: part,
@@ -250,22 +359,63 @@ function toPart(part: Record<string, any>, index: number): AIChatPartItem {
     textPart(part, index)
     || reasoningPart(part, index)
     || projectListPart(part, index)
+    || routingDecisionPart(part, index)
     || orchestrationPart(part, index)
+    || orchestrationArtifactPart(part, index)
+    || workspaceReferencePart(part, index)
     || sourceUrlPart(part, index)
     || sourceDocumentPart(part, index)
     || filePart(part, index)
-    || approvalPart(part, index)
     || toolPart(part, index)
     || fallbackPart(part, index)
   )
 }
 
-function messageContent(parts: AIChatPartItem[]): string {
+export function messageContent(parts: AIChatPartItem[]): string {
   return parts
     .filter(part => part.type === 'text' && typeof part.text === 'string')
     .map(part => part.text)
     .join('')
     .trim()
+}
+
+export function groupAssistantPartsForThinking(parts: AIChatPartItem[]): AIChatPartItem[] {
+  const textParts = parts.filter(part => part.type === 'text')
+  const thinkingChildren = parts.filter(part => part.type !== 'text' && part.type !== 'thinking_group')
+  if (thinkingChildren.length === 0) return textParts
+
+  return [thinkingGroupPart(thinkingChildren), ...textParts]
+}
+
+export function thinkingGroupPart(children: AIChatPartItem[]): AIChatPartItem {
+  const status = thinkingGroupStatus(children)
+  return {
+    id: 'thinking-group',
+    type: 'thinking_group',
+    status,
+    label: status === 'running' ? 'Thinking' : status === 'error' ? 'Thinking failed' : 'Thinking',
+    summary: thinkingGroupSummary(children, status),
+    children,
+  }
+}
+
+function thinkingGroupStatus(children: AIChatPartItem[]): AIChatPartItem['status'] {
+  if (children.some(part => part.status === 'running' || part.status === 'pending')) return 'running'
+  if (children.some(part => part.status === 'error')) return 'error'
+  if (children.some(part => part.status === 'denied')) return 'denied'
+  if (children.some(part => part.status === 'skipped')) return 'skipped'
+  return 'completed'
+}
+
+function thinkingGroupSummary(children: AIChatPartItem[], status: AIChatPartItem['status']): string {
+  if (status === 'running') {
+    const running = [...children].reverse().find(part => part.status === 'running' || part.status === 'pending')
+    return running?.summary || running?.label || 'Đang suy nghĩ...'
+  }
+  if (status === 'error') return 'Có bước xử lý bị lỗi'
+  if (status === 'denied') return 'Có bước xử lý bị từ chối'
+  if (children.length === 0) return 'Đã xử lý'
+  return 'Đã xử lý'
 }
 
 export function transcriptToTimeline(
@@ -274,7 +424,7 @@ export function transcriptToTimeline(
   if (!Array.isArray(transcriptMessages) || transcriptMessages.length === 0) return null
 
   const items: AIChatTimelineItem[] = []
-  let activeApprovalItemId: string | null = null
+  let pendingInternalParts: AIChatPartItem[] = []
 
   for (const message of transcriptMessages) {
     const timestamp = timestampFromMetadata(message.metadata, new Date().toISOString())
@@ -301,23 +451,28 @@ export function transcriptToTimeline(
     const normalizedParts = parts
       .filter((part): part is Record<string, any> => Boolean(part && typeof part === 'object'))
       .map((part, index) => toPart(part, index))
+    const contentFromNormalizedParts = messageContent(normalizedParts)
 
-    for (const part of normalizedParts) {
-      if (part.approval && part.approval.approved === undefined && activeApprovalItemId == null) {
-        activeApprovalItemId = part.approval.id
-      }
+    if (message.role === 'system' && !contentFromNormalizedParts) {
+      pendingInternalParts = [...pendingInternalParts, ...normalizedParts]
+      continue
     }
 
-    const content = messageContent(normalizedParts)
+    const partsWithPending = pendingInternalParts.length > 0
+      ? [...pendingInternalParts, ...normalizedParts]
+      : normalizedParts
+    pendingInternalParts = []
+    const groupedParts = groupAssistantPartsForThinking(partsWithPending)
+    const content = messageContent(groupedParts)
 
     if (message.role === 'assistant') {
-      if (content || normalizedParts.length > 0) {
+      if (content || groupedParts.length > 0) {
         items.push({
           id: `${message.id}-assistant`,
           type: 'assistant_message',
           content,
-          status: normalizedParts.some(part => part.status === 'running') ? 'streaming' : 'completed',
-          parts: normalizedParts,
+          status: groupedParts.some(part => part.status === 'running') ? 'streaming' : 'completed',
+          parts: groupedParts,
           timestamp,
         })
       }
@@ -329,13 +484,24 @@ export function transcriptToTimeline(
         id: `${message.id}-system`,
         type: 'system_message',
         content,
-        parts: normalizedParts,
+        parts: groupedParts,
         timestamp,
       })
     }
   }
 
-  return { items, activeApprovalItemId }
+  if (pendingInternalParts.length > 0) {
+    const groupedParts = groupAssistantPartsForThinking(pendingInternalParts)
+    items.push({
+      id: `system-${Date.now()}-internal`,
+      type: 'system_message',
+      content: '',
+      parts: groupedParts,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  return { items, activeApprovalItemId: null }
 }
 
 export function uiMessagesToTimeline(
