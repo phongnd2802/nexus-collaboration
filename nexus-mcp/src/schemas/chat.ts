@@ -29,8 +29,6 @@ export const channelOutputSchema = z
     type: z.enum(['channel', 'dm']).or(z.string()),
     is_private: z.boolean(),
     is_archived: z.boolean(),
-    archived_at: z.string().datetime().nullable(),
-    archived_by: z.string().nullable(),
     created_by: z.string().nullable(),
     collaborative_data: z.record(z.unknown()),
     created_at: z.string().datetime(),
@@ -122,17 +120,7 @@ export const sendChannelMessageLinkedContentInputSchema = z
 export const sendChannelMessageInputShape = {
   content: z.string().optional().describe('Plaintext message content. Usually provided for normal messages.'),
   content_html: z.string().optional().describe('HTML formatted message content for rich text.'),
-  encrypted_content: z.string().optional().describe('Encrypted message content. Use with encryption_metadata and is_encrypted=true.'),
-  encryption_metadata: z
-    .object({
-      algorithm: z.string().min(1),
-      version: z.string().min(1),
-      nonce: z.string().min(1),
-      conversationId: z.string().min(1),
-    })
-    .strip()
-    .optional()
-    .describe('Encryption metadata for end-to-end encrypted messages.'),
+  encrypted_content: z.string().optional().describe('Encrypted message content for end-to-end encrypted messages. Use with is_encrypted=true.'),
   is_encrypted: z.boolean().optional().describe('Whether this message is end-to-end encrypted.'),
   thread_id: z
     .string()
@@ -178,7 +166,7 @@ export const scheduledMessageStatusSchema = z.enum(['pending', 'sent', 'cancelle
 export const scheduleMessageInputShape = {
   content: z.string().min(1).describe('Message content.'),
   contentHtml: z.string().optional().describe('HTML formatted content.'),
-  channelId: z.string().uuid().optional().describe('Channel ID for scheduled channel messages.'),
+  channelId: z.string().uuid().describe('Channel ID for the scheduled message.'),
   threadId: z.string().uuid().optional().describe('Root thread message ID if scheduling a thread reply.'),
   parentId: z.string().uuid().optional().describe('Direct parent message ID if scheduling a reply.'),
   attachments: z.array(sendChannelMessageAttachmentInputSchema).optional().describe('File attachments with metadata.'),

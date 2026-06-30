@@ -47,7 +47,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_create_channel',
     title: 'Create Nexus Channel',
     description:
-      'Create a new channel in a workspace. Accepts name, optional description, optional type, private flag, and optional member IDs for private channels.',
+      'Use this tool when you need to create a new channel in a workspace. Provide a name (required), optional description, channel type ("channel" or "dm"), and set is_private=true with member_ids to create a private channel with specific members.',
     inputSchema: { workspace_id: workspaceIdSchema, ...createChannelInputShape },
     method: 'POST',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/channels`,
@@ -70,7 +70,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_list_channels',
     title: 'List Nexus Channels',
-    description: 'List channels in a workspace that the authenticated user can access.',
+    description:
+      'Use this tool when you need to list all channels in a workspace that the authenticated user has access to. Returns both public and private channels the user is a member of, including member count and membership status.',
     inputSchema: { workspace_id: workspaceIdSchema },
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/channels`,
     outputSchema: listChannelsOutputSchema,
@@ -87,7 +88,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_search_private_channels',
     title: 'Search Nexus Private Channels',
-    description: 'Search private channels in a workspace by name.',
+    description:
+      'Use this tool when you need to search for private channels in a workspace by name. Provide a name query string to find matching private channels the user has access to.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       name: z.string().min(1).describe('Channel name to search for.'),
@@ -102,7 +104,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_channel',
     title: 'Get Nexus Channel',
-    description: 'Get channel details by ID.',
+    description:
+      'Use this tool when you need to get detailed information about a specific channel by its ID. Returns channel metadata including name, description, type, privacy setting, creation info, and collaborative data.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -120,7 +123,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_channel_members',
     title: 'Get Nexus Channel Members',
-    description: 'List members of a channel with their user details.',
+    description:
+      'Use this tool when you need to list all members of a channel with their user details. Returns user ID, name, email, and role (admin/moderator/member) for each member.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -136,7 +140,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_update_channel',
     title: 'Update Nexus Channel',
     description:
-      'Update a channel with optional name, description, privacy flag, and private member list.',
+      'Use this tool when you need to update a channel\'s properties. Supports changing name, description, privacy flag, and the member list for private channels. All fields are optional—only provided fields will be updated.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -163,7 +167,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_add_channel_members',
     title: 'Add Nexus Channel Members',
-    description: 'Add one or more members to a channel.',
+    description:
+      'Use this tool when you need to add one or more members to a channel. Provide a single user_id or an array of user_ids. Optionally assign a role (admin/moderator/member) to the added users.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -190,7 +195,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_channel_messages',
     title: 'Get Nexus Channel Messages',
-    description: 'Get channel messages with limit and offset pagination.',
+    description:
+      'Use this tool when you need to retrieve messages from a channel with pagination (limit/offset). Returns message objects with content, sender info, timestamps, attachments, mentions, reactions, thread metadata, and bookmark status.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -208,7 +214,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_send_channel_message',
     title: 'Send Nexus Channel Message',
-    description: 'Send a message to a channel.',
+    description:
+      'Use this tool when you need to send a message to a channel. Supports plain text, HTML, encrypted content (with encryption_metadata), thread replies (thread_id/parent_id), file attachments, user mentions, and linked content like notes, events, or polls.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -242,7 +249,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_create_channel_poll',
     title: 'Create Nexus Channel Poll',
-    description: 'Create a poll in a channel by sending a message with poll linked content.',
+    description:
+      'Use this tool when you need to create an interactive poll in a channel. Specify the question and between 2-10 options. Optionally configure allow_multiple_choice and show_results_before_voting. An optional message can accompany the poll.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -273,7 +281,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_channel_unread_count',
     title: 'Get Nexus Channel Unread Count',
-    description: 'Get unread message count for a channel.',
+    description:
+      'Use this tool when you need to check the number of unread messages in a channel for the current authenticated user.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -293,7 +302,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_bookmark_message',
     title: 'Bookmark Nexus Message',
-    description: 'Bookmark a message in a channel or conversation.',
+    description:
+      'Use this tool when you need to bookmark a specific message in a channel or conversation for quick retrieval later. Provide the message ID to bookmark.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       message_id: idSchema('Message'),
@@ -315,7 +325,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_unbookmark_message',
     title: 'Unbookmark Nexus Message',
-    description: 'Remove bookmark from a message in a channel or conversation.',
+    description:
+      'Use this tool when you need to remove a bookmark from a previously bookmarked message in a channel or conversation. Provide the message ID to unbookmark.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       message_id: idSchema('Message'),
@@ -336,7 +347,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_channel_bookmarked_messages',
     title: 'Get Nexus Channel Bookmarked Messages',
-    description: 'Get bookmarked messages in a channel with pagination.',
+    description:
+      'Use this tool when you need to retrieve all bookmarked messages in a channel with pagination (page/limit). Returns message content along with bookmark metadata such as bookmark time and user.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       channel_id: idSchema('Channel'),
@@ -354,7 +366,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_schedule_message',
     title: 'Schedule Nexus Message',
-    description: 'Schedule a channel message to be sent later.',
+    description:
+      'Use this tool when you need to schedule a channel message to be sent at a future date and time. Provide content, channel ID, the scheduledAt ISO timestamp, and optionally thread/parent IDs, attachments, mentions, and linked content.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       ...scheduleMessageInputShape,
@@ -364,7 +377,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
     body: ({ content, contentHtml, channelId, threadId, parentId, attachments, mentions, linkedContent, scheduledAt }) => ({
       content,
       ...(contentHtml !== undefined ? { contentHtml } : {}),
-      ...(channelId !== undefined ? { channelId } : {}),
+      channelId,
       ...(threadId !== undefined ? { threadId } : {}),
       ...(parentId !== undefined ? { parentId } : {}),
       ...(attachments !== undefined ? { attachments } : {}),
@@ -385,7 +398,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_scheduled_messages',
     title: 'Get Nexus Scheduled Messages',
-    description: 'List scheduled channel messages for the current user, optionally filtered by status or channel.',
+    description:
+      'Use this tool when you need to list all scheduled messages for the current user. Optionally filter by status (pending/sent/cancelled/failed) or channel ID, with pagination (limit/offset).',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       status: scheduledMessageStatusSchema.optional().describe('Optional status filter.'),
@@ -408,7 +422,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_scheduled_message',
     title: 'Get Nexus Scheduled Message',
-    description: 'Get details for a scheduled message by ID.',
+    description:
+      'Use this tool when you need to view the full details of a specific scheduled message by its ID. Returns content, scheduled time, status, channel, and any failure reason.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       scheduled_message_id: idSchema('Scheduled message'),
@@ -423,7 +438,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_update_scheduled_message',
     title: 'Update Nexus Scheduled Message',
-    description: 'Update a pending scheduled message.',
+    description:
+      'Use this tool when you need to update the content, attachments, mentions, linked content, or scheduled time of a pending (not yet sent) scheduled message.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       scheduled_message_id: idSchema('Scheduled message'),
@@ -453,7 +469,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_cancel_scheduled_message',
     title: 'Cancel Nexus Scheduled Message',
-    description: 'Cancel a pending scheduled message.',
+    description:
+      'Use this tool when you need to cancel a pending scheduled message before it has been sent. Once cancelled, the message will not be delivered.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       scheduled_message_id: idSchema('Scheduled message'),

@@ -43,7 +43,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_list_projects',
     title: 'List Nexus Projects',
-    description: 'List projects in a workspace with optional status and type filters.',
+    description:
+      'Use this tool when you need to list projects in a workspace. Optionally filter by status (active/on_hold/completed/archived) and type (kanban/scrum/bug_tracking/feature/research).',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       status: z.string().optional().describe('Optional project status filter.'),
@@ -62,7 +63,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_get_project',
     title: 'Get Nexus Project',
-    description: 'Get project details by ID.',
+    description:
+      'Use this tool when you need to get detailed information about a specific project by its ID. Returns name, description, type, status, priority, owner, dates, budget, kanban stages, and attachments.',
     inputSchema: { workspace_id: workspaceIdSchema, project_id: idSchema('Project') },
     outputSchema: projectOutputSchema,
     outputTransform: (data) => normalizeProject(data),
@@ -74,7 +76,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_create_project',
     title: 'Create Nexus Project',
-    description: 'Create a project in a workspace.',
+    description:
+      'Use this tool when you need to create a new project. Provide name (required), and optionally description, type, status, priority, owner/lead, dates, estimated hours, budget, kanban stages, attachments, and collaborative metadata.',
     inputSchema: { workspace_id: workspaceIdSchema, ...createProjectInputShape },
     method: 'POST',
     outputSchema: projectOutputSchema,
@@ -87,7 +90,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_update_project',
     title: 'Update Nexus Project',
-    description: 'Update a project by ID.',
+    description:
+      'Use this tool when you need to update a project\'s name, description, type, status, priority, owner, lead, dates, budget, kanban stages, attachments, or collaborative data. All fields are optional.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       project_id: idSchema('Project'),
@@ -105,7 +109,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_delete_project',
     title: 'Delete Nexus Project',
-    description: 'Delete a project by ID.',
+    description:
+      'Use this tool when you need to permanently delete a project and its associated data by project ID.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       project_id: idSchema('Project'),
@@ -124,7 +129,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_get_project_members',
     title: 'Get Nexus Project Members',
-    description: 'List members of a project.',
+    description:
+      'Use this tool when you need to list all members of a project with their user details (name, email, avatar) and role within the project.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       project_id: idSchema('Project'),
@@ -142,7 +148,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_list_workspace_tasks',
     title: 'List Nexus Workspace Tasks',
-    description: 'List tasks across all projects in a workspace, optionally filtered by title search and status.',
+    description:
+      'Use this tool when you need to list tasks across all projects in a workspace. Optionally filter by title search or task status, with configurable limit.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       search: z.string().optional().describe('Optional task title search.'),
@@ -162,7 +169,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_list_project_tasks',
     title: 'List Nexus Project Tasks',
-    description: 'List tasks for a project, optionally filtered by sprint ID or status.',
+    description:
+      'Use this tool when you need to list tasks within a specific project. Optionally filter by sprint ID or task status.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       project_id: idSchema('Project'),
@@ -183,7 +191,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_get_task',
     title: 'Get Nexus Task',
-    description: 'Get task details by ID.',
+    description:
+      'Use this tool when you need to get detailed information about a specific task by its ID. Returns title, description, type, status, priority, assignees, due date, labels, custom fields, and attachments.',
     inputSchema: { workspace_id: workspaceIdSchema, task_id: idSchema('Task') },
     outputSchema: taskOutputSchema,
     outputTransform: (data) => normalizeTask(data),
@@ -195,7 +204,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_create_task',
     title: 'Create Nexus Task',
-    description: 'Create a task in a project.',
+    description:
+      'Use this tool when you need to create a new task in a project. Provide title (required), and optionally description, type, status, priority, sprint, parent task, assignees, due date, story points, labels, attachments, and custom fields.',
     inputSchema: { workspace_id: workspaceIdSchema, project_id: idSchema('Project'), ...createTaskInputShape },
     method: 'POST',
     outputSchema: taskOutputSchema,
@@ -209,7 +219,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_update_task',
     title: 'Update Nexus Task',
-    description: 'Update a task by ID.',
+    description:
+      'Use this tool when you need to update a task\'s title, description, type, status, priority, sprint, assignees, due date, story points, actual hours, labels, attachments, custom fields, or completion info. All fields are optional.',
     inputSchema: { workspace_id: workspaceIdSchema, task_id: idSchema('Task'), ...updateTaskInputShape },
     method: 'PATCH',
     outputSchema: taskOutputSchema,
@@ -223,7 +234,8 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
   registerApiTool(server, client, {
     name: 'nexus_delete_task',
     title: 'Delete Nexus Task',
-    description: 'Delete a task by ID.',
+    description:
+      'Use this tool when you need to permanently delete a task by its ID.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       task_id: idSchema('Task'),
@@ -315,7 +327,7 @@ function normalizeTask(data: unknown) {
     sprint_id: task.sprint_id ?? null,
     parent_task_id: task.parent_task_id ?? null,
     assigned_to: Array.isArray(assignedTo) ? assignedTo : [],
-    assignees: Array.isArray(task.assignees) ? task.assignees : [],
+    assignees: normalizeAssignees(task.assignees),
     assignee_team_member_id: task.assignee_team_member_id ?? null,
     reporter_team_member_id: task.reporter_team_member_id ?? null,
     due_date: task.due_date ?? null,
@@ -329,8 +341,8 @@ function normalizeTask(data: unknown) {
     updated_by: (task.updated_by as string | null | undefined) ?? null,
     completed_by: (task.completed_by as string | null | undefined) ?? null,
     completed_at: (task.completed_at as string | null | undefined) ?? null,
-    updated_by_user: task.updated_by_user ?? null,
-    created_by_user: task.created_by_user ?? null,
+    updated_by_user: isObject(task.updated_by_user) ? task.updated_by_user : null,
+    created_by_user: isObject(task.created_by_user) ? task.created_by_user : null,
   });
 }
 
@@ -346,4 +358,15 @@ function normalizeAttachmentGroup(data: unknown) {
 
 function normalizeRecord(data: unknown) {
   return data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
+}
+
+function normalizeAssignees(assignees: unknown): unknown[] {
+  if (!Array.isArray(assignees)) return [];
+  return assignees.filter((a): a is Record<string, unknown> =>
+    a !== null && typeof a === 'object' && !Array.isArray(a)
+  );
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

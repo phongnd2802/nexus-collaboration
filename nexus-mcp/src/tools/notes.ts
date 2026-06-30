@@ -36,7 +36,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_list_notes',
     title: 'List Nexus Notes',
-    description: 'List notes in a workspace, optionally filtering by parent, deleted status, or archived status.',
+    description:
+      'Use this tool when you need to list notes in a workspace. Filter by parent_id for hierarchical browsing, is_deleted to include soft-deleted notes, or is_archived to show/hide archived notes.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       parent_id: z.string().optional().describe('Optional parent note/folder ID.'),
@@ -53,7 +54,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_search_notes',
     title: 'Search Nexus Notes',
-    description: 'Search notes with keyword, semantic, or hybrid mode.',
+    description:
+      'Use this tool when you need to search notes using keyword, semantic (AI embedding), or hybrid mode. Provide a search query and optionally paginate with limit/offset.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       q: z.string().min(1).describe('Search query text.'),
@@ -71,7 +73,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_get_note',
     title: 'Get Nexus Note',
-    description: 'Get note details by ID.',
+    description:
+      'Use this tool when you need to get note details by ID. Returns full note content, metadata, author info, collaborators, and attachments. Optionally include soft-deleted notes with include_deleted=true.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       note_id: idSchema('Note'),
@@ -88,7 +91,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_create_note',
     title: 'Create Nexus Note',
     description:
-      'Create a Nexus note with title and content, and optional parent note, tags, cover image, icon, public flag, and attachments.',
+      'Use this tool when you need to create a new note in a workspace. Provide title and content (required), and optionally set a parent_id for nesting, tags, cover_image, icon, is_public flag, and file/note/event attachments.',
     inputSchema: { workspace_id: workspaceIdSchema, ...createNoteInputShape },
     method: 'POST',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes`,
@@ -110,7 +113,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_update_note',
     title: 'Update Nexus Note',
     description:
-      'Update a Nexus note with optional title, content, tags, public flag, favorite flag, and attachments.',
+      'Use this tool when you need to update an existing note\'s title, content, tags, is_public flag, is_favorite flag, or attachments. All fields are optional—only provided fields will be updated.',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...updateNoteInputShape },
     method: 'PATCH',
     path: ({ workspace_id, note_id }) =>
@@ -130,7 +133,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_archive_note',
     title: 'Archive Nexus Note',
-    description: 'Archive a note and its sub-notes.',
+    description:
+      'Use this tool when you need to archive a note and all its sub-notes to hide them from the default list view. Archived notes can be unarchived later.',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
     method: 'POST',
     path: ({ workspace_id, note_id }) =>
@@ -147,7 +151,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_delete_note',
     title: 'Delete Nexus Note',
-    description: 'Soft delete a note and all its sub-notes.',
+    description:
+      'Use this tool when you need to soft delete a note and all its sub-notes. Deleted notes can be restored or viewed with include_deleted=true on list/get queries.',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
     method: 'DELETE',
     path: ({ workspace_id, note_id }) =>
@@ -164,7 +169,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_restore_note',
     title: 'Restore Nexus Note',
-    description: 'Restore a soft-deleted note and all its sub-notes.',
+    description:
+      'Use this tool when you need to restore a soft-deleted note and all its sub-notes back to active status.',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
     method: 'POST',
     path: ({ workspace_id, note_id }) =>
@@ -181,7 +187,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_unarchive_note',
     title: 'Unarchive Nexus Note',
-    description: 'Unarchive a note and all its sub-notes.',
+    description:
+      'Use this tool when you need to unarchive a previously archived note and all its sub-notes, making them visible in the default list view again.',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note') },
     method: 'POST',
     path: ({ workspace_id, note_id }) =>
@@ -198,7 +205,8 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_share_note',
     title: 'Share Nexus Note',
-    description: 'Share a note with workspace members by user IDs.',
+    description:
+      'Use this tool when you need to share a note with workspace members. Provide an array of user_ids and optionally set a permission level (read/write/admin).',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...shareNoteInputShape },
     method: 'POST',
     path: ({ workspace_id, note_id }) =>

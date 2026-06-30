@@ -24,7 +24,8 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
   registerApiTool(server, client, {
     name: 'nexus_get_workspace',
     title: 'Get Nexus Workspace',
-    description: 'Get details for a Nexus workspace by ID.',
+    description:
+      'Use this tool when you need to get workspace details by ID. Returns name, description, logo, website, membership info (role/permissions), owner, settings, and timestamps.',
     inputSchema: { workspace_id: workspaceIdSchema },
     outputSchema: z.object(workspaceGetOutputShape),
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}`,
@@ -35,7 +36,7 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
     name: 'nexus_update_workspace',
     title: 'Update Nexus Workspace',
     description:
-      'Update workspace details. Accepts any subset of name, description, logo, and website. Requires admin or owner permission in the workspace.',
+      'Use this tool when you need to update workspace details such as name, description, logo, or website. Requires admin or owner permission. All fields are optional.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       name: z.string().max(100).optional().describe('Workspace name.'),
@@ -55,7 +56,8 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
   registerApiTool(server, client, {
     name: 'nexus_get_workspace_members',
     title: 'Get Nexus Workspace Members',
-    description: 'List members of a Nexus workspace.',
+    description:
+      'Use this tool when you need to list members of a workspace. Returns user details (name, email, username), role, permissions, join date, and invitation info for each member.',
     inputSchema: { workspace_id: workspaceIdSchema },
     outputSchema: workspaceMembersGetOutputSchema,
     outputTransform: (data) => ({ members: data }),
@@ -67,7 +69,7 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
     name: 'nexus_invite_workspace_member',
     title: 'Invite Nexus Workspace Member',
     description:
-      'Invite a member to a workspace. Requires admin or owner permission. Accepts email, optional role, and optional message.',
+      'Use this tool when you need to invite a new member to a workspace by email. Optionally specify a role (owner/admin/member) and a custom invitation message. Requires admin or owner permission.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       email: z.string().email().describe('Email address to invite.'),
@@ -95,7 +97,8 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
   registerApiTool(server, client, {
     name: 'nexus_update_workspace_member_role',
     title: 'Update Nexus Workspace Member Role',
-    description: 'Update a workspace member role. Requires admin or owner permission.',
+    description:
+      'Use this tool when you need to change a workspace member\'s role (owner/admin/member). Requires admin or owner permission. Provide the member ID and new role.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       member_id: idSchema('Workspace member'),
