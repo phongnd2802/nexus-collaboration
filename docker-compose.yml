@@ -41,26 +41,130 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
-  # nexus-ai:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: nexus-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health | grep -E 'yellow|green'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  # nexus-mcp:
   #   build:
-  #     context: ./nexus-ai
-  #   container_name: nexus-ai
+  #     context: ./nexus-mcp
+  #   container_name: nexus-mcp
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${NEXUS_MCP_HTTP_PORT:-3333}:3333"
+  #   environment:
+  #     NEXUS_MCP_HTTP_HOST: 0.0.0.0
+  #     NEXUS_MCP_HTTP_PORT: 3333
+  #     NEXUS_MCP_HTTP_PATH: /mcp
+  #     NEXUS_API_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
+  #     NEXUS_API_KEY: ${NEXUS_INTERNAL_API_KEY:-change-me}
+  #     NEXUS_API_TIMEOUT_MS: ${NEXUS_API_TIMEOUT_MS:-30000}
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:3333/health >/dev/null"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
+
+  # nexus-ai-service:
+  #   build:
+  #     context: ./nexus-ai-service
+  #   container_name: nexus-ai-service
   #   restart: unless-stopped
   #   ports:
   #     - "${NEXUS_AI_PORT:-8000}:8000"
   #   environment:
+  #     NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
+  #     NEXUS_INTERNAL_API_KEY: ${NEXUS_INTERNAL_API_KEY:-change-me}
+  #     NEXUS_MCP_URL: ${NEXUS_MCP_URL:-http://nexus-mcp:3333/mcp}
   #     OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
   #     NEXUS_AI_MODEL: ${NEXUS_AI_MODEL:-openai/gpt-4o-mini}
-  #     NEXUS_AI_API_KEY: ${NEXUS_AI_API_KEY:-change-me}
-  #     NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
-  #     NEXUS_INTERNAL_API_TOKEN: ${NEXUS_INTERNAL_API_TOKEN:-change-me}
-  #     OPENROUTER_APP_URL: ${OPENROUTER_APP_URL:-http://localhost:5175}
-  #     OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-Nexus}
+  #     NEXUS_AI_EMBEDDING_MODEL: ${NEXUS_AI_EMBEDDING_MODEL:-Qwen/Qwen3-VL-Embedding-8B}
+  #     QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+  #     QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+  #     QDRANT_DOCUMENT_COLLECTION: ${QDRANT_DOCUMENT_COLLECTION:-nexus_rag_documents}
+  #     QDRANT_CHUNK_COLLECTION: ${QDRANT_CHUNK_COLLECTION:-nexus_rag_chunks}
+  #     QDRANT_MEM0_USER_COLLECTION: ${QDRANT_MEM0_USER_COLLECTION:-nexus_mem0_user_memories}
+  #     QDRANT_MEM0_WORKSPACE_COLLECTION: ${QDRANT_MEM0_WORKSPACE_COLLECTION:-nexus_mem0_workspace_memories}
+  #     ELASTICSEARCH_URL: ${ELASTICSEARCH_URL:-http://elasticsearch:9200}
+  #     ELASTICSEARCH_RAG_INDEX: ${ELASTICSEARCH_RAG_INDEX:-nexus-rag-chunks-v1}
+  #     REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  #     DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/nexus_collab}
+  #     LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+  #     LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+  #     LANGFUSE_HOST: ${LANGFUSE_HOST:-}
+  #     MEM0_ENABLED: ${MEM0_ENABLED:-false}
+  #     NEXUS_RAG_OPENDATALOADER_HYBRID: ${NEXUS_RAG_OPENDATALOADER_HYBRID:-off}
+  #     NEXUS_RAG_OPENDATALOADER_HYBRID_URL: ${NEXUS_RAG_OPENDATALOADER_HYBRID_URL:-}
+  #     NEXUS_RAG_OPENDATALOADER_THREADS: ${NEXUS_RAG_OPENDATALOADER_THREADS:-1}
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     postgres:
+  #       condition: service_healthy
+  #     qdrant:
+  #       condition: service_started
+  #     elasticsearch:
+  #       condition: service_healthy
+  #     nexus-mcp:
+  #       condition: service_healthy
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
   #   healthcheck:
   #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
   #     interval: 30s
   #     timeout: 5s
   #     retries: 3
+
+  # nexus-ai-worker:
+  #   build:
+  #     context: ./nexus-ai-service
+  #   container_name: nexus-ai-worker
+  #   restart: unless-stopped
+  #   command: ["nexus-ai-worker"]
+  #   environment:
+  #     NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
+  #     NEXUS_INTERNAL_API_KEY: ${NEXUS_INTERNAL_API_KEY:-change-me}
+  #     OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  #     NEXUS_AI_MODEL: ${NEXUS_AI_MODEL:-openai/gpt-4o-mini}
+  #     NEXUS_AI_EMBEDDING_MODEL: ${NEXUS_AI_EMBEDDING_MODEL:-Qwen/Qwen3-VL-Embedding-8B}
+  #     QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+  #     QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+  #     QDRANT_DOCUMENT_COLLECTION: ${QDRANT_DOCUMENT_COLLECTION:-nexus_rag_documents}
+  #     QDRANT_CHUNK_COLLECTION: ${QDRANT_CHUNK_COLLECTION:-nexus_rag_chunks}
+  #     ELASTICSEARCH_URL: ${ELASTICSEARCH_URL:-http://elasticsearch:9200}
+  #     ELASTICSEARCH_RAG_INDEX: ${ELASTICSEARCH_RAG_INDEX:-nexus-rag-chunks-v1}
+  #     REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  #     DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/nexus_collab}
+  #     NEXUS_RAG_OPENDATALOADER_HYBRID: ${NEXUS_RAG_OPENDATALOADER_HYBRID:-off}
+  #     NEXUS_RAG_OPENDATALOADER_HYBRID_URL: ${NEXUS_RAG_OPENDATALOADER_HYBRID_URL:-}
+  #     NEXUS_RAG_OPENDATALOADER_THREADS: ${NEXUS_RAG_OPENDATALOADER_THREADS:-1}
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #     postgres:
+  #       condition: service_healthy
+  #     qdrant:
+  #       condition: service_started
+  #     elasticsearch:
+  #       condition: service_healthy
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
 
 
   seaweed-master:
@@ -116,21 +220,6 @@ services:
     depends_on:
       - seaweed-filer
 
-  # nexus-mcp:
-  #   build:
-  #     context: ./nexus-mcp
-  #   container_name: nexus-mcp
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${NEXUS_MCP_PORT:-3100}:3100"
-  #   environment:
-  #     PORT: 3100
-  #     MCP_SERVER_NAME: ${MCP_SERVER_NAME:-nexus-mcp-server}
-  #     NEXUS_BACKEND_BASE_URL: ${NEXUS_BACKEND_BASE_URL:-http://host.docker.internal:3002/api/v1}
-  #     REQUEST_TIMEOUT_MS: ${REQUEST_TIMEOUT_MS:-30000}
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-
   # meilisearch:
   #   image: getmeili/meilisearch:latest
   #   container_name: nexus-meilisearch
@@ -162,6 +251,8 @@ volumes:
   redis_data:
     driver: local
   qdrant_data:
+    driver: local
+  elasticsearch_data:
     driver: local
   seaweed_master:
     driver: local

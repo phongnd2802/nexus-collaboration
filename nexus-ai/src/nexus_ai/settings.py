@@ -32,6 +32,7 @@ class Settings:
     model: str
     environment: str
     mcp_url: str
+    mcp_urls: dict[str, str]
     api_token: str
     workspace_id: str
     user_id: str | None
@@ -112,6 +113,10 @@ class Settings:
         return self.runtime_dir / "workspaces" / self.workspace_id / "sessions" / self.session_id
 
     @property
+    def active_mcp_urls(self) -> dict[str, str]:
+        return self.mcp_urls or {"nexus-mcp": self.mcp_url}
+
+    @property
     def mcp_headers(self) -> dict[str, str]:
         headers = {
             "Authorization": f"Bearer {self.api_token}",
@@ -161,6 +166,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         model=source.get("NEXUS_AI_MODEL", "openrouter:openai/gpt-4o-mini"),
         environment=source.get("NEXUS_AI_ENV", "development"),
         mcp_url=source.get("NEXUS_MCP_URL", "http://127.0.0.1:3333/mcp"),
+        mcp_urls=_load_server_mcp_urls(source),
         api_token=source.get("NEXUS_API_TOKEN", ""),
         workspace_id=source.get("NEXUS_WORKSPACE_ID", ""),
         user_id=source.get("NEXUS_USER_ID") or None,
@@ -238,3 +244,21 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         rag_child_chunk_tokens=_int(source.get("NEXUS_RAG_CHILD_CHUNK_TOKENS"), 280),
         rag_child_overlap_tokens=_int(source.get("NEXUS_RAG_CHILD_OVERLAP_TOKENS"), 60),
     )
+
+
+def _load_server_mcp_urls(source: dict[str, str]) -> dict[str, str]:
+    server_env_map = {
+        "workspace": "NEXUS_MCP_WORKSPACE_URL",
+        "dashboard": "NEXUS_MCP_DASHBOARD_URL",
+        "notes": "NEXUS_MCP_NOTES_URL",
+        "projects": "NEXUS_MCP_PROJECTS_URL",
+        "chat": "NEXUS_MCP_CHAT_URL",
+        "calendar": "NEXUS_MCP_CALENDAR_URL",
+        "search": "NEXUS_MCP_SEARCH_URL",
+    }
+    urls: dict[str, str] = {}
+    for server, env_key in server_env_map.items():
+        value = source.get(env_key, "").strip()
+        if value:
+            urls[server] = value
+    return urls

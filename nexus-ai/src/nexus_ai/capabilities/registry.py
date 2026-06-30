@@ -7,7 +7,7 @@ from nexus_ai.settings import Settings
 
 from .code_mode import create_code_mode_capability
 from .ecosystem import create_ecosystem_capabilities
-from .mcp import create_nexus_mcp_capability
+from .mcp import create_nexus_mcp_capabilities
 from .reasoning import create_thinking_capability
 from .tool_preparation import create_mcp_tool_preparation_capability
 from .tool_search import create_tool_search_capability
@@ -30,7 +30,7 @@ class CapabilityRegistry:
 
 def build_capabilities(settings: Settings) -> CapabilityRegistry:
     registry = CapabilityRegistry()
-    registry.add("nexus-mcp", lambda: create_nexus_mcp_capability(settings))
+    registry.add("nexus-mcp", lambda: create_nexus_mcp_capabilities(settings))
     registry.add("tool-search", create_tool_search_capability)
     registry.add("mcp-tool-preparation", create_mcp_tool_preparation_capability)
     registry.add("code-mode", create_code_mode_capability)

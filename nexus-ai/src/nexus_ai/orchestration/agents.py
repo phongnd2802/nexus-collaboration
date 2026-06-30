@@ -7,7 +7,7 @@ from pydantic_ai import Agent
 
 from nexus_ai.capabilities.code_mode import create_code_mode_capability
 from nexus_ai.capabilities.ecosystem import create_ecosystem_capabilities
-from nexus_ai.capabilities.mcp import create_nexus_mcp_capability
+from nexus_ai.capabilities.mcp import create_nexus_mcp_capabilities
 from nexus_ai.capabilities.reasoning import create_thinking_capability
 from nexus_ai.capabilities.tool_preparation import create_mcp_tool_preparation_capability
 from nexus_ai.capabilities.tool_search import create_tool_search_capability
@@ -187,7 +187,7 @@ def retriever_capabilities_for_plan(
     if _needs_workspace_bundle(requested):
         bundles.append("workspace_read_bundle")
         for name, factory in [
-            ("nexus-mcp", lambda: create_nexus_mcp_capability(settings)),
+            ("nexus-mcp", lambda: create_nexus_mcp_capabilities(settings)),
             ("tool-search", create_tool_search_capability),
             ("mcp-tool-preparation", create_mcp_tool_preparation_capability),
         ]:
