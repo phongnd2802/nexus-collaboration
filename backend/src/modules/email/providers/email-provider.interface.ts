@@ -1,26 +1,8 @@
 /**
  * Common interface that every email provider implements.
  *
- * Pick a provider by setting EMAIL_PROVIDER in your .env to one of:
- *
- *   smtp      - Any SMTP server via nodemailer (Gmail app passwords,
- *               Mailtrap, Postfix, Resend SMTP, etc.).
- *               The default. Zero vendor lock-in.
- *
- *   resend    - Resend REST API. Modern, generous free tier.
- *
- *   postmark  - Postmark REST API. Strong deliverability for transactional.
- *
- *   ses       - AWS SES via @aws-sdk/client-ses (optional dependency,
- *               lazy-loaded). Cheapest at scale.
- *
- *   mailgun   - Mailgun REST API. Solid EU / global option.
- *
- *   none      - Email disabled. Every method throws loudly.
- *               The default if EMAIL_PROVIDER is unset.
- *
- * Adding a new provider: implement this interface, register it in
- * providers/index.ts, document the env vars in docs/providers/email.md.
+ * Only SMTP is supported (via nodemailer). Set EMAIL_PROVIDER=smtp
+ * in your .env (or leave unset — smtp is the default).
  */
 
 export interface EmailAttachment {
@@ -73,7 +55,7 @@ export interface SendEmailResult {
  */
 export interface EmailProvider {
   /** Stable provider name for logging / clients. */
-  readonly name: 'smtp' | 'resend' | 'postmark' | 'ses' | 'mailgun' | 'none';
+  readonly name: 'smtp';
 
   /** True if the provider has the credentials it needs to function. */
   isAvailable(): boolean;
