@@ -17,6 +17,7 @@ export class AgentChatService {
     requestId?: string;
     userId?: string;
     accept?: string;
+    lastEventId?: string;
   }, res: Response): Promise<void> {
     const response = await fetch(this.buildUrl(request.path), {
       method: request.method,
@@ -56,6 +57,7 @@ export class AgentChatService {
     requestId?: string;
     userId?: string;
     accept?: string;
+    lastEventId?: string;
   }): Record<string, string> {
     const headers: Record<string, string> = {
       Accept: request.accept || 'application/json',
@@ -69,6 +71,10 @@ export class AgentChatService {
 
     if (request.userId) {
       headers['X-Nexus-User-ID'] = request.userId;
+    }
+
+    if (request.lastEventId) {
+      headers['Last-Event-ID'] = request.lastEventId;
     }
 
     if (request.body !== undefined) {

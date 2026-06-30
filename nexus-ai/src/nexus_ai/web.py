@@ -53,6 +53,7 @@ def _mount_local_runtime_status(app, settings: Settings) -> None:
             "model": settings.model,
             "workspaceId": settings.workspace_id or None,
             "mcpUrl": settings.mcp_url,
+            "mcpUrls": settings.active_mcp_urls,
             "hasApiToken": bool(settings.api_token),
             "ragEnabled": settings.rag_enabled,
             "availableDomainSkills": available_domain_skill_ids_by_role(),

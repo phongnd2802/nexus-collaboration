@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -57,6 +57,46 @@ export class AgentChatController {
     await this.proxy(req, res, 'GET', `/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`, workspaceId);
   }
 
+  @Get('workspaces/:workspaceId/sessions/:sessionId/events')
+  async getSessionEvents(
+    @Param('workspaceId') workspaceId: string,
+    @Param('sessionId') sessionId: string,
+    @Query('since_event_id') sinceEventId: string | undefined,
+    @Headers('last-event-id') lastEventId: string | undefined,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const query = sinceEventId ? `?since_event_id=${encodeURIComponent(sinceEventId)}` : '';
+    await this.proxy(
+      req,
+      res,
+      'GET',
+      `/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}/events${query}`,
+      workspaceId,
+      undefined,
+      { lastEventId },
+    );
+  }
+
+  @Post('workspaces/:workspaceId/sessions/:sessionId/approvals/:approvalId/decision')
+  async submitApprovalDecision(
+    @Param('workspaceId') workspaceId: string,
+    @Param('sessionId') sessionId: string,
+    @Param('approvalId') approvalId: string,
+    @Body() body: unknown,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.proxy(
+      req,
+      res,
+      'POST',
+      `/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}/approvals/${approvalId}/decision`,
+      workspaceId,
+      body,
+    );
+  }
+
   @Delete('workspaces/:workspaceId/sessions/:sessionId')
   async deleteSession(
     @Param('workspaceId') workspaceId: string,
@@ -74,6 +114,7 @@ export class AgentChatController {
     path: string,
     workspaceId: string,
     body?: unknown,
+    options?: { lastEventId?: string },
   ): Promise<void> {
     const user = (req as any).user || {};
     await this.agentChatService.proxy(
@@ -86,6 +127,7 @@ export class AgentChatController {
         requestId: this.getHeader(req, 'x-nexus-request-id'),
         userId: user.sub || user.userId,
         accept: this.getHeader(req, 'accept'),
+        lastEventId: options?.lastEventId,
       },
       res,
     );

@@ -2,7 +2,7 @@
 
 Standalone Nexus AI multi-agent runtime for local development and capability testing.
 
-It connects to `nexus-mcp` over Streamable HTTP and exposes the Pydantic AI web test interface through `agent.to_web()`.
+It connects to `nexus-mcp` or dedicated MCP servers over Streamable HTTP and exposes the Pydantic AI web test interface through `agent.to_web()`.
 For Nexus app integration, the NestJS backend proxies `/api/v1/agent-chat/*` to this service.
 
 ## Run
@@ -11,7 +11,7 @@ For Nexus app integration, the NestJS backend proxies `/api/v1/agent-chat/*` to 
 cp .env.example .env
 uv sync --extra dev
 
-# in nexus-mcp/
+# in nexus-mcp/ or nexus-mcp-servers/
 npm run start:http
 
 # in nexus-ai/
@@ -25,6 +25,18 @@ Required env:
 - `NEXUS_API_TOKEN`
 - `NEXUS_WORKSPACE_ID`
 - `OPENROUTER_API_KEY` for the default OpenRouter model
+
+Optional per-server MCP env vars:
+
+- `NEXUS_MCP_WORKSPACE_URL`
+- `NEXUS_MCP_DASHBOARD_URL`
+- `NEXUS_MCP_NOTES_URL`
+- `NEXUS_MCP_PROJECTS_URL`
+- `NEXUS_MCP_CHAT_URL`
+- `NEXUS_MCP_CALENDAR_URL`
+- `NEXUS_MCP_SEARCH_URL`
+
+When any per-server MCP URL is configured, `nexus-ai` loads those endpoints instead of the legacy single `NEXUS_MCP_URL`.
 
 Default model:
 
@@ -68,4 +80,4 @@ Langfuse is enabled when `NEXUS_AI_ENABLE_LANGFUSE=true` and Langfuse keys are c
 ## Safety Defaults
 
 - Secrets are redacted from tool outputs.
-- MCP domain tools are accessed through `nexus-mcp`; the agent does not call the Nexus backend directly.
+- MCP tools are accessed through MCP servers; the agent does not call the Nexus backend directly.

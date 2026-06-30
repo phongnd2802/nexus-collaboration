@@ -33,4 +33,27 @@ def test_load_settings_from_env():
     assert settings.orchestrator_max_retrieval_retries == 1
     assert settings.router_confidence_threshold == 0.8
     assert settings.router_enable_model_fallback is False
+    assert settings.mcp_urls == {}
+    assert settings.active_mcp_urls == {"nexus-mcp": "http://localhost:3333/mcp"}
     assert settings.mcp_headers["X-Nexus-Workspace-ID"] == "workspace"
+
+
+def test_load_settings_with_server_mcp_urls():
+    settings = load_settings(
+        {
+            "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_MCP_WORKSPACE_URL": "http://127.0.0.1:3401/mcp",
+            "NEXUS_MCP_NOTES_URL": "http://127.0.0.1:3403/mcp",
+            "NEXUS_MCP_PROJECTS_URL": "http://127.0.0.1:3404/mcp",
+            "NEXUS_API_TOKEN": "token",
+            "NEXUS_WORKSPACE_ID": "workspace",
+        }
+    )
+
+    assert settings.mcp_url == "http://localhost:3333/mcp"
+    assert settings.mcp_urls == {
+        "workspace": "http://127.0.0.1:3401/mcp",
+        "notes": "http://127.0.0.1:3403/mcp",
+        "projects": "http://127.0.0.1:3404/mcp",
+    }
+    assert settings.active_mcp_urls == settings.mcp_urls

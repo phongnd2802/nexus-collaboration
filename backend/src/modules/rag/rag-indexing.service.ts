@@ -248,7 +248,7 @@ export class RagIndexingService {
     const providedKey = this.header(headers, 'x-api-key');
     const source = this.header(headers, 'x-nexus-source');
 
-    if (!expectedKey || source !== 'nexus-ai' || providedKey !== expectedKey) {
+    if (!expectedKey || !['nexus-ai', 'nexus-ai-service'].includes(source || '') || providedKey !== expectedKey) {
       throw new UnauthorizedException('Invalid Nexus AI internal request');
     }
   }
