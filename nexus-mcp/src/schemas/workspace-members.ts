@@ -17,7 +17,6 @@ export const workspaceMemberOutputShape = {
   invited_at: z.string().datetime().nullable(),
   invited_by: z.string().nullable(),
   is_active: z.boolean(),
-  collaborative_data: z.record(z.unknown()),
   user: z.object(workspaceMemberUserOutputShape),
 };
 
