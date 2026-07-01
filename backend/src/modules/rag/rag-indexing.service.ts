@@ -167,14 +167,14 @@ export class RagIndexingService {
     userId?: string,
     authorization?: string,
     requestId?: string,
-  ): Promise<any[]> {
+  ): Promise<{ results: Array<Record<string, unknown>> }> {
     const baseUrl = this.nexusAiBaseUrl();
     if (!baseUrl) {
-      return [];
+      return { results: [] };
     }
     const fileIds = await this.getSearchableFileIds(workspaceId, userId);
     if (fileIds.length === 0) {
-      return [];
+      return { results: [] };
     }
 
     const response = await fetch(`${baseUrl}/rag/internal/search`, {
@@ -186,11 +186,35 @@ export class RagIndexingService {
     if (!response.ok) {
       const text = await response.text();
       this.logger.warn(`RAG search failed: ${response.status} ${text}`);
-      return [];
+      return { results: [] };
     }
 
     const payload = await response.json();
-    return Array.isArray(payload?.results) ? payload.results : [];
+    const results = Array.isArray(payload?.results) ? payload.results : [];
+
+    return {
+      results: results
+        .map((result: Record<string, unknown>) => {
+          const fileId =
+            this.stringValue(result.file_id) || this.stringValue(result.content_id) || this.stringValue(result.id);
+          if (!fileId) {
+            return null;
+          }
+          return {
+            file_id: fileId,
+            file_name: this.stringValue(result.file_name) || this.stringValue(result.title) || 'Untitled file',
+            mime_type: this.stringValue(result.mime_type) || null,
+            score: this.numberValue(result.score),
+            snippet: this.buildSnippet(result),
+            citation: this.stringValue(result.citation) || null,
+            retrieval_mode: this.stringValue(result.retrieval_mode) || null,
+            page_numbers: Array.isArray(result.page_numbers)
+              ? result.page_numbers.filter((value): value is number => typeof value === 'number')
+              : [],
+          };
+        })
+        .filter((result): result is Record<string, unknown> => result !== null),
+    };
   }
 
   async getSearchableFileIds(workspaceId: string, userId?: string): Promise<string[]> {
@@ -361,5 +385,24 @@ export class RagIndexingService {
   private header(headers: Record<string, string | string[] | undefined>, name: string): string | undefined {
     const value = headers[name] || headers[name.toLowerCase()];
     return Array.isArray(value) ? value[0] : value;
+  }
+
+  private buildSnippet(result: Record<string, unknown>): string {
+    const snippet =
+      this.stringValue(result.chunk_text) ||
+      this.stringValue(result.raw_text) ||
+      this.stringValue(result.content) ||
+      this.stringValue(result.summary) ||
+      '';
+
+    return snippet.length <= 500 ? snippet : `${snippet.slice(0, 500)}...[truncated]`;
+  }
+
+  private stringValue(value: unknown): string | null {
+    return typeof value === 'string' && value.trim() ? value : null;
+  }
+
+  private numberValue(value: unknown): number {
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
   }
 }

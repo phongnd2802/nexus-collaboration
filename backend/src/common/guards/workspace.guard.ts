@@ -33,7 +33,6 @@ export class WorkspaceGuard implements CanActivate {
       // Extract user ID with fallback for different token formats
       const userId = user.sub || user.userId;
 
-      console.log('[WorkspaceGuard] User object:', JSON.stringify(user));
       console.log('[WorkspaceGuard] Extracted userId:', userId);
       console.log('[WorkspaceGuard] Checking workspace:', workspaceId);
 
@@ -50,7 +49,6 @@ export class WorkspaceGuard implements CanActivate {
           user_id: userId,
           is_active: true,
         });
-        console.log('[WorkspaceGuard] Membership query result:', JSON.stringify(membershipQuery));
         membershipData = membershipQuery.data || [];
       } catch (dbError) {
         // If database fails (e.g., 502 error), try using the table query builder as fallback
@@ -66,7 +64,6 @@ export class WorkspaceGuard implements CanActivate {
             .where('user_id', '=', userId)
             .where('is_active', '=', true)
             .execute();
-          console.log('[WorkspaceGuard] Fallback query result:', JSON.stringify(fallbackQuery));
           const fallbackData = fallbackQuery.data || fallbackQuery;
           membershipData = Array.isArray(fallbackData) ? fallbackData : [];
         } catch (fallbackError) {

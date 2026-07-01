@@ -17,6 +17,24 @@ services:
       timeout: 5s
       retries: 5
 
+  nexus-ai-postgres:
+    image: postgres:15-alpine
+    container_name: nexus-ai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${NEXUS_AI_POSTGRES_USER:-nexus_ai}
+      POSTGRES_PASSWORD: ${NEXUS_AI_POSTGRES_PASSWORD:-nexus_ai}
+      POSTGRES_DB: ${NEXUS_AI_POSTGRES_DB:-nexus_ai}
+    ports:
+      - "${NEXUS_AI_POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - nexus_ai_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     container_name: nexus-redis
@@ -247,6 +265,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  nexus_ai_postgres_data:
     driver: local
   redis_data:
     driver: local

@@ -10,7 +10,7 @@ from nexus_ai.capabilities.context import current_time_instruction, memory_instr
 from nexus_ai.capabilities.observability import instrument_pydantic_ai
 from nexus_ai.capabilities.shields import validate_user_input
 from nexus_ai.settings import Settings, load_settings
-from nexus_ai.storage import MemoryRepository, SQLiteStore
+from nexus_ai.storage import MemoryRepository, create_store
 
 
 BASE_INSTRUCTIONS = """\
@@ -26,6 +26,7 @@ before taking action. Never expose secrets.
 class AgentDeps:
     settings: Settings
     memory: MemoryRepository
+    store: Any
 
 
 @dataclass
@@ -39,11 +40,10 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
     settings = settings or load_settings()
     settings.validate_for_runtime()
 
-    store = SQLiteStore(settings.sqlite_path)
-    store.initialize()
+    store = create_store(settings)
 
     memory = MemoryRepository(store)
-    deps = AgentDeps(settings=settings, memory=memory)
+    deps = AgentDeps(settings=settings, memory=memory, store=store)
 
     instrument_pydantic_ai(settings)
 
@@ -70,25 +70,25 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         agent = Agent(model, **agent_kwargs)
 
     @agent.instructions
-    def add_runtime_context(ctx: RunContext[AgentDeps]) -> str:
+    async def add_runtime_context(ctx: RunContext[AgentDeps]) -> str:
         settings = ctx.deps.settings
         return "\n".join(
             [
                 current_time_instruction(),
                 f"Workspace id: {settings.workspace_id}. Session id: {settings.session_id}.",
-                memory_instruction(ctx.deps.memory, settings.workspace_id, settings.session_id),
+                await memory_instruction(ctx.deps.memory, settings.workspace_id, settings.session_id, settings.user_id),
             ]
         )
 
     @agent.tool
-    def remember(
+    async def remember(
         ctx: RunContext[AgentDeps],
         content: str,
         memory_type: str = "episodic",
         importance: int = 5,
     ) -> dict[str, int]:
         """Store a workspace/session scoped memory for future agent runs."""
-        memory_id = ctx.deps.memory.add(
+        memory_id = await ctx.deps.memory.add(
             workspace_id=ctx.deps.settings.workspace_id,
             session_id=ctx.deps.settings.session_id,
             user_id=ctx.deps.settings.user_id,
@@ -99,7 +99,7 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         return {"memory_id": memory_id}
 
     @agent.tool
-    def list_memories(ctx: RunContext[AgentDeps], limit: int = 10) -> list[dict[str, object]]:
+    async def list_memories(ctx: RunContext[AgentDeps], limit: int = 10) -> list[dict[str, object]]:
         """List recent workspace/session memories."""
         return [
             {
@@ -109,7 +109,12 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
                 "importance": item.importance,
                 "tags": item.tags,
             }
-            for item in ctx.deps.memory.recent(ctx.deps.settings.workspace_id, ctx.deps.settings.session_id, limit)
+            for item in await ctx.deps.memory.recent(
+                ctx.deps.settings.workspace_id,
+                ctx.deps.settings.session_id,
+                ctx.deps.settings.user_id,
+                limit,
+            )
         ]
 
     @agent.tool
