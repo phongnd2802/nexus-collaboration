@@ -13,6 +13,7 @@ def test_load_settings_from_env():
             "NEXUS_AI_RUNTIME_DIR": ".runtime-test",
             "NEXUS_AI_SQLITE_PATH": ".runtime-test/test.sqlite3",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
+            "NEXUS_API_KEY": "legacy-key",
         }
     )
 
@@ -22,6 +23,31 @@ def test_load_settings_from_env():
     assert settings.enable_code_mode is True
     assert settings.audit_tool_calls is True
     assert settings.rag_enabled is True
+    assert settings.rag_lexical_provider == "elasticsearch"
+    assert settings.elasticsearch_rag_chunk_index == "nexus_rag_chunks_v1"
+    assert settings.history_recent_turns == 12
+    assert settings.session_summary_model == "openrouter:test"
+    assert settings.summary_trigger_turns == 10
+    assert settings.memory_max_items_per_turn == 3
+    assert settings.mem0_enabled is False
+    assert settings.openrouter_base_url == "https://openrouter.ai/api/v1"
+    assert settings.qdrant_mem0_user_collection == "nexus_mem0_user_memories"
+    assert settings.internal_api_key == "legacy-key"
+    assert settings.rag_embedding_dimensions == 4096
+
+
+def test_session_summary_model_can_be_overridden():
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "openrouter:chat-model",
+            "NEXUS_AI_SESSION_SUMMARY_MODEL": "openrouter:summary-model",
+            "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+        }
+    )
+
+    assert settings.model == "openrouter:chat-model"
+    assert settings.session_summary_model == "openrouter:summary-model"
 
 
 def test_request_context_overrides_workspace_and_auth():

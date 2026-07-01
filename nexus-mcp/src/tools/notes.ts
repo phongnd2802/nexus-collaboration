@@ -37,7 +37,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_list_notes',
     title: 'List Nexus Notes',
     description:
-      'Use this tool when you need to list notes in a workspace. Filter by parent_id for hierarchical browsing, is_deleted to include soft-deleted notes, or is_archived to show/hide archived notes.',
+      'Use this tool when you need to list workspace notes in the Nexus Notes module. These are shared workspace documents, not private AI memory. Filter by parent_id for hierarchical browsing, is_deleted to include soft-deleted notes, or is_archived to show/hide archived notes.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       parent_id: z.string().optional().describe('Optional parent note/folder ID.'),
@@ -55,7 +55,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_search_notes',
     title: 'Search Nexus Notes',
     description:
-      'Use this tool when you need to search notes using keyword, semantic (AI embedding), or hybrid mode. Provide a search query and optionally paginate with limit/offset.',
+      'Use this tool when you need to search workspace notes in the Nexus Notes module using keyword, semantic (AI embedding), or hybrid mode. These results are workspace documents, not private AI memory. Provide a search query and optionally paginate with limit/offset.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       q: z.string().min(1).describe('Search query text.'),
@@ -74,7 +74,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_get_note',
     title: 'Get Nexus Note',
     description:
-      'Use this tool when you need to get note details by ID. Returns full note content, metadata, author info, collaborators, and attachments. Optionally include soft-deleted notes with include_deleted=true.',
+      'Use this tool when you need to get a workspace note by ID from the Nexus Notes module. Returns full note content, metadata, author info, collaborators, and attachments. This is for persisted workspace documents, not private AI memory. Optionally include soft-deleted notes with include_deleted=true.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       note_id: idSchema('Note'),
@@ -91,7 +91,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_create_note',
     title: 'Create Nexus Note',
     description:
-      'Use this tool when you need to create a new note in a workspace. Provide title and content (required), and optionally set a parent_id for nesting, tags, cover_image, icon, is_public flag, and file/note/event attachments.',
+      'Use this tool when you need to create a new workspace note in the Nexus Notes module. Use it for meeting notes, shared documentation, or other workspace-visible documents. Do not use it to store private AI memory, user preferences, or future-chat reminders. Provide title and content (required), and optionally set a parent_id for nesting, tags, cover_image, icon, is_public flag, and file/note/event attachments.',
     inputSchema: { workspace_id: workspaceIdSchema, ...createNoteInputShape },
     method: 'POST',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes`,
@@ -113,7 +113,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_update_note',
     title: 'Update Nexus Note',
     description:
-      'Use this tool when you need to update an existing note\'s title, content, tags, is_public flag, is_favorite flag, or attachments. All fields are optional—only provided fields will be updated.',
+      'Use this tool when you need to update an existing workspace note in the Nexus Notes module. Only use it when the user wants to change a persisted workspace document. Do not use it for private AI memory, user preferences, or future-chat reminders. All fields are optional—only provided fields will be updated.',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...updateNoteInputShape },
     method: 'PATCH',
     path: ({ workspace_id, note_id }) =>
@@ -206,7 +206,7 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_share_note',
     title: 'Share Nexus Note',
     description:
-      'Use this tool when you need to share a note with workspace members. Provide an array of user_ids and optionally set a permission level (read/write/admin).',
+      'Use this tool when you need to share a workspace note with workspace members. This applies to Nexus Notes documents, not private AI memory. Provide an array of user_ids and optionally set a permission level (read/write/admin).',
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...shareNoteInputShape },
     method: 'POST',
     path: ({ workspace_id, note_id }) =>

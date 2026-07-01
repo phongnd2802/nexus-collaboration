@@ -78,6 +78,19 @@ CREATE TABLE IF NOT EXISTS memories (
 CREATE INDEX IF NOT EXISTS idx_memories_workspace_user_session
 ON memories (workspace_id, user_id, session_id, importance DESC, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS session_summaries (
+  session_id TEXT PRIMARY KEY REFERENCES sessions(session_id) ON DELETE CASCADE,
+  workspace_id TEXT NOT NULL,
+  user_id TEXT,
+  summary_text TEXT NOT NULL,
+  summarized_through_message_id TEXT NOT NULL,
+  summarized_user_turns INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_summaries_workspace_user_updated_at
+ON session_summaries (workspace_id, user_id, updated_at DESC);
+
 CREATE TABLE IF NOT EXISTS tool_audit_logs (
   id TEXT PRIMARY KEY,
   workspace_id TEXT NOT NULL,
