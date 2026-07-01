@@ -6,6 +6,7 @@ import { registerChatTools } from './chat.js';
 import { registerFilesTools } from './files.js';
 import { registerNotesTools } from './notes.js';
 import { registerProjectTools } from './projects.js';
+import { registerRagTools } from './rag.js';
 import { registerSearchTools } from './search.js';
 import { registerVideoCallTools } from './video-calls.js';
 import { registerWorkspaceTools } from './workspace.js';
@@ -14,6 +15,7 @@ export function registerTools(server: McpServer, client: NexusApiClient) {
   registerWorkspaceTools(server, client);
   // registerDashboardTools(server, client);
   //registerSearchTools(server, client);
+  registerRagTools(server, client);
   registerNotesTools(server, client);
   registerProjectTools(server, client);
   registerChatTools(server, client);

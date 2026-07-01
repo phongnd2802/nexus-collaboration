@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import os
 
 from nexus_ai.agent import build_runtime
 from nexus_ai.api import create_agent_chat_app
@@ -25,7 +26,11 @@ def main() -> None:
     else:
         import uvicorn
 
-        uvicorn.run(app, host="127.0.0.1", port=8000)
+        uvicorn.run(
+            app,
+            host=os.environ.get("NEXUS_AI_HOST", "0.0.0.0"),
+            port=int(os.environ.get("NEXUS_AI_PORT", "8000")),
+        )
 
     flush_langfuse(runtime.deps.settings)
 

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { WorkspaceGuard } from '../../common/guards/workspace.guard';
 import { RagIndexingService } from './rag-indexing.service';
@@ -11,6 +12,26 @@ export class RagController {
   @UseGuards(AuthGuard, WorkspaceGuard)
   async getFileStatus(@Param('workspaceId') workspaceId: string, @Param('fileId') fileId: string) {
     return this.ragIndexingService.getDocumentStatus(workspaceId, fileId);
+  }
+
+  @Post('workspaces/:workspaceId/rag/search')
+  @UseGuards(AuthGuard, WorkspaceGuard)
+  async searchFiles(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser('sub') userId: string,
+    @Headers('authorization') authorization: string | undefined,
+    @Headers('x-nexus-request-id') requestId: string | undefined,
+    @Body() body: { query: string; limit?: number; min_score?: number },
+  ) {
+    return this.ragIndexingService.searchFiles(
+      workspaceId,
+      body.query,
+      body.limit ?? 10,
+      body.min_score ?? 0.5,
+      userId,
+      authorization,
+      requestId,
+    );
   }
 
   @Get('workspaces/:workspaceId/rag/internal/files/:fileId/source')

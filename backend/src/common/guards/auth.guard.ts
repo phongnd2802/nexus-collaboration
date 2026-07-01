@@ -21,22 +21,16 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      // Decode database JWT without verification
-      // We trust database's signature - just extract the payload
-      // The token is already signed by database backend
-      const payload = this.jwtService.decode(token) as any;
+      const secret = this.configService.get<string>('JWT_SECRET');
+      if (!secret) {
+        throw new UnauthorizedException('JWT secret is not configured');
+      }
+      const payload = this.jwtService.verify(token, { secret }) as any;
 
       if (!payload) {
         throw new UnauthorizedException('Invalid token format');
       }
 
-      // Check if token is expired
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        throw new UnauthorizedException('Token expired');
-      }
-
-      // database JWT payload contains: userId, email, role, projectId, appId
-      // Map to standard format expected by Nexus
       request['user'] = {
         sub: payload.userId || payload.sub,
         userId: payload.userId || payload.sub,
