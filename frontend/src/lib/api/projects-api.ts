@@ -49,12 +49,31 @@ export interface Project {
 
 export interface TaskComment {
   id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
+  task_id: string;
+  user_id: string;
   content: string;
-  createdAt: string;
-  updatedAt?: string;
+  content_html?: string;
+  attachments?: string[];
+  is_edited?: boolean;
+  created_at: string;
+  updated_at?: string;
+  user?: {
+    id: string;
+    name: string;
+    email?: string;
+    avatar_url?: string | null;
+  } | null;
+}
+
+export interface CreateTaskCommentRequest {
+  content: string;
+  content_html?: string;
+  attachments?: string[];
+}
+
+export interface UpdateTaskCommentRequest {
+  content: string;
+  content_html?: string;
 }
 
 export type ReminderInterval = '3d' | '1d' | '12h' | '3h' | '1h';
@@ -264,6 +283,7 @@ export const projectKeys = {
   task: (projectId: string, taskId: string) => [...projectKeys.tasks(projectId), taskId] as const,
   analytics: (projectId: string) => [...projectKeys.detail(projectId), 'analytics'] as const,
   customFields: (projectId: string) => [...projectKeys.detail(projectId), 'custom-fields'] as const,
+  comments: (taskId: string) => [...projectKeys.all, 'comments', taskId] as const,
 };
 
 // API Functions
@@ -381,6 +401,23 @@ export const projectApi = {
 
   async logTime(taskId: string, hours: number, description?: string): Promise<void> {
     await api.post(`/tasks/${taskId}/time-logs`, { hours, description });
+  },
+
+  // Task comments
+  async getTaskComments(workspaceId: string, taskId: string): Promise<TaskComment[]> {
+    return api.get<TaskComment[]>(`/workspaces/${workspaceId}/projects/tasks/${taskId}/comments`);
+  },
+
+  async createTaskComment(workspaceId: string, taskId: string, data: CreateTaskCommentRequest): Promise<TaskComment> {
+    return api.post<TaskComment>(`/workspaces/${workspaceId}/projects/tasks/${taskId}/comments`, data);
+  },
+
+  async updateTaskComment(workspaceId: string, commentId: string, data: UpdateTaskCommentRequest): Promise<TaskComment> {
+    return api.patch<TaskComment>(`/workspaces/${workspaceId}/projects/comments/${commentId}`, data);
+  },
+
+  async deleteTaskComment(workspaceId: string, commentId: string): Promise<void> {
+    await api.delete(`/workspaces/${workspaceId}/projects/comments/${commentId}`);
   },
 
   // Analytics
@@ -753,6 +790,53 @@ export const useDeleteTask = () => {
       await queryClient.invalidateQueries({ queryKey: projectKeys.analytics(projectId) });
       // Mark projects list as stale (will refetch on next mount/navigation)
       await queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+};
+
+// ==================== TASK COMMENT HOOKS ====================
+
+export const useTaskComments = (workspaceId: string, taskId: string) => {
+  return useQuery({
+    queryKey: projectKeys.comments(taskId),
+    queryFn: () => projectApi.getTaskComments(workspaceId, taskId),
+    enabled: !!workspaceId && !!taskId,
+    staleTime: 30 * 1000,
+  });
+};
+
+export const useCreateTaskComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, taskId, data }: { workspaceId: string; taskId: string; data: CreateTaskCommentRequest }) =>
+      projectApi.createTaskComment(workspaceId, taskId, data),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.comments(taskId) });
+    },
+  });
+};
+
+export const useUpdateTaskComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, commentId, data }: { workspaceId: string; commentId: string; data: UpdateTaskCommentRequest; taskId: string }) =>
+      projectApi.updateTaskComment(workspaceId, commentId, data),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.comments(taskId) });
+    },
+  });
+};
+
+export const useDeleteTaskComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, commentId }: { workspaceId: string; commentId: string; taskId: string }) =>
+      projectApi.deleteTaskComment(workspaceId, commentId),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.comments(taskId) });
     },
   });
 };

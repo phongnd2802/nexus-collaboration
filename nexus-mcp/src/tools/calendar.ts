@@ -1,7 +1,21 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { idSchema, workspaceIdSchema } from '../schemas/common.js';
-import { calendarEventOutputSchema, createEventInputShape, upcomingEventsOutputSchema } from '../schemas/calendar.js';
+import {
+  calendarEventOutputSchema,
+  createEventCategoryInputShape,
+  createEventInputShape,
+  createMeetingRoomInputShape,
+  eventCategoriesListOutputSchema,
+  eventCategoryOutputSchema,
+  meetingRoomOutputSchema,
+  meetingRoomsListOutputSchema,
+  updateEventCategoryInputShape,
+  updateEventInputShape,
+  updateMeetingRoomInputShape,
+  upcomingEventsOutputSchema,
+} from '../schemas/calendar.js';
+import { normalizeBySchema } from '../services/normalize.js';
 import type { NexusApiClient } from '../services/nexus-api.js';
 import { registerApiTool } from './register-api-tool.js';
 
@@ -9,6 +23,13 @@ const readOnly = {
   readOnlyHint: true,
   destructiveHint: false,
   idempotentHint: true,
+  openWorldHint: true,
+};
+
+const write = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  idempotentHint: false,
   openWorldHint: true,
 };
 
@@ -87,11 +108,145 @@ export function registerCalendarTools(server: McpServer, client: NexusApiClient)
       ...(attachments !== undefined ? { attachments } : {}),
       ...(description_file_ids !== undefined ? { description_file_ids } : {}),
     }),
-    annotations: {
-      readOnlyHint: false,
-      destructiveHint: false,
-      idempotentHint: false,
-      openWorldHint: true,
-    },
+    annotations: write,
   });
+
+  registerApiTool(server, client, {
+    name: 'nexus_update_calendar_event',
+    title: 'Update Nexus Calendar Event',
+    description:
+      'Use this tool when you need to update an existing calendar event by its ID. All fields are optional — only provided fields will be changed. Note: attendees, reminders, and attachments replace the existing values rather than merging with them. File attachments are not supported by this MCP tool.',
+    inputSchema: { workspace_id: workspaceIdSchema, event_id: idSchema('Calendar event'), ...updateEventInputShape },
+    outputSchema: calendarEventOutputSchema,
+    method: 'PATCH',
+    path: ({ workspace_id, event_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/events/${encodeURIComponent(String(event_id))}`,
+    body: ({ workspace_id: _workspace_id, event_id: _event_id, response_format: _response_format, ...body }) => body,
+    annotations: write,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_create_meeting_room',
+    title: 'Create Nexus Meeting Room',
+    description:
+      'Use this tool when you need to create a new meeting room in a workspace. Provide name, capacity, and room_type (required), and optionally description, location, equipment, amenities, booking_policy, working_hours, floor, building, room_code, thumbnail_url, and images.',
+    inputSchema: { workspace_id: workspaceIdSchema, ...createMeetingRoomInputShape },
+    method: 'POST',
+    outputSchema: meetingRoomOutputSchema,
+    path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/rooms`,
+    body: ({ workspace_id: _workspace_id, response_format: _response_format, ...body }) => body,
+    annotations: write,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_list_meeting_rooms',
+    title: 'List Nexus Meeting Rooms',
+    description:
+      'Use this tool when you need to list meeting rooms in a workspace. Optionally filter to only available rooms, or by a minimum capacity.',
+    inputSchema: {
+      workspace_id: workspaceIdSchema,
+      available_only: z.boolean().optional().describe('If true, only return rooms currently marked as available.'),
+      capacity: z.number().int().positive().optional().describe('Only return rooms with at least this capacity.'),
+    },
+    path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/rooms`,
+    query: ({ available_only, capacity }) => ({ available_only, capacity }),
+    outputSchema: meetingRoomsListOutputSchema,
+    outputTransform: (data) =>
+      normalizeBySchema(meetingRoomsListOutputSchema, {
+        rooms: unwrapArray(data),
+      }),
+    annotations: readOnly,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_get_meeting_room',
+    title: 'Get Nexus Meeting Room',
+    description:
+      'Use this tool when you need to get detailed information about a specific meeting room by its ID, including its current and upcoming bookings.',
+    inputSchema: { workspace_id: workspaceIdSchema, room_id: idSchema('Meeting room') },
+    outputSchema: meetingRoomOutputSchema,
+    path: ({ workspace_id, room_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/rooms/${encodeURIComponent(String(room_id))}`,
+    annotations: readOnly,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_update_meeting_room',
+    title: 'Update Nexus Meeting Room',
+    description:
+      'Use this tool when you need to update a meeting room\'s details by its ID. All fields are optional — only provided fields will be changed. Note: equipment, amenities, working_hours, and images replace the existing values rather than merging with them.',
+    inputSchema: { workspace_id: workspaceIdSchema, room_id: idSchema('Meeting room'), ...updateMeetingRoomInputShape },
+    method: 'PATCH',
+    outputSchema: meetingRoomOutputSchema,
+    path: ({ workspace_id, room_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/rooms/${encodeURIComponent(String(room_id))}`,
+    body: ({ workspace_id: _workspace_id, room_id: _room_id, response_format: _response_format, ...body }) => body,
+    annotations: write,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_create_event_category',
+    title: 'Create Nexus Event Category',
+    description:
+      'Use this tool when you need to create a new calendar event category in a workspace. Provide name and color (hex, required), and optionally description, icon, and description_file_ids.',
+    inputSchema: { workspace_id: workspaceIdSchema, ...createEventCategoryInputShape },
+    method: 'POST',
+    outputSchema: eventCategoryOutputSchema,
+    path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/categories`,
+    body: ({ workspace_id: _workspace_id, response_format: _response_format, ...body }) => body,
+    annotations: write,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_list_event_categories',
+    title: 'List Nexus Event Categories',
+    description:
+      'Use this tool when you need to list all calendar event categories in a workspace.',
+    inputSchema: { workspace_id: workspaceIdSchema },
+    path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/categories`,
+    outputSchema: eventCategoriesListOutputSchema,
+    outputTransform: (data) =>
+      normalizeBySchema(eventCategoriesListOutputSchema, {
+        categories: unwrapArray(data),
+      }),
+    annotations: readOnly,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_get_event_category',
+    title: 'Get Nexus Event Category',
+    description:
+      'Use this tool when you need to get detailed information about a specific calendar event category by its ID.',
+    inputSchema: { workspace_id: workspaceIdSchema, category_id: idSchema('Event category') },
+    outputSchema: eventCategoryOutputSchema,
+    path: ({ workspace_id, category_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/categories/${encodeURIComponent(String(category_id))}`,
+    annotations: readOnly,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_update_event_category',
+    title: 'Update Nexus Event Category',
+    description:
+      'Use this tool when you need to update a calendar event category\'s details by its ID. All fields are optional — only provided fields will be changed.',
+    inputSchema: { workspace_id: workspaceIdSchema, category_id: idSchema('Event category'), ...updateEventCategoryInputShape },
+    method: 'PATCH',
+    outputSchema: eventCategoryOutputSchema,
+    path: ({ workspace_id, category_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/categories/${encodeURIComponent(String(category_id))}`,
+    body: ({ workspace_id: _workspace_id, category_id: _category_id, response_format: _response_format, ...body }) => body,
+    annotations: write,
+  });
+}
+
+function unwrapArray(data: unknown): unknown[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (data && typeof data === 'object' && Array.isArray((data as { data?: unknown[] }).data)) {
+    return (data as { data: unknown[] }).data;
+  }
+
+  return [];
 }

@@ -22,6 +22,8 @@ import {
   UpdateCustomFieldDto,
   ReorderCustomFieldsDto,
   AddSelectOptionDto,
+  CreateTaskCommentDto,
+  UpdateTaskCommentDto,
 } from './dto';
 
 @ApiTags('projects')
@@ -213,6 +215,60 @@ export class ProjectsController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.projectsService.deleteTask(taskId, userId);
+  }
+
+  // ==================== TASK COMMENT ENDPOINTS ====================
+
+  @Get('tasks/:taskId/comments')
+  @ApiOperation({ summary: 'Get all comments for a task' })
+  @ApiResponse({ status: 200, description: 'Return all comments for the task.' })
+  @ApiResponse({ status: 404, description: 'Task not found.' })
+  async getTaskComments(
+    @Param('workspaceId') workspaceId: string,
+    @Param('taskId') taskId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.projectsService.getTaskComments(taskId, userId);
+  }
+
+  @Post('tasks/:taskId/comments')
+  @ApiOperation({ summary: 'Add a comment to a task' })
+  @ApiResponse({ status: 201, description: 'The comment has been successfully created.' })
+  @ApiResponse({ status: 404, description: 'Task not found.' })
+  async createTaskComment(
+    @Param('workspaceId') workspaceId: string,
+    @Param('taskId') taskId: string,
+    @Body() createTaskCommentDto: CreateTaskCommentDto,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.projectsService.createTaskComment(taskId, createTaskCommentDto, userId);
+  }
+
+  @Patch('comments/:commentId')
+  @ApiOperation({ summary: 'Update a task comment' })
+  @ApiResponse({ status: 200, description: 'The comment has been successfully updated.' })
+  @ApiResponse({ status: 404, description: 'Comment not found.' })
+  @ApiResponse({ status: 403, description: 'You can only edit your own comments.' })
+  async updateTaskComment(
+    @Param('workspaceId') workspaceId: string,
+    @Param('commentId') commentId: string,
+    @Body() updateTaskCommentDto: UpdateTaskCommentDto,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.projectsService.updateTaskComment(commentId, updateTaskCommentDto, userId);
+  }
+
+  @Delete('comments/:commentId')
+  @ApiOperation({ summary: 'Delete a task comment' })
+  @ApiResponse({ status: 200, description: 'The comment has been successfully deleted.' })
+  @ApiResponse({ status: 404, description: 'Comment not found.' })
+  @ApiResponse({ status: 403, description: 'You can only delete your own comments.' })
+  async deleteTaskComment(
+    @Param('workspaceId') workspaceId: string,
+    @Param('commentId') commentId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.projectsService.deleteTaskComment(commentId, userId);
   }
 
   // ==================== CUSTOM FIELD ENDPOINTS ====================
