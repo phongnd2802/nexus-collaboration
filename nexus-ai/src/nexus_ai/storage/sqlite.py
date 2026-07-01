@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -78,6 +80,24 @@ CREATE TABLE IF NOT EXISTS memories (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS tool_audit_logs (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  user_id TEXT,
+  session_id TEXT,
+  request_id TEXT,
+  tool_call_id TEXT,
+  tool_name TEXT NOT NULL,
+  is_write_tool INTEGER NOT NULL DEFAULT 0,
+  is_destructive_tool INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL,
+  input TEXT NOT NULL DEFAULT '{}',
+  output TEXT NOT NULL DEFAULT '{}',
+  error TEXT,
+  latency_ms INTEGER,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 
@@ -151,6 +171,28 @@ class SQLiteStore:
             )
             """,
         )
+        self._ensure_table(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS tool_audit_logs (
+              id TEXT PRIMARY KEY,
+              workspace_id TEXT NOT NULL,
+              user_id TEXT,
+              session_id TEXT,
+              request_id TEXT,
+              tool_call_id TEXT,
+              tool_name TEXT NOT NULL,
+              is_write_tool INTEGER NOT NULL DEFAULT 0,
+              is_destructive_tool INTEGER NOT NULL DEFAULT 0,
+              status TEXT NOT NULL,
+              input TEXT NOT NULL DEFAULT '{}',
+              output TEXT NOT NULL DEFAULT '{}',
+              error TEXT,
+              latency_ms INTEGER,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+        )
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created_at ON chat_messages (session_id, created_at)"
         )
@@ -171,15 +213,73 @@ class SQLiteStore:
         if column not in existing:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
+    async def fetch_all(self, query: str, *args: Any) -> list[dict[str, Any]]:
+        return self._fetch_all_sync(query, args)
+
+    async def fetch_one(self, query: str, *args: Any) -> dict[str, Any] | None:
+        return self._fetch_one_sync(query, args)
+
+    async def execute(self, query: str, *args: Any) -> int:
+        return self._execute_sync(query, args)
+
+    async def execute_insert_id(self, query: str, *args: Any) -> int:
+        return self._execute_insert_id_sync(query, args)
+
+    def _fetch_all_sync(self, query: str, args: tuple[Any, ...]) -> list[dict[str, Any]]:
+        sql, params = _sqlite_query(query, args)
+        with self.connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [dict(row) for row in rows]
+
+    def _fetch_one_sync(self, query: str, args: tuple[Any, ...]) -> dict[str, Any] | None:
+        sql, params = _sqlite_query(query, args)
+        with self.connect() as conn:
+            row = conn.execute(sql, params).fetchone()
+        return dict(row) if row else None
+
+    def _execute_sync(self, query: str, args: tuple[Any, ...]) -> int:
+        sql, params = _sqlite_query(query, args)
+        with self.connect() as conn:
+            cursor = conn.execute(sql, params)
+            return cursor.rowcount
+
+    def _execute_insert_id_sync(self, query: str, args: tuple[Any, ...]) -> int:
+        sql, params = _sqlite_query(query, args)
+        with self.connect() as conn:
+            cursor = conn.execute(sql, params)
+            if "returning id" in sql.lower():
+                row = cursor.fetchone()
+                return int(row["id"] if isinstance(row, sqlite3.Row) else row[0])
+            return int(cursor.lastrowid)
+
 
 def encode_json(value: Any) -> str:
     return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
 
 
-def decode_json(value: str | None, default: Any) -> Any:
+def decode_json(value: Any, default: Any) -> Any:
     if not value:
         return default
+    if not isinstance(value, str):
+        return value
     try:
         return json.loads(value)
     except json.JSONDecodeError:
         return default
+
+
+def _sqlite_query(query: str, args: tuple[Any, ...]) -> tuple[str, tuple[Any, ...]]:
+    params: list[Any] = []
+
+    def replace(match: re.Match[str]) -> str:
+        index = int(match.group(1)) - 1
+        params.append(_sqlite_value(args[index]))
+        return "?"
+
+    return re.sub(r"\$(\d+)", replace, query), tuple(params)
+
+
+def _sqlite_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return value

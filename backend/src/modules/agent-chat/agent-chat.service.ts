@@ -26,11 +26,17 @@ export class AgentChatService {
     accept?: string;
     lastEventId?: string;
   }, res: Response): Promise<void> {
+    const controller = new AbortController();
+    res.on('close', () => controller.abort());
     const response = await fetch(this.buildUrl(request.path), {
       method: request.method,
       headers: this.buildHeaders(request),
       body: request.body === undefined ? undefined : JSON.stringify(request.body),
+      signal: controller.signal,
     }).catch(error => {
+      if (controller.signal.aborted) {
+        throw new BadGatewayException('Nexus AI request was cancelled');
+      }
       throw new BadGatewayException(`Failed to reach Nexus AI Service: ${error.message}`);
     });
 
@@ -171,7 +177,10 @@ export class AgentChatService {
     }
 
     if (!completed) {
-      this.writeNormalizedSse(res, `evt-${eventSequence++}`, createRunCompletedEvent(state));
+      this.writeNormalizedSse(res, `evt-${eventSequence++}`, {
+        type: 'run.error',
+        data: { error: 'Nexus AI stream ended before completion' },
+      });
     }
     res.end();
   }

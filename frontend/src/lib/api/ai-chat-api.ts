@@ -464,7 +464,7 @@ async function consumeNexusAIUIStream(
   }
 
   if (!completed) {
-    callbacks.onComplete?.(completionResult(sessionId, ''))
+    callbacks.onError?.('Nexus AI stream ended before completion')
   }
 }
 
