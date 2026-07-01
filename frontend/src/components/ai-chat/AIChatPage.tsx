@@ -21,8 +21,6 @@ export function AIChatPage() {
     isLoadingSessions,
     deleteConversationDialog,
     isDeletingConversation,
-    model,
-    setModel,
     hasConversation,
     handleSend,
     handleStop,
@@ -80,8 +78,6 @@ export function AIChatPage() {
             onSend={handleSend}
             isStreaming={isStreaming}
             onStop={handleStop}
-            model={model}
-            onModelChange={setModel}
           />
         ) : (
           <>
@@ -94,8 +90,6 @@ export function AIChatPage() {
               onSend={handleSend}
               onStop={handleStop}
               isStreaming={isStreaming}
-              model={model}
-              onModelChange={setModel}
             />
           </>
         )}
