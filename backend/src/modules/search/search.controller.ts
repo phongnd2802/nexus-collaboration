@@ -276,9 +276,9 @@ export class SearchController {
           req?.headers.authorization,
           (req?.headers['x-nexus-request-id'] as string | undefined) || undefined,
         )
-      : [];
+      : { results: [] };
 
-    return [...ragResults, ...legacyResults]
+    return [...ragResults.results, ...legacyResults]
       .sort((a: any, b: any) => Number(b.score || 0) - Number(a.score || 0))
       .slice(0, limitValue);
   }

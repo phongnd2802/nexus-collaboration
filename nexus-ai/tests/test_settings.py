@@ -19,6 +19,9 @@ def test_load_settings_from_env():
     assert settings.model == "openrouter:test"
     assert settings.workspace_id == "workspace"
     assert settings.session_id == "request"
+    assert settings.enable_code_mode is True
+    assert settings.audit_tool_calls is True
+    assert settings.rag_enabled is True
 
 
 def test_request_context_overrides_workspace_and_auth():

@@ -50,7 +50,7 @@ def test_agent_chat_routes_create_and_replay_session(tmp_path):
     )
     runtime = SimpleNamespace(
         agent=FakeAgent(),
-        deps=SimpleNamespace(settings=settings, memory=MemoryRepository(sqlite_store)),
+        deps=SimpleNamespace(settings=settings, memory=MemoryRepository(sqlite_store), store=sqlite_store),
     )
 
     app = create_agent_chat_app(runtime)
@@ -78,18 +78,19 @@ def test_agent_chat_routes_create_and_replay_session(tmp_path):
     assert "data-final_answer" in body
     assert "[DONE]" in body
 
-    sessions = agent_chat_store.list_sessions("ws-1")
+    sessions = asyncio.run(agent_chat_store.list_sessions("ws-1", "user-1"))
     assert len(sessions) == 1
     session_id = sessions[0].id
 
-    payload = agent_chat_store.snapshot("ws-1", session_id)
+    payload = asyncio.run(agent_chat_store.snapshot("ws-1", session_id, "user-1"))
     assert payload["sessionId"] == session_id
     assert payload["uiMessages"][-1]["role"] == "assistant"
     assert payload["uiMessages"][-1]["parts"][-1]["text"] == "Hello from Nexus AI"
+    assert asyncio.run(agent_chat_store.list_sessions("ws-1", "user-2")) == []
 
-    replay_events = agent_chat_store.events_for_session(session_id)
+    replay_events = asyncio.run(agent_chat_store.events_for_session(session_id))
     assert any(event.payload.get("type") == "data-final_answer" for event in replay_events)
 
-    agent_chat_store.delete_session("ws-1", session_id)
+    asyncio.run(agent_chat_store.delete_session("ws-1", session_id, "user-1"))
 
-    assert agent_chat_store.get_session("ws-1", session_id) is None
+    assert asyncio.run(agent_chat_store.get_session("ws-1", session_id, "user-1")) is None

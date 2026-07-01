@@ -24,11 +24,13 @@ from starlette.routing import Route
 
 from nexus_ai.agent import NexusAgentRuntime
 from nexus_ai.agent_chat_store import AgentChatStore, ChatSession
+from nexus_ai.capabilities.shields import validate_user_input
 from nexus_ai.request_context import RequestContext, get_request_context, reset_request_context, set_request_context
+from nexus_ai.rag.routes import rag_routes
 
 
 def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
-    store = AgentChatStore(runtime.deps.memory.store)
+    store = AgentChatStore(runtime.deps.store)
 
     async def create_chat_completion(request: Request) -> Response:
         body = await request.json()
@@ -43,7 +45,8 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
 
     async def list_sessions(request: Request) -> Response:
         workspace_id = request.path_params["workspace_id"]
-        sessions = store.list_sessions(workspace_id)
+        user_id = request.headers.get("x-nexus-user-id")
+        sessions = await store.list_sessions(workspace_id, user_id)
         return JSONResponse(
             {
                 "data": [
@@ -51,7 +54,7 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
                         "sessionId": session.id,
                         "title": session.title,
                         "updatedAt": session.updated_at,
-                        "messageCount": len(store.messages_for_session(session.id)),
+                        "messageCount": len(await store.messages_for_session(session.id)),
                         "hasPendingApproval": False,
                     }
                     for session in sessions
@@ -62,16 +65,18 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
     async def get_session(request: Request) -> Response:
         workspace_id = request.path_params["workspace_id"]
         session_id = request.path_params["session_id"]
+        user_id = request.headers.get("x-nexus-user-id")
         try:
-            return JSONResponse(store.snapshot(workspace_id, session_id))
+            return JSONResponse(await store.snapshot(workspace_id, session_id, user_id))
         except KeyError:
             return JSONResponse({"detail": "Session not found"}, status_code=404)
 
     async def delete_session(request: Request) -> Response:
         workspace_id = request.path_params["workspace_id"]
         session_id = request.path_params["session_id"]
+        user_id = request.headers.get("x-nexus-user-id")
         try:
-            store.delete_session(workspace_id, session_id)
+            await store.delete_session(workspace_id, session_id, user_id)
         except KeyError:
             return JSONResponse({"detail": "Session not found"}, status_code=404)
         return JSONResponse({"success": True, "sessionId": session_id})
@@ -79,11 +84,12 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
     async def replay_session_events(request: Request) -> Response:
         workspace_id = request.path_params["workspace_id"]
         session_id = request.path_params["session_id"]
+        user_id = request.headers.get("x-nexus-user-id")
         since_event_id = request.query_params.get("since_event_id")
-        if not store.get_session(workspace_id, session_id):
+        if not await store.get_session(workspace_id, session_id, user_id):
             return JSONResponse({"detail": "Session not found"}, status_code=404)
 
-        events = store.events_for_session(session_id, since_event_id)
+        events = await store.events_for_session(session_id, since_event_id)
 
         async def stream() -> Any:
             for event in events:
@@ -100,7 +106,7 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
         decision = body.get("decision")
         if decision not in {"approved", "rejected"}:
             return JSONResponse({"detail": "Invalid approval decision"}, status_code=400)
-        record = store.upsert_approval_decision(
+        record = await store.upsert_approval_decision(
             session_id=session_id,
             workspace_id=workspace_id,
             approval_id=approval_id,
@@ -142,6 +148,7 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
             decide_approval,
             methods=["POST"],
         ),
+        *rag_routes(runtime.deps.settings),
     ]
     return Starlette(routes=routes)
 
@@ -166,7 +173,6 @@ async def _stream_chat(
             "has_authorization_header": bool(authorization),
             "request_token_present": bool(request_token),
             "effective_token_present": bool(effective_token),
-            "effective_token_prefix": _token_prefix(effective_token),
             "user_id": request.headers.get("x-nexus-user-id"),
             "request_id": request.headers.get("x-nexus-request-id"),
         },
@@ -181,14 +187,25 @@ async def _stream_chat(
         )
 
     user_id = request.headers.get("x-nexus-user-id")
-    session = store.get_or_create_session(workspace_id, user_id, session_id)
     user_text = _last_user_text(body)
+    if not user_text:
+        return StreamingResponse(
+            _single_error_stream("Nexus AI request must include a non-empty user message."),
+            media_type="text/event-stream",
+            status_code=400,
+        )
+    try:
+        validate_user_input(user_text)
+    except ValueError as exc:
+        return StreamingResponse(_single_error_stream(str(exc)), media_type="text/event-stream", status_code=400)
+
+    session = await store.get_or_create_session(workspace_id, user_id, session_id)
     model_name = runtime.deps.settings.model
-    message_history = store.get_message_history(workspace_id, session.id)
+    message_history = await store.get_message_history(workspace_id, session.id, user_id)
     request_context = _build_agent_request_context(request, workspace_id, session.id)
 
     if user_text:
-        store.add_message(
+        await store.add_message(
             session,
             "user",
             user_text,
@@ -206,7 +223,7 @@ async def _stream_chat(
         token = set_request_context(request_context)
         try:
             session_event = {"type": "data-session", "data": {"sessionId": session.id}}
-            stored = store.add_event(session.id, workspace_id, "message", session_event)
+            stored = await store.add_event(session.id, workspace_id, "message", session_event)
             yield encode_sse(stored.id, "message", session_event)
 
             try:
@@ -223,12 +240,12 @@ async def _stream_chat(
                                 "type": "data-final_answer",
                                 "data": {"content": assistant_text, "sessionId": session.id, "runId": event.run_id},
                             }
-                            stored = store.add_event(session.id, workspace_id, "message", final_payload)
+                            stored = await store.add_event(session.id, workspace_id, "message", final_payload)
                             yield encode_sse(stored.id, "message", final_payload)
-                            store.save_message_history(workspace_id, session.id, event.all_messages_json())
+                            await store.save_message_history(workspace_id, session.id, user_id, event.all_messages_json())
                             if assistant_text or assistant_parts:
                                 finalized_parts = finalize_assistant_parts(assistant_parts, assistant_text)
-                                store.add_message(
+                                await store.add_message(
                                     session,
                                     "assistant",
                                     assistant_text,
@@ -238,13 +255,15 @@ async def _stream_chat(
                                 )
                             break
 
+                        await audit_event(runtime, store, session.id, workspace_id, event)
                         for payload in payloads_from_event(event, state):
+                            await audit_payload(runtime, store, session.id, workspace_id, payload)
                             update_assistant_parts(assistant_parts, payload)
-                            stored = store.add_event(session.id, workspace_id, "message", payload)
+                            stored = await store.add_event(session.id, workspace_id, "message", payload)
                             yield encode_sse(stored.id, "message", payload)
             except Exception as exc:
                 payload = {"type": "error", "error_text": str(exc)}
-                stored = store.add_event(session.id, workspace_id, "message", payload)
+                stored = await store.add_event(session.id, workspace_id, "message", payload)
                 yield encode_sse(stored.id, "message", payload)
         finally:
             reset_request_context(token)
@@ -495,6 +514,75 @@ def is_agent_run_result(value: Any) -> bool:
     return hasattr(value, "output") and hasattr(value, "all_messages_json") and hasattr(value, "run_id")
 
 
+async def audit_payload(
+    runtime: NexusAgentRuntime,
+    store: AgentChatStore,
+    session_id: str,
+    workspace_id: str,
+    payload: dict[str, Any],
+) -> None:
+    if not runtime.deps.settings.audit_tool_calls:
+        return
+    payload_type = str(payload.get("type") or "")
+    if not payload_type.startswith("tool-"):
+        return
+    tool_name = payload.get("tool_name")
+    if not isinstance(tool_name, str) or not tool_name:
+        return
+    context = get_request_context()
+    status = payload_type.removeprefix("tool-").replace("-", "_")
+    await store.add_tool_audit(
+        workspace_id=workspace_id,
+        user_id=context.user_id if context else None,
+        session_id=session_id,
+        request_id=context.request_id if context else None,
+        tool_call_id=payload.get("tool_call_id") if isinstance(payload.get("tool_call_id"), str) else None,
+        tool_name=tool_name,
+        status=status,
+        input_payload=payload.get("input"),
+        output_payload=payload.get("output"),
+        error=payload.get("error_text") if isinstance(payload.get("error_text"), str) else None,
+    )
+
+
+async def audit_event(
+    runtime: NexusAgentRuntime,
+    store: AgentChatStore,
+    session_id: str,
+    workspace_id: str,
+    event: Any,
+) -> None:
+    if not runtime.deps.settings.audit_tool_calls or not isinstance(event, FunctionToolResultEvent):
+        return
+    metadata = getattr(event.part, "metadata", None)
+    if not isinstance(metadata, dict):
+        return
+    tool_calls = metadata.get("tool_calls")
+    tool_returns = metadata.get("tool_returns")
+    if not isinstance(tool_calls, dict):
+        return
+    context = get_request_context()
+    for key, call in tool_calls.items():
+        tool_name = getattr(call, "tool_name", None)
+        if not isinstance(tool_name, str) or not tool_name:
+            continue
+        returned = tool_returns.get(key) if isinstance(tool_returns, dict) else None
+        outcome = getattr(returned, "outcome", None) if returned is not None else None
+        content = getattr(returned, "content", None) if returned is not None else None
+        await store.add_tool_audit(
+            workspace_id=workspace_id,
+            user_id=context.user_id if context else None,
+            session_id=session_id,
+            request_id=context.request_id if context else None,
+            tool_call_id=getattr(call, "tool_call_id", None),
+            tool_name=tool_name,
+            status=f"code_mode_{outcome or 'called'}",
+            input_payload=getattr(call, "args", None),
+            output_payload=content,
+            error=content if isinstance(content, str) and outcome not in {None, "success"} else None,
+        )
+
+
 def encode_sse(event_id: str, event_name: str, payload: dict[str, Any]) -> bytes:
     data = json.dumps(payload, ensure_ascii=False)
     return f"id: {event_id}\nevent: {event_name}\ndata: {data}\n\n".encode("utf-8")
@@ -516,9 +604,3 @@ def _extract_bearer_token(value: str | None) -> str | None:
     if scheme.lower() != "bearer" or not token:
         return None
     return token
-
-
-def _token_prefix(value: str | None) -> str | None:
-    if not value:
-        return None
-    return value[:8]
