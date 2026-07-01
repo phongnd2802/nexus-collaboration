@@ -10,20 +10,14 @@ from typing import Any
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  session_id TEXT NOT NULL,
+  session_id TEXT PRIMARY KEY,
   workspace_id TEXT NOT NULL,
-  user_id TEXT NOT NULL,
+  user_id TEXT,
   title TEXT NOT NULL DEFAULT 'New conversation',
-  messages TEXT NOT NULL DEFAULT '[]',
-  ui_messages TEXT NOT NULL DEFAULT '[]',
   metadata TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_workspace_user_session
-  ON sessions (workspace_id, user_id, session_id);
 
 CREATE TABLE IF NOT EXISTS memories (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,35 +42,7 @@ class SQLiteStore:
     def initialize(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as conn:
-            self._reset_legacy_sessions_table(conn)
             conn.executescript(SCHEMA)
-            columns = {row["name"] for row in conn.execute("PRAGMA table_info(sessions)").fetchall()}
-            if "messages" not in columns:
-                conn.execute("ALTER TABLE sessions ADD COLUMN messages TEXT NOT NULL DEFAULT '[]'")
-            if "ui_messages" not in columns:
-                conn.execute("ALTER TABLE sessions ADD COLUMN ui_messages TEXT NOT NULL DEFAULT '[]'")
-            if "metadata" not in columns:
-                conn.execute("ALTER TABLE sessions ADD COLUMN metadata TEXT NOT NULL DEFAULT '{}'")
-
-    def _reset_legacy_sessions_table(self, conn: sqlite3.Connection) -> None:
-        table = conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'"
-        ).fetchone()
-        if table is None:
-            return
-
-        columns = {row["name"] for row in conn.execute("PRAGMA table_info(sessions)").fetchall()}
-        indexes = {
-            row["name"]
-            for row in conn.execute("PRAGMA index_list(sessions)").fetchall()
-            if row["name"] is not None
-        }
-        expected_columns = {"id", "session_id", "workspace_id", "user_id", "title", "messages", "ui_messages", "metadata", "created_at", "updated_at"}
-        expected_index = "idx_sessions_workspace_user_session"
-        if columns == expected_columns and expected_index in indexes:
-            return
-
-        conn.execute("DROP TABLE IF EXISTS sessions")
 
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:
