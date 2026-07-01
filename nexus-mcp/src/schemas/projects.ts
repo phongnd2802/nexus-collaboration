@@ -44,6 +44,12 @@ export const kanbanStageSchema = z
   })
   .strip();
 
+export const createProjectCollaborativeDataSchema = z
+  .object({
+    default_assignee_ids: z.array(z.string().uuid()).optional(),
+  })
+  .strip();
+
 export const projectOutputSchema = z
   .object({
     id: z.string().min(1),
@@ -78,19 +84,11 @@ export const projectsListOutputSchema = z.object({
 export const createProjectInputShape = {
   name: z.string().min(1).max(255).describe('Project name.'),
   description: z.string().optional().describe('Project description.'),
-  type: projectTypeSchema.optional().describe('Project type.'),
-  status: projectStatusSchema.optional().describe('Project status.'),
   priority: projectPrioritySchema.optional().describe('Project priority.'),
-  owner_id: z.string().uuid().optional().describe('Owner user ID. Defaults to current user in backend.'),
   lead_id: z.string().uuid().optional().describe('Lead user ID.'),
-  start_date: z.string().datetime().optional().describe('Project start date in ISO 8601 format.'),
-  end_date: z.string().datetime().optional().describe('Project end date in ISO 8601 format.'),
-  estimated_hours: z.number().nonnegative().optional().describe('Estimated hours for the project.'),
-  budget: z.number().nonnegative().optional().describe('Project budget.'),
-  is_template: z.boolean().optional().describe('Whether the project is a template.'),
   kanban_stages: z.array(kanbanStageSchema).optional().describe('Custom kanban stages.'),
   attachments: projectAttachmentsInputSchema.optional().describe('Linked notes, files, and events.'),
-  collaborative_data: z.record(z.unknown()).optional().describe('Additional collaborative project metadata.'),
+  collaborative_data: createProjectCollaborativeDataSchema.optional().describe('Additional collaborative project metadata (default assignee IDs).'),
 };
 
 export const updateProjectInputShape = {
@@ -259,3 +257,32 @@ export const deleteActionOutputSchema = z
     message: z.string().min(1),
   })
   .strip();
+
+const taskCommentAuthorSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    email: z.string().nullable().optional(),
+    avatar_url: z.string().nullable().optional(),
+  })
+  .strip();
+
+export const taskCommentOutputSchema = z
+  .object({
+    id: z.string().min(1),
+    task_id: z.string().min(1),
+    user_id: z.string().min(1),
+    content: z.string(),
+    content_html: z.string().nullable().optional(),
+    attachments: z.array(z.string()),
+    is_edited: z.boolean().optional(),
+    is_deleted: z.boolean().optional(),
+    user: taskCommentAuthorSchema.nullable().optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+  })
+  .strip();
+
+export const taskCommentsListOutputSchema = z.object({
+  comments: z.array(taskCommentOutputSchema),
+});
