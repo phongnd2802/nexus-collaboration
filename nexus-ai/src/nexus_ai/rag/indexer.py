@@ -7,6 +7,7 @@ import uuid
 from nexus_ai.rag.chunking.registry import resolve_chunking_strategy
 from nexus_ai.rag.embeddings.openrouter import OpenRouterEmbeddingClient
 from nexus_ai.rag.extraction.registry import resolve_extractor
+from nexus_ai.rag.lexical_store import ElasticsearchLexicalStore
 from nexus_ai.rag.llm import CONTEXT_PROMPT_VERSION, SUMMARY_PROMPT_VERSION, RagLlmClient
 from nexus_ai.rag.retrieval import RagRetrievalService
 from nexus_ai.rag.schemas import ChildChunk, FileSource, ParentChunk
@@ -83,6 +84,7 @@ class RagIndexer:
         llm_client = RagLlmClient(self.settings)
         embedder = OpenRouterEmbeddingClient(self.settings)
         vector_store = QdrantVectorStore(self.settings)
+        lexical_store = ElasticsearchLexicalStore(self.settings)
         summary = await llm_client.generate_document_summary(source, document)
         chunks = await self._apply_contextual_retrieval(source, chunks, llm_client)
         vectors = await embedder.embed([summary, *[chunk.contextual_text for chunk in chunks]])
@@ -95,6 +97,7 @@ class RagIndexer:
             summary_prompt_version=SUMMARY_PROMPT_VERSION,
         )
         await vector_store.upsert_chunks(source, chunks, vectors[1:], job_id)
+        await lexical_store.upsert_chunks(source, chunks, job_id)
         return {
             "chunks": len(chunks),
             "embedding_model": self.settings.rag_embedding_model,
@@ -102,6 +105,7 @@ class RagIndexer:
             "context_model": self.settings.rag_llm_model if self.settings.rag_enable_contextual_retrieval else None,
             "summary_prompt_version": SUMMARY_PROMPT_VERSION,
             "context_prompt_version": CONTEXT_PROMPT_VERSION if self.settings.rag_enable_contextual_retrieval else None,
+            "lexical_provider": self.settings.rag_lexical_provider,
         }
 
     async def _apply_contextual_retrieval(

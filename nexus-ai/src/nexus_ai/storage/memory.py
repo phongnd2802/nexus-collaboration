@@ -1,19 +1,41 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
 
 from .sqlite import decode_json, encode_json
 
 
 @dataclass(frozen=True)
 class MemoryRecord:
-    id: int
+    id: int | str
     memory_type: str
     content: str
     importance: int
     tags: list[str]
     metadata: dict[str, Any]
+
+
+class MemoryStore(Protocol):
+    async def add(
+        self,
+        workspace_id: str,
+        session_id: str | None,
+        user_id: str | None,
+        memory_type: str,
+        content: str,
+        importance: int = 5,
+        tags: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> int | str: ...
+
+    async def recent(
+        self,
+        workspace_id: str,
+        session_id: str | None = None,
+        user_id: str | None = None,
+        limit: int = 10,
+    ) -> list[MemoryRecord]: ...
 
 
 class MemoryRepository:

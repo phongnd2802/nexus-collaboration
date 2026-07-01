@@ -5,8 +5,10 @@ import math
 import re
 from dataclasses import dataclass
 from typing import Any
+import logging
 
 from nexus_ai.rag.embeddings.openrouter import OpenRouterEmbeddingClient
+from nexus_ai.rag.lexical_store import ElasticsearchLexicalStore
 from nexus_ai.rag.llm import RagLlmClient
 from nexus_ai.rag.vector_store.qdrant import QdrantVectorStore
 from nexus_ai.settings import Settings
@@ -42,6 +44,8 @@ class RagRetrievalService:
         self.settings = settings
         self.embedder = OpenRouterEmbeddingClient(settings)
         self.vector_store = QdrantVectorStore(settings)
+        self.lexical_store = ElasticsearchLexicalStore(settings)
+        self.logger = logging.getLogger(__name__)
 
     async def search(
         self,
@@ -174,22 +178,23 @@ class RagRetrievalService:
             )
             for variant in variants
         ]
-        lexical_tasks = [
-            self.vector_store.search_chunks_lexical(
-                workspace_id,
-                variant.text,
-                limit=self.settings.rag_lexical_candidates,
-                file_ids=file_ids,
-                document_ids=document_ids,
-                with_vectors=True,
-            )
-            for variant in variants
-        ]
         dense_results = await asyncio.gather(*dense_tasks)
-        try:
-            lexical_results = await asyncio.gather(*lexical_tasks)
-        except Exception:
-            lexical_results = []
+        lexical_results: list[list[dict[str, Any]]] = []
+        if self.settings.rag_lexical_provider == "elasticsearch":
+            lexical_tasks = [
+                self.lexical_store.search_chunks(
+                    workspace_id,
+                    variant.text,
+                    limit=self.settings.rag_lexical_candidates,
+                    file_ids=file_ids,
+                    document_ids=document_ids,
+                )
+                for variant in variants
+            ]
+            try:
+                lexical_results = await asyncio.gather(*lexical_tasks)
+            except Exception as exc:
+                self.logger.warning("Elasticsearch lexical retrieval failed; continuing with dense-only results: %s", exc)
         return [*dense_results, *lexical_results]
 
     def _rrf(self, ranked_lists: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:

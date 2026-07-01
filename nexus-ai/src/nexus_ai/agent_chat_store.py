@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from pydantic_ai.messages import ModelMessagesTypeAdapter
+from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelRequest, ModelResponse, TextPart, UserPromptPart
 
 from nexus_ai.policies import is_destructive_tool, is_write_tool
 from nexus_ai.storage.sqlite import decode_json, encode_json
@@ -51,6 +51,17 @@ class ChatEvent:
     event_name: str
     payload: dict[str, Any]
     created_at: str
+
+
+@dataclass(frozen=True)
+class SessionSummary:
+    session_id: str
+    workspace_id: str
+    user_id: str | None
+    summary_text: str
+    summarized_through_message_id: str
+    summarized_user_turns: int
+    updated_at: str
 
 
 class AgentChatStore:
@@ -131,6 +142,7 @@ class AgentChatStore:
         await self.store.execute("DELETE FROM chat_messages WHERE session_id = $1", session_id)
         await self.store.execute("DELETE FROM chat_events WHERE session_id = $1", session_id)
         await self.store.execute("DELETE FROM approval_decisions WHERE session_id = $1", session_id)
+        await self.store.execute("DELETE FROM session_summaries WHERE session_id = $1", session_id)
         await self.store.execute(
             "DELETE FROM sessions WHERE workspace_id = $1 AND session_id = $2 AND user_id = $3",
             workspace_id,
@@ -327,9 +339,11 @@ class AgentChatStore:
             session_id,
             user_id,
         )
-        if not row or row["all_messages_json"] is None:
-            return None
-        return ModelMessagesTypeAdapter.validate_json(bytes(row["all_messages_json"]))
+        if row and row["all_messages_json"] is not None:
+            history = ModelMessagesTypeAdapter.validate_json(bytes(row["all_messages_json"]))
+            if history:
+                return history
+        return await self._message_history_from_chat_messages(session_id)
 
     async def save_message_history(
         self,
@@ -337,7 +351,7 @@ class AgentChatStore:
         session_id: str,
         user_id: str | None,
         all_messages_json: bytes,
-        ) -> None:
+    ) -> None:
         await self.initialize()
         updated = await self.store.execute(
             "UPDATE sessions SET all_messages_json = $1, updated_at = $2 WHERE workspace_id = $3 AND session_id = $4 AND user_id = $5",
@@ -349,6 +363,88 @@ class AgentChatStore:
         )
         if updated == 0:
             raise KeyError(session_id)
+
+    async def _message_history_from_chat_messages(self, session_id: str) -> list[Any] | None:
+        rows = await self.store.fetch_all(
+            """
+            SELECT role, content, parts
+            FROM chat_messages
+            WHERE session_id = $1
+            ORDER BY created_at ASC, id ASC
+            """,
+            session_id,
+        )
+        history: list[Any] = []
+        for row in rows:
+            text = row["content"] or _text_from_parts(decode_json(row["parts"], []))
+            if not text:
+                continue
+            if row["role"] == "user":
+                history.append(ModelRequest(parts=[UserPromptPart(text)]))
+            elif row["role"] == "assistant":
+                history.append(ModelResponse(parts=[TextPart(text)]))
+        return history or None
+
+    async def get_session_summary(
+        self,
+        workspace_id: str,
+        session_id: str,
+        user_id: str | None,
+    ) -> SessionSummary | None:
+        await self.initialize()
+        row = await self.store.fetch_one(
+            """
+            SELECT session_id, workspace_id, user_id, summary_text, summarized_through_message_id, summarized_user_turns, updated_at
+            FROM session_summaries
+            WHERE workspace_id = $1 AND session_id = $2 AND user_id = $3
+            """,
+            workspace_id,
+            session_id,
+            user_id,
+        )
+        return self._summary_from_row(row) if row else None
+
+    async def upsert_session_summary(
+        self,
+        workspace_id: str,
+        session_id: str,
+        user_id: str | None,
+        summary_text: str,
+        summarized_through_message_id: str,
+        summarized_user_turns: int,
+    ) -> SessionSummary:
+        await self.initialize()
+        updated_at = utc_now()
+        await self.store.execute(
+            """
+            INSERT INTO session_summaries (
+              session_id, workspace_id, user_id, summary_text, summarized_through_message_id, summarized_user_turns, updated_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT(session_id)
+            DO UPDATE SET
+              summary_text = excluded.summary_text,
+              summarized_through_message_id = excluded.summarized_through_message_id,
+              summarized_user_turns = excluded.summarized_user_turns,
+              updated_at = excluded.updated_at
+            """,
+            session_id,
+            workspace_id,
+            user_id,
+            summary_text,
+            summarized_through_message_id,
+            summarized_user_turns,
+            updated_at,
+        )
+        return SessionSummary(
+            session_id=session_id,
+            workspace_id=workspace_id,
+            user_id=user_id,
+            summary_text=summary_text,
+            summarized_through_message_id=summarized_through_message_id,
+            summarized_user_turns=summarized_user_turns,
+            updated_at=_iso(updated_at),
+        )
 
     async def add_tool_audit(
         self,
@@ -425,6 +521,17 @@ class AgentChatStore:
             created_at=_iso(row["created_at"]),
         )
 
+    def _summary_from_row(self, row: Any) -> SessionSummary:
+        return SessionSummary(
+            session_id=row["session_id"],
+            workspace_id=row["workspace_id"],
+            user_id=row["user_id"],
+            summary_text=row["summary_text"],
+            summarized_through_message_id=row["summarized_through_message_id"],
+            summarized_user_turns=int(row["summarized_user_turns"]),
+            updated_at=_iso(row["updated_at"]),
+        )
+
 
 def _iso(value: Any) -> str:
     return value.isoformat() if hasattr(value, "isoformat") else str(value)
@@ -436,6 +543,14 @@ def _timestamp(value: Any) -> datetime:
     if isinstance(value, str):
         return datetime.fromisoformat(value)
     raise TypeError(f"Unsupported timestamp value: {type(value)!r}")
+
+
+def _text_from_parts(parts: list[dict[str, Any]]) -> str:
+    texts: list[str] = []
+    for part in parts:
+        if part.get("type") == "text" and isinstance(part.get("text"), str):
+            texts.append(part["text"])
+    return "\n".join(texts).strip()
 
 
 SECRET_KEYS = {"authorization", "token", "api_key", "apikey", "password", "secret", "content_base64"}

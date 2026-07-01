@@ -81,6 +81,16 @@ CREATE TABLE IF NOT EXISTS memories (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS session_summaries (
+  session_id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  user_id TEXT,
+  summary_text TEXT NOT NULL,
+  summarized_through_message_id TEXT NOT NULL,
+  summarized_user_turns INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS tool_audit_logs (
   id TEXT PRIMARY KEY,
   workspace_id TEXT NOT NULL,
@@ -167,6 +177,20 @@ class SQLiteStore:
               message TEXT,
               status TEXT NOT NULL,
               created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+        )
+        self._ensure_table(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS session_summaries (
+              session_id TEXT PRIMARY KEY,
+              workspace_id TEXT NOT NULL,
+              user_id TEXT,
+              summary_text TEXT NOT NULL,
+              summarized_through_message_id TEXT NOT NULL,
+              summarized_user_turns INTEGER NOT NULL DEFAULT 0,
               updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
             """,

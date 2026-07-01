@@ -24,6 +24,9 @@ def rag_routes(settings: Settings) -> list[Route]:
                 "ragLlmModel": settings.rag_llm_model,
                 "contextualRetrievalEnabled": settings.rag_enable_contextual_retrieval,
                 "qdrantUrl": settings.qdrant_url,
+                "lexicalProvider": settings.rag_lexical_provider,
+                "elasticsearchUrl": settings.elasticsearch_url,
+                "elasticsearchIndex": settings.elasticsearch_rag_chunk_index,
             }
         )
 

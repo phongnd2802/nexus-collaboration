@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from pydantic_ai.messages import (
@@ -17,6 +18,7 @@ from pydantic_ai.messages import (
     ToolCallPartDelta,
     ToolReturnPart,
 )
+from pydantic_ai.run import AgentRunResultEvent
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
@@ -25,8 +27,15 @@ from starlette.routing import Route
 from nexus_ai.agent import NexusAgentRuntime
 from nexus_ai.agent_chat_store import AgentChatStore, ChatSession
 from nexus_ai.capabilities.shields import validate_user_input
+from nexus_ai.context_pipeline import (
+    build_prompt_message_history,
+    extract_and_store_memories,
+    schedule_session_summary_update,
+)
 from nexus_ai.request_context import RequestContext, get_request_context, reset_request_context, set_request_context
 from nexus_ai.rag.routes import rag_routes
+
+logger = logging.getLogger(__name__)
 
 
 def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
@@ -201,7 +210,13 @@ async def _stream_chat(
 
     session = await store.get_or_create_session(workspace_id, user_id, session_id)
     model_name = runtime.deps.settings.model
-    message_history = await store.get_message_history(workspace_id, session.id, user_id)
+    raw_message_history = await store.get_message_history(workspace_id, session.id, user_id)
+    session_summary = await store.get_session_summary(workspace_id, session.id, user_id)
+    message_history = build_prompt_message_history(
+        raw_message_history,
+        session_summary.summary_text if session_summary else None,
+        runtime.deps.settings.history_recent_turns,
+    )
     request_context = _build_agent_request_context(request, workspace_id, session.id)
 
     if user_text:
@@ -234,15 +249,16 @@ async def _stream_chat(
                     conversation_id=session.id,
                 ) as event_stream:
                     async for event in event_stream:
-                        if is_agent_run_result(event):
-                            assistant_text = stringify_output(event.output)
+                        run_result = agent_run_result(event)
+                        if run_result is not None:
+                            assistant_text = stringify_output(run_result.output) or assistant_text_from_parts(assistant_parts)
                             final_payload = {
                                 "type": "data-final_answer",
-                                "data": {"content": assistant_text, "sessionId": session.id, "runId": event.run_id},
+                                "data": {"content": assistant_text, "sessionId": session.id, "runId": run_result.run_id},
                             }
                             stored = await store.add_event(session.id, workspace_id, "message", final_payload)
                             yield encode_sse(stored.id, "message", final_payload)
-                            await store.save_message_history(workspace_id, session.id, user_id, event.all_messages_json())
+                            await store.save_message_history(workspace_id, session.id, user_id, run_result.all_messages_json())
                             if assistant_text or assistant_parts:
                                 finalized_parts = finalize_assistant_parts(assistant_parts, assistant_text)
                                 await store.add_message(
@@ -253,6 +269,25 @@ async def _stream_chat(
                                     parts=finalized_parts,
                                     model=model_name,
                                 )
+                                try:
+                                    await extract_and_store_memories(
+                                        runtime.deps.memory,
+                                        runtime.deps.settings,
+                                        workspace_id=workspace_id,
+                                        session_id=session.id,
+                                        user_id=user_id,
+                                        user_text=user_text,
+                                        assistant_text=assistant_text,
+                                    )
+                                    schedule_session_summary_update(
+                                        store,
+                                        runtime.deps.settings,
+                                        workspace_id=workspace_id,
+                                        session_id=session.id,
+                                        user_id=user_id,
+                                    )
+                                except Exception as exc:
+                                    logger.warning("Context pipeline maintenance failed for session %s: %s", session.id, exc)
                             break
 
                         await audit_event(runtime, store, session.id, workspace_id, event)
@@ -510,8 +545,19 @@ def stringify_output(output: Any) -> str:
     return str(output)
 
 
-def is_agent_run_result(value: Any) -> bool:
-    return hasattr(value, "output") and hasattr(value, "all_messages_json") and hasattr(value, "run_id")
+def agent_run_result(value: Any) -> Any | None:
+    result = value.result if isinstance(value, AgentRunResultEvent) else value
+    if hasattr(result, "output") and hasattr(result, "all_messages_json") and hasattr(result, "run_id"):
+        return result
+    return None
+
+
+def assistant_text_from_parts(parts: list[dict[str, Any]]) -> str:
+    texts: list[str] = []
+    for part in parts:
+        if part.get("type") == "text" and isinstance(part.get("text"), str):
+            texts.append(part["text"])
+    return "\n".join(texts).strip()
 
 
 async def audit_payload(

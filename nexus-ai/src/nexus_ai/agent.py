@@ -10,7 +10,7 @@ from nexus_ai.capabilities.context import current_time_instruction, memory_instr
 from nexus_ai.capabilities.observability import instrument_pydantic_ai
 from nexus_ai.capabilities.shields import validate_user_input
 from nexus_ai.settings import Settings, load_settings
-from nexus_ai.storage import MemoryRepository, create_store
+from nexus_ai.storage import MemoryStore, create_memory_repository, create_store
 
 
 BASE_INSTRUCTIONS = """\
@@ -19,13 +19,23 @@ You are Nexus AI, an agent for a Nexus Collaboration workspace.
 Use Nexus MCP tools for workspace data and actions. Do not claim that a workspace
 change happened unless a tool result confirms it. Prefer read-only exploration
 before taking action. Never expose secrets.
+
+Private AI memory is internal chat context for this user. It is not a Nexus note,
+not a workspace artifact, and not visible in the Notes module.
+Nexus notes are workspace documents managed through Nexus MCP note tools.
+
+When the user asks you to remember a preference, fact, constraint, or something
+to keep in mind for future chats, use private AI memory instead of creating a note.
+When the user clearly wants a workspace document, meeting notes, shared
+documentation, or an update to an existing note, use the Nexus MCP note tools.
+If the intent is ambiguous, prefer private AI memory over creating or updating a note.
 """
 
 
 @dataclass
 class AgentDeps:
     settings: Settings
-    memory: MemoryRepository
+    memory: MemoryStore
     store: Any
 
 
@@ -41,8 +51,7 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
     settings.validate_for_runtime()
 
     store = create_store(settings)
-
-    memory = MemoryRepository(store)
+    memory = create_memory_repository(settings, store)
     deps = AgentDeps(settings=settings, memory=memory, store=store)
 
     instrument_pydantic_ai(settings)
@@ -75,19 +84,23 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         return "\n".join(
             [
                 current_time_instruction(),
-                f"Workspace id: {settings.workspace_id}. Session id: {settings.session_id}.",
+                f"Workspace id: {settings.workspace_id}. Session id: {settings.session_id}. User id: {settings.user_id or 'unknown'}.",
+                (
+                    "Operational rule: 'remember this' means private AI memory by default. "
+                    "Only use Nexus note tools when the user clearly wants a workspace document or note change."
+                ),
                 await memory_instruction(ctx.deps.memory, settings.workspace_id, settings.session_id, settings.user_id),
             ]
         )
 
     @agent.tool
-    async def remember(
+    async def store_private_memory(
         ctx: RunContext[AgentDeps],
         content: str,
         memory_type: str = "episodic",
         importance: int = 5,
-    ) -> dict[str, int]:
-        """Store a workspace/session scoped memory for future agent runs."""
+    ) -> dict[str, int | str]:
+        """Store private AI chat memory for this user. This does not create or update any Nexus note."""
         memory_id = await ctx.deps.memory.add(
             workspace_id=ctx.deps.settings.workspace_id,
             session_id=ctx.deps.settings.session_id,
@@ -99,8 +112,8 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         return {"memory_id": memory_id}
 
     @agent.tool
-    async def list_memories(ctx: RunContext[AgentDeps], limit: int = 10) -> list[dict[str, object]]:
-        """List recent workspace/session memories."""
+    async def list_private_memories(ctx: RunContext[AgentDeps], limit: int = 10) -> list[dict[str, object]]:
+        """List private AI chat memories for this user. These records are not Nexus notes."""
         return [
             {
                 "id": item.id,
