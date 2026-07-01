@@ -11,7 +11,6 @@ def main() -> None:
     print(f"model={settings.model}")
     print(f"workspace_id={settings.workspace_id}")
     print(f"mcp_url={settings.mcp_url}")
-    print(f"mcp_urls={settings.active_mcp_urls}")
     print(f"sqlite_path={settings.sqlite_path}")
     if runtime.capability_warnings:
         print("Capability warnings:")
@@ -21,3 +20,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

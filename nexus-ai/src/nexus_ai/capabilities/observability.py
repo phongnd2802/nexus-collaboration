@@ -40,7 +40,6 @@ def langfuse_attributes(settings: Settings, user_id: str | None = None) -> Itera
         metadata={
             "workspace_id": settings.workspace_id,
             "mcp_url": settings.mcp_url,
-            "mcp_urls": settings.active_mcp_urls,
             "model": settings.model,
         },
         version="0.1.0",
