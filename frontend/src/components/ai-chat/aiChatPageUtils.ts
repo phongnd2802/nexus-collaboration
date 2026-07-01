@@ -1,7 +1,5 @@
 import type { AIChatTimelineItem } from './types'
 
-export const MODELS_KEY = 'nexus_ai_chat_model'
-
 export function toRequestMessages(items: AIChatTimelineItem[]) {
   return items
     .filter(

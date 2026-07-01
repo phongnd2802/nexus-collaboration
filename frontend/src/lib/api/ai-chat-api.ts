@@ -99,7 +99,6 @@ interface UIMessage {
   parts: UIMessagePart[]
 }
 
-const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 const STORAGE_PREFIX = 'nexus_ai_chat_'
 
 export function clearLegacyAIChatStorage(): void {
@@ -113,11 +112,6 @@ export function clearLegacyAIChatStorage(): void {
   } catch {
     // Ignore storage access failures.
   }
-}
-
-function normalizeModel(model?: string) {
-  if (!model || ['auto', 'thinking', 'fast'].includes(model)) return DEFAULT_MODEL
-  return model
 }
 
 function extractOpenAIError(payload: any, fallback: string) {
@@ -418,7 +412,6 @@ function toUIRequestMessages(messages: Array<{ role: string; content: string }>)
 async function consumeNexusAIUIStream(
   response: Response,
   callbacks: AIChatStreamCallbacks,
-  workspaceId: string,
   initialSessionId?: string,
 ): Promise<void> {
   const reader = response.body?.getReader()
@@ -426,17 +419,8 @@ async function consumeNexusAIUIStream(
 
   const decoder = new TextDecoder()
   let buffer = ''
-  let assistantContent = ''
   let sessionId = initialSessionId
-  let runId: string | undefined
-  const toolCalls = new Map<string, { toolName?: string; input?: Record<string, any>; startedAt?: string }>()
-  let reasoningText = ''
-  let reasoningStartedAt: string | undefined
-  const assistantTextPartId = 'assistant-text'
-
-  const complete = () => {
-    callbacks.onComplete?.(completionResult(sessionId, assistantContent))
-  }
+  let completed = false
 
   while (true) {
     const { done, value } = await reader.read()
@@ -447,344 +431,68 @@ async function consumeNexusAIUIStream(
     buffer = events.pop() || ''
 
     for (const event of events) {
-      const line = event.split('\n').find(item => item.startsWith('data: '))
-      if (!line) continue
+      const parsed = parseBackendSseEvent(event)
+      if (!parsed) continue
 
-      const raw = line.slice(6).trim()
-      if (raw === '[DONE]') {
-        complete()
+      if (parsed.event === 'session') {
+        sessionId = typeof parsed.data?.sessionId === 'string' ? parsed.data.sessionId : sessionId
+        if (sessionId) callbacks.onSession?.(sessionId, typeof parsed.data?.runId === 'string' ? parsed.data.runId : undefined)
+        continue
+      }
+
+      if (parsed.event === 'message.part') {
+        const part = parsed.data?.part
+        if (part && typeof part === 'object') {
+          callbacks.onPart?.(part as AIChatPartItem)
+        }
+        continue
+      }
+
+      if (parsed.event === 'run.error') {
+        callbacks.onError?.(
+          typeof parsed.data?.error === 'string' ? parsed.data.error : 'Nexus AI request failed',
+        )
         return
       }
 
-      const chunk = JSON.parse(raw)
-
-      if (chunk?.type === 'data-session') {
-        sessionId = chunk.data?.sessionId || sessionId
-        runId = chunk.data?.runId || runId
-        if (sessionId) {
-          callbacks.onSession?.(sessionId, runId)
-        }
-        continue
-      }
-
-      if (chunk?.type === 'data-orchestration_stage') {
-        const data = chunk.data || {}
-        const stage = typeof data.stage === 'string' ? data.stage : 'unknown'
-        const label = orchestrationLabel(stage)
-        callbacks.onPart?.({
-          id: `orchestration-${stage}`,
-          type: 'data-orchestration_stage',
-          summary: typeof data.summary === 'string' ? data.summary : label,
-          label,
-          status: normalizeTranscriptStatus(data.status),
-          metadata: typeof data.metadata === 'object' && data.metadata ? data.metadata : undefined,
-          startedAt: typeof data.startedAt === 'string' ? data.startedAt : undefined,
-          endedAt: typeof data.endedAt === 'string' ? data.endedAt : undefined,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'data-routing_decision') {
-        const data = chunk.data || {}
-        const route = typeof data.route === 'string' ? data.route : 'unknown'
-        const executionPath = typeof data.executionPath === 'string' ? data.executionPath : undefined
-        callbacks.onPart?.({
-          id: `routing-${executionPath || route}`,
-          type: 'data-routing_decision',
-          summary:
-            route === 'direct_workspace' || executionPath === 'direct_workspace' || route === 'direct'
-              ? 'Routed to direct workspace agent'
-              : 'Routed to multi-agent orchestration',
-          label:
-            route === 'direct_workspace' || executionPath === 'direct_workspace' || route === 'direct'
-              ? 'Direct workspace route'
-              : 'Multi-agent route',
-          status: 'completed',
-          metadata: typeof data === 'object' && data ? data : undefined,
-        })
-        continue
-      }
-
-      if (
-        chunk?.type === 'data-plan'
-        || chunk?.type === 'data-retrieval_bundle'
-        || chunk?.type === 'data-draft_answer'
-        || chunk?.type === 'data-critique'
-        || chunk?.type === 'data-final_answer'
-        || chunk?.type === 'data-rag_sources'
-        || chunk?.type === 'data-mcp_sources'
-        || chunk?.type === 'data-action_result'
-      ) {
-        const data = chunk.data || {}
-        const labelByType: Record<string, string> = {
-          'data-plan': 'Plan',
-          'data-retrieval_bundle': 'Retrieval bundle',
-          'data-draft_answer': 'Draft answer',
-          'data-critique': 'Critique',
-          'data-final_answer': 'Final answer',
-          'data-rag_sources': 'RAG sources',
-          'data-mcp_sources': 'Workspace sources',
-          'data-action_result': 'Action result',
-        }
-        const references = toWorkspaceReferences(data.sources || data.references)
-        const actions = toWorkspaceActions(data.actions || data.actionResults || data.results)
-        callbacks.onPart?.({
-          id: `${chunk.type}-${crypto.randomUUID()}`,
-          type: chunk.type,
-          label: labelByType[chunk.type] || chunk.type,
-          summary: labelByType[chunk.type] || chunk.type,
-          status: 'completed',
-          metadata: typeof data === 'object' && data ? data : undefined,
-          text:
-            chunk?.type === 'data-final_answer' && typeof data.content === 'string'
-              ? data.content
-              : undefined,
-          references: references.length > 0 ? references : undefined,
-          actions: actions.length > 0 ? actions : undefined,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'text-delta' && typeof chunk.delta === 'string') {
-        assistantContent += chunk.delta
-        callbacks.onPart?.({
-          id: assistantTextPartId,
-          type: 'text',
-          label: 'Message',
-          status: 'running',
-          text: assistantContent,
-        })
-        callbacks.onTextDelta?.(chunk.delta)
-        continue
-      }
-
-      if (chunk?.type === 'reasoning-start') {
-        reasoningText = ''
-        reasoningStartedAt = new Date().toISOString()
-        callbacks.onPart?.({
-          id: chunk.id || 'reasoning',
-          type: 'reasoning',
-          summary: 'Dang suy nghi...',
-          label: 'Dang suy nghi...',
-          status: 'running',
-          text: '',
-          startedAt: reasoningStartedAt,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'reasoning-delta' && typeof chunk.delta === 'string') {
-        reasoningText += chunk.delta
-        callbacks.onPart?.({
-          id: chunk.id || 'reasoning',
-          type: 'reasoning',
-          summary: 'Dang suy nghi...',
-          label: 'Dang suy nghi...',
-          status: 'running',
-          text: reasoningText,
-          startedAt: reasoningStartedAt,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'reasoning-end') {
-        callbacks.onPart?.({
-          id: chunk.id || 'reasoning',
-          type: 'reasoning',
-          summary: 'Da suy nghi',
-          label: 'Da suy nghi',
-          status: 'completed',
-          text: reasoningText || 'Assistant completed reasoning',
-          startedAt: reasoningStartedAt,
-          endedAt: new Date().toISOString(),
-        })
-        continue
-      }
-
-      if (chunk?.type === 'tool-input-start') {
-        const startedAt = new Date().toISOString()
-        toolCalls.set(chunk.tool_call_id, {
-          toolName: chunk.tool_name,
-          input: {},
-          startedAt,
-        })
-        callbacks.onPart?.({
-          id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
-          type: 'tool-input',
-          summary: 'Dang goi cong cu...',
-          label: `Calling ${chunk.tool_name || 'tool'}`,
-          status: 'running',
-          toolName: chunk.tool_name,
-          text: 'Preparing tool arguments',
-          startedAt,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'tool-input-delta') {
-        const current = toolCalls.get(chunk.tool_call_id)
-        callbacks.onPart?.({
-          id: chunk.tool_call_id || `${current?.toolName || 'tool'}-${Date.now()}`,
-          type: 'tool-input',
-          summary: 'Dang goi cong cu...',
-          label: `Calling ${current?.toolName || 'tool'}`,
-          status: 'running',
-          toolName: current?.toolName,
-          text: 'Streaming tool arguments',
-          input: current?.input,
-          startedAt: current?.startedAt,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'tool-input-available') {
-        const startedAt = toolCalls.get(chunk.tool_call_id)?.startedAt || new Date().toISOString()
-        toolCalls.set(chunk.tool_call_id, {
-          toolName: chunk.tool_name,
-          input: chunk.input,
-          startedAt,
-        })
-        callbacks.onPart?.({
-          id: chunk.tool_call_id || `${chunk.tool_name}-${Date.now()}`,
-          type: 'tool-input',
-          summary: 'Dang goi cong cu...',
-          label: `Calling ${chunk.tool_name || 'tool'}`,
-          status: 'running',
-          toolName: chunk.tool_name,
-          text: 'Tool arguments ready',
-          input: chunk.input,
-          startedAt,
-        })
-        continue
-      }
-
-      if (chunk?.type === 'tool-output-available') {
-        const toolCall = toolCalls.get(chunk.tool_call_id)
-        const toolName = toolCall?.toolName
-        callbacks.onPart?.({
-          id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
-          type: 'tool-output',
-          summary: `${toolCall?.toolName || 'Tool'} completed`,
-          label: `${toolCall?.toolName || 'Tool'} completed`,
-          status: 'completed',
-          toolName,
-          text: 'Tool result received',
-          input: toolCall?.input,
-          output: chunk.output,
-          startedAt: toolCall?.startedAt,
-          endedAt: new Date().toISOString(),
-        })
-        for (const part of derivedPartsFromToolOutput(toolName, chunk.output, workspaceId)) {
-          callbacks.onPart?.(part)
-        }
-        continue
-      }
-
-      if (chunk?.type === 'tool-output-error') {
-        const toolCall = toolCalls.get(chunk.tool_call_id)
-        callbacks.onPart?.({
-          id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
-          type: 'tool-output',
-          summary: `${toolCall?.toolName || 'Tool'} failed`,
-          label: `${toolCall?.toolName || 'Tool'} failed`,
-          status: 'error',
-          toolName: toolCall?.toolName,
-          input: toolCall?.input,
-          error: chunk.error_text || 'Tool execution failed',
-          startedAt: toolCall?.startedAt,
-          endedAt: new Date().toISOString(),
-        })
-        continue
-      }
-
-      if (chunk?.type === 'tool-output-denied') {
-        const toolCall = toolCalls.get(chunk.tool_call_id)
-        callbacks.onPart?.({
-          id: chunk.tool_call_id || `${toolCall?.toolName || 'tool'}-${Date.now()}`,
-          type: 'tool-output',
-          summary: `${toolCall?.toolName || 'Tool'} denied`,
-          label: `${toolCall?.toolName || 'Tool'} denied`,
-          status: 'denied',
-          toolName: toolCall?.toolName,
-          input: toolCall?.input,
-          error: 'Tool execution denied',
-          startedAt: toolCall?.startedAt,
-          endedAt: new Date().toISOString(),
-        })
-        continue
-      }
-
-      if (chunk?.type === 'source-url') {
-        callbacks.onPart?.({
-          id: chunk.id || `source-url-${Date.now()}`,
-          type: 'source-url',
-          summary: 'Source attached',
-          label: chunk.title || chunk.url || 'Source',
-          status: 'completed',
-          metadata: {
-            url: chunk.url,
-            title: chunk.title,
-          },
-        })
-        continue
-      }
-
-      if (chunk?.type === 'source-document') {
-        callbacks.onPart?.({
-          id: chunk.id || `source-document-${Date.now()}`,
-          type: 'source-document',
-          summary: 'Document attached',
-          label: chunk.title || 'Document',
-          status: 'completed',
-          metadata: {
-            title: chunk.title,
-            mediaType: chunk.mediaType,
-          },
-        })
-        continue
-      }
-
-      if (chunk?.type === 'file') {
-        callbacks.onPart?.({
-          id: chunk.id || `file-${Date.now()}`,
-          type: 'file',
-          summary: 'File attached',
-          label: chunk.filename || chunk.mediaType || 'File',
-          status: 'completed',
-          metadata: {
-            filename: chunk.filename,
-            mediaType: chunk.mediaType,
-          },
-        })
-        continue
-      }
-
-      if (chunk?.type === 'data-project_list') {
-        const projects = toProjectCardPayloads(chunk.data?.projects || chunk.projects)
-        if (projects.length > 0) {
-          callbacks.onPart?.({
-            id: chunk.id || `project-list-${Date.now()}`,
-            type: 'data-project_list',
-            summary: 'Project list attached',
-            label:
-              (typeof chunk.data?.title === 'string' && chunk.data.title)
-              || (typeof chunk.title === 'string' && chunk.title)
-              || 'Projects',
-            status: 'completed',
-            projects,
-          })
-        }
-        continue
-      }
-
-      if (chunk?.type === 'error') {
-        callbacks.onError?.(chunk.error_text || 'Nexus AI request failed')
+      if (parsed.event === 'run.completed') {
+        completed = true
+        callbacks.onComplete?.(completionResult(sessionId, typeof parsed.data?.message === 'string' ? parsed.data.message : ''))
         return
       }
     }
   }
 
-  complete()
+  if (!completed) {
+    callbacks.onComplete?.(completionResult(sessionId, ''))
+  }
+}
+
+function parseBackendSseEvent(frame: string): { event: string; data: Record<string, any> } | null {
+  const lines = frame.split('\n')
+  let eventName = ''
+  const dataLines: string[] = []
+
+  for (const line of lines) {
+    if (line.startsWith('event:')) {
+      eventName = line.slice(6).trim()
+      continue
+    }
+    if (line.startsWith('data:')) {
+      dataLines.push(line.slice(5).trimStart())
+    }
+  }
+
+  if (!eventName || dataLines.length === 0) return null
+
+  try {
+    return {
+      event: eventName,
+      data: JSON.parse(dataLines.join('\n')),
+    }
+  } catch {
+    return null
+  }
 }
 
 export const aiChatApi = {
@@ -815,7 +523,6 @@ export const aiChatApi = {
         trigger: 'submit-message',
         id: data.sessionId || crypto.randomUUID(),
         messages: toUIRequestMessages(messages),
-        model: normalizeModel(data.context?.model),
       }),
       signal,
     })
@@ -830,7 +537,7 @@ export const aiChatApi = {
       throw new Error(extractOpenAIError(payload, `Nexus AI request failed (${response.status})`))
     }
 
-    await consumeNexusAIUIStream(response, callbacks, data.workspaceId, data.sessionId)
+    await consumeNexusAIUIStream(response, callbacks, data.sessionId)
   },
 
   getSession: async (workspaceId: string, sessionId: string, token: string): Promise<AIChatSessionSnapshot> => {

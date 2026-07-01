@@ -101,8 +101,22 @@ function getRequestContext(req: Request, res: Response): NexusMcpRequestContext 
   const authorizationHeader = getHeader(req, 'authorization');
   const workspaceId = getHeader(req, 'x-nexus-workspace-id');
   const requestId = getHeader(req, 'x-nexus-request-id');
+  const bearerToken = extractBearerToken(authorizationHeader);
+
+  console.error(
+    '[nexus-mcp] incoming /mcp request',
+    JSON.stringify({
+      hasAuthorizationHeader: Boolean(authorizationHeader),
+      bearerTokenPresent: Boolean(bearerToken),
+      bearerTokenPrefix: bearerToken ? bearerToken.slice(0, 8) : null,
+      workspaceIdPresent: Boolean(workspaceId),
+      workspaceId,
+      requestId: requestId || null,
+    }),
+  );
 
   if (!authorizationHeader?.toLowerCase().startsWith('bearer ')) {
+    console.error('[nexus-mcp] rejecting request: missing or invalid Authorization bearer token.');
     res.status(401).json({
       jsonrpc: '2.0',
       error: {
@@ -115,6 +129,7 @@ function getRequestContext(req: Request, res: Response): NexusMcpRequestContext 
   }
 
   if (!workspaceId) {
+    console.error('[nexus-mcp] rejecting request: missing X-Nexus-Workspace-ID header.');
     res.status(400).json({
       jsonrpc: '2.0',
       error: {
@@ -142,6 +157,11 @@ function getHeader(req: Request, name: string): string | undefined {
   }
 
   return value;
+}
+
+function extractBearerToken(authorizationHeader?: string): string | undefined {
+  const [type, token] = authorizationHeader?.split(' ') ?? [];
+  return type?.toLowerCase() === 'bearer' && token ? token : undefined;
 }
 
 function normalizePath(value: string): string {

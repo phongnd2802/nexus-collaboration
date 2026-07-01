@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Square, Paperclip, X, ArrowUp, Zap, Brain, Sparkles, ChevronDown, Check } from 'lucide-react'
+import { Square, Paperclip, X, ArrowUp } from 'lucide-react'
 import { useIntl } from 'react-intl'
 
 interface AttachedFile {
@@ -12,89 +12,15 @@ interface AIChatInputProps {
   onSend: (message: string, files: AttachedFile[]) => void
   onStop: () => void
   isStreaming: boolean
-  model: string
-  onModelChange: (modelId: string) => void
   disabled?: boolean
   value?: string
   onChange?: (value: string) => void
-}
-
-const MODES = [
-  { id: 'auto', labelKey: 'modules.aiChat.modes.auto', defaultLabel: 'Auto', icon: Sparkles },
-  { id: 'thinking', labelKey: 'modules.aiChat.modes.thinking', defaultLabel: 'Thinking', icon: Brain },
-  { id: 'fast', labelKey: 'modules.aiChat.modes.fast', defaultLabel: 'Fast', icon: Zap },
-]
-
-function ModeDropdown({ model, onModelChange }: { model: string; onModelChange: (id: string) => void }) {
-  const intl = useIntl()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    if (open) {
-      document.addEventListener('mousedown', handler)
-      return () => document.removeEventListener('mousedown', handler)
-    }
-  }, [open])
-
-  const currentMode = MODES.find(m => m.id === model) || MODES[0]
-  const ActiveIcon = currentMode.icon
-
-  const handleSelect = useCallback((id: string) => {
-    onModelChange(id)
-    setOpen(false)
-  }, [onModelChange])
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#3D3D3A] hover:text-[#1F1E1D] hover:bg-[rgba(31,30,29,0.04)] transition-colors outline-none select-none"
-      >
-        <ActiveIcon className="h-3.5 w-3.5 text-[#73726C]" />
-        {intl.formatMessage({ id: currentMode.labelKey, defaultMessage: currentMode.defaultLabel })}
-        <ChevronDown className={`h-3 w-3 text-[#73726C] transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && (
-        <div className="absolute bottom-full right-0 mb-2 w-44 rounded-xl border border-[rgba(31,30,29,0.12)] bg-white p-1 shadow-[rgba(0,0,0,0.016)_0px_4px_24px_0px,rgba(0,0,0,0.016)_0px_4px_32px_0px,rgba(0,0,0,0.01)_0px_2px_64px_0px,rgba(0,0,0,0.01)_0px_16px_32px_0px] z-50">
-          {MODES.map(mode => {
-            const Icon = mode.icon
-            const isActive = model === mode.id
-            return (
-              <button
-                key={mode.id}
-                onClick={() => handleSelect(mode.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[14px] transition-colors text-left ${
-                  isActive
-                    ? 'bg-[#FAF9F5] text-[#1F1E1D] font-medium'
-                    : 'text-[#1F1E1D] hover:bg-[#FAF9F5]'
-                }`}
-              >
-                <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-[#D97757]' : 'text-[#73726C]'}`} />
-                <span className="flex-1">
-                  {intl.formatMessage({ id: mode.labelKey, defaultMessage: mode.defaultLabel })}
-                </span>
-                {isActive && <Check className="h-4 w-4 text-[#D97757] flex-shrink-0" />}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
 }
 
 export function AIChatInput({
   onSend,
   onStop,
   isStreaming,
-  model,
-  onModelChange,
   disabled,
   value: externalValue,
   onChange,
@@ -254,8 +180,6 @@ export function AIChatInput({
             </div>
 
             <div className="flex items-center gap-2">
-              <ModeDropdown model={model} onModelChange={onModelChange} />
-
               {isStreaming ? (
                 <button
                   onClick={onStop}

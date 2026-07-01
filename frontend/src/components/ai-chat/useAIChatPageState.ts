@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { aiChatApi, clearLegacyAIChatStorage } from '@/lib/api/ai-chat-api'
-import { buildAIChatPath, buildAIChatTitle, createTimestamp, MODELS_KEY, toRequestMessages } from './aiChatPageUtils'
+import { buildAIChatPath, buildAIChatTitle, createTimestamp, toRequestMessages } from './aiChatPageUtils'
 import { groupAssistantPartsForThinking, messageContent, thinkingGroupPart, transcriptToTimeline } from './uiMessageTimeline'
 import type { AIChatPartItem, AIChatTimelineItem, AssistantMessageItem } from './types'
 
@@ -35,7 +35,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
   const [isStreaming, setIsStreaming] = useState(false)
   const [isHydratingSession, setIsHydratingSession] = useState(false)
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
-  const [model, setModel] = useState(() => localStorage.getItem(MODELS_KEY) || 'auto')
   const [deleteConversationDialog, setDeleteConversationDialog] = useState<DeleteConversationDialogState | null>(null)
   const [isDeletingConversation, setIsDeletingConversation] = useState(false)
 
@@ -44,10 +43,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
   const currentConversationIdRef = useRef<string | null>(null)
   const currentAssistantContentRef = useRef('')
   const hydrateRequestRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    localStorage.setItem(MODELS_KEY, model)
-  }, [model])
 
   useEffect(() => {
     clearLegacyAIChatStorage()
@@ -386,7 +381,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       abortRef.current = controller
 
       const context: Record<string, any> = {
-        model,
         currentView: 'ai-chat',
         messages: toRequestMessages([...baseItems, userMessageItem]),
       }
@@ -400,10 +394,10 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
             context,
           },
           {
-            onTextDelta: (content: string) => {
-              currentAssistantContentRef.current += content
-            },
             onPart: (part: AIChatPartItem) => {
+              if (part.type === 'text' && typeof part.text === 'string') {
+                currentAssistantContentRef.current = part.text
+              }
               upsertAssistantPart(conversation.id, part)
             },
             onSession: (sessionId: string) => {
@@ -451,7 +445,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
       intl,
       isHydratingSession,
       isStreaming,
-      model,
       setConversationSession,
       stopStreamState,
       syncRoute,
@@ -588,8 +581,6 @@ export function useAIChatPageState({ workspaceId, routeSessionId, intl }: UseAIC
     isLoadingSessions,
     deleteConversationDialog,
     isDeletingConversation,
-    model,
-    setModel,
     hasConversation,
     handleSend,
     handleStop,

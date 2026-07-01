@@ -15,9 +15,55 @@ CREATE TABLE IF NOT EXISTS sessions (
   user_id TEXT,
   title TEXT NOT NULL DEFAULT 'New conversation',
   metadata TEXT NOT NULL DEFAULT '{}',
+  all_messages_json BLOB,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  workspace_id TEXT NOT NULL,
+  user_id TEXT,
+  role TEXT NOT NULL,
+  content TEXT,
+  parts TEXT NOT NULL DEFAULT '[]',
+  model TEXT,
+  metadata TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created_at
+ON chat_messages (session_id, created_at);
+
+CREATE TABLE IF NOT EXISTS chat_events (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  workspace_id TEXT NOT NULL,
+  event_name TEXT NOT NULL,
+  payload TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_events_session_created_at
+ON chat_events (session_id, created_at);
+
+CREATE TABLE IF NOT EXISTS approval_decisions (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  workspace_id TEXT NOT NULL,
+  approval_id TEXT NOT NULL,
+  user_id TEXT,
+  decision TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  message TEXT,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_approval_decisions_session_approval_idempotency
+ON approval_decisions (session_id, approval_id, idempotency_key);
 
 CREATE TABLE IF NOT EXISTS memories (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +89,7 @@ class SQLiteStore:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as conn:
             conn.executescript(SCHEMA)
+            self._migrate(conn)
 
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:
@@ -53,6 +100,76 @@ class SQLiteStore:
             conn.commit()
         finally:
             conn.close()
+
+    def _migrate(self, conn: sqlite3.Connection) -> None:
+        self._ensure_column(conn, "sessions", "all_messages_json", "BLOB")
+        self._ensure_table(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS chat_messages (
+              id TEXT PRIMARY KEY,
+              session_id TEXT NOT NULL,
+              workspace_id TEXT NOT NULL,
+              user_id TEXT,
+              role TEXT NOT NULL,
+              content TEXT,
+              parts TEXT NOT NULL DEFAULT '[]',
+              model TEXT,
+              metadata TEXT NOT NULL DEFAULT '{}',
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+        )
+        self._ensure_table(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS chat_events (
+              id TEXT PRIMARY KEY,
+              session_id TEXT NOT NULL,
+              workspace_id TEXT NOT NULL,
+              event_name TEXT NOT NULL,
+              payload TEXT NOT NULL DEFAULT '{}',
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+        )
+        self._ensure_table(
+            conn,
+            """
+            CREATE TABLE IF NOT EXISTS approval_decisions (
+              id TEXT PRIMARY KEY,
+              session_id TEXT NOT NULL,
+              workspace_id TEXT NOT NULL,
+              approval_id TEXT NOT NULL,
+              user_id TEXT,
+              decision TEXT NOT NULL,
+              idempotency_key TEXT NOT NULL,
+              message TEXT,
+              status TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created_at ON chat_messages (session_id, created_at)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_chat_events_session_created_at ON chat_events (session_id, created_at)"
+        )
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_approval_decisions_session_approval_idempotency "
+            "ON approval_decisions (session_id, approval_id, idempotency_key)"
+        )
+
+    def _ensure_table(self, conn: sqlite3.Connection, ddl: str) -> None:
+        conn.execute(ddl)
+
+    def _ensure_column(self, conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+        rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+        existing = {row["name"] for row in rows}
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
 def encode_json(value: Any) -> str:
