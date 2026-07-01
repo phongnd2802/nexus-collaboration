@@ -1631,6 +1631,29 @@ export class ProjectsService {
   }
 
   // Task comments
+  private async getCommentAuthor(authorId: string) {
+    try {
+      const userProfile = await this.db.getUserById(authorId);
+      if (!userProfile) return null;
+      const metadata = userProfile.metadata || {};
+      return {
+        id: userProfile.id,
+        name:
+          metadata.name ||
+          (userProfile as any).fullName ||
+          userProfile.name ||
+          userProfile.username ||
+          userProfile.email ||
+          'Unknown User',
+        email: userProfile.email,
+        avatar_url: metadata.avatarUrl || userProfile.avatar_url || null,
+      };
+    } catch (error) {
+      console.error(`Failed to fetch comment author details for ${authorId}:`, error);
+      return null;
+    }
+  }
+
   async getTaskComments(taskId: string, userId: string) {
     await this.getTask(taskId, userId);
 
@@ -1642,13 +1665,16 @@ export class ProjectsService {
       .execute();
 
     const commentsData = Array.isArray(commentsQueryResult.data) ? commentsQueryResult.data : [];
-    return commentsData.map((comment) => ({
-      ...comment,
-      attachments:
-        typeof comment.attachments === 'string'
-          ? JSON.parse(comment.attachments)
-          : comment.attachments,
-    }));
+    return Promise.all(
+      commentsData.map(async (comment) => ({
+        ...comment,
+        attachments:
+          typeof comment.attachments === 'string'
+            ? JSON.parse(comment.attachments)
+            : comment.attachments,
+        user: await this.getCommentAuthor(comment.user_id),
+      })),
+    );
   }
 
   async createTaskComment(
@@ -1668,7 +1694,12 @@ export class ProjectsService {
       updated_at: new Date().toISOString(),
     };
 
-    return await this.db.insert('task_comments', commentData);
+    const created = await this.db.insert('task_comments', commentData);
+    return {
+      ...created,
+      attachments: createTaskCommentDto.attachments || [],
+      user: await this.getCommentAuthor(userId),
+    };
   }
 
   async updateTaskComment(

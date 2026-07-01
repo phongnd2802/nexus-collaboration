@@ -9,6 +9,7 @@ import {
   projectOutputSchema,
   projectsListOutputSchema,
   projectTasksListOutputSchema,
+  taskCommentsListOutputSchema,
   taskOutputSchema,
   updateProjectInputShape,
   updateTaskInputShape,
@@ -77,7 +78,7 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
     name: 'nexus_create_project',
     title: 'Create Nexus Project',
     description:
-      'Use this tool when you need to create a new project. Provide name (required), and optionally description, type, status, priority, owner/lead, dates, estimated hours, budget, kanban stages, attachments, and collaborative metadata.',
+      'Use this tool when you need to create a new project. Provide name (required), and optionally description, priority, lead, kanban stages, attachments, and collaborative metadata (default assignee IDs).',
     inputSchema: { workspace_id: workspaceIdSchema, ...createProjectInputShape },
     method: 'POST',
     outputSchema: projectOutputSchema,
@@ -249,6 +250,22 @@ export function registerProjectTools(server: McpServer, client: NexusApiClient) 
     path: ({ workspace_id, task_id }) =>
       `workspaces/${encodeURIComponent(String(workspace_id))}/projects/tasks/${encodeURIComponent(String(task_id))}`,
     annotations: destroy,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_get_task_comments',
+    title: 'Get All Comments For Task',
+    description:
+      'Use this tool when you need to list all comments on a specific task, ordered as returned by the server. Each comment includes its content, attachments, and the author\'s user details.',
+    inputSchema: { workspace_id: workspaceIdSchema, task_id: idSchema('Task') },
+    outputSchema: taskCommentsListOutputSchema,
+    outputTransform: (data) =>
+      normalizeBySchema(taskCommentsListOutputSchema, {
+        comments: unwrapArray(data),
+      }),
+    path: ({ workspace_id, task_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/projects/tasks/${encodeURIComponent(String(task_id))}/comments`,
+    annotations: readOnly,
   });
 }
 

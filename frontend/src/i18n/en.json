@@ -1328,6 +1328,13 @@
         "projectKeyHelp": "This will be used as a prefix for task keys (e.g., {key}-1)",
         "keyHelper": "This will be used as a prefix for task keys (e.g., {key}-1)",
         "descriptionPlaceholder": "Describe your project or type / to insert content from notes, files, or events...",
+        "priorityLabel": "Priority",
+        "priorityOptions": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "critical": "Critical"
+        },
         "ai": {
           "generating": "Generating...",
           "createWithAI": "Create with AI",
@@ -7594,6 +7601,13 @@
     "at": "at",
     "reminders": "Reminders",
     "reminderNotSet": "No reminder set",
+    "assignees": "Assignees",
+    "noAssignees": "No assignees",
+    "created": "Created",
+    "tags": "Tags",
+    "attachments": "Attachments",
+    "customFields": "Custom Fields",
+    "lastUpdatedBy": "Last updated by",
     "gantt": {
       "title": "Gantt Chart",
       "today": "Today",
@@ -7631,6 +7645,25 @@
     },
     "table":{
       "dueDate": "Due Date"
+    },
+    "comments": {
+      "title": "Comments",
+      "noComments": "No comments yet",
+      "placeholder": "Write a comment...",
+      "post": "Post",
+      "posting": "Posting...",
+      "edited": "(edited)",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "deleteConfirmTitle": "Delete comment?",
+      "deleteConfirmDescription": "This action cannot be undone.",
+      "postFailed": "Failed to post comment",
+      "updateFailed": "Failed to update comment",
+      "deleteFailed": "Failed to delete comment",
+      "loadFailed": "Failed to load comments",
+      "loading": "Loading comments..."
     }
   },
   "settings": {

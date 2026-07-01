@@ -8,9 +8,20 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Calendar,
   Clock,
@@ -34,11 +45,23 @@ import {
   List,
   CalendarDays,
   Bell,
+  MessageSquare,
+  Trash2,
+  Send,
 } from 'lucide-react'
 import { format, formatDistanceToNow, isAfter, isPast } from 'date-fns'
-import { vi as viLocale } from 'date-fns/locale'
+import { vi as viLocale, enUS as enLocale } from 'date-fns/locale'
 import type { Task } from '@/lib/api/projects-api'
+import {
+  useTaskComments,
+  useCreateTaskComment,
+  useUpdateTaskComment,
+  useDeleteTaskComment,
+} from '@/lib/api/projects-api'
 import { getAssigneeInitials, getAssigneeName } from '@/utils/task-helpers'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 // Per-task custom field structure
 interface TaskCustomField {
@@ -60,6 +83,221 @@ interface TaskDetailModalProps {
 
 import { useIntl } from 'react-intl'
 
+function TaskCommentsSection({ workspaceId, taskId }: { workspaceId: string; taskId: string }) {
+  const intl = useIntl()
+  const { toast } = useToast()
+  const { user } = useAuth()
+  const { locale } = useLanguage()
+  const dateLocale = locale === 'vi' ? viLocale : enLocale
+  const [newComment, setNewComment] = useState('')
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editingContent, setEditingContent] = useState('')
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null)
+
+  const { data: comments, isLoading } = useTaskComments(workspaceId, taskId)
+  const createComment = useCreateTaskComment()
+  const updateComment = useUpdateTaskComment()
+  const deleteComment = useDeleteTaskComment()
+
+  const handlePost = () => {
+    if (!newComment.trim()) return
+    createComment.mutate(
+      { workspaceId, taskId, data: { content: newComment.trim() } },
+      {
+        onSuccess: () => setNewComment(''),
+        onError: () => toast({
+          title: intl.formatMessage({ id: 'tasks.comments.postFailed', defaultMessage: 'Không thể gửi bình luận' }),
+          variant: 'destructive',
+        }),
+      }
+    )
+  }
+
+  const startEdit = (commentId: string, content: string) => {
+    setEditingCommentId(commentId)
+    setEditingContent(content)
+  }
+
+  const cancelEdit = () => {
+    setEditingCommentId(null)
+    setEditingContent('')
+  }
+
+  const saveEdit = (commentId: string) => {
+    if (!editingContent.trim()) return
+    updateComment.mutate(
+      { workspaceId, commentId, taskId, data: { content: editingContent.trim() } },
+      {
+        onSuccess: () => cancelEdit(),
+        onError: () => toast({
+          title: intl.formatMessage({ id: 'tasks.comments.updateFailed', defaultMessage: 'Không thể cập nhật bình luận' }),
+          variant: 'destructive',
+        }),
+      }
+    )
+  }
+
+  const confirmDelete = () => {
+    if (!commentToDelete) return
+    const commentId = commentToDelete
+    setCommentToDelete(null)
+    deleteComment.mutate(
+      { workspaceId, commentId, taskId },
+      {
+        onError: () => toast({
+          title: intl.formatMessage({ id: 'tasks.comments.deleteFailed', defaultMessage: 'Không thể xóa bình luận' }),
+          variant: 'destructive',
+        }),
+      }
+    )
+  }
+
+  return (
+    <>
+      <Separator />
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <MessageSquare className="w-4 h-4" />
+          {intl.formatMessage({ id: 'tasks.comments.title', defaultMessage: 'Bình luận' })}
+          {comments && comments.length > 0 && (
+            <span className="text-xs">({comments.length})</span>
+          )}
+        </h3>
+
+        <div className="flex items-start gap-2">
+          <Textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handlePost()
+              }
+            }}
+            placeholder={intl.formatMessage({ id: 'tasks.comments.placeholder', defaultMessage: 'Viết bình luận...' })}
+            className="min-h-[60px] text-sm"
+          />
+          <Button
+            size="sm"
+            onClick={handlePost}
+            disabled={!newComment.trim() || createComment.isPending}
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {intl.formatMessage({ id: 'tasks.comments.loading', defaultMessage: 'Đang tải bình luận...' })}
+          </p>
+        ) : !comments || comments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {intl.formatMessage({ id: 'tasks.comments.noComments', defaultMessage: 'Chưa có bình luận nào' })}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {comments.map((comment) => {
+              const isAuthor = user?.id === comment.user_id
+              const isEditing = editingCommentId === comment.id
+              return (
+                <div key={comment.id} className="flex items-start gap-2">
+                  <Avatar className="h-7 w-7 mt-0.5">
+                    <AvatarImage src={comment.user?.avatar_url || undefined} />
+                    <AvatarFallback className="text-xs">
+                      {(comment.user?.name || '?').slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{comment.user?.name || 'Unknown'}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: dateLocale })}
+                      </span>
+                      {comment.is_edited && (
+                        <span className="text-xs text-muted-foreground">
+                          {intl.formatMessage({ id: 'tasks.comments.edited', defaultMessage: '(đã chỉnh sửa)' })}
+                        </span>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Textarea
+                          value={editingContent}
+                          onChange={(e) => setEditingContent(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault()
+                              saveEdit(comment.id)
+                            } else if (e.key === 'Escape') {
+                              cancelEdit()
+                            }
+                          }}
+                          className="min-h-[50px] text-sm"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" onClick={() => saveEdit(comment.id)} disabled={updateComment.isPending}>
+                            {intl.formatMessage({ id: 'tasks.comments.save', defaultMessage: 'Lưu' })}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                            {intl.formatMessage({ id: 'tasks.comments.cancel', defaultMessage: 'Hủy' })}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap break-words">{comment.content}</p>
+                    )}
+                  </div>
+                  {isAuthor && !isEditing && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => startEdit(comment.id, comment.content)}
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        onClick={() => setCommentToDelete(comment.id)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {intl.formatMessage({ id: 'tasks.comments.deleteConfirmTitle', defaultMessage: 'Xóa bình luận?' })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {intl.formatMessage({ id: 'tasks.comments.deleteConfirmDescription', defaultMessage: 'Hành động này không thể hoàn tác.' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {intl.formatMessage({ id: 'tasks.comments.cancel', defaultMessage: 'Hủy' })}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              {intl.formatMessage({ id: 'tasks.comments.delete', defaultMessage: 'Xóa' })}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
 export function TaskDetailModal({
   open,
   onOpenChange,
@@ -69,6 +307,8 @@ export function TaskDetailModal({
   workspaceId: propWorkspaceId
 }: TaskDetailModalProps) {
   const intl = useIntl()
+  const { locale } = useLanguage()
+  const dateLocale = locale === 'vi' ? viLocale : enLocale
   const params = useParams<{ workspaceId: string }>()
   const workspaceId = propWorkspaceId || params.workspaceId || ''
 
@@ -374,7 +614,7 @@ export function TaskDetailModal({
                   <div className={`flex items-center gap-2 ${isOverdue ? 'text-red-600' : isDueSoon ? 'text-yellow-600' : ''}`}>
                     {isOverdue && <AlertCircle className="w-4 h-4" />}
                     <span className="text-sm font-medium">
-                      {format(new Date(task.dueDate), 'dd MMM, yyyy', { locale: viLocale })}
+                      {format(new Date(task.dueDate), 'dd MMM, yyyy', { locale: dateLocale })}
                       {(task as any).dueTime && (
                         <span className="ml-1 text-muted-foreground font-normal">
                           {intl.formatMessage({ id: 'tasks.at', defaultMessage: 'lúc' })} {(task as any).dueTime}
@@ -382,7 +622,7 @@ export function TaskDetailModal({
                       )}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      ({formatDistanceToNow(new Date(task.dueDate), { addSuffix: true, locale: viLocale })})
+                      ({formatDistanceToNow(new Date(task.dueDate), { addSuffix: true, locale: dateLocale })})
                     </span>
                   </div>
                 ) : (
@@ -429,9 +669,9 @@ export function TaskDetailModal({
                   {intl.formatMessage({ id: 'tasks.created', defaultMessage: 'Đã tạo' })}
                 </h3>
                 <span className="text-sm">
-                  {format(new Date(task.createdAt), 'dd MMM, yyyy', { locale: viLocale })}
+                  {format(new Date(task.createdAt), 'dd MMM, yyyy', { locale: dateLocale })}
                   <span className="text-muted-foreground ml-1">
-                    ({formatDistanceToNow(new Date(task.createdAt), { addSuffix: true, locale: viLocale })})
+                    ({formatDistanceToNow(new Date(task.createdAt), { addSuffix: true, locale: dateLocale })})
                   </span>
                 </span>
               </div>
@@ -547,6 +787,9 @@ export function TaskDetailModal({
                 </div>
               </>
             )}
+
+            {/* Comments */}
+            {workspaceId && <TaskCommentsSection workspaceId={workspaceId} taskId={task.id} />}
           </div>
         </ScrollArea>
       </DialogContent>

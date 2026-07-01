@@ -84,38 +84,60 @@ export const sendChannelMessageAttachmentInputSchema = z
 
 export const pollOptionSchema = z
   .object({
-    id: z.string().min(1),
-    text: z.string().min(1),
-    voteCount: z.number().optional(),
+    id: z.string().min(1).describe('Unique ID for this poll option (e.g. a UUID or short slug).'),
+    text: z.string().min(1).describe('Label shown to voters for this option.'),
+    voteCount: z.number().nonnegative().optional().describe('Number of votes this option has received so far. Defaults to 0 for a new poll.'),
   })
   .strip();
 
 export const linkedContentPollSchema = z
   .object({
-    id: z.string().min(1),
-    question: z.string().min(1),
-    options: z.array(pollOptionSchema),
-    isOpen: z.boolean(),
-    showResultsBeforeVoting: z.boolean(),
-    allowMultipleChoice: z.boolean().optional(),
-    createdBy: z.string().min(1),
-    totalVotes: z.number().optional(),
+    id: z.string().min(1).describe('Poll ID. Should match the parent linkedContent item\'s id.'),
+    question: z.string().min(1).describe('The poll question shown to users.'),
+    options: z.array(pollOptionSchema).min(2).describe('2 or more selectable options for the poll.'),
+    isOpen: z.boolean().describe('Whether the poll is still accepting votes (true) or closed (false).'),
+    showResultsBeforeVoting: z.boolean().describe('Whether voters can see current results before casting their own vote.'),
+    allowMultipleChoice: z.boolean().optional().describe('Whether voters may select more than one option. Defaults to false (single choice).'),
+    createdBy: z.string().min(1).describe('User ID of the poll creator.'),
+    totalVotes: z.number().nonnegative().optional().describe('Total number of votes cast across all options. Defaults to 0 for a new poll.'),
   })
   .strip();
 
 export const sendChannelMessageLinkedContentInputSchema = z
   .object({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    type: z.enum(['notes', 'events', 'files', 'drive', 'poll']),
-    subtitle: z.string().optional(),
-    driveFileUrl: z.string().optional(),
-    driveThumbnailUrl: z.string().optional(),
-    driveMimeType: z.string().optional(),
-    driveFileSize: z.number().optional(),
-    poll: linkedContentPollSchema.optional(),
+    id: z
+      .string()
+      .min(1)
+      .describe('ID of the linked item: the note/event/file ID being referenced, or (for type="poll") the poll ID. Generate a new UUID when linking a fresh poll.'),
+    title: z.string().min(1).describe('Display title shown on the linked-content preview card (e.g. the note title, file name, event title, or poll question).'),
+    type: z
+      .enum(['notes', 'events', 'files', 'drive', 'poll'])
+      .describe(
+        'What kind of content this is, which determines which other fields apply: ' +
+        '"notes" links to a workspace note (use id + title, optional subtitle; leave drive* and poll unset). ' +
+        '"events" links to a calendar event (use id + title, optional subtitle; leave drive* and poll unset). ' +
+        '"files" links to an uploaded workspace file (use id + title, optional subtitle; leave drive* and poll unset). ' +
+        '"drive" links to an external Drive file/preview (use id + title, and the drive* fields for the preview card; leave poll unset). ' +
+        '"poll" embeds an interactive poll in the message (use id + title = the poll question, and fill in the poll object; leave drive* unset).'
+      ),
+    subtitle: z.string().optional().describe('Optional secondary line shown under the title on the preview card (e.g. a short excerpt, folder name, or date).'),
+    driveFileUrl: z.string().optional().describe('Only for type="drive": URL to open/download the Drive file.'),
+    driveThumbnailUrl: z.string().optional().describe('Only for type="drive": URL of a thumbnail image to show on the preview card.'),
+    driveMimeType: z.string().optional().describe('Only for type="drive": MIME type of the file, e.g. "application/pdf" or "image/png".'),
+    driveFileSize: z.number().nonnegative().optional().describe('Only for type="drive": file size in bytes.'),
+    poll: linkedContentPollSchema
+      .optional()
+      .describe('Required when type="poll": the full poll payload (question, options, voting settings). Omit for all other types.'),
   })
   .strip();
+
+const LINKED_CONTENT_DESCRIPTION =
+  'Rich content to attach to the message, shown as preview cards. Each item needs id, title, and type ' +
+  '("notes" | "events" | "files" | "drive" | "poll"), which determines the other required fields: ' +
+  'for "notes"/"events"/"files", only id + title (+ optional subtitle) are needed; ' +
+  'for "drive", also set driveFileUrl/driveThumbnailUrl/driveMimeType/driveFileSize; ' +
+  'for "poll", also set the poll object (question, options, voting settings) — leave drive* fields unset. ' +
+  'To attach a brand-new poll, generate a UUID and use it as both the item id and poll.id.';
 
 export const sendChannelMessageInputShape = {
   content: z.string().optional().describe('Plaintext message content. Usually provided for normal messages.'),
@@ -137,7 +159,7 @@ export const sendChannelMessageInputShape = {
   linked_content: z
     .array(sendChannelMessageLinkedContentInputSchema)
     .optional()
-    .describe('Linked notes, events, files, drive items, or polls.'),
+    .describe(LINKED_CONTENT_DESCRIPTION),
 };
 
 export const createChannelPollInputShape = {
@@ -174,7 +196,7 @@ export const scheduleMessageInputShape = {
   linkedContent: z
     .array(sendChannelMessageLinkedContentInputSchema)
     .optional()
-    .describe('Linked notes, events, files, drive items, or polls. For polls, provide a full poll object in linkedContent[].poll.'),
+    .describe(LINKED_CONTENT_DESCRIPTION),
   scheduledAt: z.string().datetime().describe('Scheduled send time in ISO 8601 format.'),
 };
 
@@ -186,7 +208,7 @@ export const updateScheduledMessageInputShape = {
   linkedContent: z
     .array(sendChannelMessageLinkedContentInputSchema)
     .optional()
-    .describe('Updated linked notes, events, files, drive items, or polls.'),
+    .describe(`Updated linked content. ${LINKED_CONTENT_DESCRIPTION}`),
   scheduledAt: z.string().datetime().optional().describe('Updated scheduled send time in ISO 8601 format.'),
 };
 
