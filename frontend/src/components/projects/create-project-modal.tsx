@@ -88,6 +88,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     description: '',
     key: '',
     type: 'KANBAN',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'critical',
     leadId: '',
     defaultAssigneeIds: [] as string[],
     statusColumns: getDefaultStatusColumns('kanban')
@@ -318,6 +319,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         description: project.description || '',
         key: project.key || generateProjectKey(project.name || ''),
         type: mapApiProjectTypeToUi(project.type),
+        priority: (project.priority || 'medium') as 'low' | 'medium' | 'high' | 'critical',
         leadId: project.collaborative_data?.project_lead || project.lead_id || '',
         defaultAssigneeIds: project.collaborative_data?.default_assignee_ids || [],
         statusColumns
@@ -390,7 +392,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
           description: data.description,
           type: mapUiProjectTypeToApi(data.type),
           status: project.status || 'active',
-          priority: (project.priority || 'medium') as 'low' | 'medium' | 'high' | 'critical',
+          priority: data.priority,
           lead_id: data.leadId,
           kanban_stages: kanban_stages,
           collaborative_data: collaborativeData,
@@ -405,7 +407,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
           description: data.description,
           type: mapUiProjectTypeToApi(data.type),
           status: 'active' as const,
-          priority: 'medium' as const,
+          priority: data.priority,
           lead_id: data.leadId,
           kanban_stages: kanban_stages,
           collaborative_data: collaborativeData,
@@ -690,6 +692,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       description: '',
       key: '',
       type: 'KANBAN',
+      priority: 'medium',
       leadId: '',
       defaultAssigneeIds: [],
       statusColumns: getDefaultStatusColumns('kanban')
@@ -784,6 +787,36 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
                       )}
                     </p>
                   </div>
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="priority">
+                    {intl.formatMessage({ id: 'modules.projects.createProject.priorityLabel', defaultMessage: 'Priority' })}
+                  </Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') =>
+                      setFormData(prev => ({ ...prev, priority: value }))
+                    }
+                  >
+                    <SelectTrigger id="priority" className="w-full sm:w-64">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">
+                        {intl.formatMessage({ id: 'modules.projects.createProject.priorityOptions.low', defaultMessage: 'Low' })}
+                      </SelectItem>
+                      <SelectItem value="medium">
+                        {intl.formatMessage({ id: 'modules.projects.createProject.priorityOptions.medium', defaultMessage: 'Medium' })}
+                      </SelectItem>
+                      <SelectItem value="high">
+                        {intl.formatMessage({ id: 'modules.projects.createProject.priorityOptions.high', defaultMessage: 'High' })}
+                      </SelectItem>
+                      <SelectItem value="critical">
+                        {intl.formatMessage({ id: 'modules.projects.createProject.priorityOptions.critical', defaultMessage: 'Critical' })}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2 mt-4">

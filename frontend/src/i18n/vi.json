@@ -1328,6 +1328,13 @@
         "projectKeyHelp": "Sẽ dùng làm tiền tố cho mã tác vụ (vd: {key}-1)",
         "keyHelper": "Sẽ dùng làm tiền tố cho mã tác vụ (vd: {key}-1)",
         "descriptionPlaceholder": "Mô tả dự án hoặc gõ / để chèn nội dung từ ghi chú, tệp hoặc sự kiện...",
+        "priorityLabel": "Độ ưu tiên",
+        "priorityOptions": {
+          "low": "Thấp",
+          "medium": "Trung bình",
+          "high": "Cao",
+          "critical": "Khẩn cấp"
+        },
         "ai": {
           "generating": "Đang tạo...",
           "createWithAI": "Tạo với AI",
@@ -7661,6 +7668,13 @@
     "at": "lúc",
     "reminders": "Nhắc nhở",
     "reminderNotSet": "Chưa bật nhắc nhở",
+    "assignees": "Người được giao",
+    "noAssignees": "Chưa có người được giao",
+    "created": "Đã tạo",
+    "tags": "Nhãn",
+    "attachments": "Tệp đính kèm",
+    "customFields": "Trường tùy chỉnh",
+    "lastUpdatedBy": "Cập nhật lần cuối bởi",
     "gantt": {
       "title": "Biểu đồ Gantt",
       "today": "Hôm nay",
@@ -7698,6 +7712,25 @@
     },
     "table":{
       "dueDate": "Hạn chót"
+    },
+    "comments": {
+      "title": "Bình luận",
+      "noComments": "Chưa có bình luận nào",
+      "placeholder": "Viết bình luận...",
+      "post": "Gửi",
+      "posting": "Đang gửi...",
+      "edited": "(đã chỉnh sửa)",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "deleteConfirmTitle": "Xóa bình luận?",
+      "deleteConfirmDescription": "Hành động này không thể hoàn tác.",
+      "postFailed": "Không thể gửi bình luận",
+      "updateFailed": "Không thể cập nhật bình luận",
+      "deleteFailed": "Không thể xóa bình luận",
+      "loadFailed": "Không thể tải bình luận",
+      "loading": "Đang tải bình luận..."
     }
   },
   "settings": {

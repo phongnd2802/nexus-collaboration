@@ -66,6 +66,15 @@ const stripHtml = (html: string): string => {
   }
 }
 
+const PRIORITY_COLORS: Record<string, string> = {
+  low: '#22C55E',
+  medium: '#3B82F6',
+  high: '#F97316',
+  critical: '#EF4444',
+}
+
+const getPriorityColor = (priority?: string): string => PRIORITY_COLORS[priority || 'medium'] || PRIORITY_COLORS.medium
+
 interface ProjectDashboardProps {
   workspaceId: string
   onProjectSelect?: (projectId: string) => void
@@ -507,7 +516,7 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                   <div className="flex items-start gap-3 min-w-0">
                     <div
                       className="mt-1 h-3 w-3 shrink-0 rounded-full"
-                      style={{ backgroundColor: project.color || '#3B82F6' }}
+                      style={{ backgroundColor: getPriorityColor(project.priority) }}
                     />
                     <div className="min-w-0">
                       <h3 className="font-semibold truncate">{project.name}</h3>
