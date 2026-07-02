@@ -6,11 +6,16 @@ type WorkspaceReferencePayload = {
   sourceType?: string;
   entityType?: string;
   entityId?: string;
+  fileId?: string;
+  mimeType?: string;
   title?: string;
   href?: string;
   snippet?: string;
   citation?: string;
   score?: number;
+  pageNumbers?: number[];
+  bboxRefs?: unknown[];
+  retrievalMode?: string;
 };
 
 type WorkspaceActionPayload = {
@@ -97,6 +102,16 @@ export function normalizeAgentChatChunk(
       label: 'Message',
       text: state.assistantContent,
     })];
+  }
+
+  if (chunk?.type === 'data-final_answer') {
+    const data = isRecord(chunk.data) ? chunk.data : {};
+    state.sessionId = typeof data.sessionId === 'string' ? data.sessionId : state.sessionId;
+    state.runId = typeof data.runId === 'string' ? data.runId : state.runId;
+    if (typeof data.content === 'string' && data.content) {
+      state.assistantContent = data.content;
+    }
+    return [];
   }
 
   if (chunk?.type === 'reasoning-start') {
@@ -261,7 +276,7 @@ export function normalizeAgentChatChunk(
     return [{ type: 'run.error', data: { error: typeof chunk.error_text === 'string' ? chunk.error_text : 'Nexus AI request failed' } }];
   }
 
-  const directPart = normalizedPartFromStructuredChunk(chunk);
+  const directPart = normalizedPartFromStructuredChunk(chunk, workspaceId);
   if (directPart) {
     return [partEvent(directPart)];
   }
@@ -280,7 +295,7 @@ export function createRunCompletedEvent(state: AgentChatNormalizationState): Nor
   };
 }
 
-function normalizedPartFromStructuredChunk(chunk: Record<string, any>): AgentChatPart | null {
+function normalizedPartFromStructuredChunk(chunk: Record<string, any>, workspaceId: string): AgentChatPart | null {
   if (chunk?.type === 'data-orchestration_stage') {
     const data = isRecord(chunk.data) ? chunk.data : {};
     const stage = typeof data.stage === 'string' ? data.stage : 'unknown';
@@ -317,14 +332,12 @@ function normalizedPartFromStructuredChunk(chunk: Record<string, any>): AgentCha
     || chunk?.type === 'data-retrieval_bundle'
     || chunk?.type === 'data-draft_answer'
     || chunk?.type === 'data-critique'
-    || chunk?.type === 'data-final_answer'
   ) {
     const labelByType: Record<string, string> = {
       'data-plan': 'Plan',
       'data-retrieval_bundle': 'Retrieval bundle',
       'data-draft_answer': 'Draft answer',
       'data-critique': 'Critique',
-      'data-final_answer': 'Final answer',
     };
     const data = isRecord(chunk.data) ? chunk.data : {};
     return {
@@ -334,13 +347,12 @@ function normalizedPartFromStructuredChunk(chunk: Record<string, any>): AgentCha
       label: labelByType[chunk.type] || chunk.type,
       summary: labelByType[chunk.type] || chunk.type,
       metadata: data,
-      text: chunk.type === 'data-final_answer' && typeof data.content === 'string' ? data.content : undefined,
     };
   }
 
   if (chunk?.type === 'data-rag_sources' || chunk?.type === 'data-mcp_sources') {
     const data = isRecord(chunk.data) ? chunk.data : {};
-    const references = toWorkspaceReferences(data.sources || data.references || data.results);
+    const references = toWorkspaceReferences(data.sources || data.references || data.results, workspaceId);
     if (references.length === 0) return null;
     return {
       id: `${chunk.type}-${randomUUID()}`,
@@ -474,23 +486,74 @@ function toProjectCardPayloads(value: unknown): ProjectCardPayload[] {
   }, []);
 }
 
-function toWorkspaceReferences(value: unknown): WorkspaceReferencePayload[] {
+function toWorkspaceReferences(value: unknown, workspaceId?: string): WorkspaceReferencePayload[] {
   if (!Array.isArray(value)) return [];
   return value.reduce<WorkspaceReferencePayload[]>((acc, item) => {
     if (!isRecord(item)) return acc;
-    const title = typeof item.title === 'string' ? item.title : undefined;
+    const fileId = typeof item.fileId === 'string'
+      ? item.fileId
+      : typeof item.file_id === 'string'
+        ? item.file_id
+        : undefined;
+    const title = typeof item.title === 'string'
+      ? item.title
+      : typeof item.fileName === 'string'
+        ? item.fileName
+        : typeof item.file_name === 'string'
+          ? item.file_name
+          : undefined;
     const href = typeof item.href === 'string' ? item.href : undefined;
-    const entityId = typeof item.entityId === 'string' ? item.entityId : undefined;
+    const entityId = typeof item.entityId === 'string'
+      ? item.entityId
+      : typeof item.entity_id === 'string'
+        ? item.entity_id
+        : fileId;
+    const entityType = typeof item.entityType === 'string'
+      ? item.entityType
+      : typeof item.entity_type === 'string'
+        ? item.entity_type
+        : fileId
+          ? 'file'
+          : undefined;
+    const mimeType = typeof item.mimeType === 'string'
+      ? item.mimeType
+      : typeof item.mime_type === 'string'
+        ? item.mime_type
+        : undefined;
+    const pageNumbers = Array.isArray(item.pageNumbers)
+      ? item.pageNumbers.filter((value): value is number => typeof value === 'number')
+      : Array.isArray(item.page_numbers)
+        ? item.page_numbers.filter((value): value is number => typeof value === 'number')
+        : undefined;
+    const bboxRefs = Array.isArray(item.bboxRefs)
+      ? item.bboxRefs
+      : Array.isArray(item.bbox_refs)
+        ? item.bbox_refs
+        : undefined;
+    const retrievalMode = typeof item.retrievalMode === 'string'
+      ? item.retrievalMode
+      : typeof item.retrieval_mode === 'string'
+        ? item.retrieval_mode
+        : undefined;
     if (!title && !href && !entityId) return acc;
     acc.push({
-      sourceType: typeof item.sourceType === 'string' ? item.sourceType : undefined,
-      entityType: typeof item.entityType === 'string' ? item.entityType : undefined,
+      sourceType: typeof item.sourceType === 'string'
+        ? item.sourceType
+        : typeof item.source_type === 'string'
+          ? item.source_type
+          : undefined,
+      entityType,
       entityId,
+      fileId,
+      mimeType,
       title,
-      href,
+      href: href || (fileId && workspaceId ? filePreviewHref(workspaceId, fileId) : undefined),
       snippet: typeof item.snippet === 'string' ? item.snippet : undefined,
       citation: typeof item.citation === 'string' ? item.citation : undefined,
       score: typeof item.score === 'number' ? item.score : undefined,
+      pageNumbers,
+      bboxRefs,
+      retrievalMode,
     });
     return acc;
   }, []);
@@ -522,17 +585,20 @@ const ACTION_WORDS = ['create', 'created', 'update', 'updated', 'delete', 'delet
 
 function derivedPartsFromToolOutput(toolName: string | undefined, output: unknown, workspaceId: string): AgentChatPart[] {
   if (!toolName || !isRecord(output)) return [];
-  if (toolName === 'search_rag') {
-    const references = toWorkspaceReferences(output.sources);
+  if (isRagSearchTool(toolName)) {
+    const references = dedupeReferences(
+      toWorkspaceReferences(output.sources || output.references || output.results, workspaceId),
+      'rag',
+    );
     if (references.length === 0) return [];
     return [{
       id: `rag-sources-${randomUUID()}`,
       type: 'data-rag_sources',
       status: 'completed',
-      label: 'RAG sources',
-      summary: 'Indexed file sources',
+      label: 'Nguồn dữ liệu',
+      summary: 'Nguồn dữ liệu đã dùng',
       references,
-      metadata: { sources: references },
+      metadata: { toolName, sources: references },
     }];
   }
 
@@ -554,7 +620,7 @@ function derivedPartsFromToolOutput(toolName: string | undefined, output: unknow
   }
 
   const references = dedupeByHref([
-    ...toWorkspaceReferences(output.sources || output.references),
+    ...toWorkspaceReferences(output.sources || output.references, workspaceId),
     ...referencesFromToolOutput(toolName, output, workspaceId),
   ]);
 
@@ -638,7 +704,7 @@ function entityHref(workspaceId: string, entityType: string | undefined, entityI
     const projectId = typeof record.projectId === 'string' ? record.projectId : typeof record.project_id === 'string' ? record.project_id : undefined;
     return projectId ? `/workspaces/${workspaceId}/projects/${projectId}?taskId=${entityId}` : `/workspaces/${workspaceId}/projects?taskId=${entityId}`;
   }
-  if (entityType === 'file') return `/workspaces/${workspaceId}/files/${entityId}`;
+  if (entityType === 'file') return filePreviewHref(workspaceId, entityId);
   if (entityType === 'note') return `/workspaces/${workspaceId}/notes/${entityId}`;
   if (entityType === 'channel') return `/workspaces/${workspaceId}/chat/${entityId}`;
   if (entityType === 'message') {
@@ -648,6 +714,10 @@ function entityHref(workspaceId: string, entityType: string | undefined, entityI
   if (entityType === 'calendar_event') return `/workspaces/${workspaceId}/calendar?eventId=${entityId}`;
   if (entityType === 'video_call') return `/workspaces/${workspaceId}/video-calls`;
   return undefined;
+}
+
+function filePreviewHref(workspaceId: string, fileId: string): string {
+  return `/workspaces/${workspaceId}/files/all-files?fileId=${encodeURIComponent(fileId)}`;
 }
 
 function referencesFromToolOutput(toolName: string | undefined, output: unknown, workspaceId: string): WorkspaceReferencePayload[] {
@@ -705,6 +775,27 @@ function dedupeByHref<T extends { href?: string; entityType?: string; entityId?:
     seen.add(key);
     return true;
   });
+}
+
+function dedupeReferences(items: WorkspaceReferencePayload[], mode: 'entity' | 'rag' = 'entity'): WorkspaceReferencePayload[] {
+  const seen = new Set<string>();
+  return items.filter(item => {
+    const key = mode === 'rag'
+      ? [
+        item.fileId || item.entityId || item.href || item.title || '',
+        item.citation || '',
+        item.pageNumbers?.join(',') || '',
+        item.snippet || '',
+      ].join(':')
+      : item.href || `${item.entityType || ''}:${item.entityId || ''}`;
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function isRagSearchTool(toolName: string): boolean {
+  return toolName === 'search_rag' || toolName === 'nexus_search_files_rag';
 }
 
 function isRecord(value: unknown): value is Record<string, any> {

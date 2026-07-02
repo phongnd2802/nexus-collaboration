@@ -38,6 +38,13 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     title: 'List Nexus Notes',
     description:
       'Use this tool when you need to list workspace notes in the Nexus Notes module. These are shared workspace documents, not private AI memory. Filter by parent_id for hierarchical browsing, is_deleted to include soft-deleted notes, or is_archived to show/hide archived notes.',
+    search: {
+      aliases: ['list notes module documents', 'browse workspace notes', 'browse team wiki notes'],
+      intents: ['notes_browse', 'notes_module_navigation'],
+      entities: ['notes module', 'workspace notes', 'shared notes', 'wiki pages'],
+      verbs: ['list', 'browse', 'open'],
+      keywords: ['notes module', 'wiki', 'shared notes', 'not uploaded files'],
+    },
     inputSchema: {
       workspace_id: workspaceIdSchema,
       parent_id: z.string().optional().describe('Optional parent note/folder ID.'),
@@ -56,6 +63,13 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     title: 'Search Nexus Notes',
     description:
       'Use this tool when you need to search workspace notes in the Nexus Notes module using keyword, semantic (AI embedding), or hybrid mode. These results are workspace documents, not private AI memory. Provide a search query and optionally paginate with limit/offset.',
+    search: {
+      aliases: ['search notes module', 'search shared notes', 'search wiki pages'],
+      intents: ['notes_search', 'notes_module_search'],
+      entities: ['notes module', 'workspace notes', 'shared notes', 'wiki pages'],
+      verbs: ['search', 'find', 'lookup'],
+      keywords: ['notes module', 'wiki search', 'shared notes', 'not uploaded file content'],
+    },
     inputSchema: {
       workspace_id: workspaceIdSchema,
       q: z.string().min(1).describe('Search query text.'),
@@ -75,6 +89,13 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     title: 'Get Nexus Note',
     description:
       'Use this tool when you need to get a workspace note by ID from the Nexus Notes module. Returns full note content, metadata, author info, collaborators, and attachments. This is for persisted workspace documents, not private AI memory. Optionally include soft-deleted notes with include_deleted=true.',
+    search: {
+      aliases: ['open workspace note', 'read note by id', 'get notes module document'],
+      intents: ['note_read'],
+      entities: ['notes module', 'workspace note', 'persisted note'],
+      verbs: ['get', 'open', 'read'],
+      keywords: ['note id', 'note content', 'notes module'],
+    },
     inputSchema: {
       workspace_id: workspaceIdSchema,
       note_id: idSchema('Note'),
@@ -92,6 +113,13 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     title: 'Create Nexus Note',
     description:
       'Use this tool when you need to create a new workspace note in the Nexus Notes module. Use it for meeting notes, shared documentation, or other workspace-visible documents. Do not use it to store private AI memory, user preferences, or future-chat reminders. Provide title and content (required), and optionally set a parent_id for nesting, tags, cover_image, icon, is_public flag, and file/note/event attachments.',
+    search: {
+      aliases: ['create workspace note', 'create wiki page', 'write shared note'],
+      intents: ['note_create'],
+      entities: ['notes module', 'workspace note', 'shared note', 'wiki page'],
+      verbs: ['create', 'write', 'add'],
+      keywords: ['new note', 'shared documentation', 'notes module'],
+    },
     inputSchema: { workspace_id: workspaceIdSchema, ...createNoteInputShape },
     method: 'POST',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/notes`,
@@ -114,6 +142,13 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     title: 'Update Nexus Note',
     description:
       'Use this tool when you need to update an existing workspace note in the Nexus Notes module. Only use it when the user wants to change a persisted workspace document. Do not use it for private AI memory, user preferences, or future-chat reminders. All fields are optional—only provided fields will be updated.',
+    search: {
+      aliases: ['update workspace note', 'edit note content', 'modify wiki page'],
+      intents: ['note_update'],
+      entities: ['notes module', 'workspace note', 'persisted note', 'wiki page'],
+      verbs: ['update', 'edit', 'modify'],
+      keywords: ['edit note', 'update note', 'notes module'],
+    },
     inputSchema: { workspace_id: workspaceIdSchema, note_id: idSchema('Note'), ...updateNoteInputShape },
     method: 'PATCH',
     path: ({ workspace_id, note_id }) =>

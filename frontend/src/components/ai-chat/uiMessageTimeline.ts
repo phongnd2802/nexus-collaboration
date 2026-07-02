@@ -47,19 +47,70 @@ function toWorkspaceReferences(value: unknown): WorkspaceReferencePayload[] {
   return value.reduce<WorkspaceReferencePayload[]>((acc, item) => {
     if (!item || typeof item !== 'object') return acc
     const record = item as Record<string, any>
-    const title = typeof record.title === 'string' ? record.title : undefined
+    const fileId = typeof record.fileId === 'string'
+      ? record.fileId
+      : typeof record.file_id === 'string'
+        ? record.file_id
+        : undefined
+    const title = typeof record.title === 'string'
+      ? record.title
+      : typeof record.fileName === 'string'
+        ? record.fileName
+        : typeof record.file_name === 'string'
+          ? record.file_name
+          : undefined
     const href = typeof record.href === 'string' ? record.href : undefined
-    const entityId = typeof record.entityId === 'string' ? record.entityId : undefined
+    const entityId = typeof record.entityId === 'string'
+      ? record.entityId
+      : typeof record.entity_id === 'string'
+        ? record.entity_id
+        : fileId
+    const entityType = typeof record.entityType === 'string'
+      ? record.entityType
+      : typeof record.entity_type === 'string'
+        ? record.entity_type
+        : fileId
+          ? 'file'
+          : undefined
+    const mimeType = typeof record.mimeType === 'string'
+      ? record.mimeType
+      : typeof record.mime_type === 'string'
+        ? record.mime_type
+        : undefined
+    const pageNumbers = Array.isArray(record.pageNumbers)
+      ? record.pageNumbers.filter((value): value is number => typeof value === 'number')
+      : Array.isArray(record.page_numbers)
+        ? record.page_numbers.filter((value): value is number => typeof value === 'number')
+        : undefined
+    const bboxRefs = Array.isArray(record.bboxRefs)
+      ? record.bboxRefs
+      : Array.isArray(record.bbox_refs)
+        ? record.bbox_refs
+        : undefined
+    const retrievalMode = typeof record.retrievalMode === 'string'
+      ? record.retrievalMode
+      : typeof record.retrieval_mode === 'string'
+        ? record.retrieval_mode
+        : undefined
     if (!title && !href && !entityId) return acc
     acc.push({
-      sourceType: typeof record.sourceType === 'string' ? record.sourceType : undefined,
-      entityType: typeof record.entityType === 'string' ? record.entityType : undefined,
+      sourceType: typeof record.sourceType === 'string'
+        ? record.sourceType
+        : typeof record.source_type === 'string'
+          ? record.source_type
+          : undefined,
+      entityType,
       entityId,
+      fileId,
+      mimeType,
       title,
       href,
       snippet: typeof record.snippet === 'string' ? record.snippet : undefined,
       citation: typeof record.citation === 'string' ? record.citation : undefined,
       score: typeof record.score === 'number' ? record.score : undefined,
+      pageNumbers,
+      bboxRefs,
+      retrievalMode,
     })
     return acc
   }, [])

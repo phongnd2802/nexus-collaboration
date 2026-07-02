@@ -14,6 +14,7 @@ import {
   Sparkles,
   User,
   Wrench,
+  X,
 } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
@@ -120,33 +121,103 @@ function ProjectCards({ projects }: { projects: ProjectCardPayload[] }) {
   )
 }
 
+function formatReferenceScore(score?: number) {
+  if (typeof score !== 'number' || Number.isNaN(score)) return null
+  return score <= 1 ? `${Math.round(score * 100)}%` : score.toFixed(2)
+}
+
+function referenceMeta(reference: WorkspaceReferencePayload) {
+  return [
+    reference.citation,
+    reference.pageNumbers && reference.pageNumbers.length > 0 ? `Trang ${reference.pageNumbers.join(', ')}` : null,
+    reference.retrievalMode,
+    formatReferenceScore(reference.score),
+  ].filter(Boolean).join(' · ')
+}
+
 function ReferenceLinks({ references }: { references: WorkspaceReferencePayload[] }) {
   const navigate = useNavigate()
+  const [selected, setSelected] = useState<WorkspaceReferencePayload | null>(null)
+  const selectedMeta = selected ? referenceMeta(selected) : ''
+
   return (
-    <div className="mt-3 grid gap-2">
-      {references.map((reference, index) => (
-        <button
-          key={`${reference.href || reference.entityId || reference.title || 'reference'}-${index}`}
-          type="button"
-          onClick={() => {
-            if (reference.href) navigate(reference.href)
-          }}
-          disabled={!reference.href}
-          className="w-full rounded-lg border border-[rgba(31,30,29,0.1)] bg-white px-3 py-2 text-left transition-colors hover:border-[rgba(31,30,29,0.2)] disabled:cursor-default disabled:bg-[rgba(31,30,29,0.02)]"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="truncate text-[13px] leading-5 text-[#1F1E1D]">
-                {reference.title || reference.href || reference.entityId || 'Source'}
+    <div className="mt-3 rounded-xl border border-[rgba(31,30,29,0.1)] bg-[#FCFBF8] p-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#73726C]">Nguồn dữ liệu</div>
+        <div className="text-[11px] text-[#8A877F]">{references.length} nguồn</div>
+      </div>
+
+      <div className="grid gap-2">
+        {references.map((reference, index) => {
+          const meta = referenceMeta(reference)
+          return (
+            <button
+              key={`${reference.href || reference.entityId || reference.title || 'reference'}-${index}`}
+              type="button"
+              onClick={() => setSelected(reference)}
+              className="w-full rounded-lg border border-[rgba(31,30,29,0.1)] bg-white px-3 py-2 text-left transition-colors hover:border-[rgba(31,30,29,0.2)]"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="truncate text-[13px] leading-5 text-[#1F1E1D]">
+                    {reference.title || reference.href || reference.entityId || 'Source'}
+                  </div>
+                  {meta ? <div className="mt-0.5 truncate text-[11px] leading-4 text-[#8A877F]">{meta}</div> : null}
+                  {reference.snippet ? (
+                    <div className="mt-1 line-clamp-2 text-[12px] leading-5 text-[#73726C]">{reference.snippet}</div>
+                  ) : null}
+                </div>
+                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#73726C]" />
               </div>
-              {reference.snippet ? (
-                <div className="mt-0.5 line-clamp-2 text-[12px] leading-5 text-[#73726C]">{reference.snippet}</div>
-              ) : null}
+            </button>
+          )
+        })}
+      </div>
+
+      {selected ? (
+        <div className="mt-3 rounded-xl border border-[rgba(31,30,29,0.12)] bg-white p-3 shadow-[rgba(0,0,0,0.04)_0px_8px_24px_0px]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[13px] font-medium leading-5 text-[#1F1E1D]">
+                {selected.title || selected.href || selected.entityId || 'Source'}
+              </div>
+              {selectedMeta ? <div className="mt-0.5 text-[11px] leading-4 text-[#8A877F]">{selectedMeta}</div> : null}
+              {selected.mimeType ? <div className="mt-0.5 text-[11px] leading-4 text-[#8A877F]">{selected.mimeType}</div> : null}
             </div>
-            {reference.href ? <ExternalLink className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#73726C]" /> : null}
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="rounded-md p-1 text-[#73726C] transition-colors hover:bg-[rgba(31,30,29,0.06)] hover:text-[#1F1E1D]"
+              aria-label="Đóng nguồn dữ liệu"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
-        </button>
-      ))}
+
+          {selected.snippet ? (
+            <div className="mt-3 whitespace-pre-wrap rounded-lg bg-[rgba(31,30,29,0.04)] px-3 py-2 text-[12px] leading-5 text-[#3D3D3A]">
+              {selected.snippet}
+            </div>
+          ) : null}
+
+          {selected.bboxRefs && selected.bboxRefs.length > 0 ? (
+            <div className="mt-2 text-[11px] leading-4 text-[#8A877F]">
+              Có {selected.bboxRefs.length} bbox reference.
+            </div>
+          ) : null}
+
+          {selected.href ? (
+            <button
+              type="button"
+              onClick={() => navigate(selected.href!)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[rgba(31,30,29,0.12)] px-3 py-1.5 text-[12px] text-[#1F1E1D] transition-colors hover:bg-[#FCFBF8]"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Mở file
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -258,6 +329,10 @@ function ThinkingGroup({ part }: { part: AIChatPartItem }) {
 
 function TranscriptPart({ part }: { part: AIChatPartItem }) {
   const duration = formatDuration(part.startedAt, part.endedAt)
+  const hasStructuredUi =
+    (part.projects && part.projects.length > 0)
+    || (part.references && part.references.length > 0)
+    || (part.actions && part.actions.length > 0)
 
   if (part.type === 'thinking_group') {
     return <ThinkingGroup part={part} />
@@ -302,7 +377,7 @@ function TranscriptPart({ part }: { part: AIChatPartItem }) {
         <JsonBlock label="Input" value={part.input} />
         <JsonBlock label="Output" value={part.output} />
         {part.error ? <div className="text-[12px] leading-5 text-[#BE123C]">{part.error}</div> : null}
-        <JsonBlock label="Metadata" value={part.metadata} />
+        <JsonBlock label="Metadata" value={hasStructuredUi ? undefined : part.metadata} />
       </div>
     </div>
   )

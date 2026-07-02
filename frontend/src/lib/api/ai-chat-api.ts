@@ -155,24 +155,75 @@ function toProjectCardPayloads(value: unknown): ProjectCardPayload[] {
     }, [])
 }
 
-function toWorkspaceReferences(value: unknown): WorkspaceReferencePayload[] {
+function toWorkspaceReferences(value: unknown, workspaceId?: string): WorkspaceReferencePayload[] {
   if (!Array.isArray(value)) return []
   return value.reduce<WorkspaceReferencePayload[]>((acc, item) => {
     if (!item || typeof item !== 'object') return acc
     const record = item as Record<string, any>
-    const title = typeof record.title === 'string' ? record.title : undefined
+    const fileId = typeof record.fileId === 'string'
+      ? record.fileId
+      : typeof record.file_id === 'string'
+        ? record.file_id
+        : undefined
+    const title = typeof record.title === 'string'
+      ? record.title
+      : typeof record.fileName === 'string'
+        ? record.fileName
+        : typeof record.file_name === 'string'
+          ? record.file_name
+          : undefined
     const href = typeof record.href === 'string' ? record.href : undefined
-    const entityId = typeof record.entityId === 'string' ? record.entityId : undefined
+    const entityId = typeof record.entityId === 'string'
+      ? record.entityId
+      : typeof record.entity_id === 'string'
+        ? record.entity_id
+        : fileId
+    const entityType = typeof record.entityType === 'string'
+      ? record.entityType
+      : typeof record.entity_type === 'string'
+        ? record.entity_type
+        : fileId
+          ? 'file'
+          : undefined
+    const mimeType = typeof record.mimeType === 'string'
+      ? record.mimeType
+      : typeof record.mime_type === 'string'
+        ? record.mime_type
+        : undefined
+    const pageNumbers = Array.isArray(record.pageNumbers)
+      ? record.pageNumbers.filter((value): value is number => typeof value === 'number')
+      : Array.isArray(record.page_numbers)
+        ? record.page_numbers.filter((value): value is number => typeof value === 'number')
+        : undefined
+    const bboxRefs = Array.isArray(record.bboxRefs)
+      ? record.bboxRefs
+      : Array.isArray(record.bbox_refs)
+        ? record.bbox_refs
+        : undefined
+    const retrievalMode = typeof record.retrievalMode === 'string'
+      ? record.retrievalMode
+      : typeof record.retrieval_mode === 'string'
+        ? record.retrieval_mode
+        : undefined
     if (!title && !href && !entityId) return acc
     acc.push({
-      sourceType: typeof record.sourceType === 'string' ? record.sourceType : undefined,
-      entityType: typeof record.entityType === 'string' ? record.entityType : undefined,
+      sourceType: typeof record.sourceType === 'string'
+        ? record.sourceType
+        : typeof record.source_type === 'string'
+          ? record.source_type
+          : undefined,
+      entityType,
       entityId,
+      fileId,
+      mimeType,
       title,
-      href,
+      href: href || (fileId && workspaceId ? filePreviewHref(workspaceId, fileId) : undefined),
       snippet: typeof record.snippet === 'string' ? record.snippet : undefined,
       citation: typeof record.citation === 'string' ? record.citation : undefined,
       score: typeof record.score === 'number' ? record.score : undefined,
+      pageNumbers,
+      bboxRefs,
+      retrievalMode,
     })
     return acc
   }, [])
@@ -226,7 +277,7 @@ function entityHref(workspaceId: string, entityType: string | undefined, entityI
       ? `/workspaces/${workspaceId}/projects/${projectId}?taskId=${entityId}`
       : `/workspaces/${workspaceId}/projects?taskId=${entityId}`
   }
-  if (entityType === 'file') return `/workspaces/${workspaceId}/files/${entityId}`
+  if (entityType === 'file') return filePreviewHref(workspaceId, entityId)
   if (entityType === 'note') return `/workspaces/${workspaceId}/notes/${entityId}`
   if (entityType === 'channel') return `/workspaces/${workspaceId}/chat/${entityId}`
   if (entityType === 'message') {
@@ -236,6 +287,10 @@ function entityHref(workspaceId: string, entityType: string | undefined, entityI
   if (entityType === 'calendar_event') return `/workspaces/${workspaceId}/calendar?eventId=${entityId}`
   if (entityType === 'video_call') return `/workspaces/${workspaceId}/video-calls`
   return undefined
+}
+
+function filePreviewHref(workspaceId: string, fileId: string): string {
+  return `/workspaces/${workspaceId}/files/all-files?fileId=${encodeURIComponent(fileId)}`
 }
 
 function recordsFromOutput(value: unknown): Record<string, any>[] {
@@ -340,20 +395,44 @@ function dedupeByHref<T extends { href?: string; entityType?: string; entityId?:
   })
 }
 
+function dedupeReferences(items: WorkspaceReferencePayload[], mode: 'entity' | 'rag' = 'entity'): WorkspaceReferencePayload[] {
+  const seen = new Set<string>()
+  return items.filter(item => {
+    const key = mode === 'rag'
+      ? [
+        item.fileId || item.entityId || item.href || item.title || '',
+        item.citation || '',
+        item.pageNumbers?.join(',') || '',
+        item.snippet || '',
+      ].join(':')
+      : item.href || `${item.entityType || ''}:${item.entityId || ''}`
+    if (!key || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+function isRagSearchTool(toolName: string): boolean {
+  return toolName === 'search_rag' || toolName === 'nexus_search_files_rag'
+}
+
 function derivedPartsFromToolOutput(toolName: string | undefined, output: unknown, workspaceId: string): AIChatPartItem[] {
   if (!toolName || !output || typeof output !== 'object') return []
   const record = output as Record<string, any>
-  if (toolName === 'search_rag') {
-    const references = toWorkspaceReferences(record.sources)
+  if (isRagSearchTool(toolName)) {
+    const references = dedupeReferences(
+      toWorkspaceReferences(record.sources || record.references || record.results, workspaceId),
+      'rag',
+    )
     if (references.length === 0) return []
     return [{
       id: `rag-sources-${crypto.randomUUID()}`,
       type: 'data-rag_sources',
       status: 'completed',
-      label: 'RAG sources',
-      summary: 'Indexed file sources',
+      label: 'Nguồn dữ liệu',
+      summary: 'Nguồn dữ liệu đã dùng',
       references,
-      metadata: { sources: references },
+      metadata: { toolName, sources: references },
     }]
   }
   const actions = dedupeByHref([
@@ -374,7 +453,7 @@ function derivedPartsFromToolOutput(toolName: string | undefined, output: unknow
     return parts
   }
   const references = dedupeByHref([
-    ...toWorkspaceReferences(record.sources || record.references),
+    ...toWorkspaceReferences(record.sources || record.references, workspaceId),
     ...referencesFromToolOutput(toolName, output, workspaceId),
   ])
   if (references.length > 0) {
@@ -422,6 +501,38 @@ async function consumeNexusAIUIStream(
   let sessionId = initialSessionId
   let completed = false
 
+  const processEvent = (event: string) => {
+    const parsed = parseBackendSseEvent(event)
+    if (!parsed) return
+
+    if (parsed.event === 'session') {
+      sessionId = typeof parsed.data?.sessionId === 'string' ? parsed.data.sessionId : sessionId
+      if (sessionId) callbacks.onSession?.(sessionId, typeof parsed.data?.runId === 'string' ? parsed.data.runId : undefined)
+      return
+    }
+
+    if (parsed.event === 'message.part') {
+      const part = parsed.data?.part
+      if (part && typeof part === 'object') {
+        callbacks.onPart?.(part as AIChatPartItem)
+      }
+      return
+    }
+
+    if (parsed.event === 'run.error') {
+      callbacks.onError?.(
+        typeof parsed.data?.error === 'string' ? parsed.data.error : 'Nexus AI request failed',
+      )
+      return 'stop'
+    }
+
+    if (parsed.event === 'run.completed') {
+      completed = true
+      callbacks.onComplete?.(completionResult(sessionId, typeof parsed.data?.message === 'string' ? parsed.data.message : ''))
+      return 'stop'
+    }
+  }
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -431,36 +542,20 @@ async function consumeNexusAIUIStream(
     buffer = events.pop() || ''
 
     for (const event of events) {
-      const parsed = parseBackendSseEvent(event)
-      if (!parsed) continue
-
-      if (parsed.event === 'session') {
-        sessionId = typeof parsed.data?.sessionId === 'string' ? parsed.data.sessionId : sessionId
-        if (sessionId) callbacks.onSession?.(sessionId, typeof parsed.data?.runId === 'string' ? parsed.data.runId : undefined)
-        continue
-      }
-
-      if (parsed.event === 'message.part') {
-        const part = parsed.data?.part
-        if (part && typeof part === 'object') {
-          callbacks.onPart?.(part as AIChatPartItem)
-        }
-        continue
-      }
-
-      if (parsed.event === 'run.error') {
-        callbacks.onError?.(
-          typeof parsed.data?.error === 'string' ? parsed.data.error : 'Nexus AI request failed',
-        )
-        return
-      }
-
-      if (parsed.event === 'run.completed') {
-        completed = true
-        callbacks.onComplete?.(completionResult(sessionId, typeof parsed.data?.message === 'string' ? parsed.data.message : ''))
+      if (processEvent(event) === 'stop') {
         return
       }
     }
+  }
+
+  buffer += decoder.decode()
+  const trailingEvents = buffer.split('\n\n')
+  buffer = trailingEvents.pop() || ''
+  for (const event of trailingEvents) {
+    if (processEvent(event) === 'stop') return
+  }
+  if (buffer.trim()) {
+    if (processEvent(buffer) === 'stop') return
   }
 
   if (!completed) {

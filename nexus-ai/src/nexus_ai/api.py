@@ -10,6 +10,7 @@ from pydantic_ai.messages import (
     PartDeltaEvent,
     PartEndEvent,
     PartStartEvent,
+    RetryPromptPart,
     TextPart,
     TextPartDelta,
     ThinkingPart,
@@ -403,13 +404,14 @@ def payloads_from_event(event: Any, state: StreamState) -> list[dict[str, Any]]:
         return payloads
 
     if isinstance(event, FunctionToolResultEvent):
+        output_type = output_type_from_tool_result(event.part)
         payloads.append(
             {
-                "type": output_type_from_tool_result(event.part),
+                "type": output_type,
                 "tool_call_id": event.tool_call_id,
                 "tool_name": event.part.tool_name,
                 "output": tool_result_payload(event.part),
-                "error_text": event.part.content if isinstance(event.part.content, str) and event.part.outcome != "success" else None,
+                "error_text": event.part.content if isinstance(event.part.content, str) and output_type != "tool-output-available" else None,
             }
         )
         return payloads
@@ -420,7 +422,9 @@ def payloads_from_event(event: Any, state: StreamState) -> list[dict[str, Any]]:
     return payloads
 
 
-def output_type_from_tool_result(part: ToolReturnPart) -> str:
+def output_type_from_tool_result(part: ToolReturnPart | RetryPromptPart) -> str:
+    if isinstance(part, RetryPromptPart):
+        return "tool-output-error"
     if part.outcome == "failed":
         return "tool-output-error"
     if part.outcome == "denied":
@@ -428,7 +432,7 @@ def output_type_from_tool_result(part: ToolReturnPart) -> str:
     return "tool-output-available"
 
 
-def tool_result_payload(part: ToolReturnPart) -> Any:
+def tool_result_payload(part: ToolReturnPart | RetryPromptPart) -> Any:
     content = part.content
     if isinstance(content, (str, int, float, bool)) or content is None:
         return {"content": content}
