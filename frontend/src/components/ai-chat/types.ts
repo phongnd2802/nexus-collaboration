@@ -50,11 +50,16 @@ export interface WorkspaceReferencePayload {
   sourceType?: string
   entityType?: string
   entityId?: string
+  fileId?: string
+  mimeType?: string
   title?: string
   href?: string
   snippet?: string
   citation?: string
   score?: number
+  pageNumbers?: number[]
+  bboxRefs?: unknown[]
+  retrievalMode?: string
 }
 
 export interface WorkspaceActionPayload {

@@ -57,6 +57,29 @@ describe('agent-chat event normalization', () => {
     });
   });
 
+  it('uses data-final_answer to complete the run without emitting a duplicate part', () => {
+    const state = createNormalizationState();
+
+    const finalAnswerEvents = normalizeAgentChatChunk(
+      {
+        type: 'data-final_answer',
+        data: { content: 'Final answer', sessionId: 'session-1', runId: 'run-2' },
+      },
+      'ws-1',
+      state,
+    );
+
+    expect(finalAnswerEvents).toEqual([]);
+    expect(createRunCompletedEvent(state)).toEqual({
+      type: 'run.completed',
+      data: {
+        message: 'Final answer',
+        sessionId: 'session-1',
+        runId: 'run-2',
+      },
+    });
+  });
+
   it('normalizes tool results and derives workspace actions', () => {
     const state = createNormalizationState();
 
@@ -122,6 +145,133 @@ describe('agent-chat event normalization', () => {
               entityType: 'project',
               entityId: 'project-1',
               href: '/workspaces/ws-1/projects/project-1',
+            }),
+          ],
+        }),
+      },
+    });
+  });
+
+  it('derives RAG sources from MCP search results and preserves source metadata', () => {
+    const state = createNormalizationState();
+
+    normalizeAgentChatChunk(
+      {
+        type: 'tool-input-start',
+        tool_call_id: 'tool-rag',
+        tool_name: 'nexus_search_files_rag',
+      },
+      'ws-1',
+      state,
+    );
+
+    const toolEvents = normalizeAgentChatChunk(
+      {
+        type: 'tool-output-available',
+        tool_call_id: 'tool-rag',
+        output: {
+          results: [
+            {
+              file_id: 'file-1',
+              file_name: 'Roadmap.pdf',
+              mime_type: 'application/pdf',
+              score: 0.87,
+              snippet: 'Roadmap source text',
+              citation: 'Roadmap.pdf, page 2',
+              retrieval_mode: 'hybrid',
+              page_numbers: [2],
+              bbox_refs: [{ page_number: 2, bbox: [0, 0, 10, 10] }],
+            },
+            {
+              file_id: 'file-1',
+              file_name: 'Roadmap.pdf',
+              mime_type: 'application/pdf',
+              score: 0.81,
+              snippet: 'Different source text from the same file',
+              citation: 'Roadmap.pdf, page 3',
+              retrieval_mode: 'hybrid',
+              page_numbers: [3],
+              bbox_refs: [{ page_number: 3, bbox: [1, 1, 11, 11] }],
+            },
+          ],
+        },
+      },
+      'ws-1',
+      state,
+    );
+
+    expect(toolEvents[1]).toEqual({
+      type: 'message.part',
+      data: {
+        part: expect.objectContaining({
+          type: 'data-rag_sources',
+          references: [
+            expect.objectContaining({
+              entityType: 'file',
+              entityId: 'file-1',
+              fileId: 'file-1',
+              mimeType: 'application/pdf',
+              title: 'Roadmap.pdf',
+              href: '/workspaces/ws-1/files/all-files?fileId=file-1',
+              snippet: 'Roadmap source text',
+              citation: 'Roadmap.pdf, page 2',
+              score: 0.87,
+              pageNumbers: [2],
+              bboxRefs: [{ page_number: 2, bbox: [0, 0, 10, 10] }],
+              retrievalMode: 'hybrid',
+            }),
+            expect.objectContaining({
+              fileId: 'file-1',
+              snippet: 'Different source text from the same file',
+              pageNumbers: [3],
+            }),
+          ],
+        }),
+      },
+    });
+  });
+
+  it('keeps legacy search_rag sources working', () => {
+    const state = createNormalizationState();
+
+    normalizeAgentChatChunk(
+      {
+        type: 'tool-input-start',
+        tool_call_id: 'tool-legacy-rag',
+        tool_name: 'search_rag',
+      },
+      'ws-1',
+      state,
+    );
+
+    const toolEvents = normalizeAgentChatChunk(
+      {
+        type: 'tool-output-available',
+        tool_call_id: 'tool-legacy-rag',
+        output: {
+          sources: [
+            {
+              title: 'Legacy source',
+              href: '/legacy',
+              snippet: 'Legacy source text',
+            },
+          ],
+        },
+      },
+      'ws-1',
+      state,
+    );
+
+    expect(toolEvents[1]).toEqual({
+      type: 'message.part',
+      data: {
+        part: expect.objectContaining({
+          type: 'data-rag_sources',
+          references: [
+            expect.objectContaining({
+              title: 'Legacy source',
+              href: '/legacy',
+              snippet: 'Legacy source text',
             }),
           ],
         }),

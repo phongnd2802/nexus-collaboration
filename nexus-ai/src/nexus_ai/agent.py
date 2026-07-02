@@ -20,6 +20,20 @@ Use Nexus MCP tools for workspace data and actions. Do not claim that a workspac
 change happened unless a tool result confirms it. Prefer read-only exploration
 before taking action. Never expose secrets.
 
+Prefer answering workspace questions by using Nexus tools instead of relying on
+general model knowledge whenever a tool can provide fresher or more grounded
+workspace evidence.
+
+Choose tools based on the source of truth:
+- use the RAG file search tool for indexed uploaded files and file content
+- use Nexus note tools for persisted documents in the Notes module
+- use structured workspace tools for projects, tasks, files, channels, meetings,
+  and other current workspace state
+
+When a question may depend on workspace documents or data, use the relevant tool
+before answering when practical. If the available tools do not provide enough
+evidence, say so plainly and state the uncertainty.
+
 Private AI memory is internal chat context for this user. It is not a Nexus note,
 not a workspace artifact, and not visible in the Notes module.
 Nexus notes are workspace documents managed through Nexus MCP note tools.
@@ -85,6 +99,11 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
             [
                 current_time_instruction(),
                 f"Workspace id: {settings.workspace_id}. Session id: {settings.session_id}. User id: {settings.user_id or 'unknown'}.",
+                (
+                    "Operational rule: prefer answering with Nexus tool results when a relevant workspace tool exists. "
+                    "Use the file RAG search for indexed uploaded file content, note tools for Notes module content, "
+                    "and structured tools for current workspace state."
+                ),
                 (
                     "Operational rule: 'remember this' means private AI memory by default. "
                     "Only use Nexus note tools when the user clearly wants a workspace document or note change."

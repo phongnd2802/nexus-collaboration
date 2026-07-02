@@ -68,6 +68,7 @@ def create_nexus_mcp_capability(settings: Settings) -> Any:
 
     try:
         return MCP(
+           # id='nexus-mcp',
             native=False,
             local=MCPToolset(
                 settings.mcp_url,
@@ -75,6 +76,7 @@ def create_nexus_mcp_capability(settings: Settings) -> Any:
                 headers=_RequestScopedHeaders(settings),
                 include_instructions=True,
             ),
+           # defer_loading=True,
         )
     except TypeError:
         # Older Pydantic AI versions may not support local MCP toolsets.

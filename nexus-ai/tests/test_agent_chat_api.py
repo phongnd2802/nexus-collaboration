@@ -4,7 +4,15 @@ import asyncio
 from types import SimpleNamespace
 
 from pydantic_ai import Agent
-from pydantic_ai.messages import PartDeltaEvent, PartEndEvent, PartStartEvent, TextPart, TextPartDelta
+from pydantic_ai.messages import (
+    FunctionToolResultEvent,
+    PartDeltaEvent,
+    PartEndEvent,
+    PartStartEvent,
+    RetryPromptPart,
+    TextPart,
+    TextPartDelta,
+)
 from pydantic_ai.models.test import TestModel
 
 from nexus_ai.agent_chat_store import AgentChatStore
@@ -247,3 +255,28 @@ def test_payloads_from_event_does_not_duplicate_text_between_delta_and_end():
     assert start_payloads == [{"type": "text-delta", "delta": "Hel"}]
     assert delta_payloads == [{"type": "text-delta", "delta": "lo"}]
     assert end_payloads == []
+
+
+def test_payloads_from_event_handles_retry_prompt_tool_result_without_outcome():
+    state = StreamState()
+
+    payloads = payloads_from_event(
+        FunctionToolResultEvent(
+            RetryPromptPart(
+                content="Tool arguments were invalid",
+                tool_name="nexus_search_files_rag",
+                tool_call_id="tool-1",
+            )
+        ),
+        state,
+    )
+
+    assert payloads == [
+        {
+            "type": "tool-output-error",
+            "tool_call_id": "tool-1",
+            "tool_name": "nexus_search_files_rag",
+            "output": {"content": "Tool arguments were invalid"},
+            "error_text": "Tool arguments were invalid",
+        }
+    ]

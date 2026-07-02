@@ -204,13 +204,16 @@ export class RagIndexingService {
             file_id: fileId,
             file_name: this.stringValue(result.file_name) || this.stringValue(result.title) || 'Untitled file',
             mime_type: this.stringValue(result.mime_type) || null,
+            href: `/workspaces/${workspaceId}/files/all-files?fileId=${encodeURIComponent(fileId)}`,
             score: this.numberValue(result.score),
+            content: this.buildContent(result),
             snippet: this.buildSnippet(result),
             citation: this.stringValue(result.citation) || null,
             retrieval_mode: this.stringValue(result.retrieval_mode) || null,
             page_numbers: Array.isArray(result.page_numbers)
               ? result.page_numbers.filter((value): value is number => typeof value === 'number')
               : [],
+            bbox_refs: Array.isArray(result.bbox_refs) ? result.bbox_refs : [],
           };
         })
         .filter((result): result is Record<string, unknown> => result !== null),
@@ -388,14 +391,19 @@ export class RagIndexingService {
   }
 
   private buildSnippet(result: Record<string, unknown>): string {
-    const snippet =
-      this.stringValue(result.chunk_text) ||
-      this.stringValue(result.raw_text) ||
-      this.stringValue(result.content) ||
-      this.stringValue(result.summary) ||
-      '';
+    const snippet = this.buildContent(result);
 
     return snippet.length <= 500 ? snippet : `${snippet.slice(0, 500)}...[truncated]`;
+  }
+
+  private buildContent(result: Record<string, unknown>): string {
+    return (
+      this.stringValue(result.raw_text) ||
+      this.stringValue(result.content) ||
+      this.stringValue(result.chunk_text) ||
+      this.stringValue(result.summary) ||
+      ''
+    );
   }
 
   private stringValue(value: unknown): string | null {

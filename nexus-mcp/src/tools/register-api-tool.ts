@@ -11,6 +11,13 @@ interface ApiToolConfig {
   name: string;
   title: string;
   description: string;
+  search?: {
+    aliases?: string[];
+    intents?: string[];
+    entities?: string[];
+    verbs?: string[];
+    keywords?: string[];
+  };
   inputSchema: ZodRawShape;
   outputSchema?: ZodTypeAny;
   outputTransform?: (data: unknown) => unknown;
@@ -27,11 +34,13 @@ interface ApiToolConfig {
 }
 
 export function registerApiTool(server: McpServer, client: NexusApiClient, config: ApiToolConfig) {
+  const description = toolDescription(config);
+
   server.registerTool(
     config.name,
     {
       title: config.title,
-      description: config.description,
+      description,
       inputSchema: {
         ...config.inputSchema,
         response_format: responseFormatSchema,
@@ -70,4 +79,37 @@ export function registerApiTool(server: McpServer, client: NexusApiClient, confi
       }
     },
   );
+}
+
+function toolDescription(config: ApiToolConfig): string {
+  const searchText = searchMetadataText(config.search);
+  return searchText ? `${config.description}\n\nSearch metadata: ${searchText}.` : config.description;
+}
+
+function searchMetadataText(search: ApiToolConfig['search']): string {
+  if (!search) return '';
+  const parts = [
+    labeledValues('aliases', search.aliases),
+    labeledValues('intents', search.intents),
+    labeledValues('entities', search.entities),
+    labeledValues('verbs', search.verbs),
+    labeledValues('keywords', search.keywords),
+  ].filter(Boolean);
+  return parts.join('; ');
+}
+
+function labeledValues(label: string, values: string[] | undefined): string {
+  if (!values || values.length === 0) return '';
+  return `${label}: ${dedupe(values).join(', ')}`;
+}
+
+function dedupe(values: string[]): string[] {
+  const seen = new Set<string>();
+  return values
+    .map((value) => value.trim())
+    .filter((value) => {
+      if (!value || seen.has(value.toLowerCase())) return false;
+      seen.add(value.toLowerCase());
+      return true;
+    });
 }

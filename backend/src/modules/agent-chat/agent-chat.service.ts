@@ -144,6 +144,29 @@ export class AgentChatService {
     let eventSequence = 0;
     let completed = false;
 
+    const processFrame = (frame: string): void => {
+      const parsed = this.parseSseFrame(frame);
+      if (!parsed.data) return;
+
+      if (parsed.data === '[DONE]') {
+        this.writeNormalizedSse(res, `evt-${eventSequence++}`, createRunCompletedEvent(state));
+        completed = true;
+        return;
+      }
+
+      let payload: Record<string, any>;
+      try {
+        payload = JSON.parse(parsed.data);
+      } catch {
+        return;
+      }
+
+      const events = normalizeAgentChatChunk(payload, workspaceId, state);
+      for (const event of events) {
+        this.writeNormalizedSse(res, `evt-${eventSequence++}`, event);
+      }
+    };
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -153,27 +176,18 @@ export class AgentChatService {
       buffer = frames.pop() || '';
 
       for (const frame of frames) {
-        const parsed = this.parseSseFrame(frame);
-        if (!parsed.data) continue;
-
-        if (parsed.data === '[DONE]') {
-          this.writeNormalizedSse(res, `evt-${eventSequence++}`, createRunCompletedEvent(state));
-          completed = true;
-          continue;
-        }
-
-        let payload: Record<string, any>;
-        try {
-          payload = JSON.parse(parsed.data);
-        } catch {
-          continue;
-        }
-
-        const events = normalizeAgentChatChunk(payload, workspaceId, state);
-        for (const event of events) {
-          this.writeNormalizedSse(res, `evt-${eventSequence++}`, event);
-        }
+        processFrame(frame);
       }
+    }
+
+    buffer += decoder.decode();
+    const trailingFrames = buffer.split('\n\n');
+    buffer = trailingFrames.pop() || '';
+    for (const frame of trailingFrames) {
+      processFrame(frame);
+    }
+    if (buffer.trim()) {
+      processFrame(buffer);
     }
 
     if (!completed) {
