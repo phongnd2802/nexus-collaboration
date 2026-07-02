@@ -93,6 +93,7 @@ class RagIndexer:
             source,
             summary,
             vectors[0],
+            document_metadata=document.metadata,
             summary_model=self.settings.rag_llm_model,
             summary_prompt_version=SUMMARY_PROMPT_VERSION,
         )
@@ -100,6 +101,16 @@ class RagIndexer:
         await lexical_store.upsert_chunks(source, chunks, job_id)
         return {
             "chunks": len(chunks),
+            "extractor_name": type(extractor).__name__,
+            "source_format": document.metadata.get("source_format") or self._source_format(source),
+            "original_mime_type": document.metadata.get("original_mime_type") or source.mime_type,
+            "normalized_mime_type": document.metadata.get("normalized_mime_type") or source.mime_type,
+            "conversion_engine": document.metadata.get("conversion_engine"),
+            "normalization_strategy": document.metadata.get("normalization_strategy"),
+            "page_equivalence_mode": document.metadata.get("page_equivalence_mode"),
+            "document_metadata_keys": sorted(document.metadata.keys()),
+            "element_count": len(document.elements),
+            "structured_elements": bool(document.elements),
             "embedding_model": self.settings.rag_embedding_model,
             "summary_model": self.settings.rag_llm_model,
             "context_model": self.settings.rag_llm_model if self.settings.rag_enable_contextual_retrieval else None,
@@ -146,3 +157,10 @@ class RagIndexer:
             chunk.context_source = "llm"
             chunk.context_prompt_version = CONTEXT_PROMPT_VERSION
         return chunks
+
+    def _source_format(self, source: FileSource) -> str:
+        suffix = source.name.rsplit(".", 1)
+        if len(suffix) == 2 and suffix[1]:
+            return suffix[1].lower()
+        mime_type = (source.mime_type or "").strip().lower()
+        return mime_type or "unknown"

@@ -37,6 +37,7 @@ class DocumentRoutedParentChildStrategy(ChunkingStrategy):
 
     def _parents(self, source: FileSource, document: ExtractedDocument) -> list[ParentChunk]:
         blocks = self._blocks(document)
+        document_metadata = self._document_metadata(document)
         parent_texts: list[str] = []
         current: list[str] = []
         current_tokens = 0
@@ -57,7 +58,7 @@ class DocumentRoutedParentChildStrategy(ChunkingStrategy):
                 text=text,
                 parent_index=index,
                 page_numbers=self._page_numbers(document),
-                metadata={"strategy": self.settings.rag_chunking_strategy},
+                metadata={"strategy": self.settings.rag_chunking_strategy, **document_metadata},
             )
             for index, text in enumerate(parent_texts)
             if text.strip()
@@ -99,6 +100,24 @@ class DocumentRoutedParentChildStrategy(ChunkingStrategy):
 
     def _token_count(self, text: str) -> int:
         return max(1, len(text.split()))
+
+    def _document_metadata(self, document: ExtractedDocument) -> dict[str, object]:
+        allowed = {
+            "source_format",
+            "original_mime_type",
+            "normalized_mime_type",
+            "normalization_strategy",
+            "conversion_engine",
+            "page_equivalence_mode",
+            "title",
+            "author",
+            "mime_type",
+        }
+        return {
+            key: value
+            for key, value in document.metadata.items()
+            if key in allowed and value not in (None, "", [], {})
+        }
 
     def _id(self, *parts: object) -> str:
         return str(uuid.uuid5(uuid.NAMESPACE_URL, ":".join(str(part) for part in parts)))

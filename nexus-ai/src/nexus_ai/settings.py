@@ -107,6 +107,11 @@ class StaticSettings(BaseSettings):
         default="", alias="NEXUS_RAG_OPENDATALOADER_HYBRID_HANCOM_AI_IMAGE_CACHE"
     )
     rag_opendataloader_hybrid_url: str = Field(default="", alias="NEXUS_RAG_OPENDATALOADER_HYBRID_URL")
+    rag_libreoffice_path: str = Field(default="", alias="NEXUS_RAG_LIBREOFFICE_PATH")
+    rag_office_conversion_timeout_seconds: int = Field(
+        default=180,
+        alias="NEXUS_RAG_OFFICE_CONVERSION_TIMEOUT_SECONDS",
+    )
     openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1", alias="OPENROUTER_BASE_URL")
 
     @model_validator(mode="after")
