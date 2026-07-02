@@ -25,6 +25,10 @@ Required env:
 - `NEXUS_WORKSPACE_ID`
 - `OPENROUTER_API_KEY` for the default OpenRouter model
 
+For Office RAG indexing with page/bbox preservation through PDF normalization:
+
+- install `LibreOffice` headless so `soffice` is available on `PATH`, or set `NEXUS_RAG_LIBREOFFICE_PATH`
+
 Default model:
 
 - `openrouter:openai/gpt-4o-mini`

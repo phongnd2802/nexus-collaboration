@@ -26,6 +26,7 @@ class QdrantVectorStore:
         summary: str,
         embedding: list[float],
         *,
+        document_metadata: dict[str, Any] | None = None,
         summary_model: str,
         summary_prompt_version: str,
     ) -> None:
@@ -42,6 +43,8 @@ class QdrantVectorStore:
                         "summary": summary,
                         "mime_type": source.mime_type,
                         "file_hash": source.file_hash,
+                        "source_metadata": source.metadata,
+                        "document_metadata": document_metadata or {},
                         "summary_model": summary_model,
                         "summary_prompt_version": summary_prompt_version,
                         "embedding_model": self.settings.rag_embedding_model,
@@ -64,6 +67,7 @@ class QdrantVectorStore:
                         "content_id": source.id,
                         "title": source.name,
                         "file_name": source.name,
+                        "mime_type": source.mime_type,
                         "job_id": job_id,
                         "parent_id": chunk.parent_id,
                         "child_id": chunk.child_id,
@@ -81,6 +85,8 @@ class QdrantVectorStore:
                         "chunking_strategy": self.settings.rag_chunking_strategy,
                         "embedding_model": self.settings.rag_embedding_model,
                         "file_hash": source.file_hash,
+                        "source_metadata": source.metadata,
+                        "chunk_metadata": chunk.metadata,
                     },
                 )
             )
