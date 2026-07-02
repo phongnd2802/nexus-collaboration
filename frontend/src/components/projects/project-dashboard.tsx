@@ -582,7 +582,7 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
                     </span>
                   </div>
                   <Badge variant="outline" className="text-xs self-start sm:self-auto max-w-full whitespace-normal break-words">
-                    {project.status === 'active' ? intl.formatMessage({ id: 'projects.status.active' }) : intl.formatMessage({ id: 'projects.status.completed' })}
+                    {intl.formatMessage({ id: `projects.status.${project.status}`, defaultMessage: project.status })}
                   </Badge>
                 </div>
               </CardContent>

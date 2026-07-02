@@ -441,6 +441,7 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
       // Use projectKeys.lists() to match the actual query key structure
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() })
       if (actualProject?.id) {
+        queryClient.invalidateQueries({ queryKey: projectKeys.detail(actualProject.id) })
         queryClient.invalidateQueries({ queryKey: ['projectMembers', workspaceId, actualProject.id] })
       }
       toast({

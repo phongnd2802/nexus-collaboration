@@ -5,7 +5,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useIntl } from 'react-intl'
 import { cn } from '../../lib/utils'
 import {
-  Search,
   Home,
   MessageSquare,
   ClipboardList,
@@ -221,25 +220,6 @@ export function NavigationRail({ defaultExpanded = false }: NavigationRailProps)
             </Link>
           )
         })}
-
-        {/* Search button */}
-        <Link
-          to={getWorkspaceUrl('search')}
-          title={intl.formatMessage({ id: 'navigation.search' })}
-          className={cn(
-            "flex items-center rounded-xl transition-all duration-200 h-10",
-            isExpanded ? "w-full justify-start gap-3 px-3" : "justify-center w-10",
-            "hover:bg-[rgba(31,30,29,0.04)] text-[#1F1E1D] dark:text-[#FAF9F5] dark:hover:bg-[rgba(255,255,255,0.06)]",
-            isItemActive('search') && "bg-[#1F1E1D] text-white hover:bg-[#0A0A0A] dark:bg-[#FAF9F5] dark:text-[#1F1E1D] dark:hover:bg-[#e8e8e5]"
-          )}
-        >
-          <Search className="h-5 w-5 min-w-[20px]" />
-          {isExpanded && (
-            <span className="text-sm font-medium truncate">
-              {intl.formatMessage({ id: 'navigation.search' })}
-            </span>
-          )}
-        </Link>
       </div>
 
       <div className={cn("mt-auto pb-4 flex flex-col gap-2", isExpanded ? "px-1" : "")}>

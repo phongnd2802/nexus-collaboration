@@ -7513,7 +7513,9 @@
     "status": {
       "active": "Active",
       "completed": "Done",
-      "done": "Done"
+      "done": "Done",
+      "on_hold": "On Hold",
+      "archived": "Archived"
     },
     "noProjectsFound": "No projects found",
     "tryAdjustingSearch": "Try adjusting your search or filters",

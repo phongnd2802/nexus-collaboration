@@ -116,23 +116,40 @@ export function ProjectsRightSidebar({ projects, allTasks, workspaceId, selected
       return { overallProgress: 0, activeProjects: 0, completedProjects: 0 }
     }
 
-    // Calculate average progress of all projects
-    const totalProgress = displayProjects.reduce((sum, project) => {
-      return sum + (project.progress || 0)
-    }, 0)
-    const avgProgress = totalProgress / displayProjects.length
+    // Compute each project's progress from its tasks' kanban stage position,
+    // same formula used on the projects dashboard card.
+    const progressByProject = displayProjects.map(project => {
+      const tasks = displayAllTasks.filter(t => (t.project_id || t.projectId) === project.id)
+      const totalTasks = tasks.length
+      if (totalTasks === 0 || !project.kanban_stages || project.kanban_stages.length === 0) {
+        return 0
+      }
+
+      const sortedStages = [...project.kanban_stages].sort((a: any, b: any) => a.order - b.order)
+      const totalStages = sortedStages.length
+
+      const totalProgress = tasks.reduce((sum: number, task: any) => {
+        const stageIndex = sortedStages.findIndex((stage: any) => stage.id === task.status)
+        if (stageIndex === -1) return sum
+        return sum + ((stageIndex + 1) / totalStages) * 100
+      }, 0)
+
+      return Math.round(totalProgress / totalTasks)
+    })
+
+    const avgProgress = progressByProject.reduce((sum, p) => sum + p, 0) / progressByProject.length
 
     // Projects with 100% progress are considered done
-    const done = displayProjects.filter(p => (p.progress || 0) === 100).length
+    const done = progressByProject.filter(p => p === 100).length
     // Projects with less than 100% are considered active
-    const active = displayProjects.filter(p => (p.progress || 0) < 100).length
+    const active = progressByProject.filter(p => p < 100).length
 
     return {
       overallProgress: avgProgress,
       activeProjects: active,
       completedProjects: done
     }
-  }, [displayProjects, lastRefresh])
+  }, [displayProjects, displayAllTasks, lastRefresh])
 
   // Get upcoming deadlines from all tasks
   const now = new Date()

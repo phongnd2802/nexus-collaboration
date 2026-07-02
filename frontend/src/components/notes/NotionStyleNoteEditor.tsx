@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Loader2, Sparkles, Smile, Undo, Undo2, Redo, Copy, MoreHorizontal, Trash2, Archive, Share2, X, FileText, Calendar, FolderOpen, Users, Upload } from 'lucide-react'
 import { useToast } from '../ui/use-toast'
 import { cn } from '../../lib/utils'
-import { AIToolsMenu } from './AIToolsMenu'
 import { notesApi } from '../../lib/api/notes-api'
 import { aiApi } from '../../lib/api/ai-api'
 import { useAuth } from '../../contexts/AuthContext'
@@ -2318,20 +2317,6 @@ export function NotionStyleNoteEditor({
             <div className="border-b px-8">
               <div className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <AIToolsMenu
-                    selectedText={selectedText}
-                    getPlainTextContent={getPlainTextContent}
-                    translateLoading={translateLoading}
-                    summaryLoading={summaryLoading}
-                    textGenerationLoading={textGenerationLoading}
-                    onTranslate={translateText}
-                    onSummarize={summarizeText}
-                    onImproveWriting={improveWriting}
-                    onFixGrammar={fixGrammar}
-                    onMakeLonger={makeLonger}
-                    onMakeShorter={makeShorter}
-                  />
-
                   {selectedText && (
                     <div className="text-sm text-muted-foreground">
                       {intl.formatMessage(
