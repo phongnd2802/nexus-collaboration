@@ -4,10 +4,11 @@ import asyncio
 from types import SimpleNamespace
 
 from pydantic_ai import Agent
+from pydantic_ai.messages import PartDeltaEvent, PartEndEvent, PartStartEvent, TextPart, TextPartDelta
 from pydantic_ai.models.test import TestModel
 
 from nexus_ai.agent_chat_store import AgentChatStore
-from nexus_ai.api import _stream_chat, create_agent_chat_app
+from nexus_ai.api import StreamState, _stream_chat, create_agent_chat_app, payloads_from_event
 from nexus_ai.settings import load_settings
 from nexus_ai.storage import MemoryRepository, SQLiteStore
 
@@ -225,3 +226,24 @@ def test_agent_chat_does_not_wait_for_session_summary_background_task(tmp_path, 
     body = asyncio.run(run())
     assert "data-final_answer" in body
     assert "[DONE]" in body
+
+
+def test_payloads_from_event_does_not_duplicate_text_between_delta_and_end():
+    state = StreamState()
+
+    start_payloads = payloads_from_event(
+        PartStartEvent(index=0, part=TextPart("Hel")),
+        state,
+    )
+    delta_payloads = payloads_from_event(
+        PartDeltaEvent(index=0, delta=TextPartDelta("lo")),
+        state,
+    )
+    end_payloads = payloads_from_event(
+        PartEndEvent(index=0, part=TextPart("Hello")),
+        state,
+    )
+
+    assert start_payloads == [{"type": "text-delta", "delta": "Hel"}]
+    assert delta_payloads == [{"type": "text-delta", "delta": "lo"}]
+    assert end_payloads == []

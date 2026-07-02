@@ -364,7 +364,9 @@ def payloads_from_event(event: Any, state: StreamState) -> list[dict[str, Any]]:
 
     if isinstance(event, PartDeltaEvent):
         if isinstance(event.delta, TextPartDelta):
-            payloads.append({"type": "text-delta", "delta": event.delta.content_delta})
+            delta = event.delta.content_delta
+            state.text_by_index[event.index] = f"{state.text_by_index.get(event.index, '')}{delta}"
+            payloads.append({"type": "text-delta", "delta": delta})
         elif isinstance(event.delta, ThinkingPartDelta):
             reasoning_id = f"reasoning-{event.index}"
             if event.delta.content_delta:
