@@ -32,7 +32,7 @@ def build_capabilities(settings: Settings) -> CapabilityRegistry:
     registry = CapabilityRegistry()
     registry.add("nexus-mcp", lambda: create_nexus_mcp_capability(settings))
     registry.add("tool-search", create_tool_search_capability)
-    registry.add("mcp-tool-preparation", create_mcp_tool_preparation_capability)
+    # registry.add("mcp-tool-preparation", create_mcp_tool_preparation_capability)
     if settings.enable_code_mode:
         registry.add("code-mode", create_code_mode_capability)
     registry.add("thinking", create_thinking_capability)

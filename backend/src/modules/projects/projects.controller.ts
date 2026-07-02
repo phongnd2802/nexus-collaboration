@@ -84,6 +84,16 @@ export class ProjectsController {
     });
   }
 
+  @Post('sync-status')
+  @ApiOperation({ summary: 'Recompute project status for all projects in the workspace from their tasks' })
+  @ApiResponse({ status: 200, description: 'Returns how many projects were checked/updated.' })
+  async syncProjectStatuses(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.projectsService.syncAllProjectStatuses(workspaceId, userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a project by id' })
   @ApiResponse({ status: 200, description: 'Return the project.' })

@@ -7580,7 +7580,9 @@
     "status": {
       "active": "Đang hoạt động",
       "completed": "Hoàn thành",
-      "done": "Hoàn thành"
+      "done": "Hoàn thành",
+      "on_hold": "Tạm dừng",
+      "archived": "Đã lưu trữ"
     },
     "noProjectsFound": "Không tìm thấy dự án",
     "tryAdjustingSearch": "Thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn",

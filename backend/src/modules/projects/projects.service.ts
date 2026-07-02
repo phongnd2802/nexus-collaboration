@@ -845,6 +845,13 @@ export class ProjectsService {
 
     const task = await this.db.insert('tasks', taskData);
 
+    // If the task is created directly in the completed stage, check whether
+    // this makes every task in the project complete.
+    const completedStageId = this.getCompletedStageId(project);
+    if (task.status === completedStageId) {
+      await this.syncProjectStatusWithTasks(projectId, completedStageId, userId);
+    }
+
     // Emit task created event for workflow automation
     if (this.entityEventIntegration) {
       try {
@@ -1247,6 +1254,82 @@ export class ProjectsService {
     };
   }
 
+  private getCompletedStageId(project: any): string {
+    const kanbanStages =
+      typeof project.kanban_stages === 'string'
+        ? JSON.parse(project.kanban_stages)
+        : project.kanban_stages;
+    const lastStage =
+      kanbanStages && kanbanStages.length > 0
+        ? kanbanStages.reduce(
+          (max: any, stage: any) => (stage.order > max.order ? stage : max),
+          kanbanStages[0],
+        )
+        : null;
+    return lastStage?.id || 'done';
+  }
+
+  /**
+   * Set project.status to 'completed' once every task is in the completed
+   * stage, or back to 'active' if a task is reopened on a completed project.
+   */
+  private async syncProjectStatusWithTasks(
+    projectId: string,
+    completedStageId: string,
+    userId: string,
+  ) {
+    const project = await this.db.findOne('projects', { id: projectId });
+    if (!project) return;
+
+    const tasksResult = await this.db
+      .table('tasks')
+      .select('*')
+      .where('project_id', '=', projectId)
+      .execute();
+    const tasks = Array.isArray(tasksResult.data) ? tasksResult.data : [];
+    if (tasks.length === 0) return;
+
+    const allCompleted = tasks.every((t: any) => t.status === completedStageId);
+
+    if (allCompleted && project.status === 'active') {
+      await this.db.update('projects', projectId, {
+        status: 'completed',
+        updated_at: new Date().toISOString(),
+      });
+    } else if (!allCompleted && project.status === 'completed') {
+      await this.db.update('projects', projectId, {
+        status: 'active',
+        updated_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Backfill: recompute project.status for every project in a workspace
+   * from its tasks' actual completion state. Used to fix projects whose
+   * status went stale before task-driven status sync existed.
+   */
+  async syncAllProjectStatuses(workspaceId: string, userId: string) {
+    const projectsResult = await this.db
+      .table('projects')
+      .select('*')
+      .where('workspace_id', '=', workspaceId)
+      .execute();
+    const projects = Array.isArray(projectsResult.data) ? projectsResult.data : [];
+
+    let updated = 0;
+    for (const project of projects) {
+      if (project.status !== 'active' && project.status !== 'completed') continue;
+      const completedStageId = this.getCompletedStageId(project);
+      const before = project.status;
+      await this.syncProjectStatusWithTasks(project.id, completedStageId, userId);
+      const after = await this.db.findOne('projects', { id: project.id });
+      if (after && after.status !== before) updated++;
+    }
+
+    return { success: true, checked: projects.length, updated };
+  }
+
   async updateTask(taskId: string, updateTaskDto: UpdateTaskDto, userId: string) {
     const task = await this.getTask(taskId, userId);
 
@@ -1328,6 +1411,17 @@ export class ProjectsService {
     }
 
     const updatedTask = await this.db.update('tasks', taskId, updateData);
+
+    // Keep project status in sync with task completion: when the last
+    // pending task is completed, mark the project completed; when a task
+    // is reopened on a completed project, reactivate it.
+    const isBeingReopened =
+      updateTaskDto.status &&
+      updateTaskDto.status !== completedStageId &&
+      task.status === completedStageId;
+    if (isBeingCompleted || isBeingReopened) {
+      await this.syncProjectStatusWithTasks(task.project_id, completedStageId, userId);
+    }
 
     // Emit task updated event for workflow automation
     if (this.entityEventIntegration) {
@@ -1583,6 +1677,15 @@ export class ProjectsService {
     const project = await this.getProjectWithAccess(task.project_id, userId);
 
     const result = await this.db.delete('tasks', taskId);
+
+    // Deleting a pending task can leave every remaining task completed.
+    if (task.status !== this.getCompletedStageId(project)) {
+      await this.syncProjectStatusWithTasks(
+        task.project_id,
+        this.getCompletedStageId(project),
+        userId,
+      );
+    }
 
     // Emit task deleted event for workflow automation
     if (this.entityEventIntegration) {
