@@ -574,7 +574,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
       <CalendarHeader
         onCreateEvent={() => handleCreateEvent()}
         onShowFilters={() => setShowFiltersDialog(true)}
-        onShowSettings={() => { setShowSettingsDialog(true); setOpenRoomDialog(false) }}
         onShowAnalytics={() => setShowAnalytics(!showAnalytics)}
         showAnalytics={showAnalytics}
       />

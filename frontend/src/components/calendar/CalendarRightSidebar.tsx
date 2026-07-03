@@ -4,7 +4,6 @@ import { useIntl } from 'react-intl'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '../ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '../ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { useCalendarStore, useAnalyticsStore } from '../../stores/calendarStore'
 import type { CalendarEvent } from '../../types/calendar'
@@ -18,7 +17,6 @@ import {
   MapPin,
   AlertCircle,
   TrendingUp,
-  Target,
   Coffee,
   Video,
   Settings,
@@ -272,21 +270,6 @@ const { events, categories, conflicts } = useCalendarStore()
   // Get active conflicts
   const activeConflicts = conflicts?.filter(conflict => !conflict.resolvedAt).slice(0, 3) || []
 
-  // Calculate day progress
-  const dayProgress = useMemo(() => {
-    const now = new Date()
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0)
-    const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 0)
-    
-    if (now < dayStart) return 0
-    if (now > dayEnd) return 100
-    
-    const totalMinutes = (dayEnd.getTime() - dayStart.getTime()) / (1000 * 60)
-    const passedMinutes = (now.getTime() - dayStart.getTime()) / (1000 * 60)
-    
-    return Math.round((passedMinutes / totalMinutes) * 100)
-  }, [])
-
   const formatEventDate = (date: Date) => {
     if (isToday(date)) return intl.formatMessage({ id: 'modules.calendar.rightSidebar.today' })
     if (isTomorrow(date)) return intl.formatMessage({ id: 'modules.calendar.rightSidebar.tomorrow' })
@@ -331,42 +314,8 @@ const { events, categories, conflicts } = useCalendarStore()
     window.dispatchEvent(new CustomEvent('openCreateMeetingRoom'))
   }
 
-  const formatProgressTime = (date: Date) =>
-    new Intl.DateTimeFormat(intl.locale, {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    }).format(date)
-
-  const workdayStart = new Date()
-  workdayStart.setHours(8, 0, 0, 0)
-
-  const workdayEnd = new Date()
-  workdayEnd.setHours(18, 0, 0, 0)
-
   return (
     <div className="flex-1 overflow-y-auto sidebar-scroll p-4 space-y-6">
-      {/* Day Progress */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            {intl.formatMessage({ id: 'modules.calendar.rightSidebar.dayProgress' })}
-          </h3>
-          <Badge variant="outline" className="text-xs">
-            {dayProgress}%
-          </Badge>
-        </div>
-        <Progress value={dayProgress} className="h-2" />
-        <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>{formatProgressTime(workdayStart)}</span>
-          <span>{formatProgressTime(new Date())}</span>
-          <span>{formatProgressTime(workdayEnd)}</span>
-        </div>
-      </div>
-
-      <Separator />
-
       {/* Active Conflicts */}
       {activeConflicts.length > 0 && (
         <>

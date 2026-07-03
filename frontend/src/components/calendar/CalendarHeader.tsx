@@ -2,7 +2,7 @@ import { useRef, useCallback, useLayoutEffect, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { ChevronLeft, ChevronRight, Calendar, Plus, Search, Filter, MoreHorizontal, BarChart3, Download, Printer, X, FilterX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, Plus, Search, Filter, MoreHorizontal, BarChart3, X, FilterX } from 'lucide-react'
 import type { CalendarView } from '../../types/calendar'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { formatCalendarViewTitle } from '../../lib/calendar-utils'
@@ -16,7 +16,6 @@ import { toast } from 'sonner'
 interface CalendarHeaderProps {
   onCreateEvent: () => void
   onShowFilters: () => void
-  onShowSettings: () => void
   onShowAnalytics: () => void
   showAnalytics: boolean
 }
@@ -24,7 +23,6 @@ interface CalendarHeaderProps {
 export function CalendarHeader({
   onCreateEvent,
   onShowFilters,
-  onShowSettings,
   onShowAnalytics,
   showAnalytics
 }: CalendarHeaderProps) {
@@ -46,9 +44,7 @@ export function CalendarHeader({
     navigateToToday,
     updateFilters,
     resetFilters,
-    filters,
-    events,
-    categories
+    filters
   } = useCalendarStore()
 
   const VIEW_OPTIONS: { value: CalendarView; label: string }[] = [
@@ -183,152 +179,6 @@ export function CalendarHeader({
       updateFilters({ searchQuery: value })
     }, 300)
   }, [updateFilters])
-
-  const handleExportCalendar = (format: 'csv' | 'json') => {
-    try {
-      let content = ''
-      let filename = `calendar-export-${formatDate(new Date(), 'yyyy-MM-dd')}`
-      let mimeType = ''
-
-      if (format === 'json') {
-        const exportData = {
-          exportDate: new Date().toISOString(),
-          calendarName: 'Nexus Calendar',
-          events: events.map(event => ({
-            ...event,
-            category: categories.find(c => c.id === event.categoryId)?.name || 'Uncategorized'
-          })),
-          categories: categories
-        }
-        content = JSON.stringify(exportData, null, 2)
-        filename += '.json'
-        mimeType = 'application/json'
-      } else if (format === 'csv') {
-        content = generateCSVContent(events, categories)
-        filename += '.csv'
-        mimeType = 'text/csv'
-      }
-
-      const blob = new Blob([content], { type: mimeType })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
-      toast.success(intl.formatMessage({ id: 'modules.calendar.header.exportSuccess' }, { format: format.toUpperCase() }))
-    } catch (error) {
-      toast.error(intl.formatMessage({ id: 'modules.calendar.header.exportError' }))
-      console.error('Export error:', error)
-    }
-  }
-
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
-      toast.error(intl.formatMessage({ id: 'modules.calendar.header.printError' }))
-      return
-    }
-
-    const printContent = generatePrintContent(events, currentView, currentDate, categories)
-    
-    printWindow.document.write(printContent)
-    printWindow.document.close()
-    
-    printWindow.onload = () => {
-      printWindow.print()
-      printWindow.onafterprint = () => {
-        printWindow.close()
-      }
-    }
-  }
-
-  const generateCSVContent = (events: any[], categories: any[]) => {
-    const headers = [
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderTitle' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderStartDate' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderStartTime' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderEndDate' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderEndTime' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderCategory' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderPriority' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderStatus' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderLocation' }),
-      intl.formatMessage({ id: 'modules.calendar.header.csvHeaderDescription' })
-    ]
-    const rows = events.map(event => {
-      const startDate = new Date(event.startTime)
-      const endDate = new Date(event.endTime)
-      const category = categories.find(c => c.id === event.categoryId)?.name || 'Uncategorized'
-      
-      return [
-        event.title,
-        formatDate(startDate, 'yyyy-MM-dd'),
-        formatDate(startDate, 'HH:mm'),
-        formatDate(endDate, 'yyyy-MM-dd'),
-        formatDate(endDate, 'HH:mm'),
-        category,
-        event.priority,
-        event.status,
-        typeof event.location === 'string' ? event.location : event.location?.name || '',
-        event.description || ''
-      ].map(field => `"${String(field).replace(/"/g, '""')}"`)
-    })
-
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
-  }
-
-  const generatePrintContent = (events: any[], view: CalendarView, date: Date, categories: any[]) => {
-    const title = formatCalendarViewTitle(view, date, intl.locale)
-    const sortedEvents = [...events].sort((a, b) => 
-      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-    )
-
-    const eventsList = sortedEvents.map(event => {
-      const category = categories.find(c => c.id === event.categoryId)
-      return `
-        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-          <h3 style="margin: 0 0 5px 0; color: ${category?.color || '#333'};">${event.title}</h3>
-          <p style="margin: 5px 0; font-size: 14px;">
-            <strong>Date:</strong> ${formatDate(new Date(event.startTime), 'PPP')} <br>
-            <strong>Time:</strong> ${formatDate(new Date(event.startTime), 'p')} - ${formatDate(new Date(event.endTime), 'p')} <br>
-            ${event.location ? `<strong>Location:</strong> ${typeof event.location === 'string' ? event.location : event.location.name} <br>` : ''}
-            ${event.description ? `<strong>Description:</strong> ${event.description} <br>` : ''}
-            <strong>Category:</strong> ${category?.name || 'Uncategorized'} <br>
-            <strong>Priority:</strong> ${event.priority}
-          </p>
-        </div>
-      `
-    }).join('')
-
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${title} - Nexus Calendar</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-            h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
-            @media print {
-              body { margin: 10mm; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${title}</h1>
-          <p style="margin-bottom: 20px;">Total Events: ${events.length}</p>
-          ${eventsList}
-          <p style="margin-top: 30px; font-size: 12px; color: #666;">
-            Printed from Nexus Calendar on ${formatDate(new Date(), 'PPP')}
-          </p>
-        </body>
-      </html>
-    `
-  }
 
   return (
     <div ref={headerRef} className="relative flex items-center justify-between p-2 sm:p-4 border-b border-border bg-background min-h-[60px] sm:min-h-[72px]">
@@ -489,9 +339,6 @@ export function CalendarHeader({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onShowSettings}>
-              {intl.formatMessage({ id: 'modules.calendar.header.settings' })}
-            </DropdownMenuItem>
             {hasActiveFilters() && (
               <DropdownMenuItem onClick={handleClearAllFilters} className="text-destructive">
                 <FilterX className="h-4 w-4 mr-2" />
