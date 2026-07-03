@@ -818,48 +818,6 @@ CREATE INDEX IF NOT EXISTS "idx_video_call_participants_joined_at" ON "video_cal
 CREATE INDEX IF NOT EXISTS "idx_video_call_participants_left_at" ON "video_call_participants" ("left_at");
 CREATE INDEX IF NOT EXISTS "idx_video_call_participants_status" ON "video_call_participants" ("status");
 
--- ==================== SEARCH_HISTORY ====================
-CREATE TABLE IF NOT EXISTS "search_history" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "query" VARCHAR(255) NOT NULL,
-  "result_count" INTEGER DEFAULT 0,
-  "content_types" JSONB DEFAULT '[]',
-  "filters" JSONB DEFAULT '{}',
-  "created_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_search_history_workspace_id_user_id" ON "search_history" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_search_history_user_id" ON "search_history" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_search_history_workspace_id" ON "search_history" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_search_history_created_at" ON "search_history" ("created_at");
-CREATE INDEX IF NOT EXISTS "idx_search_history_query" ON "search_history" ("query");
-
--- ==================== SAVED_SEARCHES ====================
-CREATE TABLE IF NOT EXISTS "saved_searches" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "workspace_id" UUID NOT NULL REFERENCES "workspaces"(id) ON DELETE CASCADE,
-  "user_id" VARCHAR(255) NOT NULL,
-  "name" VARCHAR(255) NOT NULL,
-  "query" VARCHAR(255) NOT NULL,
-  "type" VARCHAR(255) NOT NULL,
-  "mode" VARCHAR(255) NOT NULL,
-  "filters" JSONB DEFAULT '{}',
-  "results_snapshot" JSONB DEFAULT '[]',
-  "result_count" INTEGER DEFAULT 0,
-  "tags" JSONB DEFAULT '[]',
-  "is_notification_enabled" BOOLEAN DEFAULT false,
-  "shared_with" JSONB DEFAULT '[]',
-  "created_at" TIMESTAMPTZ DEFAULT now(),
-  "updated_at" TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS "idx_saved_searches_workspace_id_user_id" ON "saved_searches" ("workspace_id", "user_id");
-CREATE INDEX IF NOT EXISTS "idx_saved_searches_user_id" ON "saved_searches" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_saved_searches_workspace_id" ON "saved_searches" ("workspace_id");
-CREATE INDEX IF NOT EXISTS "idx_saved_searches_created_at" ON "saved_searches" ("created_at");
-
 -- ==================== NOTIFICATIONS ====================
 CREATE TABLE IF NOT EXISTS "notifications" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),

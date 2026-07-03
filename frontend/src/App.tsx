@@ -50,7 +50,6 @@ const CalendarPage = lazy(() => import('./pages/calendar/CalendarPage'));
 const NotesPage = lazy(() => import('./pages/notes/NotesPage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 const AnalyticsPage = lazy(() => import('./pages/analytics/AnalyticsPage'));
-const SearchPage = lazy(() => import('./pages/search/SearchPage').then(m => ({ default: m.SearchPage })));
 const TemplatesPage = lazy(() => import('./pages/templates/TemplatesPage'));
 const MembersPage = lazy(() => import('./pages/members/MembersPage'));
 const NotificationCenter = lazy(() => import('./pages/NotificationCenter').then(m => ({ default: m.NotificationCenter })));
@@ -178,7 +177,6 @@ function WorkspaceRoutes() {
         <Route path="files/*" element={<FilesPage />} />
         <Route path="calendar/*" element={<CalendarPage />} />
         <Route path="notes/*" element={<NotesPage />} />
-        <Route path="search" element={<SearchPage />} />
         <Route path="notifications" element={<NotificationCenter />} />
         <Route path="analytics/*" element={<AnalyticsPage />} />
         <Route path="members" element={<MembersPage />} />

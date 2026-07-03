@@ -514,19 +514,6 @@ export function CalendarHeader({
                 {intl.formatMessage({ id: 'modules.calendar.header.clearFilters' })}
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => handleExportCalendar('csv')}>
-              <Download className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.exportAsCsv' })}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExportCalendar('json')}>
-              <Download className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.exportAsJson' })}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.printCalendar' })}
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

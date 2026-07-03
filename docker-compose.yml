@@ -238,31 +238,6 @@ services:
     depends_on:
       - seaweed-filer
 
-  # meilisearch:
-  #   image: getmeili/meilisearch:latest
-  #   container_name: nexus-meilisearch
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${MEILISEARCH_PORT:-7700}:7700"
-  #   environment:
-  #     MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-test_master_key}
-  #     MEILI_ENV: development
-  #   volumes:
-  #     - meilisearch_data:/meili_data
-
-  # typesense:
-  #   image: typesense/typesense:27.1
-  #   container_name: nexus-typesense
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${TYPESENSE_PORT:-8108}:8108"
-  #   environment:
-  #     TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-test_api_key}
-  #     TYPESENSE_DATA_DIR: /data
-  #   volumes:
-  #     - typesense_data:/data
-  #   command: --data-dir /data --api-key=${TYPESENSE_API_KEY:-test_api_key}
-
 volumes:
   postgres_data:
     driver: local
@@ -280,7 +255,3 @@ volumes:
     driver: local
   seaweed_filer:
     driver: local
-  # meilisearch_data:
-  #   driver: local
-  # typesense_data:
-  #   driver: local
