@@ -431,7 +431,6 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
       capacity: 10,
       location: '',
       facilities: [],
-      color: '#3b82f6',
       description: '',
       room_type: 'meeting'
     })
