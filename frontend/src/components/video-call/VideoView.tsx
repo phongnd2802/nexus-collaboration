@@ -55,6 +55,20 @@ interface Contact {
   lastSeen?: string
 }
 
+const stripHtml = (html: string): string => {
+  if (!html) return ''
+  try {
+    const preprocessed = html
+      .replace(/<\/p>/gi, ' ')
+      .replace(/<\/div>/gi, ' ')
+      .replace(/<br\s*\/?>/gi, ' ')
+    const doc = new DOMParser().parseFromString(preprocessed, 'text/html')
+    return (doc.body.textContent || '').trim().replace(/\s+/g, ' ')
+  } catch (e) {
+    return html.replace(/<[^>]*>/g, ' ').trim().replace(/\s+/g, ' ')
+  }
+}
+
 export function VideoView() {
   const intl = useIntl()
   const { workspaceId } = useParams<{ workspaceId: string }>()
@@ -642,8 +656,8 @@ export function VideoView() {
                                   </Badge>
                                 )}
                               </div>
-                              {call.description && (
-                                <div className="text-xs text-muted-foreground mt-1">{call.description}</div>
+                              {call.description && stripHtml(call.description) && (
+                                <div className="text-xs text-muted-foreground mt-1">{stripHtml(call.description)}</div>
                               )}
                             </div>
                           </div>

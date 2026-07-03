@@ -1527,7 +1527,13 @@
           "failedToLoadFile": "Không thể tải tệp",
           "failedToLoadEvent": "Không thể tải sự kiện",
           "driveUrlNotAvailable": "URL tệp Drive không khả dụng"
-        }
+        },
+        "taskDocuments": "Tài liệu công việc",
+        "taskDocumentsDescription": "Không bắt buộc. Các tệp đã tải lên sẽ được lưu trong Quản lý tệp thuộc dự án và công việc này.",
+        "taskDocumentsHint": "Chọn một hoặc nhiều tệp từ thiết bị của bạn.",
+        "taskDocumentsChooseFiles": "Chọn tệp",
+        "taskDocumentsAddMore": "Thêm tệp",
+        "selectedTaskDocuments": "Tệp đã chọn ({count})"
       },
       "createTask": {
         "title": "Tạo tác vụ mới",
@@ -7712,7 +7718,7 @@
         "delete": "Xóa"
       }
     },
-    "table":{
+    "table": {
       "dueDate": "Hạn chót"
     },
     "comments": {

@@ -211,10 +211,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
     setSendMessengerInvites(true)
     setSelectedAttendees([])
     setStartImmediately(false)
-    // Reset AI states
-    setAiDescriptionLoading(false)
-    setDescriptionSuggestions([])
-    setShowDescriptionSuggestions(false)
   }
 
   const handleClose = () => {

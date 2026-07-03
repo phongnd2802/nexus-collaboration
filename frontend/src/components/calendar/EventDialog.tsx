@@ -426,9 +426,10 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       setDescriptionAttachments(loadedDescriptionAttachments);
     } else {
       // Create mode - reset to defaults
-      const startTime = defaultHour ? `${defaultHour.toString().padStart(2, '0')}:00` : '09:00'
-      const endTime = defaultHour ? `${(defaultHour + 1).toString().padStart(2, '0')}:00` : '10:00'
-      
+      const now = new Date()
+      const startTime = defaultHour ? `${defaultHour.toString().padStart(2, '0')}:00` : format(now, 'HH:mm')
+      const endTime = defaultHour ? `${(defaultHour + 1).toString().padStart(2, '0')}:00` : format(addMinutes(now, 5), 'HH:mm')
+
       form.reset({
         title: '',
         description: '',
