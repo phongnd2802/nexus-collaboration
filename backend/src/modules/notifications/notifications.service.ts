@@ -505,8 +505,8 @@ export class NotificationsService {
             ? JSON.parse(userSettings.notifications)
             : userSettings.notifications;
 
-        // Get user's timezone from user_settings (defaults to UTC if not set)
-        const userTimezone = userSettings.timezone || 'UTC';
+        // Get user's timezone from notifications JSONB (defaults to UTC if not set)
+        const userTimezone = notifSettings.timezone || 'UTC';
         this.logger.log(
           `[Preferences] Loading notification preferences for user ${userId} with timezone: ${userTimezone}`,
         );

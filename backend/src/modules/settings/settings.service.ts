@@ -33,7 +33,6 @@ export class SettingsService {
           user_id: userId,
           theme: 'light',
           language: 'en',
-          timezone: 'UTC',
           date_format: 'MM/dd/yyyy',
           time_format: '12h',
           notifications: this.getDefaultNotificationSettings(),
@@ -65,29 +64,29 @@ export class SettingsService {
     try {
       this.logger.log(`Updating notification settings for user: ${userId}`);
 
-      // Extract timezone from dto (it should be saved separately)
+      // Extract timezone from dto (stored inside notifications JSONB, no dedicated column)
       const { timezone, ...notificationSettings } = dto;
 
       // Get current settings
       const currentSettings = await this.getNotificationSettings(userId);
 
       // Merge with new settings
-      const updatedSettings = {
+      const updatedSettings: any = {
         ...currentSettings,
         ...notificationSettings,
       };
+
+      // If timezone is provided, store it inside the notifications JSONB
+      if (timezone) {
+        updatedSettings.timezone = timezone;
+        this.logger.log(`Updating user timezone to: ${timezone}`);
+      }
 
       // Prepare update object
       const updateData: any = {
         notifications: updatedSettings,
         updated_at: new Date().toISOString(),
       };
-
-      // If timezone is provided, update it separately
-      if (timezone) {
-        updateData.timezone = timezone;
-        this.logger.log(`Updating user timezone to: ${timezone}`);
-      }
 
       // Update in database
       const result = await this.db

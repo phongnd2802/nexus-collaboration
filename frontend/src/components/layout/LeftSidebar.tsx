@@ -79,8 +79,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { filesService, useDashboardStats, useFilesAndFolders } from '@/lib/api/files-api';
 import { useStorageStats } from '../../hooks/files/useStorageStats';
 import { useWorkspaceMembers } from '@/lib/api/workspace-api';
-import { useSearchHistory } from '../../hooks/search/useSearchHistory';
-import { getSavedSearches, type SavedSearch } from '../../services/searchService';
 import { useProjects, projectService } from '@/lib/api/projects-api';
 import { calendarApi } from '@/lib/api/calendar-api';
 import { CheckCircle, Briefcase } from 'lucide-react';
@@ -138,13 +136,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({
     () => currentUserMembership?.role === 'owner' || currentUserMembership?.role === 'admin',
     [currentUserMembership?.role],
   );
-
-  // Search history hook
-  const { recentSearches } = useSearchHistory();
-
-  // Saved searches state
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
-  const [loadingSavedSearches, setLoadingSavedSearches] = useState(false);
 
   // Dashboard tab state
   const [activeDashboardTab, setActiveDashboardTab] = useState('overview');
@@ -236,19 +227,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({
         .getFiles(workspaceId)
         .then((response) => setFiles(response))
         .catch((err) => console.error('Error fetching files:', err));
-    }
-  }, [currentView, workspaceId]);
-
-  // Fetch saved searches when on search view
-  useEffect(() => {
-    if (currentView === 'search' && workspaceId) {
-      setLoadingSavedSearches(true);
-      getSavedSearches(workspaceId)
-        .then((response) => {
-          setSavedSearches(response.data || []);
-        })
-        .catch((err) => console.error('Error fetching saved searches:', err))
-        .finally(() => setLoadingSavedSearches(false));
     }
   }, [currentView, workspaceId]);
 
@@ -1783,81 +1761,6 @@ export const LeftSidebar = React.memo(function LeftSidebar({
             <SidebarItem icon="🤖" label="Real-time Transcription" />
             <SidebarItem icon="🌐" label="Live Translation" />
             <SidebarItem icon="📝" label="Meeting Notes" /> */}
-          </>
-        );
-
-      case 'search':
-        return (
-          <>
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              {intl.formatMessage({
-                id: 'modules.search.recentSearches',
-                defaultMessage: 'RECENT SEARCHES',
-              })}
-            </div>
-            {recentSearches.length > 0 ? (
-              recentSearches
-                .slice(0, 5)
-                .map((search, index) => (
-                  <SidebarItem
-                    key={index}
-                    icon={<Search className="h-3 w-3" />}
-                    label={search.query}
-                    onClick={() =>
-                      navigate(
-                        `/workspaces/${workspaceId}/search?q=${encodeURIComponent(search.query)}`,
-                      )
-                    }
-                  />
-                ))
-            ) : (
-              <div className="text-sm text-muted-foreground px-3 py-2">
-                {intl.formatMessage({
-                  id: 'modules.search.noRecentSearches',
-                  defaultMessage: 'No recent searches',
-                })}
-              </div>
-            )}
-
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-6">
-              {intl.formatMessage({
-                id: 'modules.search.savedSearches',
-                defaultMessage: 'SAVED SEARCHES',
-              })}
-            </div>
-            {loadingSavedSearches ? (
-              <div className="text-sm text-muted-foreground px-3 py-2">Loading...</div>
-            ) : savedSearches.length > 0 ? (
-              savedSearches
-                .slice(0, 5)
-                .map((saved) => (
-                  <SidebarItem
-                    key={saved.id}
-                    icon={<Star className="h-3 w-3" />}
-                    label={saved.name}
-                    badge={saved.result_count?.toString()}
-                    onClick={() =>
-                      navigate(`/workspaces/${workspaceId}/search?savedSearchId=${saved.id}`)
-                    }
-                  />
-                ))
-            ) : (
-              <div className="text-sm text-muted-foreground px-3 py-2">
-                {intl.formatMessage({
-                  id: 'modules.search.noSavedSearches',
-                  defaultMessage: 'No saved searches',
-                })}
-              </div>
-            )}
-
-            {/*<div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-6">
-              Quick Filters
-            </div>
-            <SidebarItem icon="📅" label="Last 7 Days" />
-            <SidebarItem icon="📅" label="Last 30 Days" />
-            <SidebarItem icon="📅" label="This Year" />
-            <SidebarItem icon="👤" label="Created by Me" />
-            <SidebarItem icon="⭐" label="Starred Items" />*/}
           </>
         );
 

@@ -8,8 +8,6 @@ import { StorageModule } from './modules/storage/storage.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { AiProviderModule } from './modules/ai-provider/ai-provider.module';
 import { EmailProviderModule } from './modules/email/email.module';
-import { PushModule } from './modules/push/push.module';
-import { SearchProviderModule } from './modules/search-provider/search-provider.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { WebSocketModule } from './common/gateways/websocket.module';
@@ -24,7 +22,6 @@ import { FilesModule } from './modules/files/files.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { NotesModule } from './modules/notes/notes.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-import { SearchModule } from './modules/search/search.module';
 import { IntegrationModule } from './modules/integration/integration.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
@@ -51,8 +48,6 @@ import { RagModule } from './modules/rag/rag.module';
     StorageModule,
     RedisModule,
     AiProviderModule,
-    PushModule,
-    SearchProviderModule,
     HealthModule,
     AuthModule,
     // Nexus modules
@@ -65,7 +60,6 @@ import { RagModule } from './modules/rag/rag.module';
     CalendarModule,
     NotesModule,
     NotificationsModule,
-    SearchModule,
     IntegrationModule,
     DashboardModule,
     AnalyticsModule,
