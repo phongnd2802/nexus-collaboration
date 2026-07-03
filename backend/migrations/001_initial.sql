@@ -1,11 +1,3 @@
--- =====================================================
--- Nexus Database Schema - Initial Migration
--- Auto-generated from schema.ts
--- Generated: 2026-04-09T14:11:02.126Z
--- Updated: 2026-06-11 - Refactored to include migrations 002-013
--- Tables: 136 (removed: budgets, feedback, bots, forms, etc.)
--- =====================================================
-
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
