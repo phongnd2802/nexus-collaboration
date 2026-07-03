@@ -1630,7 +1630,9 @@
           "error": "Error",
           "failedToLoadFile": "Failed to load file",
           "failedToLoadEvent": "Failed to load event",
-          "driveUrlNotAvailable": "Drive file URL not available"
+          "driveUrlNotAvailable": "Drive file URL not available",
+          "attachmentsPartialSuccess": "Task saved but some files failed to upload",
+          "attachmentsPartialSuccessDescription": "Please re-upload the following files: {files}"
         },
         "placeholders": {
           "enterField": "Enter {name}",
@@ -3418,7 +3420,6 @@
         "moveToTrash": "Move to Trash",
         "untitled": "Untitled"
       },
-
       "notInWorkspace": {
         "title": "Note not found",
         "message": "Are you a member of the workspace?",
@@ -3728,7 +3729,70 @@
         "cancel": "Cancel"
       },
       "sidebar": {
-        "recentContacts": "WORKSPACE MEMBERS"
+        "recentContacts": "WORKSPACE MEMBERS",
+        "left": {
+          "quickActions": {
+            "audioCall": "Audio call",
+            "videoCall": "Video call"
+          }
+        },
+        "right": {
+          "recentMeetings": {
+            "viewDetails": "View details",
+            "participants": "{count} participants",
+            "status": {
+              "completed": "Completed",
+              "active": "In progress",
+              "scheduled": "Scheduled",
+              "cancelled": "Cancelled"
+            }
+          },
+          "summaries": {
+            "keyPoints": "{count} key points",
+            "viewFull": "View full"
+          },
+          "notes": {
+            "aiAccuracy": "{percent}% AI",
+            "viewNote": "View note"
+          },
+          "details": {
+            "meetingDetails": "Meeting details",
+            "duration": "Duration:",
+            "date": "Date:",
+            "time": "Time:",
+            "status": "Status:",
+            "participants": "Participants ({count})",
+            "joinMeeting": "Join meeting",
+            "downloadRecording": "Download recording",
+            "copyDetails": "Copy details",
+            "detailsCopied": "Meeting details copied to clipboard"
+          },
+          "summary": {
+            "meetingSummary": "Meeting summary",
+            "summary": "Summary:",
+            "keyPoints": "Key points",
+            "downloadPdf": "Download PDF",
+            "copySummary": "Copy summary",
+            "summaryCopied": "Summary copied to clipboard",
+            "pdfDownloaded": "Summary downloaded as PDF"
+          },
+          "note": {
+            "meetingNote": "Meeting note",
+            "aiAccuracy": "{percent}% AI accuracy",
+            "aiGenerated": "AI-generated content",
+            "context": "Meeting context",
+            "confidence": "AI confidence score",
+            "accuracy": "{percent}% accurate",
+            "generated": "Generated",
+            "saveToNotes": "Save to Notes",
+            "export": "Export",
+            "copyNote": "Copy note",
+            "noteSaved": "Note \"{title}\" saved to Notes app",
+            "noteExported": "Note exported as document",
+            "noteCopied": "Note copied to clipboard",
+            "recordingDownloaded": "Meeting recording downloaded"
+          }
+        }
       },
       "analytics": {
         "title": "Your Analytics",
@@ -5083,7 +5147,10 @@
         "schedule": "Schedule",
         "recorded": "Recorded",
         "formatDuration": "{hours}h {minutes}m",
-        "formatDurationMinutes": "{minutes}m"
+        "formatDurationMinutes": "{minutes}m",
+        "defaultVideoCallTitle": "Video call",
+        "defaultAudioCallTitle": "Audio call",
+        "meetingSummaryTitle": "Meeting summary"
       },
       "scheduled": {
         "title": "Scheduled",
@@ -5285,7 +5352,9 @@
         "hoursAgo": "{hours}h ago",
         "daysAgo": "{days}d ago",
         "duration": "{hours}h {minutes}m",
-        "durationMinutes": "{minutes}m"
+        "durationMinutes": "{minutes}m",
+        "secondsAgo": "{seconds} seconds ago",
+        "minutesAgo": "{minutes} minutes ago"
       }
     },
     "integrations": {
@@ -7368,6 +7437,10 @@
         "title": "Weekly Report Available",
         "description": "{count} tasks completed last week",
         "actionLabel": "View Report"
+      },
+      "projectAtRisk": {
+        "title": "Project \"{projectName}\" is at risk",
+        "description": "{overdueTasks} of {totalTasks} tasks are overdue ({overduePercentage}%)"
       }
     }
   },
@@ -7645,7 +7718,7 @@
         "delete": "Delete"
       }
     },
-    "table":{
+    "table": {
       "dueDate": "Due Date"
     },
     "comments": {
@@ -8000,7 +8073,9 @@
     "items": {
       "newMessageInChannel": "New message in #{channelName}",
       "taskUnassigned": "Task Unassigned",
-      "taskUnassignedMessage": "Task \"{taskTitle}\" has been unassigned from you"
+      "taskUnassignedMessage": "Task \"{taskTitle}\" has been unassigned from you",
+      "workspaceInvitationTitle": "{inviterName} invited you to {workspaceName}",
+      "workspaceInvitationMessage": "You have a pending invitation to join a workspace on Nexus."
     },
     "tabs": {
       "all": "All",
