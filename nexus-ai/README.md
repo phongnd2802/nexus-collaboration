@@ -15,6 +15,8 @@ npm run start:http
 
 # in nexus-ai/
 uv run nexus-ai-check
+
+opendataloader-pdf-hybrid --port 5002
 uv run nexus-ai-web
 ```
 
