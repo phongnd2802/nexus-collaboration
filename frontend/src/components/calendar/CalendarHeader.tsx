@@ -2,13 +2,11 @@ import { useRef, useCallback, useLayoutEffect, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Button } from '../ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { ChevronLeft, ChevronRight, Calendar, Plus, Search, Filter, MoreHorizontal, BarChart3, X, FilterX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, Plus, Search, Filter, BarChart3, X } from 'lucide-react'
 import type { CalendarView } from '../../types/calendar'
 import { useCalendarStore } from '../../stores/calendarStore'
 import { formatCalendarViewTitle } from '../../lib/calendar-utils'
 import { Input } from '../ui/input'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '../../lib/utils'
 import { format as formatDate } from 'date-fns'
 import { toast } from 'sonner'
@@ -270,7 +268,7 @@ export function CalendarHeader({
           title={intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
           aria-label={intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
           className={cn(
-            "hidden sm:flex items-center gap-2 flex-shrink-0",
+            "flex items-center gap-2 flex-shrink-0",
             compactActionButtons && "h-8 w-8 p-0 justify-center",
             showAnalytics && "gradient-primary-active border-0"
           )}
@@ -288,7 +286,7 @@ export function CalendarHeader({
           title={intl.formatMessage({ id: 'modules.calendar.header.filters' })}
           aria-label={intl.formatMessage({ id: 'modules.calendar.header.filters' })}
           className={cn(
-            "hidden sm:flex items-center gap-2 flex-shrink-0 relative",
+            "flex items-center gap-2 flex-shrink-0 relative",
             compactActionButtons && "h-8 w-8 p-0 justify-center",
             hasActiveFilters() && "bg-blue-500 hover:bg-blue-600 text-white border-0"
           )}
@@ -331,38 +329,6 @@ export function CalendarHeader({
             {intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}
           </span>
         </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {hasActiveFilters() && (
-              <DropdownMenuItem onClick={handleClearAllFilters} className="text-destructive">
-                <FilterX className="h-4 w-4 mr-2" />
-                {intl.formatMessage({ id: 'modules.calendar.header.clearAllFilters' })}
-              </DropdownMenuItem>
-            )}
-            {hasActiveFilters() && <DropdownMenuSeparator />}
-            <DropdownMenuItem onClick={onShowFilters} className="sm:hidden">
-              <Filter className="h-4 w-4 mr-2" />
-              {intl.formatMessage({ id: 'modules.calendar.header.filters' })}
-              {hasActiveFilters() && (
-                <Badge variant="secondary" className="ml-auto">
-                  {getActiveFilterCount()}
-                </Badge>
-              )}
-            </DropdownMenuItem>
-            {hasActiveFilters() && (
-              <DropdownMenuItem onClick={handleClearAllFilters} className="sm:hidden text-destructive">
-                <FilterX className="h-4 w-4 mr-2" />
-                {intl.formatMessage({ id: 'modules.calendar.header.clearFilters' })}
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <div
@@ -379,12 +345,12 @@ export function CalendarHeader({
             <div className="w-20 sm:w-24 lg:w-32 h-10 border border-border rounded-md" />
           )}
 
-          <Button variant={showAnalytics ? "default" : "outline"} size="sm" className="hidden sm:flex items-center gap-2">
+          <Button variant={showAnalytics ? "default" : "outline"} size="sm" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             <span>{intl.formatMessage({ id: 'modules.calendar.header.analytics' })}</span>
           </Button>
 
-          <Button variant={hasActiveFilters() ? "default" : "outline"} size="sm" className="hidden sm:flex items-center gap-2">
+          <Button variant={hasActiveFilters() ? "default" : "outline"} size="sm" className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
             <span>{intl.formatMessage({ id: 'modules.calendar.header.filters' })}</span>
           </Button>
@@ -392,10 +358,6 @@ export function CalendarHeader({
           <Button size="sm" className="flex items-center gap-2 btn-gradient-primary border-0">
             <Plus className="h-4 w-4" />
             <span>{intl.formatMessage({ id: 'modules.calendar.header.newEvent' })}</span>
-          </Button>
-
-          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
           </Button>
         </div>
       </div>
