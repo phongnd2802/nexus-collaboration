@@ -956,6 +956,10 @@ export class CalendarService {
                   workspace_id: workspaceId,
                   event_title: eventTitle,
                   event_start_time: eventStartTime,
+                  old_event_start_time: event.start_time,
+                  event_location: updateEventDto.location,
+                  event_priority: updateEventDto.priority,
+                  event_status: updateEventDto.status,
                   changes: changes,
                 },
               });
@@ -1032,6 +1036,10 @@ export class CalendarService {
                   workspace_id: workspaceId,
                   event_title: eventTitle,
                   event_start_time: eventStartTime,
+                  old_event_start_time: event.start_time,
+                  event_location: updateEventDto.location,
+                  event_priority: updateEventDto.priority,
+                  event_status: updateEventDto.status,
                   changes: changes,
                 },
               });

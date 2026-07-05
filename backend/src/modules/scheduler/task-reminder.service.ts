@@ -17,6 +17,8 @@ interface ReminderCopy {
   inAppMessage: string;
 }
 
+type NotificationLanguage = 'en' | 'vi';
+
 // Cron runs every 5 minutes → tolerance = 5 min so no cron tick is missed.
 // Each window fires when: targetMs - toleranceMs < remainingMs <= targetMs + toleranceMs
 const CRON_INTERVAL_MS = 5 * 60 * 1000;
@@ -248,12 +250,7 @@ export class TaskReminderService implements OnModuleInit {
 
         const baseUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:5173';
         const taskUrl = `${baseUrl}/workspaces/${task.workspace_id}/projects/${task.project_id}`;
-        const dueDate = new Date(task.due_date).toLocaleString('vi-VN', {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        });
         const remainingMs = new Date(task.due_date).getTime() - Date.now();
-        const reminderCopy = this.buildReminderCopy(task.title, remainingMs, window);
 
         if (prefOk.email) {
           const emailAlreadySent = await this.hasEmailReminderBeenSent(
@@ -262,13 +259,22 @@ export class TaskReminderService implements OnModuleInit {
             window.label,
           );
           if (!emailAlreadySent) {
+            // Email is a one-shot send, so it's translated at send time using
+            // the user's language preference (unlike in-app, it can't be
+            // re-translated later when the viewer switches UI language).
+            const emailLanguage = await this.getUserLanguage(assigneeId);
+            const emailDueDate = new Date(task.due_date).toLocaleString(
+              emailLanguage === 'en' ? 'en-US' : 'vi-VN',
+              { dateStyle: 'medium', timeStyle: 'short' },
+            );
+            const emailCopy = this.buildReminderCopy(task.title, remainingMs, window, emailLanguage);
             const emailSent = await this.sendTaskReminderEmail(
               user,
               task,
               window,
               taskUrl,
-              dueDate,
-              reminderCopy,
+              emailDueDate,
+              emailCopy,
             );
             if (emailSent) {
               await this.markEmailReminderSent(task, assigneeId, window.label);
@@ -283,6 +289,13 @@ export class TaskReminderService implements OnModuleInit {
             window.label,
           );
           if (!inAppAlreadySent) {
+            // In-app copy is always built in English; NotificationItem.tsx
+            // re-translates it at render time from the raw data fields.
+            const dueDate = new Date(task.due_date).toLocaleString('en-US', {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            });
+            const reminderCopy = this.buildReminderCopy(task.title, remainingMs, window);
             await this.createTaskReminderNotification(
               task,
               assigneeId,
@@ -290,6 +303,7 @@ export class TaskReminderService implements OnModuleInit {
               taskUrl,
               dueDate,
               reminderCopy,
+              remainingMs,
             );
           }
         }
@@ -404,6 +418,17 @@ export class TaskReminderService implements OnModuleInit {
       this.logger.error(
         `[TaskReminder] Failed to persist email dedup marker task=${task.id} user=${userId}: ${error.message}`,
       );
+    }
+  }
+
+  private async getUserLanguage(userId: string): Promise<NotificationLanguage> {
+    try {
+      const userSettings = await this.db.findOne('user_settings', {
+        user_id: userId,
+      });
+      return userSettings?.language === 'en' ? 'en' : 'vi';
+    } catch {
+      return 'vi';
     }
   }
 
@@ -533,13 +558,14 @@ export class TaskReminderService implements OnModuleInit {
     taskUrl: string,
     dueDate: string,
     reminderCopy: ReminderCopy,
+    remainingMs: number,
   ): Promise<void> {
     try {
       await this.notificationsService.sendNotification({
         user_id: assigneeId,
         type: NotificationType.REMINDER,
         title: reminderCopy.inAppTitle,
-        message: `${reminderCopy.inAppMessage}. Hạn: ${dueDate}`,
+        message: `${reminderCopy.inAppMessage}. Due: ${dueDate}`,
         action_url: taskUrl,
         priority: (task.priority === 'urgent' || task.priority === 'high'
           ? 'high'
@@ -558,6 +584,7 @@ export class TaskReminderService implements OnModuleInit {
           task_id: task.id,
           project_id: task.project_id,
           remind_before: window.label,
+          remaining_ms: remainingMs,
           due_date: task.due_date,
           priority: task.priority,
         },
@@ -577,11 +604,41 @@ export class TaskReminderService implements OnModuleInit {
     };
   }
 
+  // `language` only matters for the one-shot email copy. In-app copy is
+  // always requested with the default ('en') — NotificationItem.tsx
+  // re-translates the in-app title/message at render time from the raw
+  // remaining_ms/reminder_window in `data`, so switching UI language
+  // re-translates already-delivered notifications instead of leaving them
+  // frozen in whatever language was active when the reminder was sent.
   private buildReminderCopy(
     taskTitle: string,
     remainingMs: number,
     window: ReminderWindow,
+    language: NotificationLanguage = 'en',
   ): ReminderCopy {
+    if (language === 'en') {
+      if (window.label === '1 giờ') {
+        return {
+          headline: 'Task will be due within the next hour',
+          inAppTitle: `Task due soon: ${taskTitle}`,
+          inAppMessage: `Task "${taskTitle}" will be due within the next hour`,
+        };
+      }
+
+      const usesDays = window.label === '3 ngày' || window.label === '1 ngày';
+      const roundedValue = usesDays
+        ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
+        : Math.ceil(remainingMs / (60 * 60 * 1000));
+      const unit = usesDays ? (roundedValue === 1 ? 'day' : 'days') : (roundedValue === 1 ? 'hour' : 'hours');
+      const headline = `Task is due in ${roundedValue} ${unit}`;
+
+      return {
+        headline,
+        inAppTitle: `Task due soon: ${taskTitle}`,
+        inAppMessage: `Task "${taskTitle}" is due in ${roundedValue} ${unit}`,
+      };
+    }
+
     if (window.label === '1 giờ') {
       return {
         headline: 'Task sẽ hết hạn trong vòng 1 giờ tới',

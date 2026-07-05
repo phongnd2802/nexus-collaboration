@@ -700,8 +700,8 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
     })
   }
 
-  const isStepValid = () => {
-    switch (step) {
+  const isStepValid = (targetStep: number = step) => {
+    switch (targetStep) {
       case 1:
         return formData.name.trim() && formData.key.trim()
       case 2:
@@ -710,6 +710,20 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         return !!formData.leadId
       default:
         return false
+    }
+  }
+
+  const canJumpToStep = (targetStep: number) => {
+    if (targetStep <= step) return true
+    for (let s = step; s < targetStep; s++) {
+      if (!isStepValid(s)) return false
+    }
+    return true
+  }
+
+  const handleStepClick = (targetStep: number) => {
+    if (canJumpToStep(targetStep)) {
+      setStep(targetStep)
     }
   }
 
@@ -734,13 +748,18 @@ export function CreateProjectModal({ open, onOpenChange, workspaceId, onProjectC
         <div className="flex items-center justify-center space-x-4 py-4">
           {[1, 2, 3].map(num => (
             <div key={num} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step >= num
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              }`}>
+              <button
+                type="button"
+                onClick={() => handleStepClick(num)}
+                disabled={!canJumpToStep(num)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                  step >= num
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground'
+                } ${canJumpToStep(num) ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}`}
+              >
                 {step > num ? <Check className="w-4 h-4" /> : num}
-              </div>
+              </button>
               {num < 3 && (
                 <div className={`w-12 h-px ${
                   step > num ? 'bg-primary' : 'bg-muted'

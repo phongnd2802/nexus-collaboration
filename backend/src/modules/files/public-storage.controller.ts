@@ -8,6 +8,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DatabaseService } from '../database/database.service';
+import { fixUploadedFilename } from '../../common/utils/upload.util';
 
 /**
  * Public Storage Controller
@@ -57,11 +58,12 @@ export class PublicStorageController {
   @ApiResponse({ status: 413, description: 'File too large (max 200MB)' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadPublicFile(@UploadedFile() file: Express.Multer.File) {
-    console.log('📤 Public file upload received:', file?.originalname);
-
     if (!file) {
       throw new BadRequestException('No file provided. Please select a file to upload.');
     }
+
+    fixUploadedFilename(file);
+    console.log('📤 Public file upload received:', file.originalname);
 
     // Validate file size (max 200MB for videos)
     const maxSize = 200 * 1024 * 1024; // 200MB

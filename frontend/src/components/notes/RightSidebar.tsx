@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useIntl } from 'react-intl';
+import { formatDistanceToNow as formatDistanceToNowFns } from 'date-fns';
+import { enUS, vi as viLocale } from 'date-fns/locale';
 import { useNotesStore } from '../../stores/notesStore';
 import { useWorkspaceMembers } from '@/lib/api/workspace-api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -175,24 +177,11 @@ export function NotesRightSidebar() {
       .join('\n');
   };
 
-  // Simulate formatDistanceToNow function
+  // Localized relative time (e.g. "5 minutes", "2 hours ago") using the
+  // viewer's current app language instead of a hardcoded English string.
   const formatDistanceToNow = (date: Date, options?: { addSuffix?: boolean }) => {
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (diffInDays > 0) {
-      return options?.addSuffix
-        ? `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`
-        : `${diffInDays} day${diffInDays > 1 ? 's' : ''}`;
-    }
-    if (diffInHours > 0) {
-      return options?.addSuffix
-        ? `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`
-        : `${diffInHours} hour${diffInHours > 1 ? 's' : ''}`;
-    }
-    return options?.addSuffix ? 'just now' : '0 minutes';
+    const dateLocale = intl.locale === 'vi' ? viLocale : enUS;
+    return formatDistanceToNowFns(date, { ...options, locale: dateLocale });
   };
 
   // Helper function to extract HTML from content
@@ -886,7 +875,7 @@ export function NotesRightSidebar() {
                 </Avatar>
                 <div className="flex-1">
                   <div className="text-sm">
-                    {selectedNote.createdBy === currentUserId ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' }) : (getUserData(selectedNote.createdBy)?.name || 'Unknown User')} created this note
+                    {selectedNote.createdBy === currentUserId ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' }) : (getUserData(selectedNote.createdBy)?.name || 'Unknown User')} {intl.formatMessage({ id: 'modules.notes.rightSidebar.createdNote' })}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(selectedNote.createdAt), { addSuffix: true })}
@@ -904,7 +893,7 @@ export function NotesRightSidebar() {
                   </Avatar>
                   <div className="flex-1">
                     <div className="text-sm">
-                      {selectedNote.lastEditedBy === currentUserId ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' }) : (getUserData(selectedNote.lastEditedBy)?.name || 'Unknown User')} updated this note
+                      {selectedNote.lastEditedBy === currentUserId ? intl.formatMessage({ id: 'modules.notes.rightSidebar.you' }) : (getUserData(selectedNote.lastEditedBy)?.name || 'Unknown User')} {intl.formatMessage({ id: 'modules.notes.rightSidebar.updatedNote' })}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(selectedNote.updatedAt), { addSuffix: true })}
@@ -919,7 +908,7 @@ export function NotesRightSidebar() {
                     <FileText className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm">Note auto-saved</div>
+                    <div className="text-sm">{intl.formatMessage({ id: 'modules.notes.rightSidebar.autoSaved' })}</div>
                     <div className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(selectedNote.lastSavedAt), { addSuffix: true })}
                     </div>
