@@ -476,7 +476,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       // Build unified attachments object - combine manual attachments with description mentions
       const unifiedAttachments = {
         file_attachment: [
-          ...attachedFiles.map(file => file.url || file.id).filter(Boolean) as string[],
+          ...attachedFiles.map(file => file.id).filter(Boolean) as string[],
           ...descriptionFileIds
         ],
         note_attachment: [
