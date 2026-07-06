@@ -116,7 +116,7 @@ class Mem0MemoryRepository:
             "vector_store": {
                 "provider": "qdrant",
                 "config": {
-                    "collection_name": self._collection_name(),
+                    "collection_name": mem0_collection_name(self.settings),
                     "embedding_model_dims": self.settings.rag_embedding_dimensions,
                     "url": self.settings.qdrant_url,
                     "api_key": self.settings.qdrant_api_key or None,
@@ -185,13 +185,14 @@ class Mem0MemoryRepository:
             return model_name
         return model_name.split(":", 1)[1]
 
-    def _collection_name(self) -> str:
-        base_name = self.settings.qdrant_mem0_user_collection
-        model_slug = re.sub(r"[^a-z0-9]+", "_", self.settings.rag_embedding_model.lower()).strip("_")
-        return f"{base_name}__{model_slug}_{self.settings.rag_embedding_dimensions}"
-
     @staticmethod
     def _scoped_user_id(workspace_id: str, user_id: str | None) -> str | None:
         if not user_id:
             return None
         return f"{workspace_id}:{user_id}"
+
+
+def mem0_collection_name(settings) -> str:
+    base_name = settings.qdrant_mem0_user_collection
+    model_slug = re.sub(r"[^a-z0-9]+", "_", settings.rag_embedding_model.lower()).strip("_")
+    return f"{base_name}__{model_slug}_{settings.rag_embedding_dimensions}"

@@ -7,6 +7,7 @@ from nexus_ai.rag.extraction.office_pdf import OfficeToPdfExtractor
 from nexus_ai.rag.extraction.office_pdf_converter import LibreOfficePdfConverter, OfficePdfConversionResult
 from nexus_ai.rag.extraction.registry import resolve_extractor
 from nexus_ai.rag.schemas import ExtractedDocument, ExtractedElement, FileSource
+from nexus_ai.rag.vector_store.qdrant import ensure_qdrant_collections_for_runtime
 from nexus_ai.settings import load_settings
 
 
@@ -198,3 +199,39 @@ def test_rag_indexer_reports_conversion_metadata(monkeypatch):
     assert metadata["page_equivalence_mode"] == "canonical_pdf"
     assert metadata["structured_elements"] is True
     assert metadata["element_count"] == 1
+
+
+def test_runtime_qdrant_initialization_ensures_rag_and_mem0_collections(monkeypatch):
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "test",
+            "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+            "NEXUS_AI_MEM0_ENABLED": "true",
+            "QDRANT_MEM0_USER_COLLECTION": "mem0_user",
+        }
+    )
+    ensured: list[tuple[str, int]] = []
+    text_indexes = {"count": 0}
+
+    class FakeClient:
+        pass
+
+    async def fake_ensure_collection(self, name, vector_size):
+        ensured.append((name, vector_size))
+
+    async def fake_ensure_text_indexes(self):
+        text_indexes["count"] += 1
+
+    monkeypatch.setattr("nexus_ai.rag.vector_store.qdrant.AsyncQdrantClient", lambda *args, **kwargs: FakeClient())
+    monkeypatch.setattr("nexus_ai.rag.vector_store.qdrant.QdrantVectorStore._ensure_collection", fake_ensure_collection)
+    monkeypatch.setattr("nexus_ai.rag.vector_store.qdrant.QdrantVectorStore._ensure_text_indexes", fake_ensure_text_indexes)
+
+    asyncio.run(ensure_qdrant_collections_for_runtime(settings))
+
+    assert ensured == [
+        ("nexus_rag_documents", 4096),
+        ("nexus_rag_chunks", 4096),
+        ("mem0_user__qwen_qwen3_embedding_8b_4096", 4096),
+    ]
+    assert text_indexes["count"] == 1

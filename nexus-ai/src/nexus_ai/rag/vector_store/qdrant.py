@@ -8,6 +8,7 @@ from qdrant_client.http import models
 
 from nexus_ai.rag.schemas import ChildChunk, FileSource
 from nexus_ai.settings import Settings
+from nexus_ai.storage.mem0 import mem0_collection_name
 
 
 class QdrantVectorStore:
@@ -259,6 +260,19 @@ class QdrantVectorStore:
         if vector:
             result["_vector"] = vector
         return result
+
+
+async def ensure_qdrant_collections_for_runtime(settings: Settings) -> None:
+    client = AsyncQdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key or None)
+    store = QdrantVectorStore(settings)
+    store.client = client
+    vector_size = settings.rag_embedding_dimensions
+
+    if settings.rag_enabled:
+        await store.ensure_collections(vector_size)
+
+    if settings.mem0_enabled:
+        await store._ensure_collection(mem0_collection_name(settings), vector_size)
 
     def _point_vector(self, point: Any) -> list[float] | None:
         vector = getattr(point, "vector", None)

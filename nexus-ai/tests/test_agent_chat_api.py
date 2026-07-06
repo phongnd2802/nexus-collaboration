@@ -121,6 +121,44 @@ def test_agent_chat_routes_create_and_replay_session(tmp_path):
     assert asyncio.run(agent_chat_store.get_session("ws-1", session_id, "user-1")) is None
 
 
+def test_agent_chat_app_initializes_qdrant_collections_on_startup(tmp_path, monkeypatch):
+    sqlite_store = SQLiteStore(tmp_path / "nexus_ai.sqlite3")
+    sqlite_store.initialize()
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "test",
+            "NEXUS_MCP_URL": "http://127.0.0.1:3333/mcp",
+            "NEXUS_API_TOKEN": "test-token",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+            "NEXUS_AI_RUNTIME_DIR": str(tmp_path / "runtime"),
+            "NEXUS_AI_SQLITE_PATH": str(tmp_path / "nexus_ai.sqlite3"),
+        }
+    )
+    runtime = SimpleNamespace(
+        agent=FakeAgent(),
+        deps=SimpleNamespace(settings=settings, memory=MemoryRepository(sqlite_store), store=sqlite_store),
+    )
+    calls: list[object] = []
+
+    async def fake_ensure_qdrant_collections_for_runtime(passed_settings) -> None:
+        calls.append(passed_settings)
+
+    monkeypatch.setattr(
+        "nexus_ai.api.ensure_qdrant_collections_for_runtime",
+        fake_ensure_qdrant_collections_for_runtime,
+    )
+
+    app = create_agent_chat_app(runtime)
+
+    async def run() -> None:
+        async with app.router.lifespan_context(app):
+            pass
+
+    asyncio.run(run())
+
+    assert calls == [settings]
+
+
 def test_message_history_falls_back_to_chat_messages_when_blob_is_empty(tmp_path):
     sqlite_store = SQLiteStore(tmp_path / "nexus_ai.sqlite3")
     sqlite_store.initialize()

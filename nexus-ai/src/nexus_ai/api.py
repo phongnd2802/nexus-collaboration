@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 import json
 import logging
 from typing import Any
@@ -35,12 +36,18 @@ from nexus_ai.context_pipeline import (
 )
 from nexus_ai.request_context import RequestContext, get_request_context, reset_request_context, set_request_context
 from nexus_ai.rag.routes import rag_routes
+from nexus_ai.rag.vector_store.qdrant import ensure_qdrant_collections_for_runtime
 
 logger = logging.getLogger(__name__)
 
 
 def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
     store = AgentChatStore(runtime.deps.store)
+
+    @asynccontextmanager
+    async def lifespan(_app: Starlette):
+        await ensure_qdrant_collections_for_runtime(runtime.deps.settings)
+        yield
 
     async def create_chat_completion(request: Request) -> Response:
         body = await request.json()
@@ -160,7 +167,7 @@ def create_agent_chat_app(runtime: NexusAgentRuntime) -> Starlette:
         ),
         *rag_routes(runtime.deps.settings),
     ]
-    return Starlette(routes=routes)
+    return Starlette(routes=routes, lifespan=lifespan)
 
 
 async def _stream_chat(
