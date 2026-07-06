@@ -2,6 +2,10 @@
   "common": {
     "loading": "Loading...",
     "error": "Error",
+    "language": {
+      "english": "English",
+      "vietnamese": "Vietnamese"
+    },
     "save": "Save",
     "saving": "Saving...",
     "saveChanges": "Save Changes",
@@ -3101,7 +3105,7 @@
         "searchResults": "Search Results",
         "searching": "Searching...",
         "favorites": "Favorites",
-        "allNotes": "All Notes",
+        "allNotes": "All\nNotes",
         "recent": "Recent",
         "archived": "Archived",
         "trash": "Trash",
@@ -7588,6 +7592,10 @@
     "completedTasks": "{count} completed",
     "totalCount": "of {count}",
     "searchProjects": "Search projects...",
+    "sortPlaceholder": "Sort",
+    "sortRecentlyUpdated": "Recently updated",
+    "sortOldestUpdated": "Oldest updated",
+    "sortHighestProgress": "Highest progress",
     "types": {
       "all": "All Projects",
       "kanban": "Kanban",

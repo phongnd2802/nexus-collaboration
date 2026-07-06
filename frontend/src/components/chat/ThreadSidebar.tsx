@@ -378,7 +378,7 @@ export function ThreadSidebar({
   return (
     <div
       className={cn(
-        'fixed right-0 top-0 h-full w-96 bg-background border-l border-border shadow-xl z-50',
+        'fixed right-0 top-0 h-full w-[480px] bg-background border-l border-border shadow-xl z-50',
         'transform transition-transform duration-300 flex flex-col',
         isOpen ? 'translate-x-0' : 'translate-x-full'
       )}
@@ -397,7 +397,7 @@ export function ThreadSidebar({
       </div>
 
       {/* Parent Message */}
-      <div className="flex-shrink-0 max-h-[40%] overflow-y-auto p-4 border-b border-border bg-muted/30 dark:bg-muted/10">
+      <div className="flex-shrink-0 max-h-[40%] overflow-y-auto pl-4 pr-6 py-4 border-b border-border bg-muted/30 dark:bg-muted/10">
         <Badge variant="outline" className="mb-3">
           <MessageSquare className="h-3 w-3 mr-1" />
           {intl.formatMessage({ id: 'modules.chat.thread.originalMessage', defaultMessage: 'Original Message' })}
@@ -425,7 +425,7 @@ export function ThreadSidebar({
             </p>
           </div>
         ) : (
-          <div className="px-4 py-4 space-y-3">
+          <div className="pl-4 pr-6 py-4 space-y-3">
             <Badge variant="secondary" className="mb-3">
               <MessageSquare className="h-3 w-3 mr-1" />
               {intl.formatMessage(

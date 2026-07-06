@@ -437,12 +437,12 @@ export function ProjectDashboard({ workspaceId, onProjectSelect, onEditProject }
         </div>
         <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'updated_desc' | 'updated_asc' | 'progress_desc')}>
           <SelectTrigger className="w-[240px]">
-            <SelectValue placeholder="Sắp xếp" />
+            <SelectValue placeholder={intl.formatMessage({ id: 'projects.sortPlaceholder' })} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="updated_desc">Mới cập nhật gần nhất</SelectItem>
-            <SelectItem value="updated_asc">Mới cập nhật cũ nhất</SelectItem>
-            <SelectItem value="progress_desc">Tiến độ cao nhất</SelectItem>
+            <SelectItem value="updated_desc">{intl.formatMessage({ id: 'projects.sortRecentlyUpdated' })}</SelectItem>
+            <SelectItem value="updated_asc">{intl.formatMessage({ id: 'projects.sortOldestUpdated' })}</SelectItem>
+            <SelectItem value="progress_desc">{intl.formatMessage({ id: 'projects.sortHighestProgress' })}</SelectItem>
           </SelectContent>
         </Select>
       </div>

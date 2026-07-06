@@ -2,6 +2,10 @@
   "common": {
     "loading": "Đang tải...",
     "error": "Lỗi",
+    "language": {
+      "english": "Tiếng Anh",
+      "vietnamese": "Tiếng Việt"
+    },
     "save": "Lưu",
     "saving": "Đang lưu...",
     "saveChanges": "Lưu thay đổi",
@@ -3101,7 +3105,7 @@
         "searchResults": "Kết quả tìm kiếm",
         "searching": "Đang tìm kiếm...",
         "favorites": "Yêu thích",
-        "allNotes": "Tất cả ghi chú",
+        "allNotes": "Tất cả\nghi chú",
         "recent": "Gần đây",
         "archived": "Lưu trữ",
         "trash": "Thùng rác",
@@ -7588,6 +7592,10 @@
     "completedTasks": "{count} đã hoàn thành",
     "totalCount": "trên {count}",
     "searchProjects": "Tìm kiếm dự án...",
+    "sortPlaceholder": "Sắp xếp",
+    "sortRecentlyUpdated": "Mới cập nhật gần nhất",
+    "sortOldestUpdated": "Mới cập nhật cũ nhất",
+    "sortHighestProgress": "Tiến độ cao nhất",
     "types": {
       "all": "Tất cả dự án",
       "kanban": "Kanban",
