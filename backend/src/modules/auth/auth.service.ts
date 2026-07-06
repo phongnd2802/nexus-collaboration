@@ -663,7 +663,6 @@ export class AuthService {
           title: 'Đặt lại mật khẩu',
           intro: 'Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Nexus. Nhấn nút bên dưới để tiếp tục.',
           action: { label: 'Đặt lại mật khẩu', url: resetLink },
-          actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${resetLink}`,
           footer: 'Nếu bạn không yêu cầu email này, bạn có thể bỏ qua một cách an toàn. Liên kết có hiệu lực trong 1 giờ.',
         });
 
@@ -808,7 +807,6 @@ export class AuthService {
         label: 'Xác thực email',
         url: verificationLink,
       },
-      actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${verificationLink}`,
       footer: 'Nếu bạn không yêu cầu email này, bạn có thể bỏ qua một cách an toàn.',
     });
 

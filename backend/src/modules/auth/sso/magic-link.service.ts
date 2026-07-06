@@ -163,7 +163,6 @@ export class MagicLinkService {
         label: 'Đăng nhập',
         url: link,
       },
-      actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${link}`,
       footer: 'Nếu bạn không yêu cầu liên kết đăng nhập này, bạn có thể bỏ qua email.',
     }).html;
   }

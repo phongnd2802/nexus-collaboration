@@ -919,9 +919,8 @@ export class ProjectsService {
               ],
               action: {
                 label: 'Xem nhiệm vụ',
-                url: `/workspaces/${project.workspace_id}/projects/${projectId}?task=${task.id}`,
+                url: `${(process.env.FRONTEND_URL || 'http://localhost:5175').replace(/\/+$/, '')}/workspaces/${project.workspace_id}/projects/${projectId}?task=${task.id}`,
               },
-              actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này trong trình duyệt.`,
             });
 
             await this.emailProvider.send({
@@ -1501,9 +1500,8 @@ export class ProjectsService {
                   ],
                   action: {
                     label: 'Xem nhiệm vụ',
-                    url: `/workspaces/${project.workspace_id}/projects/${task.project_id}?task=${updatedTask.id}`,
+                    url: `${(process.env.FRONTEND_URL || 'http://localhost:5175').replace(/\/+$/, '')}/workspaces/${project.workspace_id}/projects/${task.project_id}?task=${updatedTask.id}`,
                   },
-                  actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này trong trình duyệt.`,
                 });
 
                 await this.emailProvider.send({

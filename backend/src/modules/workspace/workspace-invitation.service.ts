@@ -541,7 +541,6 @@ export class WorkspaceInvitationService {
           label: 'Chấp nhận lời mời',
           url: inviteUrl,
         },
-        actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${inviteUrl}`,
         footer: 'Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua email.',
       });
 

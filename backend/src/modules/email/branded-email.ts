@@ -38,7 +38,6 @@ export interface BrandedEmailOptions {
   details?: BrandedEmailDetail[];
   callout?: BrandedEmailCallout;
   action?: BrandedEmailAction;
-  actionHint?: string;
   footer?: string;
   accentColor?: string;
 }
@@ -143,10 +142,6 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
       </div>`
     : '';
 
-  const actionHintHtml = options.actionHint
-    ? `<p style="margin:16px 0 0;color:${BRAND_COLORS.textMuted};font:400 12px/16px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${renderMultilineText(options.actionHint)}</p>`
-    : '';
-
   const footerText =
     options.footer || 'Email này được gửi từ Nexus. Nếu bạn không mong đợi email này, bạn có thể bỏ qua.';
 
@@ -171,7 +166,6 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
           ${detailsHtml}
           ${calloutHtml}
           ${actionHtml}
-          ${actionHintHtml}
         </div>
       </div>
       <p style="margin:18px 0 0;padding:0 4px;color:${BRAND_COLORS.textMuted};font:400 12px/16px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${escapeHtml(footerText)}</p>
@@ -187,7 +181,6 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
     ...(options.details || []).map((detail) => `${detail.label}: ${detail.value}`),
     options.callout ? `${options.callout.title ? options.callout.title + ': ' : ''}${options.callout.body}` : '',
     options.action ? `${options.action.label}: ${options.action.url}` : '',
-    options.actionHint,
     footerText,
   ].filter(Boolean);
 

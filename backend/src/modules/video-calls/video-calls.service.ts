@@ -1199,7 +1199,6 @@ export class VideoCallsService {
               label: 'Tham gia cuộc gọi',
               url: callUrl,
             },
-            actionHint: `Nếu nút không hoạt động, hãy sao chép và mở liên kết này:\n${callUrl}`,
           });
 
           await /* TODO: use EmailService */ this.db.sendEmail(
