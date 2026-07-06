@@ -13,6 +13,7 @@ import { FilesService } from './files.service';
 import { UploadFileDto } from './dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { fixUploadedFilename } from '../../common/utils/upload.util';
 
 @ApiTags('storage')
 @ApiBearerAuth()
@@ -60,6 +61,8 @@ export class StorageController {
     if (!file) {
       throw new BadRequestException('No file provided. Please select a file to upload.');
     }
+
+    fixUploadedFilename(file);
 
     // workspace_id is required for all uploads
     if (!uploadFileDto.workspace_id) {

@@ -427,8 +427,8 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
     } else {
       // Create mode - reset to defaults
       const now = new Date()
-      const startTime = defaultHour ? `${defaultHour.toString().padStart(2, '0')}:00` : format(now, 'HH:mm')
-      const endTime = defaultHour ? `${(defaultHour + 1).toString().padStart(2, '0')}:00` : format(addMinutes(now, 5), 'HH:mm')
+      const startTime = defaultHour ? `${defaultHour.toString().padStart(2, '0')}:00` : format(addMinutes(now, 5), 'HH:mm')
+      const endTime = defaultHour ? `${(defaultHour + 1).toString().padStart(2, '0')}:00` : format(addMinutes(now, 35), 'HH:mm')
 
       form.reset({
         title: '',
@@ -476,7 +476,7 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
       // Build unified attachments object - combine manual attachments with description mentions
       const unifiedAttachments = {
         file_attachment: [
-          ...attachedFiles.map(file => file.url || file.id).filter(Boolean) as string[],
+          ...attachedFiles.map(file => file.id).filter(Boolean) as string[],
           ...descriptionFileIds
         ],
         note_attachment: [
@@ -869,6 +869,8 @@ export function EventDialog({ open, onClose, event, defaultDate, defaultHour }: 
     if (files && files.length > 0) {
       handleFileUpload(files)
     }
+    // Reset so selecting the same file again still fires onChange
+    e.target.value = ''
   }
 
   const selectFromFiles = (file: any) => {
