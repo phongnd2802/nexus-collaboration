@@ -26,7 +26,6 @@ import {
   Share,
   Undo2,
   Loader2,
-  Upload
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -1199,48 +1198,32 @@ export function NotesLeftSidebar({
             {/* All Notes */}
             <div className="rounded-xl bg-gradient-to-r from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/40 dark:border-green-800/40 shadow-sm hover:shadow-md transition-all duration-200">
               <div
-                className="flex items-center justify-between p-3 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/20 rounded-xl transition-colors duration-200"
+                className="flex items-start justify-between gap-1.5 p-2.5 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/20 rounded-xl transition-colors duration-200"
                 onClick={() => toggleSection('all-notes')}
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-6 h-6">
+                <div className="flex items-start gap-1.5 min-w-0">
+                  <div className="flex items-center justify-center w-5 h-5 flex-shrink-0 mt-0.5">
                     {expandedSections.has('all-notes') ? (
                       <ChevronDown className="h-4 w-4 text-green-600 dark:text-green-400" />
                     ) : (
                       <ChevronRight className="h-4 w-4 text-green-600 dark:text-green-400" />
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span className="text-xs font-semibold text-green-800 dark:text-green-200 tracking-wide">{intl.formatMessage({ id: 'modules.notes.leftSidebar.allNotes' })}</span>
-                  </div>
+                  <FileText className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-xs font-semibold text-green-800 dark:text-green-200 whitespace-pre-line leading-tight">
+                    {intl.formatMessage({ id: 'modules.notes.leftSidebar.allNotes' })}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-
-                  <div className="flex items-center justify-center w-8 h-6 bg-green-100 dark:bg-green-900/50 rounded-full">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className="flex items-center justify-center w-8 h-6 bg-green-100 dark:bg-green-900/50 rounded-full flex-shrink-0">
                     <span className="text-xs font-bold text-green-800 dark:text-green-200">
                       {nonDeletedNotes.filter(n => !n.isArchived).length}
                     </span>
                   </div>
-
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 hover:bg-muted"
-                    title="Import file"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Dispatch event to open import modal (handled by NotesView)
-                      window.dispatchEvent(new CustomEvent('notesImportFile'))
-                    }}
-                  >
-                    <Upload className="h-3 w-3" />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 hover:bg-muted"
+                    className="h-6 w-6 p-0 hover:bg-muted flex-shrink-0"
                     title="New note"
                     onClick={(e) => {
                       e.stopPropagation()
@@ -1249,7 +1232,6 @@ export function NotesLeftSidebar({
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
-
                 </div>
               </div>
               {expandedSections.has('all-notes') && (

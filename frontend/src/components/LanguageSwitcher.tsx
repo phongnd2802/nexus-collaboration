@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { Globe, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -7,22 +8,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { useLanguage, LOCALE_LABELS, type SupportedLocale } from '../contexts/LanguageContext';
+import { useLanguage, type SupportedLocale } from '../contexts/LanguageContext';
 import { cn } from '../lib/utils';
 
 interface Language {
   code: SupportedLocale;
-  name: string;
+  nameKey: string;
   flag: string;
 }
 
 const languages: Language[] = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'en', nameKey: 'common.language.english', flag: '🇺🇸' },
+  { code: 'vi', nameKey: 'common.language.vietnamese', flag: '🇻🇳' },
 ];
 
 const LanguageSwitcher: React.FC = () => {
   const { locale, setLocale } = useLanguage();
+  const intl = useIntl();
 
   const currentLang = languages.find(lang => lang.code === locale) || languages[0];
 
@@ -36,7 +38,7 @@ const LanguageSwitcher: React.FC = () => {
         >
           <Globe className="w-4 h-4" />
           <span className="hidden sm:inline-block">{currentLang.flag}</span>
-          <span className="hidden md:inline-block">{currentLang.name}</span>
+          <span className="hidden md:inline-block">{intl.formatMessage({ id: currentLang.nameKey })}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-48 mr-2">
@@ -50,7 +52,7 @@ const LanguageSwitcher: React.FC = () => {
             )}
           >
             <span className="text-lg">{language.flag}</span>
-            <span className="font-medium flex-1">{language.name}</span>
+            <span className="font-medium flex-1">{intl.formatMessage({ id: language.nameKey })}</span>
             {locale === language.code && (
               <Check className="w-4 h-4 text-sky-600" />
             )}
