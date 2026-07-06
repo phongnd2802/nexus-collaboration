@@ -1,61 +1,7 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react'
-import {
-  ArrowUp,
-  Square,
-  Code2,
-  Pencil,
-  GraduationCap,
-  Coffee,
-  Sparkles,
-} from 'lucide-react'
+import { ArrowUp, Square } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useIntl } from 'react-intl'
-
-interface SuggestionChip {
-  icon: React.ElementType
-  labelKey: string
-  defaultLabel: string
-  promptKey: string
-  defaultPrompt: string
-}
-
-const SUGGESTIONS: SuggestionChip[] = [
-  {
-    icon: Code2,
-    labelKey: 'modules.aiChat.suggestions.code',
-    defaultLabel: 'Code',
-    promptKey: 'modules.aiChat.suggestionPrompts.code',
-    defaultPrompt: 'Write a REST API endpoint in TypeScript with validation',
-  },
-  {
-    icon: Pencil,
-    labelKey: 'modules.aiChat.suggestions.write',
-    defaultLabel: 'Write',
-    promptKey: 'modules.aiChat.suggestionPrompts.write',
-    defaultPrompt: 'Draft a professional email to request a meeting',
-  },
-  {
-    icon: GraduationCap,
-    labelKey: 'modules.aiChat.suggestions.learn',
-    defaultLabel: 'Learn',
-    promptKey: 'modules.aiChat.suggestionPrompts.learn',
-    defaultPrompt: 'Explain how neural networks work in simple terms',
-  },
-  {
-    icon: Coffee,
-    labelKey: 'modules.aiChat.suggestions.lifeStuff',
-    defaultLabel: 'Life stuff',
-    promptKey: 'modules.aiChat.suggestionPrompts.lifeStuff',
-    defaultPrompt: 'Give me tips for staying productive while working from home',
-  },
-  {
-    icon: Sparkles,
-    labelKey: 'modules.aiChat.suggestions.surpriseMe',
-    defaultLabel: 'Surprise me',
-    promptKey: 'modules.aiChat.suggestionPrompts.surpriseMe',
-    defaultPrompt: 'Surprise me with something interesting about science',
-  },
-]
 
 function getGreetingKey(): string {
   const hour = new Date().getHours()
@@ -107,11 +53,6 @@ export function AIChatEmpty({ onSend, isStreaming, onStop }: AIChatEmptyProps) {
     [handleSend]
   )
 
-  const handleSuggestionClick = useCallback((prompt: string) => {
-    if (isStreaming) return
-    onSend(prompt)
-  }, [isStreaming, onSend])
-
   const firstName = user?.name?.split(' ')[0] || intl.formatMessage({ id: 'modules.aiChat.greetings.fallbackName', defaultMessage: 'there' })
   const greeting = intl.formatMessage({ id: getGreetingKey(), defaultMessage: 'Hello' })
 
@@ -155,19 +96,6 @@ export function AIChatEmpty({ onSend, isStreaming, onStop }: AIChatEmptyProps) {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-1.5 mt-4 flex-wrap">
-          {SUGGESTIONS.map(s => (
-            <button
-              key={s.labelKey}
-              onClick={() => handleSuggestionClick(intl.formatMessage({ id: s.promptKey, defaultMessage: s.defaultPrompt }))}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[rgba(31,30,29,0.12)] bg-white text-[13px] text-[#1F1E1D] hover:border-[rgba(31,30,29,0.25)] hover:bg-[#FAF9F5] transition-all duration-200"
-            >
-              <s.icon className="h-3.5 w-3.5 text-[#73726C]" />
-              {intl.formatMessage({ id: s.labelKey, defaultMessage: s.defaultLabel })}
-            </button>
-          ))}
         </div>
 
         <p className="text-center text-[12px] text-[#73726C] mt-3">

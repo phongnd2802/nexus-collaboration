@@ -282,7 +282,7 @@ export function MessageItem({
     <div
       id={`message-${message.id}`}
       className={cn(
-        'flex gap-3 group p-3 rounded-lg transition-all duration-200',
+        'flex gap-3 group p-3 rounded-lg transition-all duration-200 min-w-0',
         isCurrentUser
           ? 'flex-row-reverse hover:bg-muted/30 dark:hover:bg-muted/20'
           : 'hover:bg-muted/30 dark:hover:bg-muted/20',
@@ -326,14 +326,14 @@ export function MessageItem({
       )}>
         {/* Header: Name, Timestamp, and Actions */}
         <div className={cn(
-          "flex items-baseline gap-2 mb-1",
+          "flex items-baseline gap-2 mb-1 min-w-0",
           isCurrentUser && "flex-row-reverse" // Reverse for current user
         )}>
           <div className={cn(
-            "flex items-baseline gap-2 flex-wrap",
+            "flex items-baseline gap-2 flex-wrap min-w-0",
             isCurrentUser && "flex-row-reverse" // Reverse for current user
           )}>
-            <span className="font-semibold text-sm text-foreground">
+            <span className="font-semibold text-sm text-foreground truncate max-w-[180px]">
               {message.user.name}
             </span>
             <span className="text-xs text-muted-foreground">
@@ -505,7 +505,7 @@ export function MessageItem({
                           <img
                             src={attachment.url}
                             alt={attachment.name}
-                            className="max-w-sm rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                            className="max-w-sm max-h-80 w-auto rounded-lg border cursor-pointer hover:opacity-90 transition-opacity object-contain"
                             onClick={() => window.open(attachment.url, '_blank')}
                             onError={(e) => {
                               console.error('Image failed to load:', attachment.name)
@@ -607,7 +607,7 @@ export function MessageItem({
                       <img
                         src={message.image}
                         alt="Uploaded image"
-                        className="rounded-lg border cursor-pointer hover:opacity-90 transition-opacity w-full"
+                        className="max-h-80 rounded-lg border cursor-pointer hover:opacity-90 transition-opacity w-full object-contain"
                         onClick={() => window.open(message.image, '_blank')}
                       />
                       <Button
