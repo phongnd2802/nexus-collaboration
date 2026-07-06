@@ -397,7 +397,7 @@ export function ThreadSidebar({
       </div>
 
       {/* Parent Message */}
-      <div className="p-4 border-b border-border bg-muted/30 dark:bg-muted/10">
+      <div className="flex-shrink-0 max-h-[40%] overflow-y-auto p-4 border-b border-border bg-muted/30 dark:bg-muted/10">
         <Badge variant="outline" className="mb-3">
           <MessageSquare className="h-3 w-3 mr-1" />
           {intl.formatMessage({ id: 'modules.chat.thread.originalMessage', defaultMessage: 'Original Message' })}
@@ -413,7 +413,7 @@ export function ThreadSidebar({
       </div>
 
       {/* Thread Messages */}
-      <ScrollArea ref={scrollRef} className="flex-1 pb-48">
+      <ScrollArea ref={scrollRef} className="flex-1">
         {threadMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
             <CornerUpRight className="h-12 w-12 text-muted-foreground mb-4" />
@@ -503,8 +503,8 @@ export function ThreadSidebar({
         </div>
       )}
 
-      {/* Reply Input - Fixed at Bottom */}
-      <div className="absolute bottom-0 left-0 right-0 border-t border-border bg-background p-4">
+      {/* Reply Input */}
+      <div className="flex-shrink-0 border-t border-border bg-background p-4">
         {/* Formatting Toolbar */}
         <div className="flex items-center gap-1 mb-3 pb-2 border-b border-border/50">
           <Button
