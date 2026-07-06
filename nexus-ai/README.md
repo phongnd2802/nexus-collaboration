@@ -17,6 +17,7 @@ npm run start:http
 # trong thư mục nexus-ai/
 
 opendataloader-pdf-hybrid --port 5002
+mkdir -p .runtime
 uv run nexus-ai-web
 ```
 
