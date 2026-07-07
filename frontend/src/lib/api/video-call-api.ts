@@ -116,6 +116,7 @@ export interface CreateCallRequest {
   e2ee_enabled?: boolean;
   lock_on_join?: boolean;
   metadata?: Record<string, any>;
+  reminder_minutes?: number[];
 }
 
 export interface JoinCallRequest {

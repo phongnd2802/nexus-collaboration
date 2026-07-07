@@ -157,7 +157,7 @@ export function buildBrandedEmail(options: BrandedEmailOptions): { html: string;
       <div style="background:${BRAND_COLORS.surface};border:1px solid ${BRAND_COLORS.border};border-top:4px solid ${accentColor};border-radius:12px;box-shadow:rgba(0,0,0,0.04) 0px 4px 20px 0px;overflow:hidden;">
         <div style="padding:36px 40px 28px;">
           ${eyebrowHtml}
-          <h1 style="margin:0;color:${BRAND_COLORS.text};font:400 42px/1.15 Georgia,'Times New Roman',serif;">${escapeHtml(options.title)}</h1>
+          <h1 style="margin:0;color:${BRAND_COLORS.text};font:400 32px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">${escapeHtml(options.title)}</h1>
         </div>
         <div style="border-top:1px solid rgba(31,30,29,0.08);padding:32px 40px 40px;">
           ${greetingHtml}

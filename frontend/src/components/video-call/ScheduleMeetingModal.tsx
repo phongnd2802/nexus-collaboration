@@ -20,10 +20,13 @@ import {
   CalendarPlus,
   Settings,
   X,
-  Mic
+  Mic,
+  Bell,
+  Trash2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, addMinutes } from 'date-fns'
+import { enUS, vi as viLocale } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useCreateVideoCall } from '@/lib/api/video-call-api'
@@ -47,6 +50,7 @@ interface RecurrencePattern {
 
 export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultHour }: ScheduleMeetingModalProps) {
   const intl = useIntl()
+  const dateLocale = intl.locale === 'vi' ? viLocale : enUS
   const { workspaceId } = useParams<{ workspaceId: string }>()
   const navigate = useNavigate()
   const createVideoCall = useCreateVideoCall()
@@ -69,13 +73,30 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
       : format(new Date(), 'HH:mm')
   )
   const [meetingDuration, setMeetingDuration] = useState('60')
-  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
 
   // Recurrence
   const [recurrence, setRecurrence] = useState<RecurrencePattern>({
     frequency: 'none',
     interval: 1
   })
+
+  // Reminders - minutes before the meeting to send attendees a reminder email
+  const [reminders, setReminders] = useState<{ id: string; minutes: number }[]>([])
+
+  const addReminder = () => {
+    setReminders(prev => {
+      const usedMinutes = new Set(prev.map(r => r.minutes))
+      let defaultMinutes = 15
+      while (usedMinutes.has(defaultMinutes)) {
+        defaultMinutes += 5
+      }
+      return [...prev, { id: `reminder-${Date.now()}`, minutes: defaultMinutes }]
+    })
+  }
+
+  const removeReminder = (id: string) => {
+    setReminders(prev => prev.filter(r => r.id !== id))
+  }
 
   // Invitations and notifications
   const [sendEmailInvites, setSendEmailInvites] = useState(true)
@@ -176,6 +197,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
             scheduled_start_time: meetingDateTime.toISOString(),
             scheduled_end_time: endDateTime.toISOString(),
             participant_ids: selectedAttendees,
+            reminder_minutes: [...new Set(reminders.map(r => r.minutes))],
             metadata: {
               recurrence,
               send_email_invites: sendEmailInvites,
@@ -211,6 +233,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
     setSendMessengerInvites(true)
     setSelectedAttendees([])
     setStartImmediately(false)
+    setReminders([])
   }
 
   const handleClose = () => {
@@ -281,7 +304,7 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
 
                 {/* Date and Time - Hidden when Start Immediately is checked */}
                 {!startImmediately && (
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="meeting-date">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.date' })}</Label>
                       <Input
@@ -333,16 +356,6 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
                           }
                           setMeetingTime(newTime)
                         }}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="timezone">{intl.formatMessage({ id: 'modules.videoCallsApp.modal.timezone' })}</Label>
-                      <Input
-                        id="timezone"
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        placeholder="Timezone"
                       />
                     </div>
                   </div>
@@ -421,6 +434,50 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
                       : intl.formatMessage({ id: 'modules.videoCallsApp.modal.attendeesHint' })}
                   </p>
                 </div>
+
+                {!startImmediately && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.reminders.label' })}</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addReminder}>
+                        <Bell className="h-4 w-4 mr-2" />
+                        {intl.formatMessage({ id: 'modules.videoCallsApp.modal.reminders.addReminder' })}
+                      </Button>
+                    </div>
+                    {reminders.length > 0 && (
+                      <div className="space-y-2">
+                        {reminders.map(reminder => (
+                          <div key={reminder.id} className="flex items-center gap-3 p-2 border rounded">
+                            <Input
+                              type="number"
+                              value={reminder.minutes}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value)
+                                setReminders(prev => prev.map(r =>
+                                  r.id === reminder.id ? { ...r, minutes: isNaN(value) ? 0 : value } : r
+                                ))
+                              }}
+                              className="w-20"
+                              min="1"
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              {intl.formatMessage({ id: 'modules.videoCallsApp.modal.reminders.minutesBefore' })}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="ml-auto"
+                              onClick={() => removeReminder(reminder.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
           {/* Meeting Summary */}
@@ -433,25 +490,47 @@ export function ScheduleMeetingModal({ open, onOpenChange, defaultDate, defaultH
               <div className="flex justify-between">
                 <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.dateTime' })}</span>
                 <span className="font-medium">
-                  {format(meetingDate, 'PPP')} at {meetingTime}
+                  {intl.formatMessage(
+                    { id: 'modules.videoCallsApp.modal.summary.dateTimeValue' },
+                    { date: format(meetingDate, 'PPP', { locale: dateLocale }), time: meetingTime },
+                  )}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.duration' })}</span>
-                <span className="font-medium">{meetingDuration} minutes</span>
+                <span className="font-medium">
+                  {intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.durationMinutes' }, { minutes: meetingDuration })}
+                </span>
               </div>
               {recurrence.frequency !== 'none' && (
                 <div className="flex justify-between">
-                  <span>Recurrence:</span>
-                  <span className="font-medium capitalize">
-                    {recurrence.frequency} (every {recurrence.interval} {recurrence.frequency === 'daily' ? 'day' : recurrence.frequency === 'weekly' ? 'week' : 'month'}{recurrence.interval > 1 ? 's' : ''})
+                  <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.recurrence' })}</span>
+                  <span className="font-medium">
+                    {intl.formatMessage(
+                      { id: 'modules.videoCallsApp.modal.summary.recurrenceValue' },
+                      {
+                        frequency: intl.formatMessage({ id: `modules.videoCallsApp.modal.summary.recurrenceFrequency.${recurrence.frequency}` }),
+                        interval: recurrence.interval,
+                        unit: intl.formatMessage({
+                          id: `modules.videoCallsApp.modal.summary.recurrenceUnits.${
+                            recurrence.frequency === 'daily'
+                              ? (recurrence.interval > 1 ? 'days' : 'day')
+                              : recurrence.frequency === 'weekly'
+                                ? (recurrence.interval > 1 ? 'weeks' : 'week')
+                                : (recurrence.interval > 1 ? 'months' : 'month')
+                          }`,
+                        }),
+                      },
+                    )}
                   </span>
                 </div>
               )}
               {selectedAttendees.length > 0 && (
                 <div className="flex justify-between">
-                  <span>Attendees:</span>
-                  <span className="font-medium">{selectedAttendees.length} selected</span>
+                  <span>{intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.attendees' })}</span>
+                  <span className="font-medium">
+                    {intl.formatMessage({ id: 'modules.videoCallsApp.modal.summary.attendeesSelected' }, { count: selectedAttendees.length })}
+                  </span>
                 </div>
               )}
             </div>

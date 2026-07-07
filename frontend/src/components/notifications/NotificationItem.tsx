@@ -310,6 +310,16 @@ export const getLocalizedNotificationTitle = (notification: Notification, intl: 
     );
   }
 
+  if (
+    notification.data?.meeting_id &&
+    notification.title.startsWith('New Meeting: ')
+  ) {
+    return intl.formatMessage(
+      { id: 'notifications.items.newMeeting' },
+      { meetingTitle: notification.data?.meeting_title || notification.title.slice('New Meeting: '.length) }
+    );
+  }
+
   return notification.title;
 };
 
@@ -619,6 +629,18 @@ export const getLocalizedNotificationMessage = (
         { taskTitle, value, unit: intl.formatMessage({ id: unitKey }), dueDate }
       );
     }
+  }
+
+  if (
+    notification.data?.meeting_id &&
+    notification.title.startsWith('New Meeting: ')
+  ) {
+    const hostName = notification.data?.host_name || notification.message.match(/^(.*?) has invited you/)?.[1] || '';
+    const meetingDateTime = formatEventDateTime(notification.data?.scheduled_start_time, intl);
+    return intl.formatMessage(
+      { id: 'notifications.items.newMeetingMessage' },
+      { hostName, meetingDateTime }
+    );
   }
 
   return stripHtml(notification.message);

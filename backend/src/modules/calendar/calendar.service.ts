@@ -54,6 +54,7 @@ export class CalendarService {
     createEventDto: CreateEventDto,
     userId: string,
     files?: Express.Multer.File[],
+    isMeeting = false,
   ) {
     // Validate that start time is not in the past
     const now = new Date();
@@ -188,6 +189,7 @@ export class CalendarService {
         organizerId: userId,
         attendeeEmails: createEventDto.attendees || [],
         workspaceId: workspaceId,
+        isMeeting,
       });
     }
 
@@ -220,9 +222,9 @@ export class CalendarService {
         // Skip sending notification to the organizer
         try {
           const attendeeUser = await this.db.searchUsers(attendeeEmail, { limit: 100 });
-          if (attendeeUser && attendeeUser.users && attendeeUser.users.length > 0) {
+          if (attendeeUser && attendeeUser.length > 0) {
             // Find the exact email match from the search results
-            const attendee = attendeeUser.users.find((u) => u.email === attendeeEmail);
+            const attendee = attendeeUser.find((u) => u.email === attendeeEmail);
             if (attendee && attendee.id !== userId) {
               await this.notificationsService.sendNotification({
                 user_id: attendee.id,
@@ -931,8 +933,8 @@ export class CalendarService {
       for (const attendeeEmail of newAttendees) {
         try {
           const attendeeUser = await this.db.searchUsers(attendeeEmail, { limit: 100 });
-          if (attendeeUser && attendeeUser.users && attendeeUser.users.length > 0) {
-            const attendee = attendeeUser.users.find((u) => u.email === attendeeEmail);
+          if (attendeeUser && attendeeUser.length > 0) {
+            const attendee = attendeeUser.find((u) => u.email === attendeeEmail);
             if (attendee && attendee.id !== userId) {
               await this.notificationsService.sendNotification({
                 user_id: attendee.id,
@@ -977,8 +979,8 @@ export class CalendarService {
       for (const attendeeEmail of removedAttendees) {
         try {
           const attendeeUser = await this.db.searchUsers(attendeeEmail, { limit: 100 });
-          if (attendeeUser && attendeeUser.users && attendeeUser.users.length > 0) {
-            const attendee = attendeeUser.users.find((u) => u.email === attendeeEmail);
+          if (attendeeUser && attendeeUser.length > 0) {
+            const attendee = attendeeUser.find((u) => u.email === attendeeEmail);
             if (attendee && attendee.id !== userId) {
               await this.notificationsService.sendNotification({
                 user_id: attendee.id,
@@ -1017,8 +1019,8 @@ export class CalendarService {
       for (const attendeeEmail of existingUnchangedAttendees) {
         try {
           const attendeeUser = await this.db.searchUsers(attendeeEmail, { limit: 100 });
-          if (attendeeUser && attendeeUser.users && attendeeUser.users.length > 0) {
-            const attendee = attendeeUser.users.find((u) => u.email === attendeeEmail);
+          if (attendeeUser && attendeeUser.length > 0) {
+            const attendee = attendeeUser.find((u) => u.email === attendeeEmail);
             if (attendee && attendee.id !== userId) {
               await this.notificationsService.sendNotification({
                 user_id: attendee.id,
@@ -1412,9 +1414,9 @@ export class CalendarService {
       try {
         // Try to find user by email using search
         const searchResult = await this.db.searchUsers(email, { limit: 100 });
-        if (searchResult && searchResult.users && searchResult.users.length > 0) {
+        if (searchResult && searchResult.length > 0) {
           // Find the exact email match from the search results
-          const user = searchResult.users.find((u) => u.email === email);
+          const user = searchResult.find((u) => u.email === email);
           if (user) {
             userId = user.id;
             userName = (user as any).fullName || user.name;
@@ -1523,6 +1525,7 @@ export class CalendarService {
       organizerId: string;
       attendeeEmails: string[];
       workspaceId: string;
+      isMeeting?: boolean;
     },
   ) {
     // Normalize and validate reminderMinutes to ensure all values are integers
@@ -1550,8 +1553,13 @@ export class CalendarService {
       })
       .filter((m): m is number => m !== null && m >= 0);
 
+    // Dedup so the same minute value never produces more than one
+    // event_reminders row / scheduled notification (e.g. two "15 minutes"
+    // reminder rows added in the UI).
+    const dedupedReminderMinutes = [...new Set(validReminderMinutes)];
+
     // Insert reminders into event_reminders table
-    const reminderPromises = validReminderMinutes.map((minutes) =>
+    const reminderPromises = dedupedReminderMinutes.map((minutes) =>
       this.db.insert('event_reminders', {
         event_id: eventId,
         reminder_time: minutes,
@@ -1563,8 +1571,13 @@ export class CalendarService {
     await Promise.all(reminderPromises);
 
     // Schedule notifications for all attendees if event details are provided
-    if (eventDetails && validReminderMinutes.length > 0) {
-      await this.scheduleEventReminderNotifications(eventId, validReminderMinutes, eventDetails);
+    if (eventDetails && dedupedReminderMinutes.length > 0) {
+      // Cancel any previously scheduled (still-pending) reminder notifications
+      // for this event first — guards against ending up with duplicate
+      // pending rows for the same event/minute if this is ever called more
+      // than once for the same event (e.g. a retried request).
+      await this.cancelScheduledEventReminders(eventId);
+      await this.scheduleEventReminderNotifications(eventId, dedupedReminderMinutes, eventDetails);
     }
   }
 
@@ -1588,9 +1601,10 @@ export class CalendarService {
       organizerId: string;
       attendeeEmails: string[];
       workspaceId: string;
+      isMeeting?: boolean;
     },
   ) {
-    const { eventTitle, startTime, endTime, organizerId, attendeeEmails, workspaceId } =
+    const { eventTitle, startTime, endTime, organizerId, attendeeEmails, workspaceId, isMeeting } =
       eventDetails;
     const eventStartTime = new Date(startTime);
 
@@ -1601,8 +1615,8 @@ export class CalendarService {
     for (const attendeeEmail of attendeeEmails) {
       try {
         const searchResult = await this.db.searchUsers(attendeeEmail, { limit: 100 });
-        if (searchResult && searchResult.users && searchResult.users.length > 0) {
-          const attendee = searchResult.users.find((u) => u.email === attendeeEmail);
+        if (searchResult && searchResult.length > 0) {
+          const attendee = searchResult.find((u) => u.email === attendeeEmail);
           if (attendee && attendee.id !== organizerId) {
             userIdsToNotify.push(attendee.id);
           }
@@ -1660,7 +1674,9 @@ export class CalendarService {
             workspace_id: workspaceId,
             type: NotificationType.REMINDER,
             title: `Nhắc nhở: ${eventTitle}`,
-            message: `Sự kiện "${eventTitle}" bắt đầu ${reminderText} (${eventDateFormatted} lúc ${eventTimeFormatted})`,
+            message: isMeeting
+              ? `Cuộc họp "${eventTitle}" bắt đầu ${reminderText} (${eventDateFormatted} lúc ${eventTimeFormatted})`
+              : `Sự kiện "${eventTitle}" bắt đầu ${reminderText} (${eventDateFormatted} lúc ${eventTimeFormatted})`,
             action_url: `/workspaces/${workspaceId}/calendar?date=${startTime}&eventId=${eventId}`,
             priority: 'normal',
             category: 'calendar',
@@ -1724,7 +1740,17 @@ export class CalendarService {
       event_id: eventId,
     });
 
-    return Array.isArray(remindersQueryResult.data) ? remindersQueryResult.data : [];
+    const reminders = Array.isArray(remindersQueryResult.data) ? remindersQueryResult.data : [];
+
+    // event_reminders stores the column as `reminder_time`, but the frontend's
+    // Reminder type (and EventDialog's editor) reads `.minutes` — map it here
+    // so reminders round-trip correctly instead of rendering blank.
+    return reminders.map((reminder) => ({
+      ...reminder,
+      minutes: reminder.reminder_time,
+      type: reminder.notification_type,
+      isActive: !reminder.is_sent,
+    }));
   }
 
   private async updateEventReminders(

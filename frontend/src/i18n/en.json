@@ -3851,10 +3851,34 @@
         "selectMembers": "Select workspace members...",
         "attendeesHint": "Selected attendees will receive email and calendar invitations",
         "attendeesHintOptional": "Optional for instant calls - you can invite others later",
+        "reminders": {
+          "label": "Reminders",
+          "addReminder": "Add Reminder",
+          "minutesBefore": "minutes before"
+        },
         "summary": {
           "title": "Meeting Summary",
           "dateTime": "Date & Time:",
-          "duration": "Duration:"
+          "dateTimeValue": "{date} at {time}",
+          "duration": "Duration:",
+          "durationMinutes": "{minutes} minutes",
+          "recurrence": "Recurrence:",
+          "recurrenceValue": "{frequency} (every {interval} {unit})",
+          "recurrenceUnits": {
+            "day": "day",
+            "days": "days",
+            "week": "week",
+            "weeks": "weeks",
+            "month": "month",
+            "months": "months"
+          },
+          "recurrenceFrequency": {
+            "daily": "Daily",
+            "weekly": "Weekly",
+            "monthly": "Monthly"
+          },
+          "attendees": "Attendees:",
+          "attendeesSelected": "{count} selected"
         },
         "actions": {
           "startingCall": "Starting Call...",
@@ -8169,6 +8193,8 @@
         "hour": "hour",
         "hours": "hours"
       },
+      "newMeeting": "New Meeting: {meetingTitle}",
+      "newMeetingMessage": "{hostName} has invited you to a meeting scheduled for {meetingDateTime}",
       "workspaceInvitationTitle": "{inviterName} invited you to {workspaceName}",
       "workspaceInvitationMessage": "You have a pending invitation to join a workspace on Nexus."
     },

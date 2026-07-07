@@ -114,4 +114,15 @@ export class CreateVideoCallDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
+
+  @ApiProperty({
+    description: 'Minutes before the scheduled start time to send reminder emails to attendees',
+    example: [1440, 15],
+    type: [Number],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  reminder_minutes?: number[];
 }
