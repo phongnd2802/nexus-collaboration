@@ -16,6 +16,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 // Schedule Status Enum
 export enum ScheduleStatus {
   PENDING = 'pending',
+  PROCESSING = 'processing',
   SENT = 'sent',
   FAILED = 'failed',
   CANCELLED = 'cancelled',

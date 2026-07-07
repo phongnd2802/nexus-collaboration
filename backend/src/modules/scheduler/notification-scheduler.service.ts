@@ -206,6 +206,8 @@ export class NotificationSchedulerService implements OnModuleInit, OnModuleDestr
    */
   private async getPendingScheduledNotifications(now: Date): Promise<any[]> {
     try {
+      await this.reapStuckProcessingNotifications(now);
+
       const result = await this.db.findMany('notifications', {
         is_scheduled: true,
         is_sent: false,
@@ -246,12 +248,54 @@ export class NotificationSchedulerService implements OnModuleInit, OnModuleDestr
   }
 
   /**
+   * `processScheduledNotification` claims a row as `processing` before
+   * sending, so a process that dies mid-send (e.g. a dev `--watch` restart)
+   * never leaves it `pending` to be re-sent. But that same row would then
+   * stay `processing` forever if the process really did die. Reclaim rows
+   * stuck in `processing` for longer than it could ever legitimately take to
+   * send, so they get retried instead of silently vanishing.
+   */
+  private async reapStuckProcessingNotifications(now: Date): Promise<void> {
+    try {
+      const result = await this.db.findMany('notifications', {
+        is_scheduled: true,
+        is_sent: false,
+        schedule_status: ScheduleStatus.PROCESSING,
+      });
+
+      const stuck = (Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [])
+        .filter((n) => now.getTime() - new Date(n.updated_at || n.created_at).getTime() > 2 * 60 * 1000);
+
+      for (const notification of stuck) {
+        this.logger.warn(
+          `[Scheduler] Reclaiming notification ${notification.id} stuck in 'processing' — likely an interrupted send, resetting to 'pending'`,
+        );
+        await this.db.update('notifications', notification.id, {
+          schedule_status: ScheduleStatus.PENDING,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      this.logger.error(`Error reaping stuck processing notifications: ${error.message}`);
+    }
+  }
+
+  /**
    * Process a single scheduled notification - send it and update status
    */
   private async processScheduledNotification(notification: any): Promise<void> {
     const notificationId = notification.id;
 
     try {
+      // Claim the row as "processing" BEFORE sending, so if this process
+      // dies mid-send (e.g. a dev `--watch` restart), the next process's
+      // startup/cron scan — which only picks up `schedule_status: 'pending'`
+      // rows — won't re-send the same notification a second time.
+      await this.db.update('notifications', notificationId, {
+        schedule_status: ScheduleStatus.PROCESSING,
+        updated_at: new Date().toISOString(),
+      });
+
       this.logger.log(
         `[Process] Sending scheduled notification ${notificationId} to user ${notification.user_id}`,
       );

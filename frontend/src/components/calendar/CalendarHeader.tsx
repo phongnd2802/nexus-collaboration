@@ -262,24 +262,6 @@ export function CalendarHeader({
 
         {/* Actions */}
         <Button
-          variant={showAnalytics ? "default" : "outline"}
-          size="sm"
-          onClick={onShowAnalytics}
-          title={intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
-          aria-label={intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
-          className={cn(
-            "flex items-center gap-2 flex-shrink-0",
-            compactActionButtons && "h-8 w-8 p-0 justify-center",
-            showAnalytics && "gradient-primary-active border-0"
-          )}
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span className={cn(compactActionButtons && "hidden")}>
-            {intl.formatMessage({ id: 'modules.calendar.header.analytics' })}
-          </span>
-        </Button>
-
-        <Button
           variant={hasActiveFilters() ? "default" : "outline"}
           size="sm"
           onClick={onShowFilters}
@@ -344,11 +326,6 @@ export function CalendarHeader({
           {!showAnalytics && (
             <div className="w-20 sm:w-24 lg:w-32 h-10 border border-border rounded-md" />
           )}
-
-          <Button variant={showAnalytics ? "default" : "outline"} size="sm" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            <span>{intl.formatMessage({ id: 'modules.calendar.header.analytics' })}</span>
-          </Button>
 
           <Button variant={hasActiveFilters() ? "default" : "outline"} size="sm" className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
