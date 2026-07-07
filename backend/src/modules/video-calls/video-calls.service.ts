@@ -261,6 +261,25 @@ export class VideoCallsService {
     // 8. Create calendar event if scheduled
     if (dto.scheduled_start_time) {
       try {
+        // calendarService.createEvent expects attendee emails, not user IDs —
+        // resolve participant_ids to emails so event_attendees stores real
+        // emails instead of raw UUIDs.
+        const attendeeEmails = (
+          await Promise.all(
+            (dto.participant_ids || []).map(async (participantId) => {
+              try {
+                const participant = await this.db.getUserById(participantId);
+                return participant?.email || null;
+              } catch (error) {
+                this.logger.warn(
+                  `Failed to resolve participant ${participantId} to email: ${this.getErrorMessage(error)}`,
+                );
+                return null;
+              }
+            }),
+          )
+        ).filter((email): email is string => Boolean(email));
+
         const calendarEvent = await this.calendarService.createEvent(
           workspaceId,
           {
@@ -272,7 +291,8 @@ export class VideoCallsService {
               new Date(new Date(dto.scheduled_start_time).getTime() + 3600000).toISOString(), // Default 1 hour
             all_day: false,
             location: 'Video Call',
-            attendees: dto.participant_ids || [],
+            attendees: attendeeEmails,
+            reminders: dto.reminder_minutes || [],
             meeting_url: livekitRoom.joinUrl || call.metadata?.livekit_join_url,
             visibility: 'workspace' as any,
             priority: EventPriority.NORMAL,
@@ -280,6 +300,8 @@ export class VideoCallsService {
             category_id: null,
           },
           userId,
+          undefined,
+          true, // isMeeting — reminders should read "Cuộc họp", not "Sự kiện"
         );
 
         // Link calendar event to video call
@@ -333,7 +355,9 @@ export class VideoCallsService {
           action_url: `/workspaces/${workspaceId}/video-calls?tab=scheduled`,
           data: {
             meeting_id: call.id,
+            meeting_title: dto.title,
             host_user_id: userId,
+            host_name: hostName,
             scheduled_start_time: dto.scheduled_start_time,
             call_type: dto.call_type,
           },

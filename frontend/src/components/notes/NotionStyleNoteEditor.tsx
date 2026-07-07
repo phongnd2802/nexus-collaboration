@@ -168,17 +168,11 @@ export function NotionStyleNoteEditor({
     },
     onContentChanged: async (data) => {
       // Content changed notification from another client
-      // Shows a toast with the user's name so all collaborators know who made changes.
       // IMPORTANT: quill.root.innerHTML direct DOM manipulation has been removed.
       // Setting innerHTML directly corrupts Quill's internal state (Delta model
       // no longer matches DOM), causing Quill to enter an inconsistent state
       // where a "0" character appears at the cursor position.
       console.log('[Collaboration] Content changed by:', data.userName)
-
-      toast({
-        title: 'Content updated',
-        description: `${data.userName} made changes`,
-      })
 
       // Update refs from API so auto-save uses the latest content as baseline
       try {
@@ -2262,10 +2256,6 @@ export function NotionStyleNoteEditor({
                       {intl.formatMessage({ id: 'modules.notes.sidebar.share' })}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    {intl.formatMessage({ id: 'modules.notes.notesView.import' })}
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {onArchive && (
                     <DropdownMenuItem onClick={onArchive}>

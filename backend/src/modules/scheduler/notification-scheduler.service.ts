@@ -341,7 +341,16 @@ export class NotificationSchedulerService implements OnModuleInit, OnModuleDestr
    * Process any overdue notifications on startup
    */
   private async processOverdueNotifications(): Promise<void> {
+    // Share the `isProcessing` guard with the cron tick so a startup check
+    // and the EVERY_MINUTE job can never pick up and double-send the same
+    // pending rows concurrently.
+    if (this.isProcessing) {
+      this.logger.debug('[Startup] Cron already processing, skipping overdue check...');
+      return;
+    }
+
     try {
+      this.isProcessing = true;
       const now = new Date();
       const overdueNotifications = await this.getPendingScheduledNotifications(now);
 
@@ -355,6 +364,8 @@ export class NotificationSchedulerService implements OnModuleInit, OnModuleDestr
       }
     } catch (error) {
       this.logger.error(`[Startup] Error processing overdue notifications: ${error.message}`);
+    } finally {
+      this.isProcessing = false;
     }
   }
 

@@ -514,17 +514,10 @@ export class NotificationsService {
         return this.mapUserSettingsToPreferences(userId, notifSettings, userTimezone);
       }
 
-      // Fallback to health_metrics table for backward compatibility
-      const preferencesRecord = await this.db.findOne('health_metrics', {
-        user_id: userId,
-        metric_type: 'notification_preferences',
-      });
-
-      if (preferencesRecord) {
-        return preferencesRecord.metadata as NotificationPreferences;
-      }
-
-      // Return default preferences if none found
+      // No user_settings row (e.g. user has never logged in / saved
+      // preferences) — the legacy health_metrics fallback table doesn't
+      // exist in this schema, so go straight to defaults instead of
+      // throwing on every lookup for these users.
       return this.getDefaultPreferences(userId);
     } catch (error) {
       this.logger.error(`Failed to get notification preferences: ${error.message}`, error.stack);
@@ -854,7 +847,7 @@ export class NotificationsService {
 
       await /* TODO: use EmailService */ this.db.sendEmail(
         user.email,
-        notificationData.title,
+        `[Nexus] ${notificationData.title}`,
         emailContent.html,
         emailContent.text,
       );
@@ -1228,9 +1221,12 @@ export class NotificationsService {
   }
 
   private getDefaultPreferences(userId: string): NotificationPreferences {
+    // Must match settings.service.ts's getDefaultNotificationSettings(), which
+    // defaults email to true for brand-new users — otherwise a user without a
+    // user_settings row (e.g. never logged in) silently never gets emails.
     const defaultChannelPrefs = {
       push: true,
-      email: false,
+      email: true,
       in_app: true,
     };
 

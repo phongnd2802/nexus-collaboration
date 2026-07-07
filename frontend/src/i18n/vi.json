@@ -3851,10 +3851,34 @@
         "selectMembers": "Chọn thành viên không gian làm việc...",
         "attendeesHint": "Người tham dự đã chọn sẽ nhận được email và lời mời lịch",
         "attendeesHintOptional": "Tùy chọn cho cuộc gọi tức thì - bạn có thể mời người khác sau",
+        "reminders": {
+          "label": "Nhắc nhở",
+          "addReminder": "Thêm nhắc nhở",
+          "minutesBefore": "phút trước"
+        },
         "summary": {
           "title": "Tóm tắt cuộc họp",
           "dateTime": "Ngày & Giờ:",
-          "duration": "Thời lượng:"
+          "dateTimeValue": "{date} lúc {time}",
+          "duration": "Thời lượng:",
+          "durationMinutes": "{minutes} phút",
+          "recurrence": "Lặp lại:",
+          "recurrenceValue": "{frequency} (mỗi {interval} {unit})",
+          "recurrenceUnits": {
+            "day": "ngày",
+            "days": "ngày",
+            "week": "tuần",
+            "weeks": "tuần",
+            "month": "tháng",
+            "months": "tháng"
+          },
+          "recurrenceFrequency": {
+            "daily": "Hàng ngày",
+            "weekly": "Hàng tuần",
+            "monthly": "Hàng tháng"
+          },
+          "attendees": "Người tham dự:",
+          "attendeesSelected": "Đã chọn {count}"
         },
         "actions": {
           "startingCall": "Đang bắt đầu cuộc gọi...",
@@ -8170,7 +8194,9 @@
         "days": "ngày",
         "hour": "giờ",
         "hours": "giờ"
-      }
+      },
+      "newMeeting": "Cuộc họp mới: {meetingTitle}",
+      "newMeetingMessage": "{hostName} đã mời bạn tham gia cuộc họp vào lúc {meetingDateTime}"
     },
     "tabs": {
       "all": "Tất cả",

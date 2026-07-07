@@ -627,8 +627,8 @@ export class TaskReminderService implements OnModuleInit {
 
       const usesDays = window.label === '3 ngày' || window.label === '1 ngày';
       const roundedValue = usesDays
-        ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
-        : Math.ceil(remainingMs / (60 * 60 * 1000));
+        ? Math.round(remainingMs / (24 * 60 * 60 * 1000))
+        : Math.round(remainingMs / (60 * 60 * 1000));
       const unit = usesDays ? (roundedValue === 1 ? 'day' : 'days') : (roundedValue === 1 ? 'hour' : 'hours');
       const headline = `Task is due in ${roundedValue} ${unit}`;
 
@@ -649,8 +649,8 @@ export class TaskReminderService implements OnModuleInit {
 
     const usesDays = window.label === '3 ngày' || window.label === '1 ngày';
     const roundedValue = usesDays
-      ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
-      : Math.ceil(remainingMs / (60 * 60 * 1000));
+      ? Math.round(remainingMs / (24 * 60 * 60 * 1000))
+      : Math.round(remainingMs / (60 * 60 * 1000));
     const unit = usesDays ? 'ngày' : 'giờ';
     const headline = `Còn ${roundedValue} ${unit} nữa task sẽ hết hạn`;
 
