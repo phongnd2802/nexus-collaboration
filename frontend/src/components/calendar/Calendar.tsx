@@ -141,12 +141,19 @@ export function Calendar({ onReturnToCalendar }: CalendarProps = {}) {
           priority: (event.priority as any) || 'normal',
           status: event.status,
           attendees: ((event.attendees as any[])?.filter((a: any) => a && a.email).map((a: any) => a.email) || []),
-          reminders: event.reminders?.map((minutes: number, index: number) => ({
-            id: `reminder-${index}`,
-            type: 'email' as const,
-            minutes,
-            isActive: true
-          })) || [],
+          // Reminders can be numbers (minutes) or objects from the API
+          // ({ minutes, reminder_time, notification_type, ... })
+          reminders: (event.reminders as any[])?.map((reminder: any, index: number) => {
+            const minutes = typeof reminder === 'number'
+              ? reminder
+              : reminder?.minutes ?? reminder?.reminder_time ?? 0;
+            return {
+              id: reminder?.id || `reminder-${index}`,
+              type: (reminder?.type || 'email') as any,
+              minutes,
+              isActive: reminder?.isActive ?? true
+            };
+          }) || [],
           recurrence: event.recurrence_rule ? {
             pattern: event.recurrence_rule.frequency,
             interval: event.recurrence_rule.interval,
