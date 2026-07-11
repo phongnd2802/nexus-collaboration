@@ -56,7 +56,9 @@ export const calendarEventOutputSchema = z.object({
   priority: z.string().optional(),
   is_recurring: z.boolean().optional(),
   recurrence_rule: z.record(z.unknown()).nullable().optional(),
-  attendees: z.array(calendarEventAttendeeSchema).optional(),
+  // create/update return the raw calendar_events row where attendees is a JSONB
+  // array of email strings; get/upcoming enrich it into attendee objects.
+  attendees: z.array(z.union([z.string(), calendarEventAttendeeSchema])).optional(),
   reminders: z.array(calendarEventReminderSchema).optional(),
   attachments: calendarEventAttachmentsSchema.optional(),
   drive_attachment: z.array(z.unknown()).optional(),
@@ -190,6 +192,17 @@ export const meetingRoomOutputSchema = z
 export const meetingRoomsListOutputSchema = z.object({
   rooms: z.array(meetingRoomOutputSchema),
 });
+
+export const roomBookingsListOutputSchema = z.object({
+  bookings: z.array(roomBookingOutputSchema),
+});
+
+export const calendarDeleteActionOutputSchema = z
+  .object({
+    success: z.literal(true),
+    message: z.string().min(1),
+  })
+  .strip();
 
 export const createMeetingRoomInputShape = {
   name: z.string().min(1).describe('Meeting room name.'),

@@ -41,6 +41,8 @@ export function registerWorkspaceTools(server: McpServer, client: NexusApiClient
       workspace_id: workspaceIdSchema,
       name: z.string().max(100).optional().describe('Workspace name.'),
       description: z.string().max(500).optional().describe('Workspace description.'),
+      logo: z.string().optional().describe('Workspace logo URL.'),
+      website: z.string().url().optional().describe('Workspace website URL.'),
     },
     method: 'PATCH',
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}`,

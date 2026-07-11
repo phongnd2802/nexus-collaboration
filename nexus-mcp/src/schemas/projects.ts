@@ -47,6 +47,7 @@ export const kanbanStageSchema = z
 export const createProjectCollaborativeDataSchema = z
   .object({
     default_assignee_ids: z.array(z.string().uuid()).optional(),
+    project_lead: z.string().uuid().optional(),
   })
   .strip();
 
@@ -84,11 +85,19 @@ export const projectsListOutputSchema = z.object({
 export const createProjectInputShape = {
   name: z.string().min(1).max(255).describe('Project name.'),
   description: z.string().optional().describe('Project description.'),
+  type: projectTypeSchema.optional().describe('Project type. Defaults to "kanban".'),
+  status: projectStatusSchema.optional().describe('Project status. Defaults to "active".'),
   priority: projectPrioritySchema.optional().describe('Project priority.'),
+  owner_id: z.string().uuid().optional().describe('Owner user ID. Defaults to the current user.'),
   lead_id: z.string().uuid().optional().describe('Lead user ID.'),
+  start_date: z.string().optional().describe('Project start date (ISO date, e.g. "2026-07-11").'),
+  end_date: z.string().optional().describe('Project end date (ISO date, e.g. "2026-08-11").'),
+  estimated_hours: z.number().nonnegative().optional().describe('Estimated hours for the project.'),
+  budget: z.number().nonnegative().optional().describe('Project budget.'),
+  is_template: z.boolean().optional().describe('Whether the project is a template.'),
   kanban_stages: z.array(kanbanStageSchema).optional().describe('Custom kanban stages.'),
   attachments: projectAttachmentsInputSchema.optional().describe('Linked notes, files, and events.'),
-  collaborative_data: createProjectCollaborativeDataSchema.optional().describe('Additional collaborative project metadata (default assignee IDs).'),
+  collaborative_data: createProjectCollaborativeDataSchema.optional().describe('Additional collaborative project metadata (default assignee IDs, project lead).'),
 };
 
 export const updateProjectInputShape = {
@@ -99,8 +108,8 @@ export const updateProjectInputShape = {
   priority: projectPrioritySchema.optional().describe('Project priority.'),
   owner_id: z.string().uuid().optional().describe('Owner user ID.'),
   lead_id: z.string().uuid().optional().describe('Lead user ID.'),
-  start_date: z.string().datetime().optional().describe('Project start date in ISO 8601 format.'),
-  end_date: z.string().datetime().optional().describe('Project end date in ISO 8601 format.'),
+  start_date: z.string().optional().describe('Project start date (ISO date, e.g. "2026-07-11").'),
+  end_date: z.string().optional().describe('Project end date (ISO date, e.g. "2026-08-11").'),
   estimated_hours: z.number().nonnegative().optional().describe('Estimated hours for the project.'),
   budget: z.number().nonnegative().optional().describe('Project budget.'),
   is_template: z.boolean().optional().describe('Whether the project is a template.'),
@@ -213,6 +222,16 @@ export const workspaceTasksListOutputSchema = z.object({
   tasks: z.array(workspaceTaskSummaryOutputSchema),
 });
 
+export const taskReminderSettingsInputSchema = z
+  .object({
+    enabled: z.boolean().optional().describe('Enable deadline reminders for this task. Default off.'),
+    intervals: z
+      .array(z.enum(['3d', '1d', '12h', '3h', '1h']))
+      .optional()
+      .describe('Reminder windows before the due date to notify on.'),
+  })
+  .strip();
+
 export const createTaskInputShape = {
   title: z.string().min(1).max(255).describe('Task title.'),
   description: z.string().optional().describe('Task description.'),
@@ -225,6 +244,14 @@ export const createTaskInputShape = {
   assignee_team_member_id: z.string().uuid().optional().describe('Assignee team member ID.'),
   reporter_team_member_id: z.string().uuid().optional().describe('Reporter team member ID.'),
   due_date: z.string().datetime().optional().describe('Task due date in ISO 8601 format.'),
+  due_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional()
+    .describe('Due time in HH:MM 24h format (e.g. "14:30"). Requires due_date to be set.'),
+  reminder_settings: taskReminderSettingsInputSchema
+    .optional()
+    .describe('Per-task deadline reminder settings.'),
   story_points: z.number().nonnegative().optional().describe('Story points.'),
   labels: z.array(z.string()).optional().describe('Task labels.'),
   attachments: projectAttachmentsInputSchema.optional().describe('Linked notes, files, and events.'),
@@ -243,8 +270,15 @@ export const updateTaskInputShape = {
   assignee_team_member_id: z.string().uuid().optional().describe('Assignee team member ID.'),
   reporter_team_member_id: z.string().uuid().optional().describe('Reporter team member ID.'),
   due_date: z.string().datetime().optional().describe('Task due date in ISO 8601 format.'),
+  due_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional()
+    .describe('Updated due time in HH:MM 24h format (e.g. "14:30"). Requires due_date to be set.'),
+  reminder_settings: taskReminderSettingsInputSchema
+    .optional()
+    .describe('Updated per-task deadline reminder settings.'),
   story_points: z.number().nonnegative().optional().describe('Story points.'),
-  actual_hours: z.number().nonnegative().optional().describe('Actual hours spent.'),
   labels: z.array(z.string()).optional().describe('Task labels.'),
   attachments: projectAttachmentsInputSchema.optional().describe('Linked notes, files, and events.'),
   custom_fields: z.array(taskCustomFieldValueSchema).optional().describe('Per-task custom fields.'),

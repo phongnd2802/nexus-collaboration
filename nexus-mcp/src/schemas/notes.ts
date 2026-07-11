@@ -1,28 +1,48 @@
 import { z } from 'zod';
 
+// name/email may be null or non-standard when the user record is incomplete.
 export const noteAuthorOutputSchema = z
   .object({
     id: z.string().min(1),
-    name: z.string().min(1),
-    email: z.string().email(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
   })
   .strip();
 
 export const noteCollaboratorOutputSchema = z
   .object({
     id: z.string().min(1),
-    name: z.string().min(1),
-    email: z.string().email(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
   })
   .strip();
 
-export const noteAttachmentsOutputSchema = z
-  .object({
-    file_attachment: z.array(z.unknown()),
-    note_attachment: z.array(z.unknown()),
-    event_attachment: z.array(z.unknown()),
-  })
-  .strip();
+// Stored notes may miss attachment keys (input allows partial objects) or hold
+// null — normalize to an object with all three arrays present.
+export const noteAttachmentsOutputSchema = z.preprocess(
+  (value) => (value !== null && typeof value === 'object' && !Array.isArray(value) ? value : {}),
+  z
+    .object({
+      file_attachment: z.array(z.unknown()).default([]),
+      note_attachment: z.array(z.unknown()).default([]),
+      event_attachment: z.array(z.unknown()).default([]),
+    })
+    .strip(),
+);
+
+// Legacy rows can hold collaborative_data as a double-encoded JSON string.
+export const collaborativeDataOutputSchema = z.preprocess((value) => {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}, z.record(z.unknown()));
 
 export const noteAttachmentsInputSchema = z
   .object({
@@ -51,10 +71,11 @@ export const noteOutputSchema = z
     deleted_at: z.string().datetime().nullable(),
     archived_at: z.string().datetime().nullable(),
     is_favorite: z.boolean(),
-    collaborative_data: z.record(z.unknown()),
+    collaborative_data: collaborativeDataOutputSchema,
     created_at: z.string().datetime(),
     updated_at: z.string().datetime(),
-    author: noteAuthorOutputSchema,
+    // author is null when the author's user record cannot be resolved.
+    author: noteAuthorOutputSchema.nullable(),
     collaborators: z.array(noteCollaboratorOutputSchema),
   })
   .strip();
@@ -77,6 +98,8 @@ export const createNoteInputShape = {
   content: z.string().min(1),
   parent_id: z.string().uuid().optional(),
   tags: z.array(z.string()).optional(),
+  cover_image: z.string().optional().describe('Cover image URL for the note.'),
+  icon: z.string().optional().describe('Note icon (emoji or icon identifier).'),
   is_public: z.boolean().optional().default(false),
   attachments: noteAttachmentsInputSchema.optional(),
 };
@@ -85,6 +108,8 @@ export const updateNoteInputShape = {
   title: z.string().min(1).optional(),
   content: z.string().min(1).optional(),
   tags: z.array(z.string()).optional(),
+  cover_image: z.string().optional().describe('Updated cover image URL for the note.'),
+  icon: z.string().optional().describe('Updated note icon (emoji or icon identifier).'),
   is_public: z.boolean().optional(),
   is_favorite: z.boolean().optional(),
   attachments: noteAttachmentsInputSchema.optional(),
@@ -114,7 +139,7 @@ export const createNoteOutputSchema = z
     deleted_at: z.string().datetime().nullable(),
     archived_at: z.string().datetime().nullable(),
     is_favorite: z.boolean(),
-    collaborative_data: z.record(z.unknown()),
+    collaborative_data: collaborativeDataOutputSchema,
     created_at: z.string().datetime(),
     updated_at: z.string().datetime(),
   })

@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
+// The backend returns email/name as null when the user profile cannot be
+// resolved (deleted user, lookup failure) — keep them nullable.
 export const workspaceMemberUserOutputShape = {
   id: z.string().min(1),
-  email: z.string().email(),
-  name: z.string().min(1),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
   username: z.string().nullable(),
 };
 

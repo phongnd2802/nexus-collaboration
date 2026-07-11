@@ -53,9 +53,10 @@ export const listChannelsOutputSchema = z.object({
 
 export const channelMemberOutputSchema = z
   .object({
-    user_id: z.string().uuid(),
+    // user_id is VARCHAR in the DB and may hold non-UUID values (e.g. bot members).
+    user_id: z.string().min(1),
     name: z.string().min(1),
-    email: z.string().email().nullable(),
+    email: z.string().nullable(),
     role: z.enum(['admin', 'moderator', 'member']).or(z.string()),
   })
   .strip();
@@ -261,7 +262,8 @@ export const messageOutputSchema = z
     channel_id: z.string().min(1).optional(),
     conversation_id: z.string().min(1).nullable().optional(),
     user_id: z.string().min(1),
-    content: z.string(),
+    // content is nullable in the DB (attachment-only or E2EE messages).
+    content: z.string().nullable(),
     content_html: z.string().nullable().optional(),
     encrypted_content: z.string().nullable().optional(),
     encryption_metadata: z.record(z.unknown()).nullable().optional(),
