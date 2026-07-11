@@ -237,7 +237,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
       ...(linked_content !== undefined ? { linked_content } : {}),
     }),
     outputSchema: messageOutputSchema,
-    outputTransform: (data) => normalizeBySchema(messageOutputSchema, data),
+    outputTransform: (data) => normalizeBySchema(messageOutputSchema, normalizeRawMessage(data)),
     annotations: {
       readOnlyHint: false,
       destructiveHint: false,
@@ -269,7 +269,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
         show_results_before_voting,
       }),
     outputSchema: messageOutputSchema,
-    outputTransform: (data) => normalizeBySchema(messageOutputSchema, data),
+    outputTransform: (data) => normalizeBySchema(messageOutputSchema, normalizeRawMessage(data)),
     annotations: {
       readOnlyHint: false,
       destructiveHint: false,
@@ -524,7 +524,47 @@ function normalizeChannelMessagesResponse(data: unknown): unknown[] {
       ? (data as { data: unknown[] }).data
       : [];
 
-  return messages.map((message) => normalizeBySchema(messageOutputSchema, message));
+  return messages.map((message) => normalizeBySchema(messageOutputSchema, normalizeRawMessage(message)));
+}
+
+function parseJsonField(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+// The bookmark endpoints return raw DB rows where JSONB columns
+// (attachments/mentions/linked_content/reactions/encryption_metadata) are still
+// JSON strings — parse them before schema validation.
+function normalizeRawMessage(message: unknown): unknown {
+  if (!message || typeof message !== 'object') {
+    return message;
+  }
+
+  const raw = message as Record<string, unknown>;
+  const attachments = parseJsonField(raw.attachments);
+  const mentions = parseJsonField(raw.mentions);
+  const linkedContent = parseJsonField(raw.linked_content);
+  const reactions = parseJsonField(raw.reactions);
+  const encryptionMetadata = parseJsonField(raw.encryption_metadata);
+
+  return {
+    ...raw,
+    content: raw.content ?? null,
+    attachments: Array.isArray(attachments) ? attachments : [],
+    mentions: Array.isArray(mentions) ? mentions : [],
+    linked_content: Array.isArray(linkedContent) ? linkedContent : [],
+    reactions:
+      Array.isArray(reactions) || (reactions !== null && typeof reactions === 'object') ? reactions : {},
+    encryption_metadata:
+      encryptionMetadata !== null && typeof encryptionMetadata === 'object' ? encryptionMetadata : null,
+  };
 }
 
 function buildCreatePollBody(params: {
@@ -574,7 +614,7 @@ function normalizeBookmarkMessageResponse(data: unknown): unknown {
   const result = data as { message?: unknown; data?: unknown };
   return normalizeBySchema(bookmarkMessageOutputSchema, {
     message: result.message,
-    data: normalizeBySchema(messageOutputSchema, result.data),
+    data: normalizeBySchema(messageOutputSchema, normalizeRawMessage(result.data)),
   });
 }
 
@@ -594,7 +634,7 @@ function normalizeChannelBookmarkedMessagesResponse(data: unknown): unknown {
   const messages = Array.isArray(result.data) ? result.data : [];
 
   return normalizeBySchema(channelBookmarkedMessagesOutputSchema, {
-    messages: messages.map((message) => normalizeBySchema(messageOutputSchema, message)),
+    messages: messages.map((message) => normalizeBySchema(messageOutputSchema, normalizeRawMessage(message))),
     total: result.total,
     page: result.page,
     limit: result.limit,

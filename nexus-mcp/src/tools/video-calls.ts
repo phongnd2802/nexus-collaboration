@@ -26,6 +26,7 @@ export function registerVideoCallTools(server: McpServer, client: NexusApiClient
       max_participants,
       e2ee_enabled,
       lock_on_join,
+      reminder_minutes,
       metadata,
     }) => ({
       title,
@@ -39,6 +40,7 @@ export function registerVideoCallTools(server: McpServer, client: NexusApiClient
       ...(max_participants !== undefined ? { max_participants } : {}),
       ...(e2ee_enabled !== undefined ? { e2ee_enabled } : {}),
       ...(lock_on_join !== undefined ? { lock_on_join } : {}),
+      ...(reminder_minutes !== undefined ? { reminder_minutes } : {}),
       ...(metadata !== undefined ? { metadata } : {}),
     }),
     annotations: {

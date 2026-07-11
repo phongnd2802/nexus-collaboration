@@ -293,6 +293,21 @@ function parseJsonValue<T>(value: T): T | unknown {
   }
 }
 
+// projects.estimated_hours and projects.budget are TEXT columns in Postgres,
+// so the backend returns them as strings — coerce before schema validation.
+function toNumberOrNull(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
 function normalizeProjectListResponse(data: unknown) {
   return unwrapArray(data).map((project) => normalizeProject(project));
 }
@@ -310,9 +325,9 @@ function normalizeProject(data: unknown) {
     lead_id: project.lead_id ?? null,
     start_date: project.start_date ?? null,
     end_date: project.end_date ?? null,
-    estimated_hours: typeof project.estimated_hours === 'number' ? project.estimated_hours : project.estimated_hours ?? null,
-    actual_hours: typeof project.actual_hours === 'number' ? project.actual_hours : project.actual_hours ?? null,
-    budget: typeof project.budget === 'number' ? project.budget : project.budget ?? null,
+    estimated_hours: toNumberOrNull(project.estimated_hours),
+    actual_hours: toNumberOrNull(project.actual_hours),
+    budget: toNumberOrNull(project.budget),
     is_template: typeof project.is_template === 'boolean' ? project.is_template : project.is_template ?? null,
     kanban_stages: Array.isArray(parseJsonValue(project.kanban_stages)) ? parseJsonValue(project.kanban_stages) : [],
     attachments: normalizeAttachmentGroup(parseJsonValue(project.attachments)),
@@ -348,8 +363,8 @@ function normalizeTask(data: unknown) {
     assignee_team_member_id: task.assignee_team_member_id ?? null,
     reporter_team_member_id: task.reporter_team_member_id ?? null,
     due_date: task.due_date ?? null,
-    story_points: typeof task.story_points === 'number' ? task.story_points : task.story_points ?? null,
-    actual_hours: typeof task.actual_hours === 'number' ? task.actual_hours : task.actual_hours ?? null,
+    story_points: toNumberOrNull(task.story_points),
+    actual_hours: toNumberOrNull(task.actual_hours),
     labels: Array.isArray(labels) ? labels : [],
     attachments: normalizeAttachmentGroup(parseJsonValue(task.attachments)),
     custom_fields: Array.isArray(customFields) ? customFields : [],

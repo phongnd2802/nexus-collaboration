@@ -153,10 +153,12 @@ export function registerNotesTools(server: McpServer, client: NexusApiClient) {
     method: 'PATCH',
     path: ({ workspace_id, note_id }) =>
       `workspaces/${encodeURIComponent(String(workspace_id))}/notes/${encodeURIComponent(String(note_id))}`,
-    body: ({ title, content, tags, is_public, is_favorite, attachments }) => ({
+    body: ({ title, content, tags, cover_image, icon, is_public, is_favorite, attachments }) => ({
       ...(title !== undefined ? { title } : {}),
       ...(content !== undefined ? { content } : {}),
       ...(tags !== undefined ? { tags } : {}),
+      ...(cover_image !== undefined ? { cover_image } : {}),
+      ...(icon !== undefined ? { icon } : {}),
       ...(is_public !== undefined ? { is_public } : {}),
       ...(is_favorite !== undefined ? { is_favorite } : {}),
       ...(attachments !== undefined ? { attachments } : {}),

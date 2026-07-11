@@ -2023,7 +2023,7 @@ export class CalendarService {
     // Update the response
     return await this.db.update('event_attendees', attendee.id, {
       status: response,
-      response_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
   }
 

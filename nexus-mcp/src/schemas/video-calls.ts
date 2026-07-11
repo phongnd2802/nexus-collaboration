@@ -36,5 +36,9 @@ export const scheduleVideoCallInputShape = {
   max_participants: z.number().int().min(2).max(500).optional().describe('Maximum participants allowed, between 2 and 500. Defaults to 50.'),
   e2ee_enabled: z.boolean().optional().describe('Enable end-to-end encryption. Defaults to false.'),
   lock_on_join: z.boolean().optional().describe('Lock the room after it starts, preventing new participants from joining. Defaults to false.'),
+  reminder_minutes: z
+    .array(z.number().int().nonnegative())
+    .optional()
+    .describe('Reminder times in minutes before the scheduled start (e.g. [10, 60]). Delivered via the linked calendar event.'),
   metadata: z.record(z.unknown()).optional().describe('Additional metadata (AI settings, location, recurrence, etc.).'),
 };

@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { idSchema, workspaceIdSchema } from '../schemas/common.js';
 import {
+  calendarDeleteActionOutputSchema,
   calendarEventOutputSchema,
   createEventCategoryInputShape,
   createEventInputShape,
@@ -10,6 +11,7 @@ import {
   eventCategoryOutputSchema,
   meetingRoomOutputSchema,
   meetingRoomsListOutputSchema,
+  roomBookingsListOutputSchema,
   updateEventCategoryInputShape,
   updateEventInputShape,
   updateMeetingRoomInputShape,
@@ -33,6 +35,13 @@ const write = {
   openWorldHint: true,
 };
 
+const destroy = {
+  readOnlyHint: false,
+  destructiveHint: true,
+  idempotentHint: false,
+  openWorldHint: true,
+};
+
 export function registerCalendarTools(server: McpServer, client: NexusApiClient) {
   registerApiTool(server, client, {
     name: 'nexus_list_calendar_events',
@@ -45,9 +54,28 @@ export function registerCalendarTools(server: McpServer, client: NexusApiClient)
       end_date: z.string().optional().describe('Optional ISO end date filter.'),
       search: z.string().optional().describe('Optional search query for title or description.'),
       statuses: z.string().optional().describe('Optional comma-separated statuses.'),
+      categories: z.string().optional().describe('Optional comma-separated category IDs.'),
+      priorities: z.string().optional().describe('Optional comma-separated priorities (low/normal/high/urgent).'),
+      tags: z.string().optional().describe('Optional comma-separated tags.'),
+      attendees: z.string().optional().describe('Optional comma-separated attendee filters.'),
+      show_declined: z.boolean().optional().describe('Include events the user has declined.'),
+      show_cancelled: z.boolean().optional().describe('Include cancelled events.'),
+      show_private: z.boolean().optional().describe('Include private events.'),
     },
     path: ({ workspace_id }) => `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/events`,
-    query: ({ start_date, end_date, search, statuses }) => ({ start_date, end_date, search, statuses }),
+    query: ({ start_date, end_date, search, statuses, categories, priorities, tags, attendees, show_declined, show_cancelled, show_private }) => ({
+      start_date,
+      end_date,
+      search,
+      statuses,
+      categories,
+      priorities,
+      tags,
+      attendees,
+      show_declined,
+      show_cancelled,
+      show_private,
+    }),
     annotations: readOnly,
   });
 
@@ -236,6 +264,87 @@ export function registerCalendarTools(server: McpServer, client: NexusApiClient)
       `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/categories/${encodeURIComponent(String(category_id))}`,
     body: ({ workspace_id: _workspace_id, category_id: _category_id, response_format: _response_format, ...body }) => body,
     annotations: write,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_delete_calendar_event',
+    title: 'Delete Nexus Calendar Event',
+    description:
+      'Use this tool when you need to permanently delete a calendar event by its ID. Only the event organizer can delete an event. Pending reminders are cancelled and attendees are notified.',
+    inputSchema: { workspace_id: workspaceIdSchema, event_id: idSchema('Calendar event') },
+    method: 'DELETE',
+    outputSchema: calendarDeleteActionOutputSchema,
+    outputTransform: () => ({ success: true, message: 'Calendar event deleted successfully.' }),
+    path: ({ workspace_id, event_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/events/${encodeURIComponent(String(event_id))}`,
+    annotations: destroy,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_respond_calendar_event',
+    title: 'Respond to Nexus Calendar Event',
+    description:
+      'Use this tool when you need to respond to a calendar event invitation as the current user. Set response to "accepted", "declined", or "tentative".',
+    inputSchema: {
+      workspace_id: workspaceIdSchema,
+      event_id: idSchema('Calendar event'),
+      response: z.enum(['accepted', 'declined', 'tentative']).describe('Invitation response status.'),
+    },
+    method: 'PUT',
+    path: ({ workspace_id, event_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/events/${encodeURIComponent(String(event_id))}/respond`,
+    body: ({ response }) => ({ response }),
+    annotations: write,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_delete_meeting_room',
+    title: 'Delete Nexus Meeting Room',
+    description:
+      'Use this tool when you need to delete a meeting room from a workspace by its ID.',
+    inputSchema: { workspace_id: workspaceIdSchema, room_id: idSchema('Meeting room') },
+    method: 'DELETE',
+    outputSchema: calendarDeleteActionOutputSchema,
+    outputTransform: () => ({ success: true, message: 'Meeting room deleted successfully.' }),
+    path: ({ workspace_id, room_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/rooms/${encodeURIComponent(String(room_id))}`,
+    annotations: destroy,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_get_room_bookings',
+    title: 'Get Nexus Meeting Room Bookings',
+    description:
+      'Use this tool when you need to list bookings for a meeting room, optionally filtered by a start/end date range.',
+    inputSchema: {
+      workspace_id: workspaceIdSchema,
+      room_id: idSchema('Meeting room'),
+      start_date: z.string().optional().describe('Optional ISO start date filter.'),
+      end_date: z.string().optional().describe('Optional ISO end date filter.'),
+    },
+    path: ({ workspace_id, room_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/rooms/${encodeURIComponent(String(room_id))}/bookings`,
+    query: ({ start_date, end_date }) => ({ start_date, end_date }),
+    outputSchema: roomBookingsListOutputSchema,
+    outputTransform: (data) =>
+      normalizeBySchema(roomBookingsListOutputSchema, {
+        bookings: unwrapArray(data),
+      }),
+    annotations: readOnly,
+  });
+
+  registerApiTool(server, client, {
+    name: 'nexus_delete_event_category',
+    title: 'Delete Nexus Event Category',
+    description:
+      'Use this tool when you need to delete a calendar event category from a workspace by its ID.',
+    inputSchema: { workspace_id: workspaceIdSchema, category_id: idSchema('Event category') },
+    method: 'DELETE',
+    outputSchema: calendarDeleteActionOutputSchema,
+    outputTransform: () => ({ success: true, message: 'Event category deleted successfully.' }),
+    path: ({ workspace_id, category_id }) =>
+      `workspaces/${encodeURIComponent(String(workspace_id))}/calendar/categories/${encodeURIComponent(String(category_id))}`,
+    annotations: destroy,
   });
 }
 
