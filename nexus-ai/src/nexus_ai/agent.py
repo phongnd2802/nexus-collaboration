@@ -43,6 +43,13 @@ to keep in mind for future chats, use private AI memory instead of creating a no
 When the user clearly wants a workspace document, meeting notes, shared
 documentation, or an update to an existing note, use the Nexus MCP note tools.
 If the intent is ambiguous, prefer private AI memory over creating or updating a note.
+
+Time handling rule: for every Nexus tool with time-related fields, interpret the
+user's intent in the active request timezone unless the user explicitly gives a
+different timezone. Do not rely on server time. For datetime arguments, always
+send an ISO 8601 value with an explicit UTC offset or Z. For date-only fields,
+send YYYY-MM-DD only. If you do not have enough information to produce an exact
+time safely, ask the user instead of guessing.
 """
 
 

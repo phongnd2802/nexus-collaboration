@@ -8,6 +8,7 @@ from pydantic_ai.mcp import MCPToolset
 
 from nexus_ai.request_context import get_request_context
 from nexus_ai.settings import Settings
+from .temporal_tools import normalize_temporal_tool_args
 
 
 class _RequestScopedAuthorization(httpx.Auth):
@@ -78,6 +79,7 @@ def create_nexus_mcp_capability(settings: Settings) -> Any:
                 auth=_RequestScopedAuthorization(settings),
                 headers=_RequestScopedHeaders(settings),
                 include_instructions=True,
+                process_tool_call=_process_tool_call,
             ),
            # defer_loading=True,
         )
@@ -88,3 +90,9 @@ def create_nexus_mcp_capability(settings: Settings) -> Any:
             "Installed Pydantic AI MCP capability does not support local MCP toolsets. "
             "Upgrade pydantic-ai-slim[mcp] or add a local MCP transport wrapper."
         )
+
+
+async def _process_tool_call(ctx: Any, call_tool, name: str, tool_args: dict[str, Any]) -> Any:
+    settings = ctx.deps.settings
+    normalized_args = normalize_temporal_tool_args(name, tool_args, settings.timezone)
+    return await call_tool(name, normalized_args)

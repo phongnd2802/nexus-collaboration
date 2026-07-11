@@ -100,6 +100,7 @@ def test_current_time_instruction_uses_effective_timezone():
         instruction = current_time_instruction(settings)
         assert "timezone Asia/Ho_Chi_Minh" in instruction
         assert "Interpret natural-language dates and times" in instruction
+        assert "ISO 8601 with an explicit offset or Z" in instruction
         assert "+07:00" in instruction
     finally:
         reset_request_context(token)
