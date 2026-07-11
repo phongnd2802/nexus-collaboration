@@ -4,8 +4,9 @@ from types import SimpleNamespace
 
 from nexus_ai.context_pipeline import extract_and_store_memories
 from nexus_ai.settings import load_settings
-from nexus_ai.storage import MemoryRepository, SQLiteStore, create_memory_repository
+from nexus_ai.storage import MemoryRepository, create_memory_repository
 from nexus_ai.storage.mem0 import Mem0MemoryRepository
+from nexus_ai.storage.sqlite import SQLiteStore
 
 
 class FakeAsyncMemory:
@@ -40,6 +41,7 @@ def test_create_memory_repository_uses_mem0_when_enabled(monkeypatch, tmp_path):
         {
             "NEXUS_AI_MODEL": "openrouter:openai/gpt-4o-mini",
             "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
             "NEXUS_AI_MEM0_ENABLED": "true",
             "NEXUS_AI_RUNTIME_DIR": str(tmp_path / "runtime"),
@@ -60,6 +62,8 @@ def test_create_memory_repository_uses_mem0_when_enabled(monkeypatch, tmp_path):
     assert FakeAsyncMemory.last_config["vector_store"]["config"]["embedding_model_dims"] == 4096
     assert FakeAsyncMemory.last_config["llm"]["config"]["model"] == "openai/gpt-4o-mini"
     assert FakeAsyncMemory.last_config["embedder"]["config"]["model"] == "qwen/qwen3-embedding-8b"
+    assert (tmp_path / "runtime" / "mem0").is_dir()
+    assert FakeAsyncMemory.last_config["history_db_path"].endswith("/mem0/mem0_history.db")
 
 
 def test_mem0_repository_scopes_memory_to_workspace_and_user(monkeypatch, tmp_path):
@@ -68,6 +72,7 @@ def test_mem0_repository_scopes_memory_to_workspace_and_user(monkeypatch, tmp_pa
         {
             "NEXUS_AI_MODEL": "openrouter:openai/gpt-4o-mini",
             "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
             "NEXUS_AI_MEM0_ENABLED": "true",
             "NEXUS_AI_RUNTIME_DIR": str(tmp_path / "runtime"),
@@ -120,6 +125,7 @@ def test_local_memory_repository_still_uses_heuristic_pipeline(tmp_path):
             {
                 "NEXUS_AI_MODEL": "test",
                 "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+                "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
                 "NEXUS_AI_ENABLE_LANGFUSE": "false",
             }
         )

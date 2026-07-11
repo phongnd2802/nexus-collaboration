@@ -101,6 +101,7 @@ function getRequestContext(req: Request, res: Response): NexusMcpRequestContext 
   const authorizationHeader = getHeader(req, 'authorization');
   const workspaceId = getHeader(req, 'x-nexus-workspace-id');
   const requestId = getHeader(req, 'x-nexus-request-id');
+  const timezone = getHeader(req, 'x-nexus-timezone');
   const bearerToken = extractBearerToken(authorizationHeader);
 
   console.error(
@@ -112,6 +113,7 @@ function getRequestContext(req: Request, res: Response): NexusMcpRequestContext 
       workspaceIdPresent: Boolean(workspaceId),
       workspaceId,
       requestId: requestId || null,
+      timezone: timezone || null,
     }),
   );
 
@@ -145,6 +147,7 @@ function getRequestContext(req: Request, res: Response): NexusMcpRequestContext 
     authorizationHeader,
     workspaceId,
     requestId,
+    timezone,
     source: 'mcp',
   };
 }

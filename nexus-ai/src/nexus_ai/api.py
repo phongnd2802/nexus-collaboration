@@ -321,6 +321,7 @@ def _build_agent_request_context(request: Request, workspace_id: str, session_id
     authorization = request.headers.get("authorization") or (current.authorization if current else None)
     request_id = request.headers.get("x-nexus-request-id") or (current.request_id if current else None)
     user_id = request.headers.get("x-nexus-user-id") or (current.user_id if current else None)
+    timezone = request.headers.get("x-nexus-timezone") or (current.timezone if current else None)
     return RequestContext(
         authorization=authorization,
         api_token=current.api_token if current else None,
@@ -328,6 +329,7 @@ def _build_agent_request_context(request: Request, workspace_id: str, session_id
         user_id=user_id,
         request_id=request_id,
         session_id=session_id,
+        timezone=timezone,
     )
 
 

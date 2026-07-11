@@ -12,6 +12,7 @@ class RequestContext:
     user_id: str | None = None
     request_id: str | None = None
     session_id: str | None = None
+    timezone: str | None = None
 
 
 _CURRENT_REQUEST_CONTEXT: ContextVar[RequestContext | None] = ContextVar(

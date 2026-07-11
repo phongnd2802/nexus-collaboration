@@ -54,13 +54,39 @@ async function bootstrap() {
   // MANUAL CORS MIDDLEWARE - This works reliably
   console.log('🔓 Enabling CORS...');
   app.use((req, res, next) => {
+    const requestedHeaders = String(req.headers['access-control-request-headers'] || '')
+      .split(',')
+      .map(header => header.trim())
+      .filter(Boolean);
+    const allowedHeaders = [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'x-api-key',
+      'X-Api-Key',
+      'x-project-id',
+      'X-Project-ID',
+      'x-app-id',
+      'X-App-ID',
+      'x-organization-id',
+      'X-Organization-ID',
+      'x-nexus-workspace-id',
+      'X-Nexus-Workspace-ID',
+      'x-nexus-request-id',
+      'X-Nexus-Request-ID',
+      'x-nexus-source',
+      'X-Nexus-Source',
+      'x-nexus-timezone',
+      'X-Nexus-Timezone',
+    ];
+    const allowHeadersValue = Array.from(new Set([...allowedHeaders, ...requestedHeaders])).join(',');
+
     // Set CORS headers for every response
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.header(
-      'Access-Control-Allow-Headers',
-      'Origin,X-Requested-With,Content-Type,Accept,Authorization,x-api-key,X-Api-Key,x-project-id,X-Project-ID,x-app-id,X-App-ID,x-organization-id,X-Organization-ID,x-nexus-workspace-id,X-Nexus-Workspace-ID,x-nexus-request-id,X-Nexus-Request-ID,x-nexus-source,X-Nexus-Source',
-    );
+    res.header('Access-Control-Allow-Headers', allowHeadersValue);
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400');
 

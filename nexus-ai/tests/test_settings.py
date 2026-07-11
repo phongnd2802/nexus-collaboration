@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from nexus_ai.settings import load_settings
 from nexus_ai.request_context import RequestContext, reset_request_context, set_request_context
 
@@ -11,7 +13,7 @@ def test_load_settings_from_env():
             "NEXUS_WORKSPACE_ID": "workspace",
             "NEXUS_REQUEST_ID": "request",
             "NEXUS_AI_RUNTIME_DIR": ".runtime-test",
-            "NEXUS_AI_SQLITE_PATH": ".runtime-test/test.sqlite3",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
             "NEXUS_API_KEY": "legacy-key",
         }
@@ -42,6 +44,7 @@ def test_session_summary_model_can_be_overridden():
             "NEXUS_AI_MODEL": "openrouter:chat-model",
             "NEXUS_AI_SESSION_SUMMARY_MODEL": "openrouter:summary-model",
             "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
         }
     )
@@ -55,6 +58,7 @@ def test_request_context_overrides_workspace_and_auth():
         {
             "NEXUS_AI_MODEL": "openrouter:test",
             "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
             "NEXUS_AI_ENABLE_LANGFUSE": "false",
         }
     )
@@ -73,5 +77,45 @@ def test_request_context_overrides_workspace_and_auth():
         assert settings.workspace_id == "runtime-workspace"
         assert settings.user_id == "user-1"
         assert settings.session_id == "session-1"
+    finally:
+        reset_request_context(token)
+
+
+def test_request_context_timezone_is_validated_and_used():
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "openrouter:test",
+            "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+        }
+    )
+
+    token = set_request_context(
+        RequestContext(
+            workspace_id="runtime-workspace",
+            timezone="Asia/Ho_Chi_Minh",
+        )
+    )
+    try:
+        assert settings.timezone == "Asia/Ho_Chi_Minh"
+        assert settings.current_datetime().utcoffset() == timedelta(hours=7)
+    finally:
+        reset_request_context(token)
+
+
+def test_invalid_request_context_timezone_falls_back_to_utc():
+    settings = load_settings(
+        {
+            "NEXUS_AI_MODEL": "openrouter:test",
+            "NEXUS_MCP_URL": "http://localhost:3333/mcp",
+            "NEXUS_AI_DATABASE_URL": "postgresql://user:pass@localhost:5432/nexus_ai",
+            "NEXUS_AI_ENABLE_LANGFUSE": "false",
+        }
+    )
+
+    token = set_request_context(RequestContext(timezone="Mars/Phobos"))
+    try:
+        assert settings.timezone == "UTC"
     finally:
         reset_request_context(token)

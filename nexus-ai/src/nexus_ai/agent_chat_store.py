@@ -8,7 +8,7 @@ from uuid import uuid4
 from pydantic_ai.messages import ModelMessagesTypeAdapter, ModelRequest, ModelResponse, TextPart, UserPromptPart
 
 from nexus_ai.policies import is_destructive_tool, is_write_tool
-from nexus_ai.storage.sqlite import decode_json, encode_json
+from nexus_ai.storage.json_codec import decode_json, encode_json
 
 
 def utc_now() -> datetime:

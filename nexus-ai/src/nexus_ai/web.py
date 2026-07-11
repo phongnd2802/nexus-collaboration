@@ -71,6 +71,7 @@ def _request_context_from_scope(scope) -> RequestContext | None:
     workspace_id = headers.get("x-nexus-workspace-id")
     user_id = headers.get("x-nexus-user-id")
     request_id = headers.get("x-nexus-request-id")
+    timezone = headers.get("x-nexus-timezone")
     session_id = session_match.group(1) if session_match else None
 
     return RequestContext(
@@ -79,6 +80,7 @@ def _request_context_from_scope(scope) -> RequestContext | None:
         user_id=user_id,
         request_id=request_id,
         session_id=session_id or request_id,
+        timezone=timezone,
     )
 
 

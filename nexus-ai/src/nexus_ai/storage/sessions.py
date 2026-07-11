@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .sqlite import SQLiteStore, decode_json, encode_json
+from .json_codec import decode_json, encode_json
 
 
 @dataclass(frozen=True)
@@ -16,7 +16,7 @@ class SessionRecord:
 
 
 class SessionRepository:
-    def __init__(self, store: SQLiteStore) -> None:
+    def __init__(self, store) -> None:
         self.store = store
 
     def upsert(self, session_id: str, workspace_id: str, user_id: str | None, title: str, metadata: dict[str, Any] | None = None) -> None:
@@ -51,4 +51,3 @@ class SessionRepository:
             )
             for row in rows
         ]
-

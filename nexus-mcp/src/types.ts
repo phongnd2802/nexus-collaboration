@@ -13,6 +13,7 @@ export interface NexusMcpRequestContext {
   authorizationHeader?: string;
   workspaceId?: string;
   requestId?: string;
+  timezone?: string;
   source?: 'mcp';
 }
 

@@ -97,7 +97,7 @@ def build_runtime(settings: Settings | None = None) -> NexusAgentRuntime:
         settings = ctx.deps.settings
         return "\n".join(
             [
-                current_time_instruction(),
+                current_time_instruction(settings),
                 f"Workspace id: {settings.workspace_id}. Session id: {settings.session_id}. User id: {settings.user_id or 'unknown'}.",
                 (
                     "Operational rule: prefer answering with Nexus tool results when a relevant workspace tool exists. "

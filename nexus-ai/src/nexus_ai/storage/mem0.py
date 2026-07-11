@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 import re
 from typing import Any
 
@@ -15,7 +16,16 @@ class Mem0MemoryRepository:
             raise RuntimeError("mem0ai is required when NEXUS_AI_MEM0_ENABLED=true.") from exc
 
         self.settings = settings
-        self._memory = AsyncMemory.from_config(self._build_config())
+        config = self._build_config()
+        history_db_path = Path(config["history_db_path"])
+        history_db_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self._memory = AsyncMemory.from_config(config)
+        except Exception as exc:
+            raise RuntimeError(
+                f"Failed to initialize mem0 history storage at {history_db_path}. "
+                "Verify the runtime directory is writable and the mem0 dependencies are healthy."
+            ) from exc
 
     async def add(
         self,
@@ -112,6 +122,7 @@ class Mem0MemoryRepository:
 
     def _build_config(self) -> dict[str, Any]:
         llm_model = self._strip_provider_prefix(self.settings.model)
+        history_db_path = self.settings.runtime_dir / "mem0" / "mem0_history.db"
         return {
             "vector_store": {
                 "provider": "qdrant",
@@ -139,7 +150,7 @@ class Mem0MemoryRepository:
                     "openai_base_url": self.settings.openrouter_base_url,
                 },
             },
-            "history_db_path": str(self.settings.runtime_dir / "mem0_history.db"),
+            "history_db_path": str(history_db_path),
             "version": "v1.1",
         }
 

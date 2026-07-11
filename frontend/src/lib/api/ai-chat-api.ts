@@ -130,6 +130,67 @@ function completionResult(sessionId: string | undefined, message: string) {
   }
 }
 
+function readStoredJson(key: string): Record<string, any> | null {
+  if (typeof window === 'undefined') return null
+
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function isValidTimezone(value: unknown): value is string {
+  if (typeof value !== 'string' || !value.trim()) return false
+
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: value }).format()
+    return true
+  } catch {
+    return false
+  }
+}
+
+function resolveEffectiveTimezone(): string | undefined {
+  const user = readStoredJson('auth_user')
+  const userTimezone = user?.timezone ?? user?.metadata?.timezone
+  if (isValidTimezone(userTimezone)) {
+    return userTimezone
+  }
+
+  try {
+    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (isValidTimezone(browserTimezone)) {
+      return browserTimezone
+    }
+  } catch {
+    return undefined
+  }
+
+  return undefined
+}
+
+function buildAIChatHeaders(token: string, accept: string, includeContentType = false): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: accept,
+    Authorization: `Bearer ${token}`,
+  }
+
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json'
+  }
+
+  const timezone = resolveEffectiveTimezone()
+  if (timezone) {
+    headers['X-Nexus-Timezone'] = timezone
+  }
+
+  return headers
+}
+
 function toProjectCardPayloads(value: unknown): ProjectCardPayload[] {
   if (!Array.isArray(value)) return []
 
@@ -609,11 +670,7 @@ export const aiChatApi = {
 
     const response = await fetch(API_CONFIG.getApiUrl(path), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: buildAIChatHeaders(token, 'text/event-stream', true),
       body: JSON.stringify({
         trigger: 'submit-message',
         id: data.sessionId || crypto.randomUUID(),
@@ -640,10 +697,7 @@ export const aiChatApi = {
       API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`),
       {
         method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAIChatHeaders(token, 'application/json'),
       },
     )
 
@@ -665,10 +719,7 @@ export const aiChatApi = {
       API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions`),
       {
         method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAIChatHeaders(token, 'application/json'),
       },
     )
 
@@ -695,10 +746,7 @@ export const aiChatApi = {
       API_CONFIG.getApiUrl(`/agent-chat/workspaces/${workspaceId}/sessions/${sessionId}`),
       {
         method: 'DELETE',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAIChatHeaders(token, 'application/json'),
       },
     )
 

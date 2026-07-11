@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,7 +22,6 @@ class StaticSettings(BaseSettings):
     workspace_id: str = Field(default="", alias="NEXUS_WORKSPACE_ID")
     request_id: str | None = Field(default=None, alias="NEXUS_REQUEST_ID")
     runtime_dir: Path = Field(default=Path(".runtime"), alias="NEXUS_AI_RUNTIME_DIR")
-    sqlite_path: Path | None = Field(default=None, alias="NEXUS_AI_SQLITE_PATH")
     database_url: str | None = Field(default=None, alias="NEXUS_AI_DATABASE_URL")
     enable_langfuse: bool = Field(default=True, alias="NEXUS_AI_ENABLE_LANGFUSE")
     enable_code_mode: bool = Field(default=True, alias="NEXUS_AI_ENABLE_CODE_MODE")
@@ -120,8 +120,6 @@ class StaticSettings(BaseSettings):
             self.request_id = None
         if self.database_url == "":
             self.database_url = None
-        if self.sqlite_path is None:
-            self.sqlite_path = self.runtime_dir / "nexus_ai.sqlite3"
         if not self.rag_llm_model:
             self.rag_llm_model = self.model
         if not self.session_summary_model:
@@ -189,6 +187,23 @@ class Settings:
         raise AttributeError(name)
 
     @property
+    def timezone(self) -> str:
+        context = get_request_context()
+        if context and context.timezone:
+            normalized = _normalize_timezone(context.timezone)
+            if normalized:
+                return normalized
+        return "UTC"
+
+    def timezone_info(self) -> ZoneInfo:
+        return ZoneInfo(self.timezone)
+
+    def current_datetime(self):
+        from datetime import datetime
+
+        return datetime.now(self.timezone_info())
+
+    @property
     def session_id(self) -> str:
         context = get_request_context()
         if context and context.session_id:
@@ -202,6 +217,8 @@ class Settings:
     def validate_for_runtime(self) -> None:
         if not self.mcp_url:
             raise RuntimeError("Missing required Nexus AI env var: NEXUS_MCP_URL")
+        if not self.database_url:
+            raise RuntimeError("Missing required Nexus AI env var: NEXUS_AI_DATABASE_URL")
 
 
 def load_settings(env: dict[str, str] | None = None) -> Settings:
@@ -225,3 +242,16 @@ def _default_embedding_dimensions(model_name: str) -> int:
         "qwen/qwen3-embedding-8b": 4096,
     }
     return known_dimensions.get(normalized, 1536)
+
+
+def _normalize_timezone(value: str | None) -> str | None:
+    if not value:
+        return None
+    candidate = value.strip()
+    if not candidate:
+        return None
+    try:
+        ZoneInfo(candidate)
+    except ZoneInfoNotFoundError:
+        return None
+    return candidate

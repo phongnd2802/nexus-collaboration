@@ -127,6 +127,10 @@ export class NexusApiClient {
       headers['X-Nexus-Request-ID'] = this.context.requestId;
     }
 
+    if (this.context?.timezone) {
+      headers['X-Nexus-Timezone'] = this.context.timezone;
+    }
+
     const optionalHeaders: Array<[string, string]> = [
       ['NEXUS_PROJECT_ID', 'X-Project-ID'],
       ['NEXUS_APP_ID', 'X-App-ID'],

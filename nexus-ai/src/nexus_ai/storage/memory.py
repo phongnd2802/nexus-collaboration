@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from .sqlite import decode_json, encode_json
+from .json_codec import decode_json, encode_json
 
 
 @dataclass(frozen=True)

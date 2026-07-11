@@ -2,15 +2,12 @@ from .mem0 import Mem0MemoryRepository
 from .memory import MemoryRecord, MemoryRepository, MemoryStore
 from .postgres import PostgresStore
 from .sessions import SessionRecord, SessionRepository
-from .sqlite import SQLiteStore
 
 
 def create_store(settings):
-    if settings.database_url:
-        return PostgresStore(settings.database_url)
-    store = SQLiteStore(settings.sqlite_path)
-    store.initialize()
-    return store
+    if not settings.database_url:
+        raise RuntimeError("NEXUS_AI_DATABASE_URL is required; SQLite storage is no longer supported.")
+    return PostgresStore(settings.database_url)
 
 
 def create_memory_repository(settings, store) -> MemoryStore:
@@ -26,7 +23,6 @@ __all__ = [
     "MemoryRepository",
     "MemoryStore",
     "PostgresStore",
-    "SQLiteStore",
     "SessionRecord",
     "SessionRepository",
 ]

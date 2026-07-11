@@ -23,6 +23,7 @@ export class AgentChatService {
     workspaceId: string;
     requestId?: string;
     userId?: string;
+    timezone?: string;
     accept?: string;
     lastEventId?: string;
   }, res: Response): Promise<void> {
@@ -79,6 +80,7 @@ export class AgentChatService {
     workspaceId: string;
     requestId?: string;
     userId?: string;
+    timezone?: string;
     accept?: string;
     lastEventId?: string;
   }): Record<string, string> {
@@ -94,6 +96,10 @@ export class AgentChatService {
 
     if (request.userId) {
       headers['X-Nexus-User-ID'] = request.userId;
+    }
+
+    if (request.timezone) {
+      headers['X-Nexus-Timezone'] = request.timezone;
     }
 
     if (request.lastEventId) {

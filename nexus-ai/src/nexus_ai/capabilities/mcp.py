@@ -43,11 +43,14 @@ class _RequestScopedHeaders(Mapping[str, str]):
         context = get_request_context()
         workspace_id = context.workspace_id if context and context.workspace_id else self._settings.workspace_id
         request_id = context.request_id if context and context.request_id else self._settings.request_id
+        timezone = context.timezone if context and context.timezone else self._settings.timezone
         headers: dict[str, str] = {}
         if workspace_id:
             headers["X-Nexus-Workspace-ID"] = workspace_id
         if request_id:
             headers["X-Nexus-Request-ID"] = request_id
+        if timezone:
+            headers["X-Nexus-Timezone"] = timezone
         return headers
 
     def __getitem__(self, key: str) -> str:

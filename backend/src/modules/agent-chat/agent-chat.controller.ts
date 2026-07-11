@@ -126,6 +126,7 @@ export class AgentChatController {
         workspaceId,
         requestId: this.getHeader(req, 'x-nexus-request-id'),
         userId: user.sub || user.userId,
+        timezone: this.getHeader(req, 'x-nexus-timezone'),
         accept: this.getHeader(req, 'accept'),
         lastEventId: options?.lastEventId,
       },
