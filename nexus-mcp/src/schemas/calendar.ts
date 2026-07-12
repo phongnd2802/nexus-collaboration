@@ -96,6 +96,12 @@ const eventRecurrenceRuleInputSchema = z.object({
   occurrences: z.number().int().positive().optional(),
 });
 
+const ATTENDEES_DESCRIPTION =
+  'List of attendee EMAIL ADDRESSES (e.g. "user@example.com"). Do NOT pass user IDs/UUIDs — the backend resolves each entry by email lookup; a UUID cannot be resolved and shows up as a raw unresolved ID in the UI. If you only have user IDs, fetch the workspace members first to get their emails.';
+
+const REMINDERS_DESCRIPTION =
+  'Reminders as MINUTES BEFORE the event start (integers). Examples: 15 = 15 minutes, 60 = 1 hour, 1440 = 1 day before. Do NOT pass clock times (e.g. 1500 for "15:00") or seconds. Max 40320 (28 days).';
+
 export const createEventInputShape = {
   title: z.string().min(1).describe('Event title.'),
   start_time: z.string().describe('Event start time in ISO 8601 format.'),
@@ -105,14 +111,14 @@ export const createEventInputShape = {
   location: z.string().optional().describe('Event location.'),
   room_id: z.string().uuid().optional().describe('Meeting room ID.'),
   category_id: z.string().uuid().optional().describe('Event category ID.'),
-  attendees: z.array(z.string()).optional().describe('List of attendee email addresses.'),
+  attendees: z.array(z.string().email()).optional().describe(ATTENDEES_DESCRIPTION),
   meeting_url: z.string().optional().describe('Meeting URL (Zoom, Teams, etc.).'),
   visibility: z.enum(['private', 'public', 'internal']).optional().describe('Event visibility.'),
   priority: z.enum(['low', 'normal', 'high', 'urgent']).optional().describe('Event priority.'),
   status: z.enum(['confirmed', 'tentative', 'cancelled']).optional().describe('Event status.'),
   is_recurring: z.boolean().optional().describe('Whether this is a recurring event.'),
   recurrence_rule: eventRecurrenceRuleInputSchema.optional().describe('Recurrence rule for recurring events.'),
-  reminders: z.array(z.number().int().nonnegative()).optional().describe('Reminder settings in minutes before event.'),
+  reminders: z.array(z.number().int().nonnegative().max(40320)).optional().describe(REMINDERS_DESCRIPTION),
   attachments: eventAttachmentsInputSchema.optional().describe('Unified attachments object.'),
   description_file_ids: z.array(z.string().uuid()).optional().describe('File IDs embedded in description content.'),
 };
@@ -126,14 +132,14 @@ export const updateEventInputShape = {
   location: z.string().optional().describe('Updated event location.'),
   room_id: z.string().uuid().optional().describe('Updated meeting room ID.'),
   category_id: z.string().uuid().optional().describe('Updated event category ID.'),
-  attendees: z.array(z.string()).optional().describe('Updated list of attendee email addresses. Replaces the existing attendee list.'),
+  attendees: z.array(z.string().email()).optional().describe(`Replaces the existing attendee list. ${ATTENDEES_DESCRIPTION}`),
   meeting_url: z.string().optional().describe('Updated meeting URL (Zoom, Teams, etc.).'),
   visibility: z.enum(['private', 'public', 'internal']).optional().describe('Updated event visibility.'),
   priority: z.enum(['low', 'normal', 'high', 'urgent']).optional().describe('Updated event priority.'),
   status: z.enum(['confirmed', 'tentative', 'cancelled']).optional().describe('Updated event status.'),
   is_recurring: z.boolean().optional().describe('Whether this is a recurring event.'),
   recurrence_rule: eventRecurrenceRuleInputSchema.optional().describe('Updated recurrence rule for recurring events.'),
-  reminders: z.array(z.number().int().nonnegative()).optional().describe('Updated reminder settings in minutes before event. Replaces the existing reminders.'),
+  reminders: z.array(z.number().int().nonnegative().max(40320)).optional().describe(`Replaces the existing reminders. ${REMINDERS_DESCRIPTION}`),
   attachments: eventAttachmentsInputSchema.optional().describe('Updated unified attachments object. Replaces the existing attachments.'),
   description_file_ids: z.array(z.string().uuid()).optional().describe('Updated file IDs embedded in description content.'),
 };
