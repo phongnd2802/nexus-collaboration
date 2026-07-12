@@ -367,7 +367,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
     name: 'nexus_schedule_message',
     title: 'Schedule Nexus Message',
     description:
-      'Use this tool when you need to schedule a channel message to be sent at a future date and time. Provide content, channel ID, the scheduledAt ISO timestamp, and optionally thread/parent IDs, attachments, mentions, and linked content.',
+      'Use this tool when you need to schedule a channel message to be sent at a future date and time. Provide content, channel ID, the scheduledAt ISO 8601 timestamp with timezone (e.g. "2026-07-12T03:10:00Z" or "2026-07-12T10:10:00+07:00" — a bare local time without timezone is rejected), and optionally thread/parent IDs, attachments, mentions, and linked content.',
     inputSchema: {
       workspace_id: workspaceIdSchema,
       ...scheduleMessageInputShape,
@@ -383,7 +383,8 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
       ...(attachments !== undefined ? { attachments } : {}),
       ...(mentions !== undefined ? { mentions } : {}),
       ...(linkedContent !== undefined ? { linkedContent } : {}),
-      scheduledAt,
+      // Backend expects UTC; normalize offset forms like "+07:00" to "Z".
+      scheduledAt: new Date(String(scheduledAt)).toISOString(),
     }),
     outputSchema: scheduledMessageActionOutputSchema,
     outputTransform: (data) => normalizeScheduledMessageActionResponse(data),
@@ -454,7 +455,7 @@ export function registerChatTools(server: McpServer, client: NexusApiClient) {
       ...(attachments !== undefined ? { attachments } : {}),
       ...(mentions !== undefined ? { mentions } : {}),
       ...(linkedContent !== undefined ? { linkedContent } : {}),
-      ...(scheduledAt !== undefined ? { scheduledAt } : {}),
+      ...(scheduledAt !== undefined ? { scheduledAt: new Date(String(scheduledAt)).toISOString() } : {}),
     }),
     outputSchema: scheduledMessageActionOutputSchema,
     outputTransform: (data) => normalizeScheduledMessageActionResponse(data),
