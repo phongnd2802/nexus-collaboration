@@ -186,6 +186,15 @@ export const createChannelPollInputShape = {
 
 export const scheduledMessageStatusSchema = z.enum(['pending', 'sent', 'cancelled', 'failed']);
 
+const SCHEDULED_AT_DESCRIPTION =
+  'Scheduled send time as a full ISO 8601 datetime string WITH timezone. ' +
+  'Accepted formats: UTC with "Z" suffix (e.g. "2026-07-12T03:10:00Z" or "2026-07-12T03:10:00.000Z") ' +
+  'or with an explicit UTC offset (e.g. "2026-07-12T10:10:00+07:00"). ' +
+  'Rejected: date-only strings ("2026-07-12"), datetimes without timezone ("2026-07-12T10:10:00"), ' +
+  'or non-ISO formats ("2026-07-12 10:10"). ' +
+  'When the user gives a local time (e.g. "10:10 AM Vietnam time"), either append their UTC offset ' +
+  '(e.g. "+07:00") or convert to UTC before calling. Must be a future time.';
+
 export const scheduleMessageInputShape = {
   content: z.string().min(1).describe('Message content.'),
   contentHtml: z.string().optional().describe('HTML formatted content.'),
@@ -198,7 +207,7 @@ export const scheduleMessageInputShape = {
     .array(sendChannelMessageLinkedContentInputSchema)
     .optional()
     .describe(LINKED_CONTENT_DESCRIPTION),
-  scheduledAt: z.string().datetime().describe('Scheduled send time in ISO 8601 format.'),
+  scheduledAt: z.string().datetime({ offset: true }).describe(SCHEDULED_AT_DESCRIPTION),
 };
 
 export const updateScheduledMessageInputShape = {
@@ -210,7 +219,7 @@ export const updateScheduledMessageInputShape = {
     .array(sendChannelMessageLinkedContentInputSchema)
     .optional()
     .describe(`Updated linked content. ${LINKED_CONTENT_DESCRIPTION}`),
-  scheduledAt: z.string().datetime().optional().describe('Updated scheduled send time in ISO 8601 format.'),
+  scheduledAt: z.string().datetime({ offset: true }).optional().describe(`Updated scheduled send time. ${SCHEDULED_AT_DESCRIPTION}`),
 };
 
 export const messageUserOutputSchema = z
